@@ -1,0 +1,91 @@
+{
+  "auth": {
+    "login": "Log in",
+    "register": "Sign up",
+    "email": "Email",
+    "password": "Password",
+    "username": "Username",
+    "welcomeBack": "Welcome back",
+    "createAccount": "Create account",
+    "noAccount": "No account yet?",
+    "hasAccount": "Already have an account?",
+    "loginButton": "Log in →",
+    "registerButton": "Create account →",
+    "loading": "Loading...",
+    "tagline": "Your personal AI stylist. The perfect outfit every morning.",
+    "feature1": "Outfits from your wardrobe",
+    "feature2": "AI detects color & style",
+    "feature3": "Dress Me in one click"
+  },
+  "nav": {
+    "dresser": "Dress Me",
+    "wardrobe": "Wardrobe",
+    "outfits": "Outfits",
+    "style": "Style DNA"
+  },
+  "dresser": {
+    "title": "What are you wearing today?",
+    "button": "Dress Me",
+    "generating": "Styling your outfit...",
+    "newOutfit": "New Outfit",
+    "save": "Save",
+    "saved": "Saved",
+    "whatForOutfit": "What goes in the outfit?",
+    "fullOutfit": "Full Outfit",
+    "outfitFor": "Your outfit for",
+    "kiStylist": "AI Stylist",
+    "notEnough": "Not enough clothing yet",
+    "notEnoughSub": "Upload at least 3 clothing items so the AI can create outfits.",
+    "uploadNow": "Upload clothing →",
+    "occasions": {
+      "casual": "Casual",
+      "uni": "University",
+      "work": "Work",
+      "date": "Date",
+      "sport": "Sport",
+      "party": "Party",
+      "festival": "Festival"
+    },
+    "categories": {
+      "tops": "Top",
+      "hosen": "Pants",
+      "jacken": "Jacket",
+      "schuhe": "Shoes",
+      "acc": "Accessories"
+    }
+  },
+  "wardrobe": {
+    "title": "Your Wardrobe",
+    "upload": "Upload clothing",
+    "uploadSub": "Take a photo or choose from gallery",
+    "all": "All",
+    "tops": "Tops",
+    "pants": "Pants",
+    "jackets": "Jackets",
+    "shoes": "Shoes",
+    "accessories": "Accessories",
+    "pieces": "pieces",
+    "totalValue": "Total value",
+    "newestFirst": "Newest first",
+    "oldestFirst": "Oldest first",
+    "nameAZ": "Name A-Z",
+    "priceDesc": "Price descending",
+    "purchaseDate": "Purchase date",
+    "purchasePrice": "Purchase price (€)",
+    "save": "Save",
+    "saving": "Saving...",
+    "delete": "Delete",
+    "nothingHere": "Nothing here yet",
+    "uploadFirst": "Upload your first clothing item!"
+  },
+  "outfits": {
+    "title": "Saved Outfits",
+    "saved": "outfits saved",
+    "newOutfit": "New Outfit",
+    "loading": "Loading...",
+    "empty": "No outfits yet",
+    "emptySub": "Let the AI put together an outfit for you!",
+    "dressMe": "Dress Me →",
+    "pieces": "pieces"
+  }
+}

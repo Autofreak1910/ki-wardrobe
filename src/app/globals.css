@@ -1,26 +1,77 @@
-@import "tailwindcss";
+﻿@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #f7f6f3;
+  --bg-secondary: #eeecea;
+  --bg-card: #ffffff;
+  --text: #0a0a0a;
+  --text-secondary: #6b7280;
+  --border: #e5e7eb;
+  --border-hover: #d1d5db;
+  --accent-from: #0ea472;
+  --accent-to: #0891b2;
+  --accent-gradient: linear-gradient(135deg, #0ea472 0%, #0891b2 100%);
+  --input-bg: #fafafa;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+[data-theme='dark'] {
+  --bg: #0d1117;
+  --bg-secondary: #161b22;
+  --bg-card: #1c2128;
+  --text: #f0f4f8;
+  --text-secondary: #8b93a7;
+  --border: #2a2f3e;
+  --border-hover: #3a4055;
+  --input-bg: #252836;
+  --shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  transition: background 0.3s, color 0.3s;
+}
+
+[data-theme='light'] body {
+  background: linear-gradient(135deg, #f0faf6 0%, #f0f7fa 50%, #f7f6f3 100%);
+  background-attachment: fixed;
+}
+
+[data-theme='dark'] body {
+  background: linear-gradient(135deg, #0a1628 0%, #0d1f1a 50%, #0d1117 100%);
+  background-attachment: fixed;
+}
+
+input {
+  background: var(--input-bg) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+main {
+  animation: pageIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pageIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+nav {
+  animation: navIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes navIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }

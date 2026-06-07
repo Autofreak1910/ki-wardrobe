@@ -1,0 +1,91 @@
+{
+  "auth": {
+    "login": "Einloggen",
+    "register": "Registrieren",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "username": "Benutzername",
+    "welcomeBack": "Willkommen zurück",
+    "createAccount": "Konto erstellen",
+    "noAccount": "Noch kein Konto?",
+    "hasAccount": "Bereits ein Konto?",
+    "loginButton": "Einloggen →",
+    "registerButton": "Konto erstellen →",
+    "loading": "Laden...",
+    "tagline": "Dein persönlicher KI-Stylist. Jeden Morgen das perfekte Outfit.",
+    "feature1": "Outfits aus deinem Kleiderschrank",
+    "feature2": "KI erkennt Farbe & Stil",
+    "feature3": "Dress Me in einem Klick"
+  },
+  "nav": {
+    "dresser": "Dress Me",
+    "wardrobe": "Kleiderschrank",
+    "outfits": "Outfits",
+    "style": "Style DNA"
+  },
+  "dresser": {
+    "title": "Was ziehst du heute an?",
+    "button": "Dress Me",
+    "generating": "Stylt dein Outfit...",
+    "newOutfit": "Neues Outfit",
+    "save": "Speichern",
+    "saved": "Gespeichert",
+    "whatForOutfit": "Was soll ins Outfit?",
+    "fullOutfit": "Full Outfit",
+    "outfitFor": "Dein Outfit für",
+    "kiStylist": "KI Stylist",
+    "notEnough": "Noch zu wenig Kleidung",
+    "notEnoughSub": "Lade mindestens 3 Kleidungsstücke hoch damit die KI Outfits erstellen kann.",
+    "uploadNow": "Kleidung hochladen →",
+    "occasions": {
+      "casual": "Casual",
+      "uni": "Uni",
+      "work": "Arbeit",
+      "date": "Date",
+      "sport": "Sport",
+      "party": "Party",
+      "festival": "Festival"
+    },
+    "categories": {
+      "tops": "Oberteil",
+      "hosen": "Hose",
+      "jacken": "Jacke",
+      "schuhe": "Schuhe",
+      "acc": "Accessoires"
+    }
+  },
+  "wardrobe": {
+    "title": "Dein Kleiderschrank",
+    "upload": "Kleidung hochladen",
+    "uploadSub": "Foto machen oder aus Galerie wählen",
+    "all": "Alle",
+    "tops": "Tops",
+    "pants": "Hosen",
+    "jackets": "Jacken",
+    "shoes": "Schuhe",
+    "accessories": "Accessoires",
+    "pieces": "Teile",
+    "totalValue": "Gesamtwert",
+    "newestFirst": "Neueste zuerst",
+    "oldestFirst": "Älteste zuerst",
+    "nameAZ": "Name A-Z",
+    "priceDesc": "Preis absteigend",
+    "purchaseDate": "Kaufdatum",
+    "purchasePrice": "Kaufpreis (€)",
+    "save": "Speichern",
+    "saving": "Speichern...",
+    "delete": "Löschen",
+    "nothingHere": "Noch nichts hier",
+    "uploadFirst": "Lade dein erstes Kleidungsstück hoch!"
+  },
+  "outfits": {
+    "title": "Gespeicherte Outfits",
+    "saved": "Outfits gespeichert",
+    "newOutfit": "Neues Outfit",
+    "loading": "Laden...",
+    "empty": "Noch keine Outfits",
+    "emptySub": "Lass die KI ein Outfit für dich zusammenstellen!",
+    "dressMe": "Dress Me →",
+    "pieces": "Teile"
+  }
+}
