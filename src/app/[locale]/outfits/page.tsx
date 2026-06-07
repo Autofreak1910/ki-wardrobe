@@ -39,21 +39,19 @@ export default function OutfitsPage() {
     casual: '😎', uni: '🎒', work: '💼', date: '🌹', sport: '🏃', party: '🎉', festival: '🎪'
   }
 
-  useEffect(() => { loadData() }, [])
-
   async function loadData() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-
     const [outfitsRes, itemsRes] = await Promise.all([
       supabase.from('outfits').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
       supabase.from('clothing_items').select('*').eq('user_id', user.id)
     ])
-
     if (outfitsRes.data) setOutfits(outfitsRes.data)
     if (itemsRes.data) setItems(itemsRes.data)
     setLoading(false)
   }
+
+  useEffect(() => { loadData() }, [])
 
   async function toggleFavorite(outfit: Outfit) {
     await supabase.from('outfits').update({ is_favorite: !outfit.is_favorite }).eq('id', outfit.id)
@@ -64,21 +62,20 @@ export default function OutfitsPage() {
     await supabase.from('outfits').delete().eq('id', id)
     setOutfits(prev => prev.filter(o => o.id !== id))
   }
-function switchLanguage() {
-  const newLocale = locale === 'de' ? 'en' : 'de'
-  const segments = pathname.split('/')
-  segments[1] = newLocale
-  const newPath = segments.join('/')
-  window.location.replace(newPath)
-}
+
+  function switchLanguage() {
+    const newLocale = locale === 'de' ? 'en' : 'de'
+    const segments = pathname.split('/')
+    segments[1] = newLocale
+    window.location.replace(segments.join('/'))
+  }
+
   function getItemsForOutfit(outfit: Outfit) {
     return outfit.item_ids?.map(id => items.find(i => i.id === id)).filter(Boolean) as ClothingItem[]
   }
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', fontFamily: "'DM Sans', sans-serif" }}>
-
-      {/* Navbar */}
       <nav style={{ borderBottom: '1px solid var(--border)', padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '60px', background: 'var(--bg)', position: 'sticky', top: 0, zIndex: 100 }}>
         <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '20px', color: 'var(--text)' }}>
           Ki<em style={{ color: '#0ea472' }}>Wardrobe</em>
@@ -92,12 +89,10 @@ function switchLanguage() {
           ))}
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
-        <button onClick={switchLanguage}
-  style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', fontSize: '12px', color: 'var(--text)', fontFamily: "'DM Sans', sans-serif" }}>
-  {locale === 'de' ? '🇬🇧 EN' : '🇩🇪 DE'}
-</button>
-          <button onClick={toggle}
-            style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '6px 10px', cursor: 'pointer', fontSize: '16px' }}>
+          <button onClick={switchLanguage} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', fontSize: '12px', color: 'var(--text)', fontFamily: "'DM Sans', sans-serif" }}>
+            {locale === 'de' ? '🇬🇧 EN' : '🇩🇪 DE'}
+          </button>
+          <button onClick={toggle} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '6px 10px', cursor: 'pointer', fontSize: '16px' }}>
             {isDark ? '☀️' : '🌙'}
           </button>
         </div>
@@ -107,30 +102,26 @@ function switchLanguage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '28px' }}>
           <div>
             <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '32px', fontWeight: 400, color: 'var(--text)', marginBottom: '4px' }}>
-              Gespeicherte Outfits
+              {t('outfits.title')}
             </h1>
-            <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{outfits.length} Outfits gespeichert</p>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{outfits.length} {t('outfits.saved')}</p>
           </div>
           <button onClick={() => router.push('/' + locale + '/dresser')}
             style={{ background: 'linear-gradient(135deg, #0ea472, #0891b2)', border: 'none', borderRadius: '10px', padding: '10px 20px', fontSize: '13px', fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
-            ✦ Neues Outfit
+            ✦ {t('outfits.newOutfit')}
           </button>
         </div>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-secondary)' }}>Laden…</div>
+          <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-secondary)' }}>{t('outfits.loading')}</div>
         ) : outfits.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 32px', background: 'var(--bg-secondary)', borderRadius: '20px', border: '1px solid var(--border)' }}>
             <div style={{ fontSize: '56px', marginBottom: '16px' }}>👔</div>
-            <p style={{ fontSize: '18px', fontWeight: 500, color: 'var(--text)', marginBottom: '8px', fontFamily: "'DM Serif Display', serif" }}>
-              Noch keine Outfits
-            </p>
-            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '24px' }}>
-              Lass die KI ein Outfit für dich zusammenstellen!
-            </p>
+            <p style={{ fontSize: '18px', fontWeight: 500, color: 'var(--text)', marginBottom: '8px', fontFamily: "'DM Serif Display', serif" }}>{t('outfits.empty')}</p>
+            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '24px' }}>{t('outfits.emptySub')}</p>
             <button onClick={() => router.push('/' + locale + '/dresser')}
               style={{ background: 'linear-gradient(135deg, #0ea472, #0891b2)', border: 'none', borderRadius: '12px', padding: '13px 28px', fontSize: '14px', fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
-              Dress Me →
+              {t('outfits.dressMe')}
             </button>
           </div>
         ) : (
@@ -141,8 +132,6 @@ function switchLanguage() {
                 <div key={outfit.id} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', overflow: 'hidden', transition: 'transform 0.15s' }}
                   onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-2px)')}
                   onMouseLeave={e => (e.currentTarget.style.transform = 'translateY(0)')}>
-
-                  {/* Item Bilder */}
                   <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(outfitItems.length, 3)}, 1fr)`, height: '160px' }}>
                     {outfitItems.slice(0, 3).map((item, i) => (
                       <div key={i} style={{ overflow: 'hidden', background: 'var(--bg-secondary)' }}>
@@ -155,24 +144,20 @@ function switchLanguage() {
                       </div>
                     )}
                   </div>
-
-                  {/* Info */}
                   <div style={{ padding: '14px 16px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div>
                         <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', marginBottom: '2px' }}>{outfit.name}</p>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <span style={{ fontSize: '14px' }}>{occasionEmoji[outfit.occasion]}</span>
-                          <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{outfitItems.length} Teile</span>
+                          <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{outfitItems.length} {t('outfits.pieces')}</span>
                         </div>
                       </div>
                       <div style={{ display: 'flex', gap: '6px' }}>
-                        <button onClick={() => toggleFavorite(outfit)}
-                          style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '6px 10px', cursor: 'pointer', fontSize: '14px' }}>
+                        <button onClick={() => toggleFavorite(outfit)} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '6px 10px', cursor: 'pointer', fontSize: '14px' }}>
                           {outfit.is_favorite ? '❤️' : '🤍'}
                         </button>
-                        <button onClick={() => deleteOutfit(outfit.id)}
-                          style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '6px 10px', cursor: 'pointer', fontSize: '14px' }}>
+                        <button onClick={() => deleteOutfit(outfit.id)} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '6px 10px', cursor: 'pointer', fontSize: '14px' }}>
                           🗑
                         </button>
                       </div>
