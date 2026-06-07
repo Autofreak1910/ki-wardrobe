@@ -12,11 +12,12 @@ const ThemeContext = createContext<{
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>('light')
 
-  useEffect(() => {
-    const saved = localStorage.getItem('theme') as Theme
-    if (saved) setTheme(saved)
-    else if (window.matchMedia('(prefers-color-scheme: dark)').matches) setTheme('dark')
-  }, [])
+useEffect(() => {
+  const saved = localStorage.getItem('theme') as Theme
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+  const initial = saved ?? (prefersDark ? 'dark' : 'light')
+  setTheme(initial)
+}, [])
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
