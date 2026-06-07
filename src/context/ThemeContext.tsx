@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 
 type Theme = 'light' | 'dark'
 
@@ -9,27 +9,25 @@ const ThemeContext = createContext<{
   toggle: () => void
 }>({ theme: 'light', toggle: () => {} })
 
-function getInitialTheme(): Theme {
-  if (typeof window === 'undefined') return 'light'
-  const saved = localStorage.getItem('theme') as Theme
-  if (saved) return saved
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-}
-
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>('light')
-  const [mounted, setMounted] = useState(false)
+  const initialized = useRef(false)
 
   useEffect(() => {
-    setTheme(getInitialTheme())
-    setMounted(true)
-  }, [])
+    if (initialized.current) return
+    initialized.current = true
+    const saved = localStorage.getItem('theme') as Theme | null
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const initial: Theme = saved ?? (prefersDark ? 'dark' : 'light')
+    document.documentElement.setAttribute('data-theme', initial)
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    setTheme(initial)
+  })
 
   useEffect(() => {
-    if (!mounted) return
     document.documentElement.setAttribute('data-theme', theme)
     localStorage.setItem('theme', theme)
-  }, [theme, mounted])
+  }, [theme])
 
   return (
     <ThemeContext.Provider value={{ theme, toggle: () => setTheme(t => t === 'light' ? 'dark' : 'light') }}>
