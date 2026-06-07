@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import createMiddleware from 'next-intl/middleware'
-import { routing } from '@/i18n/routing'
+import { defineRouting } from 'next-intl/routing'
+
+const routing = defineRouting({
+  locales: ['de', 'en'],
+  defaultLocale: 'de',
+  localePrefix: 'always',
+})
 
 const intlMiddleware = createMiddleware(routing)
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-
-  if (pathname.startsWith('/api/') || pathname.startsWith('/_next/') || pathname.includes('.')) {
-    return NextResponse.next()
-  }
 
   if (pathname === '/') {
     return NextResponse.redirect(new URL('/de/auth/login', request.url))
@@ -21,5 +23,5 @@ export async function middleware(request: NextRequest) {
 export { middleware as proxy }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api).*)'],
 }
