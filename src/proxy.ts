@@ -1,11 +1,11 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 import createMiddleware from 'next-intl/middleware'
 import { routing } from '@/i18n/routing'
 
 const intlMiddleware = createMiddleware(routing)
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   if (pathname.startsWith('/api/') || pathname.startsWith('/_next/') || pathname.includes('.')) {
