@@ -1,16 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import createMiddleware from 'next-intl/middleware'
-import { defineRouting } from 'next-intl/routing'
-
-const routing = defineRouting({
-  locales: ['de', 'en'],
-  defaultLocale: 'de',
-  localePrefix: 'always',
-})
+import { routing } from '@/i18n/routing'
 
 const intlMiddleware = createMiddleware(routing)
 
-export async function middleware(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   if (pathname === '/') {
@@ -19,8 +13,6 @@ export async function middleware(request: NextRequest) {
 
   return intlMiddleware(request)
 }
-
-export { middleware as proxy }
 
 export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico|api).*)'],
