@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import { useTheme } from '@/context/ThemeContext'
 import { useTranslations, useLocale } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
+import Navbar from '@/components/Navbar'
 
 const occasions = ['casual', 'uni', 'work', 'date', 'sport', 'party', 'festival'] as const
 const categoryFilters = [
@@ -38,11 +39,10 @@ export default function DresserPage() {
   const [wardrobeItems, setWardrobeItems] = useState<ClothingItem[]>([])
   const [hasItems, setHasItems] = useState(true)
   const [activeCategories, setActiveCategories] = useState<string[]>(['tops', 'hosen', 'jacken', 'schuhe', 'acc'])
-  const { theme, toggle } = useTheme()
+  const { theme } = useTheme()
   const t = useTranslations()
   const locale = useLocale()
   const router = useRouter()
-  const pathname = usePathname()
   const supabase = createClient()
   const isDark = theme === 'dark'
 
@@ -68,18 +68,6 @@ export default function DresserPage() {
     setOutfit(null)
   }
 
-  function switchLanguage() {
-    const newLocale = locale === 'de' ? 'en' : 'de'
-    const segments = pathname.split('/')
-    segments[1] = newLocale
-    window.location.replace(segments.join('/'))
-  }
-
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    router.push('/' + locale + '/auth/login')
-  }
-
   async function generateOutfit() {
     if (wardrobeItems.length < 3) return
     setLoading(true)
@@ -88,14 +76,11 @@ export default function DresserPage() {
     const filteredItems = wardrobeItems.filter(i => activeCategories.includes(i.category))
     const itemsToUse = filteredItems.length >= 2 ? filteredItems : wardrobeItems
     try {
-    const res = await fetch('/api/generate-outfit', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'x-locale': locale,
-  },
-  body: JSON.stringify({ items: itemsToUse, occasion: selected, weather: '18°C', categories: activeCategories }),
-})
+      const res = await fetch('/api/generate-outfit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-locale': locale },
+        body: JSON.stringify({ items: itemsToUse, occasion: selected, weather: '18°C', categories: activeCategories }),
+      })
       const data = await res.json()
       if (data.success) {
         const matchedItems = data.items.map((name: string) =>
@@ -125,36 +110,9 @@ export default function DresserPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', fontFamily: "'DM Sans', sans-serif" }}>
-      <nav style={{ borderBottom: '1px solid var(--border)', padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '60px', background: 'var(--bg)', position: 'sticky', top: 0, zIndex: 100 }}>
-        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '20px', color: 'var(--text)' }}>
-          Ki<em style={{ color: '#0ea472' }}>Wardrobe</em>
-        </div>
-        <div style={{ display: 'flex', gap: '4px' }}>
-          {['dresser', 'wardrobe', 'outfits', 'style'].map(page => (
-            <button key={page} onClick={() => router.push('/' + locale + '/' + page)}
-              style={{ padding: '8px 14px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 500, fontFamily: "'DM Sans', sans-serif", background: page === 'dresser' ? 'linear-gradient(135deg, #0ea472, #0891b2)' : 'transparent', color: page === 'dresser' ? '#fff' : 'var(--text-secondary)' }}>
-              {t('nav.' + page)}
-            </button>
-          ))}
-        </div>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <button onClick={switchLanguage} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', fontSize: '12px', color: 'var(--text)', fontFamily: "'DM Sans', sans-serif" }}>
-            {locale === 'de' ? '🇬🇧 EN' : '🇩🇪 DE'}
-          </button>
-          <button onClick={toggle} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '6px 10px', cursor: 'pointer', fontSize: '16px' }}>
-            {isDark ? '☀️' : '🌙'}
-          </button>
-          <button onClick={() => router.push('/' + locale + '/profile')}
-  style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg, #0ea472, #0891b2)', border: 'none', cursor: 'pointer', fontSize: '14px', color: '#fff', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-  👤
-</button>
-<button onClick={handleLogout} style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', fontSize: '12px', color: 'var(--text-secondary)', fontFamily: "'DM Sans', sans-serif" }}>
-  Logout
-</button>
-        </div>
-      </nav>
+      <Navbar activePage="dresser" />
 
-      <main style={{ maxWidth: '580px', margin: '0 auto', padding: '48px 24px' }}>
+      <main style={{ maxWidth: '580px', margin: '0 auto', padding: '48px 24px 100px 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px', letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>{today}</p>
           <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '38px', fontWeight: 400, color: 'var(--text)', lineHeight: 1.2, marginBottom: '10px' }}>
