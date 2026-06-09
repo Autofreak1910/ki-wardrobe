@@ -83,9 +83,17 @@ export default function DresserPage() {
       })
       const data = await res.json()
       if (data.success) {
-        const matchedItems = data.items.map((name: string) =>
-          wardrobeItems.find(i => i.name === name || i.name?.toLowerCase().includes(name.toLowerCase()) || name.toLowerCase().includes((i.name ?? '').toLowerCase()))
-        ).filter(Boolean)
+     const matchedItems = data.items.map((name: string) => {
+  return wardrobeItems.find(i => {
+    const itemName = (i.name ?? '').toLowerCase().trim()
+    const searchName = name.toLowerCase().trim()
+    return itemName === searchName ||
+      itemName.includes(searchName) ||
+      searchName.includes(itemName) ||
+      itemName.split(' ').some(word => word.length > 3 && searchName.includes(word)) ||
+      searchName.split(' ').some(word => word.length > 3 && itemName.includes(word))
+  })
+}).filter(Boolean)
         setOutfit({ items: data.items, reasoning: data.reasoning, itemObjects: matchedItems })
       }
     } catch (err) { console.error(err) }
