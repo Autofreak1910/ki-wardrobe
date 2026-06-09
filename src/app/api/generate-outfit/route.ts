@@ -2,33 +2,41 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
   try {
-    const { imageBase64, mimeType } = await request.json()
+    const { items, occasion, weather, categories } = await request.json()
     const locale = request.headers.get('x-locale') || 'de'
     const isEnglish = locale === 'en'
 
+    const itemList = items.map((item: { name?: string; category: string; color: string; brand?: string }) =>
+      `- ${item.name ?? item.category} (${item.category}, ${item.color}${item.brand ? ', ' + item.brand : ''})`
+    ).join('\n')
+
     const prompt = isEnglish
-      ? `You are a fashion expert. Analyze this clothing item and respond ONLY with a valid JSON object:
-{"category":"schuhe","name":"Nike Air Max Plus","color":"Black","style_tags":["streetwear"],"season":["spring","autumn"],"brand":"Nike"}
+      ? `You are a fashion stylist. Create an outfit for the occasion "${occasion}" from these clothing items:
 
-Rules:
-- category: exactly one of: tops, hosen, jacken, schuhe, acc
-- name: specific product name if recognizable, otherwise short English name max 3 words
-- color: in English (Black, White, Navy, Grey, Beige, Blue, Green, Red)
-- style_tags: from: streetwear, casual, formal, vintage, sporty, minimalist, luxury
-- season: from: spring, summer, autumn, winter
-- brand: if logo visible, otherwise omit
-Respond with ONLY the JSON.`
-      : `Du bist ein Fashion-Experte. Analysiere dieses Kleidungsstück und antworte NUR mit einem JSON-Objekt:
-{"category":"schuhe","name":"Nike Air Max Plus","color":"Schwarz","style_tags":["streetwear"],"season":["frühling","herbst"],"brand":"Nike"}
+${itemList}
 
-Regeln:
-- category: genau eines von: tops, hosen, jacken, schuhe, acc
-- name: spezifischer Produktname falls erkennbar, sonst kurzer deutscher Name max 3 Wörter
-- color: auf Deutsch (Schwarz, Weiß, Navy, Grau, Beige, Blau, Grün, Rot)
-- style_tags: aus: streetwear, casual, formal, vintage, sportlich, minimalistisch, luxury
-- season: aus: frühling, sommer, herbst, winter
-- brand: falls Logo sichtbar, sonst weglassen
-Nur JSON antworten.`
+Weather: ${weather}
+
+Choose 2-4 matching pieces and respond ONLY with JSON:
+{
+  "items": ["exact name from list above", "exact name from list above"],
+  "reasoning": "brief explanation in English why this combination works"
+}
+
+Only use exact names from the list!`
+      : `Du bist ein Fashion-Stylist. Erstelle ein Outfit für den Anlass "${occasion}" aus diesen Kleidungsstücken:
+
+${itemList}
+
+Wetter: ${weather}
+
+Wähle 2-4 passende Teile und antworte NUR mit JSON:
+{
+  "items": ["exakter Name aus Liste oben", "exakter Name aus Liste oben"],
+  "reasoning": "kurze Begründung auf Deutsch warum diese Kombination passt"
+}
+
+Nur exakte Namen aus der Liste verwenden!`
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -38,36 +46,20 @@ Nur JSON antworten.`
       },
       body: JSON.stringify({
         model: 'gpt-4o-mini',
-        max_tokens: 300,
-        messages: [
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'image_url',
-                image_url: {
-                  url: `data:${mimeType};base64,${imageBase64}`,
-                  detail: 'high',
-                }
-              },
-              { type: 'text', text: prompt }
-            ]
-          }
-        ]
+        max_tokens: 500,
+        messages: [{ role: 'user', content: prompt }]
       })
     })
 
     const data = await response.json()
     const text = data.choices?.[0]?.message?.content ?? ''
     const jsonMatch = text.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) {
-      return NextResponse.json({ success: false, error: 'No JSON in response', raw: text }, { status: 500 })
-    }
-    const analysis = JSON.parse(jsonMatch[0])
-    return NextResponse.json({ success: true, analysis })
+    if (!jsonMatch) throw new Error('No JSON')
+    const result = JSON.parse(jsonMatch[0])
+    return NextResponse.json({ success: true, ...result })
 
   } catch (error) {
-    console.error('OpenAI error:', error)
+    console.error('Outfit error:', error)
     return NextResponse.json({ success: false, error: String(error) }, { status: 500 })
   }
 }
