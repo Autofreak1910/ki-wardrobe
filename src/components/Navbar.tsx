@@ -24,7 +24,7 @@ export default function Navbar({ activePage }: { activePage: string }) {
   return (
     <>
       {/* Desktop Navbar */}
-      <nav style={{ borderBottom: '1px solid var(--border)', padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '60px', background: 'var(--bg)', position: 'sticky', top: 0, zIndex: 100 }}>
+   <nav style={{ borderBottom: '1px solid var(--border)', padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '60px', background: 'var(--bg)', position: 'fixed' as const, top: 0, left: 0, right: 0, zIndex: 100 }}>
         <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '20px', color: 'var(--text)' }}>
           Ki<em style={{ color: '#0ea472' }}>Wardrobe</em>
         </div>
