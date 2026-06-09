@@ -75,3 +75,13 @@ nav {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+.app-container {
+  height: 100vh;
+  height: 100dvh;
+}
+
+@supports (-webkit-touch-callout: none) {
+  .app-container {
+    height: -webkit-fill-available;
+  }
+}
