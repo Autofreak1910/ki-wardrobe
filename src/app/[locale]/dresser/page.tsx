@@ -109,10 +109,9 @@ export default function DresserPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' as const, background: 'var(--bg)', fontFamily: "'DM Sans', sans-serif", overflow: 'hidden' }}>
       <Navbar activePage="dresser" />
-
-      <main style={{ maxWidth: '580px', margin: '0 auto', padding: '48px 24px 100px 24px' }}>
+      <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '580px', width: '100%', margin: '0 auto', padding: '48px 24px 100px 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px', letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>{today}</p>
           <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '38px', fontWeight: 400, color: 'var(--text)', lineHeight: 1.2, marginBottom: '10px' }}>
@@ -195,13 +194,9 @@ export default function DresserPage() {
 
                 <div style={{ padding: '16px', display: 'grid', gridTemplateColumns: outfit.itemObjects.length >= 3 ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)', gap: '10px' }}>
                   {outfit.itemObjects.length > 0 ? outfit.itemObjects.map((item, i) => (
-                    <div key={i} style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border)', background: 'var(--bg-secondary)', cursor: 'pointer', transition: 'transform 0.15s' }}
-                      onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-2px)')}
-                      onMouseLeave={e => (e.currentTarget.style.transform = 'translateY(0)')}>
+                    <div key={i} style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border)', background: 'var(--bg-secondary)', cursor: 'pointer', transition: 'transform 0.15s' }}>
                       <div style={{ aspectRatio: '1', overflow: 'hidden' }}>
-                        <img src={item.image_url} alt={item.name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }}
-                          onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.08)')}
-                          onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')} />
+                        <img src={item.image_url} alt={item.name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       </div>
                       <div style={{ padding: '8px 10px' }}>
                         <p style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, marginBottom: '2px' }}>{item.name}</p>
@@ -229,9 +224,7 @@ export default function DresserPage() {
 
                 <div style={{ padding: '0 16px 16px' }}>
                   <button onClick={generateOutfit}
-                    style={{ width: '100%', padding: '12px', background: 'transparent', border: '1px solid var(--border)', borderRadius: '12px', fontSize: '13px', color: 'var(--text-secondary)', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-secondary)'; e.currentTarget.style.color = 'var(--text)' }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)' }}>
+                    style={{ width: '100%', padding: '12px', background: 'transparent', border: '1px solid var(--border)', borderRadius: '12px', fontSize: '13px', color: 'var(--text-secondary)', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                     ↻ {t('dresser.newOutfit')}
                   </button>
                 </div>
