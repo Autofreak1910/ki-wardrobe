@@ -59,6 +59,11 @@ export default function Navbar({ activePage }: { activePage: string }) {
   }
 
   useEffect(() => { setMounted(true) }, [])
+  useEffect(() => {
+  tabs.forEach(tab => {
+    router.prefetch('/' + locale + '/' + tab.page)
+  })
+}, [locale])
 
   useEffect(() => {
     if (!mounted || !navRef.current) return
@@ -218,7 +223,8 @@ export default function Navbar({ activePage }: { activePage: string }) {
           return (
             <motion.button
               key={item.page}
-              onClick={() => !isDragging && router.push('/' + locale + '/' + item.page)}
+   onMouseEnter={() => router.prefetch('/' + locale + '/' + item.page)}
+onClick={() => !isDragging && router.push('/' + locale + '/' + item.page)}
               animate={{ scale: isHighlighted ? 1.1 : 1, y: isHighlighted ? -3 : 0 }}
               transition={SPRING}
               style={{
