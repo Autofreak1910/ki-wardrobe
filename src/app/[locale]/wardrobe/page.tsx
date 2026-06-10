@@ -25,7 +25,8 @@ type ClothingItem = {
 }
 
 export default function WardrobePage() {
-  const [items, setItems] = useState<ClothingItem[]>([])
+const [items, setItems] = useState<ClothingItem[]>([])
+const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
   const [sort, setSort] = useState('newest')
   const [uploading, setUploading] = useState(false)
@@ -47,12 +48,13 @@ export default function WardrobePage() {
 
   useEffect(() => { loadItems() }, [])
 
-  async function loadItems() {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-    const { data } = await supabase.from('clothing_items').select('*').eq('user_id', user.id).order('created_at', { ascending: false })
-    if (data) setItems(data)
-  }
+async function loadItems() {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+  const { data } = await supabase.from('clothing_items').select('*').eq('user_id', user.id).order('created_at', { ascending: false })
+  if (data) setItems(data)
+  setLoading(false)
+}
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -241,8 +243,20 @@ return (
             </button>
           ))}
         </div>
-
-        {filtered.length === 0 ? (
+{loading ? (
+  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '10px' }}>
+    {[1,2,3,4,5,6].map(i => (
+      <div key={i} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '12px', overflow: 'hidden' }}>
+        <div style={{ aspectRatio: '3/4', background: 'var(--bg-secondary)' }} className="skeleton" />
+        <div style={{ padding: '8px 10px' }}>
+          <div style={{ height: '12px', width: '70%', background: 'var(--bg-secondary)', borderRadius: '4px', marginBottom: '6px' }} className="skeleton" />
+          <div style={{ height: '10px', width: '40%', background: 'var(--bg-secondary)', borderRadius: '4px' }} className="skeleton" />
+        </div>
+      </div>
+    ))}
+    <style>{`.skeleton{animation:shimmer 1.5s ease-in-out infinite}@keyframes shimmer{0%,100%{opacity:1}50%{opacity:0.4}}`}</style>
+  </div>
+) : filtered.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-secondary)' }}>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>👗</div>
             <p style={{ fontSize: '16px', fontWeight: 500, marginBottom: '8px', color: 'var(--text)' }}>{t('wardrobe.nothingHere')}</p>
@@ -311,6 +325,6 @@ return (
           </div>
         </div>
       )}
-    </div>
+</div>
   )
 }
