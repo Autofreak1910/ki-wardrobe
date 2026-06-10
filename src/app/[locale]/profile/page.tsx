@@ -75,12 +75,24 @@ export default function ProfilePage() {
   const memberSince = profile ? new Date(profile.created_at).toLocaleDateString(
     locale === 'de' ? 'de-DE' : 'en-US', { month: 'long', year: 'numeric' }
   ) : ''
-
-  if (loading) return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <p style={{ color: 'var(--text-secondary)', fontFamily: "'DM Sans', sans-serif" }}>Laden...</p>
-    </div>
-  )
+if (loading) return (
+  <div className="app-container" style={{ height: '100vh', display: 'flex', flexDirection: 'column' as const, background: 'var(--bg)', overflow: 'hidden', fontFamily: "'DM Sans', sans-serif" }}>
+    <Navbar activePage="profile" />
+    <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '600px', width: '100%', margin: '0 auto', padding: '80px 16px 100px 16px' }}>
+      <div style={{ borderRadius: '20px', background: 'linear-gradient(135deg, #0ea472, #0891b2)', padding: '24px', marginBottom: '16px', height: '180px' }} className="skeleton" />
+      <div style={{ borderRadius: '16px', background: 'var(--bg-card)', border: '1px solid var(--border)', height: '80px', marginBottom: '12px' }} className="skeleton" />
+      <div style={{ borderRadius: '16px', background: 'var(--bg-card)', border: '1px solid var(--border)', height: '120px', marginBottom: '12px' }} className="skeleton" />
+    </main>
+    <style>{`
+      .skeleton { animation: shimmer 1.5s infinite; }
+      @keyframes shimmer {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+      }
+    `}</style>
+  </div>
+)
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', fontFamily: "'DM Sans', sans-serif" }}>
