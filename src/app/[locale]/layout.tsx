@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { NextIntlClientProvider } from 'next-intl'
-import { getMessages, getLocale } from 'next-intl/server'
+import { getMessages } from 'next-intl/server'
 import { routing } from '@/i18n/routing'
 import { ThemeProvider } from '@/context/ThemeContext'
 import '../globals.css'
@@ -19,13 +19,17 @@ export default async function LocaleLayout({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-
   if (!routing.locales.includes(locale as 'de' | 'en')) notFound()
-
   const messages = await getMessages({ locale })
 
   return (
     <html lang={locale}>
+      <head>
+        <link rel="prefetch" href={`/${locale}/dresser`} />
+        <link rel="prefetch" href={`/${locale}/wardrobe`} />
+        <link rel="prefetch" href={`/${locale}/outfits`} />
+        <link rel="prefetch" href={`/${locale}/profile`} />
+      </head>
       <body>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <ThemeProvider>{children}</ThemeProvider>
