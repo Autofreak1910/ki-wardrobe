@@ -85,7 +85,7 @@ export default function ProfilePage() {
     <div style={{ minHeight: '100vh', background: 'var(--bg)', fontFamily: "'DM Sans', sans-serif" }}>
       <Navbar activePage="profile" />
 
-      <main style={{ maxWidth: '600px', margin: '0 auto', padding: '20px 16px 100px 16px' }}>
+<main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '600px', width: '100%', margin: '0 auto', padding: '80px 16px 100px 16px' }}>
 
         {/* Profile Header */}
         <div style={{ background: 'linear-gradient(135deg, #0ea472, #0891b2)', borderRadius: '20px', padding: '24px', marginBottom: '16px', position: 'relative', overflow: 'hidden' }}>
