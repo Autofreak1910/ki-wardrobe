@@ -6,6 +6,7 @@ import { useTranslations, useLocale } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/Navbar'
+export const dynamic = 'force-static'
 
 const occasions = ['casual', 'uni', 'work', 'date', 'sport', 'party', 'festival'] as const
 const categoryFilters = [

@@ -32,6 +32,8 @@ export default function Navbar({ activePage }: { activePage: string }) {
   const bubbleX = useMotionValue(0)
   const bubbleW = useMotionValue(0)
 
+  const SPRING = { type: 'spring' as const, stiffness: 1500, damping: 80, mass: 0.1 }
+
   function switchLanguage() {
     const newLocale = locale === 'de' ? 'en' : 'de'
     const segments = pathname.split('/')
@@ -45,10 +47,8 @@ export default function Navbar({ activePage }: { activePage: string }) {
 
   function snap(index: number, w: number, stretch = false) {
     const pos = getPos(index, w)
-    animate(bubbleX, pos.x, { type: 'spring', stiffness: 1200, damping: 70, mass: 0.15 })
-    animate(bubbleW, stretch ? pos.width * 1.12 : pos.width, {
-      type: 'spring', stiffness: 1200, damping: 70, mass: 0.15
-    })
+    animate(bubbleX, pos.x, { ...SPRING })
+    animate(bubbleW, stretch ? pos.width * 1.12 : pos.width, { ...SPRING })
   }
 
   function getIndex(clientX: number) {
@@ -107,12 +107,10 @@ export default function Navbar({ activePage }: { activePage: string }) {
       : (e as React.MouseEvent).clientX
     const targetIndex = getIndex(x)
     const w = navRef.current.offsetWidth / tabs.length
-
     setIsDragging(false)
     setDragIndex(-1)
     dragIndexRef.current = -1
     currentActiveIndex.current = targetIndex
-
     snap(targetIndex, w, false)
     router.push('/' + locale + '/' + tabs[targetIndex].page)
   }
@@ -128,7 +126,6 @@ export default function Navbar({ activePage }: { activePage: string }) {
 
   return (
     <>
-      {/* Desktop Navbar */}
       <nav style={{
         borderBottom: '1px solid var(--border)', padding: '0 24px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -170,7 +167,6 @@ export default function Navbar({ activePage }: { activePage: string }) {
         </div>
       </nav>
 
-      {/* Mobile Bottom Nav */}
       <div
         ref={navRef}
         className="mobile-nav"
@@ -185,8 +181,7 @@ export default function Navbar({ activePage }: { activePage: string }) {
           position: 'fixed', bottom: 0, left: 0, right: 0,
           height: '72px',
           background: isDark ? 'rgba(10,12,18,0.94)' : 'rgba(250,250,252,0.94)',
-          backdropFilter: 'blur(28px)',
-          WebkitBackdropFilter: 'blur(28px)',
+          backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)',
           borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.05)'}`,
           display: 'flex', alignItems: 'center',
           zIndex: 100,
@@ -194,32 +189,24 @@ export default function Navbar({ activePage }: { activePage: string }) {
           boxShadow: isDark
             ? '0 -1px 0 rgba(255,255,255,0.05), 0 -8px 32px rgba(0,0,0,0.5)'
             : '0 -1px 0 rgba(0,0,0,0.04), 0 -8px 32px rgba(0,0,0,0.05)',
-          touchAction: 'none',
-          userSelect: 'none',
+          touchAction: 'none', userSelect: 'none',
         }}
       >
-        {/* Bubble */}
         {mounted && tabWidth > 0 && (
-          <motion.div
-            style={{
-              position: 'absolute',
-              top: '10px',
-              x: bubbleX,
-              width: bubbleW,
-              height: '52px',
-              background: isDark
-                ? 'linear-gradient(135deg, rgba(14,164,114,0.25), rgba(8,145,178,0.25))'
-                : 'linear-gradient(135deg, rgba(14,164,114,0.16), rgba(8,145,178,0.16))',
-              borderRadius: '18px',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-              border: `1px solid ${isDark ? 'rgba(14,164,114,0.35)' : 'rgba(14,164,114,0.22)'}`,
-              boxShadow: isDark
-                ? '0 0 20px rgba(14,164,114,0.2), inset 0 1px 0 rgba(255,255,255,0.08)'
-                : '0 0 20px rgba(14,164,114,0.1), inset 0 1px 0 rgba(255,255,255,0.7)',
-              pointerEvents: 'none',
-            }}
-          />
+          <motion.div style={{
+            position: 'absolute', top: '10px',
+            x: bubbleX, width: bubbleW, height: '52px',
+            background: isDark
+              ? 'linear-gradient(135deg, rgba(14,164,114,0.25), rgba(8,145,178,0.25))'
+              : 'linear-gradient(135deg, rgba(14,164,114,0.16), rgba(8,145,178,0.16))',
+            borderRadius: '18px',
+            backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
+            border: `1px solid ${isDark ? 'rgba(14,164,114,0.35)' : 'rgba(14,164,114,0.22)'}`,
+            boxShadow: isDark
+              ? '0 0 20px rgba(14,164,114,0.2), inset 0 1px 0 rgba(255,255,255,0.08)'
+              : '0 0 20px rgba(14,164,114,0.1), inset 0 1px 0 rgba(255,255,255,0.7)',
+            pointerEvents: 'none',
+          }} />
         )}
 
         {tabs.map((item) => {
@@ -233,7 +220,7 @@ export default function Navbar({ activePage }: { activePage: string }) {
               key={item.page}
               onClick={() => !isDragging && router.push('/' + locale + '/' + item.page)}
               animate={{ scale: isHighlighted ? 1.1 : 1, y: isHighlighted ? -3 : 0 }}
-              transition={{ type: 'spring', stiffness: 1200, damping: 70, mass: 0.15 }}
+              transition={SPRING}
               style={{
                 display: 'flex', flexDirection: 'column' as const,
                 alignItems: 'center', gap: '3px',
@@ -250,7 +237,7 @@ export default function Navbar({ activePage }: { activePage: string }) {
                   opacity: isHighlighted ? 1 : 0.38,
                   scale: isHighlighted ? 1.08 : 1,
                 }}
-                transition={{ type: 'spring', stiffness: 1200, damping: 70, mass: 0.15 }}
+                transition={SPRING}
                 style={{ fontSize: '22px', display: 'block', lineHeight: 1 }}
               >
                 {item.emoji}
@@ -260,7 +247,7 @@ export default function Navbar({ activePage }: { activePage: string }) {
                   color: isHighlighted ? '#0ea472' : isDark ? '#6b7280' : '#9ca3af',
                   opacity: isHighlighted ? 1 : 0.6,
                 }}
-                transition={{ duration: 0.15 }}
+                transition={{ duration: 0.12 }}
                 style={{
                   fontSize: '10px',
                   fontWeight: isHighlighted ? 700 : 400,

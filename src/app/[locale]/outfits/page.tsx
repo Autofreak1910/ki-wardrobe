@@ -6,6 +6,7 @@ import { useTranslations, useLocale } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/Navbar'
+export const dynamic = 'force-static'
 
 type Outfit = {
   id: string
