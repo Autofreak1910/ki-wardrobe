@@ -4,7 +4,7 @@ import { useTheme } from '@/context/ThemeContext'
 import { useLocale, useTranslations } from 'next-intl'
 import { useRouter, usePathname } from 'next/navigation'
 import { useRef, useEffect, useState } from 'react'
-import { motion, useSpring, useMotionValue, animate } from 'framer-motion'
+import { motion, useMotionValue, animate } from 'framer-motion'
 
 export default function Navbar({ activePage }: { activePage: string }) {
   const { theme, toggle } = useTheme()
@@ -19,6 +19,7 @@ export default function Navbar({ activePage }: { activePage: string }) {
   const [isDragging, setIsDragging] = useState(false)
   const [dragIndex, setDragIndex] = useState(-1)
   const currentActiveIndex = useRef(0)
+  const dragIndexRef = useRef(-1)
 
   const tabs = [
     { page: 'dresser', emoji: '✦', label: 'Dress Me' },
@@ -28,11 +29,8 @@ export default function Navbar({ activePage }: { activePage: string }) {
   ]
 
   const activeIndex = tabs.findIndex(t => t.page === activePage)
-
   const bubbleX = useMotionValue(0)
   const bubbleW = useMotionValue(0)
-  const springX = useSpring(bubbleX, { stiffness: 600, damping: 40, mass: 0.5 })
-  const springW = useSpring(bubbleW, { stiffness: 600, damping: 40, mass: 0.5 })
 
   function switchLanguage() {
     const newLocale = locale === 'de' ? 'en' : 'de'
@@ -41,8 +39,23 @@ export default function Navbar({ activePage }: { activePage: string }) {
     window.location.replace(segments.join('/'))
   }
 
-  function getBubblePos(index: number, w: number) {
+  function getPos(index: number, w: number) {
     return { x: index * w + w * 0.08, width: w * 0.84 }
+  }
+
+  function snap(index: number, w: number, stretch = false) {
+    const pos = getPos(index, w)
+    animate(bubbleX, pos.x, { type: 'spring', stiffness: 1200, damping: 70, mass: 0.15 })
+    animate(bubbleW, stretch ? pos.width * 1.12 : pos.width, {
+      type: 'spring', stiffness: 1200, damping: 70, mass: 0.15
+    })
+  }
+
+  function getIndex(clientX: number) {
+    if (!navRef.current) return 0
+    const left = navRef.current.getBoundingClientRect().left
+    const w = navRef.current.offsetWidth / tabs.length
+    return Math.max(0, Math.min(tabs.length - 1, Math.floor((clientX - left) / w)))
   }
 
   useEffect(() => { setMounted(true) }, [])
@@ -52,64 +65,65 @@ export default function Navbar({ activePage }: { activePage: string }) {
     const w = navRef.current.offsetWidth / tabs.length
     setTabWidth(w)
     currentActiveIndex.current = activeIndex
-    const pos = getBubblePos(activeIndex, w)
-    animate(bubbleX, pos.x, { type: 'spring', stiffness: 600, damping: 40, mass: 0.5 })
-    animate(bubbleW, pos.width, { type: 'spring', stiffness: 600, damping: 40 })
-  }, [mounted, activeIndex])
+    const pos = getPos(activeIndex, w)
+    bubbleX.set(pos.x)
+    bubbleW.set(pos.width)
+  }, [mounted])
 
-  function getIndexFromX(clientX: number) {
-    if (!navRef.current) return 0
-    const navLeft = navRef.current.getBoundingClientRect().left
+  useEffect(() => {
+    if (!mounted || !navRef.current || isDragging) return
     const w = navRef.current.offsetWidth / tabs.length
-    return Math.max(0, Math.min(tabs.length - 1, Math.floor((clientX - navLeft) / w)))
-  }
+    currentActiveIndex.current = activeIndex
+    snap(activeIndex, w)
+  }, [activeIndex, mounted])
 
-  function handleDragStart(e: React.TouchEvent | React.MouseEvent) {
-    setIsDragging(true)
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-    const idx = getIndexFromX(clientX)
-    setDragIndex(idx)
+  function onDragStart(e: React.TouchEvent | React.MouseEvent) {
     if (!navRef.current) return
+    setIsDragging(true)
+    const x = 'touches' in e ? e.touches[0].clientX : e.clientX
+    const idx = getIndex(x)
+    dragIndexRef.current = idx
+    setDragIndex(idx)
     const w = navRef.current.offsetWidth / tabs.length
-    const pos = getBubblePos(idx, w)
-    animate(bubbleX, pos.x, { type: 'spring', stiffness: 800, damping: 40 })
-    // Stretch bubble when dragging
-    animate(bubbleW, pos.width * 1.15, { type: 'spring', stiffness: 800, damping: 40 })
+    snap(idx, w, true)
   }
 
-  function handleDragMove(e: React.TouchEvent | React.MouseEvent) {
+  function onDragMove(e: React.TouchEvent | React.MouseEvent) {
     if (!isDragging || !navRef.current) return
     e.preventDefault()
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-    const idx = getIndexFromX(clientX)
-    if (idx === dragIndex) return
+    const x = 'touches' in e ? e.touches[0].clientX : e.clientX
+    const idx = getIndex(x)
+    if (idx === dragIndexRef.current) return
+    dragIndexRef.current = idx
     setDragIndex(idx)
     const w = navRef.current.offsetWidth / tabs.length
-    const pos = getBubblePos(idx, w)
-    animate(bubbleX, pos.x, { type: 'spring', stiffness: 800, damping: 40, mass: 0.4 })
-    animate(bubbleW, pos.width * 1.1, { type: 'spring', stiffness: 800, damping: 40 })
+    snap(idx, w, true)
   }
 
-  function handleDragEnd(e: React.TouchEvent | React.MouseEvent) {
+  function onDragEnd(e: React.TouchEvent | React.MouseEvent) {
     if (!isDragging || !navRef.current) return
-    setIsDragging(false)
-    const clientX = 'changedTouches' in e
+    const x = 'changedTouches' in e
       ? e.changedTouches[0].clientX
       : (e as React.MouseEvent).clientX
-    const targetIndex = getIndexFromX(clientX)
-    setDragIndex(-1)
-
+    const targetIndex = getIndex(x)
     const w = navRef.current.offsetWidth / tabs.length
-    const pos = getBubblePos(targetIndex, w)
 
-    // Snap back to normal size with squish
-    animate(bubbleW, pos.width * 1.08, { duration: 0.08 }).then(() => {
-      animate(bubbleW, pos.width, { type: 'spring', stiffness: 500, damping: 30 })
-    })
-    animate(bubbleX, pos.x, { type: 'spring', stiffness: 600, damping: 40 })
-
+    setIsDragging(false)
+    setDragIndex(-1)
+    dragIndexRef.current = -1
     currentActiveIndex.current = targetIndex
+
+    snap(targetIndex, w, false)
     router.push('/' + locale + '/' + tabs[targetIndex].page)
+  }
+
+  function onLeave() {
+    if (!isDragging || !navRef.current) return
+    setIsDragging(false)
+    setDragIndex(-1)
+    dragIndexRef.current = -1
+    const w = navRef.current.offsetWidth / tabs.length
+    snap(currentActiveIndex.current, w)
   }
 
   return (
@@ -160,28 +174,17 @@ export default function Navbar({ activePage }: { activePage: string }) {
       <div
         ref={navRef}
         className="mobile-nav"
-        onTouchStart={handleDragStart}
-        onTouchMove={handleDragMove}
-        onTouchEnd={handleDragEnd}
-        onMouseDown={handleDragStart}
-        onMouseMove={handleDragMove}
-        onMouseUp={handleDragEnd}
-        onMouseLeave={() => {
-          if (isDragging) {
-            setIsDragging(false)
-            setDragIndex(-1)
-            if (navRef.current) {
-              const w = navRef.current.offsetWidth / tabs.length
-              const pos = getBubblePos(currentActiveIndex.current, w)
-              animate(bubbleX, pos.x, { type: 'spring', stiffness: 600, damping: 40 })
-              animate(bubbleW, pos.width, { type: 'spring', stiffness: 600, damping: 40 })
-            }
-          }
-        }}
+        onTouchStart={onDragStart}
+        onTouchMove={onDragMove}
+        onTouchEnd={onDragEnd}
+        onMouseDown={onDragStart}
+        onMouseMove={onDragMove}
+        onMouseUp={onDragEnd}
+        onMouseLeave={onLeave}
         style={{
           position: 'fixed', bottom: 0, left: 0, right: 0,
           height: '72px',
-          background: isDark ? 'rgba(10,12,18,0.92)' : 'rgba(250,250,252,0.92)',
+          background: isDark ? 'rgba(10,12,18,0.94)' : 'rgba(250,250,252,0.94)',
           backdropFilter: 'blur(28px)',
           WebkitBackdropFilter: 'blur(28px)',
           borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.05)'}`,
@@ -193,53 +196,49 @@ export default function Navbar({ activePage }: { activePage: string }) {
             : '0 -1px 0 rgba(0,0,0,0.04), 0 -8px 32px rgba(0,0,0,0.05)',
           touchAction: 'none',
           userSelect: 'none',
-          cursor: isDragging ? 'grabbing' : 'default',
         }}
       >
-        {/* Liquid Glass Bubble */}
+        {/* Bubble */}
         {mounted && tabWidth > 0 && (
           <motion.div
             style={{
               position: 'absolute',
               top: '10px',
-              x: springX,
-              width: springW,
+              x: bubbleX,
+              width: bubbleW,
               height: '52px',
               background: isDark
-                ? 'linear-gradient(135deg, rgba(14,164,114,0.22), rgba(8,145,178,0.22))'
-                : 'linear-gradient(135deg, rgba(14,164,114,0.14), rgba(8,145,178,0.14))',
+                ? 'linear-gradient(135deg, rgba(14,164,114,0.25), rgba(8,145,178,0.25))'
+                : 'linear-gradient(135deg, rgba(14,164,114,0.16), rgba(8,145,178,0.16))',
               borderRadius: '18px',
               backdropFilter: 'blur(12px)',
               WebkitBackdropFilter: 'blur(12px)',
-              border: `1px solid ${isDark ? 'rgba(14,164,114,0.35)' : 'rgba(14,164,114,0.25)'}`,
+              border: `1px solid ${isDark ? 'rgba(14,164,114,0.35)' : 'rgba(14,164,114,0.22)'}`,
               boxShadow: isDark
                 ? '0 0 20px rgba(14,164,114,0.2), inset 0 1px 0 rgba(255,255,255,0.08)'
-                : '0 0 20px rgba(14,164,114,0.12), inset 0 1px 0 rgba(255,255,255,0.6)',
+                : '0 0 20px rgba(14,164,114,0.1), inset 0 1px 0 rgba(255,255,255,0.7)',
               pointerEvents: 'none',
             }}
           />
         )}
 
-        {tabs.map((item, i) => {
+        {tabs.map((item) => {
           const isActive = activePage === item.page
-          const isDragActive = isDragging && dragIndex === i
-          const isHighlighted = isDragging ? isDragActive : isActive
+          const isHighlighted = isDragging
+            ? dragIndex === tabs.findIndex(t => t.page === item.page)
+            : isActive
 
           return (
             <motion.button
               key={item.page}
               onClick={() => !isDragging && router.push('/' + locale + '/' + item.page)}
-              animate={{
-                scale: isHighlighted ? 1.12 : 1,
-                y: isHighlighted ? -4 : 0,
-              }}
-              transition={{ type: 'spring', stiffness: 600, damping: 35, mass: 0.4 }}
+              animate={{ scale: isHighlighted ? 1.1 : 1, y: isHighlighted ? -3 : 0 }}
+              transition={{ type: 'spring', stiffness: 1200, damping: 70, mass: 0.15 }}
               style={{
                 display: 'flex', flexDirection: 'column' as const,
                 alignItems: 'center', gap: '3px',
                 background: 'none', border: 'none',
-                cursor: isDragging ? 'grabbing' : 'pointer',
-                padding: '8px 0', flex: 1,
+                cursor: 'pointer', padding: '8px 0', flex: 1,
                 position: 'relative' as const, zIndex: 1,
                 pointerEvents: isDragging ? 'none' : 'auto',
                 WebkitTapHighlightColor: 'transparent',
@@ -249,9 +248,9 @@ export default function Navbar({ activePage }: { activePage: string }) {
                 animate={{
                   filter: isHighlighted ? 'none' : 'grayscale(1)',
                   opacity: isHighlighted ? 1 : 0.38,
-                  scale: isHighlighted ? 1.1 : 1,
+                  scale: isHighlighted ? 1.08 : 1,
                 }}
-                transition={{ type: 'spring', stiffness: 600, damping: 35 }}
+                transition={{ type: 'spring', stiffness: 1200, damping: 70, mass: 0.15 }}
                 style={{ fontSize: '22px', display: 'block', lineHeight: 1 }}
               >
                 {item.emoji}
@@ -259,11 +258,12 @@ export default function Navbar({ activePage }: { activePage: string }) {
               <motion.span
                 animate={{
                   color: isHighlighted ? '#0ea472' : isDark ? '#6b7280' : '#9ca3af',
-                  fontWeight: isHighlighted ? 700 : 400,
-                  opacity: isHighlighted ? 1 : 0.7,
+                  opacity: isHighlighted ? 1 : 0.6,
                 }}
+                transition={{ duration: 0.15 }}
                 style={{
                   fontSize: '10px',
+                  fontWeight: isHighlighted ? 700 : 400,
                   fontFamily: "'DM Sans', sans-serif",
                   letterSpacing: '0.01em',
                 }}
