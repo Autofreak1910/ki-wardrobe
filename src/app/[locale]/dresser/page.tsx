@@ -121,7 +121,7 @@ export default function DresserPage() {
   return (
 <div className="app-container" style={{ height: '100vh', display: 'flex', flexDirection: 'column' as const, background: 'var(--bg)', fontFamily: "'DM Sans', sans-serif", overflow: 'hidden' }}>
       <Navbar activePage="dresser" />
-    <main ref={mainRef} style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '580px', width: '100%', margin: '0 auto', padding: '48px 24px 100px 24px' }}>
+    <main ref={mainRef} style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '580px', width: '100%', margin: '0 auto',padding: '80px 24px 100px 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px', letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>{today}</p>
           <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '38px', fontWeight: 400, color: 'var(--text)', lineHeight: 1.2, marginBottom: '10px' }}>
