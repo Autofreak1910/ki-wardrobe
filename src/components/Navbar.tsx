@@ -62,7 +62,7 @@ export default function Navbar({ activePage }: { activePage: string }) {
           { page: 'profile', emoji: '👤', label: locale === 'de' ? 'Profil' : 'Profile' },
         ].map(item => (
           <button key={item.page} onClick={() => router.push('/' + locale + '/' + item.page)}
-            style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: '3px', background: 'none', border: 'none', cursor: 'pointer', padding: '8px 16px', borderRadius: '12px', minWidth: '60px' }}>
+       style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: '3px', background: 'none', border: 'none', cursor: 'pointer', padding: '8px 16px', borderRadius: '12px', minWidth: '60px', transition: 'all 0.15s', transform: activePage === item.page ? 'scale(1.05)' : 'scale(1)' }}>
             <span style={{ fontSize: '20px', filter: activePage === item.page ? 'none' : 'grayscale(0.5)', opacity: activePage === item.page ? 1 : 0.5 }}>{item.emoji}</span>
             <span style={{ fontSize: '10px', fontWeight: activePage === item.page ? 600 : 400, color: activePage === item.page ? '#0ea472' : 'var(--text-secondary)', fontFamily: "'DM Sans', sans-serif" }}>{item.label}</span>
           </button>
