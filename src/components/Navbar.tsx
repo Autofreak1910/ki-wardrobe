@@ -23,7 +23,7 @@ export default function Navbar({ activePage }: { activePage: string }) {
 
   const tabs = [
     { page: 'dresser', emoji: '✦', label: 'Dress Me' },
-    { page: 'wardrobe', emoji: '👗', label: locale === 'de' ? 'Schrank' : 'Wardrobe' },
+   { page: 'wardrobe', emoji: '👕', label: locale === 'de' ? 'Schrank' : 'Wardrobe' },
     { page: 'outfits', emoji: '💫', label: 'Outfits' },
     { page: 'profile', emoji: '👤', label: locale === 'de' ? 'Profil' : 'Profile' },
   ]
