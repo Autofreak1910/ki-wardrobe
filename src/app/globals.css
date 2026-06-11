@@ -1,10 +1,11 @@
 ﻿@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
 
 html, body {
-  background: #0ea472;
   margin: 0;
   padding: 0;
+  background: #0ea472;
 }
+
 :root {
   --bg: #f7f6f3;
   --bg-secondary: #eeecea;
@@ -35,7 +36,6 @@ html, body {
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  background: var(--bg);
   color: var(--text);
   font-family: 'DM Sans', sans-serif;
   transition: background 0.3s, color 0.3s;
@@ -58,10 +58,6 @@ input {
 }
 
 main {
-  animation: pageIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-main {
   animation: pageIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
@@ -75,6 +71,7 @@ main {
     transform: translateY(0) scale(1);
   }
 }
+
 nav {
   animation: navIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -83,6 +80,7 @@ nav {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
 .app-container {
   height: 100vh;
   height: 100dvh;

@@ -26,6 +26,13 @@ export default async function LocaleLayout({
   return (
     <html lang={locale}>
       <head>
+  <script dangerouslySetInnerHTML={{ __html: `
+    document.documentElement.style.background = '#0ea472';
+    document.body && (document.body.style.background = '#0ea472');
+  `}} />
+  <link rel="manifest" href="/manifest.json" />
+  ...
+        
         <link rel="manifest" href="/manifest.json" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
