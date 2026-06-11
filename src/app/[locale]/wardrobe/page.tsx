@@ -6,7 +6,6 @@ import { useTranslations, useLocale } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/Navbar'
-export const dynamic = 'force-static'
 
 const categories = ['all', 'tops', 'hosen', 'jacken', 'schuhe', 'acc'] as const
 
@@ -47,12 +46,12 @@ export default function WardrobePage() {
 
   useEffect(() => { loadItems() }, [])
 
-  async function loadItems() {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-    const { data } = await supabase.from('clothing_items').select('*').eq('user_id', user.id).order('created_at', { ascending: false })
-    if (data) setItems(data)
-  }
+async function loadItems() {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
+  const { data } = await supabase.from('clothing_items').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false })
+  if (data) setItems(data)
+}
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -63,8 +62,9 @@ export default function WardrobePage() {
     setAnalyzeResult('')
     setProgress(0)
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+   const { data: { session } } = await supabase.auth.getSession()
+if (!session?.user) return
+const user = session.user
       setAnalyzeStep(locale === 'de' ? 'Bild wird hochgeladen...' : 'Uploading image...')
       setProgress(20)
       const fileName = `${user.id}/${Date.now()}-${convertedFile.name}`
