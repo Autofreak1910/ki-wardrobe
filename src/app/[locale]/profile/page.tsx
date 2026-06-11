@@ -6,7 +6,6 @@ import { useLocale } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/Navbar'
-export const dynamic = 'force-static'
 
 type Profile = {
   id: string
