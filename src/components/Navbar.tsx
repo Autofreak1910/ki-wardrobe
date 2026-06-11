@@ -31,7 +31,6 @@ export default function Navbar({ activePage }: { activePage: string }) {
   const activeIndex = tabs.findIndex(t => t.page === activePage)
   const bubbleX = useMotionValue(0)
   const bubbleW = useMotionValue(0)
-
   const SPRING = { type: 'spring' as const, stiffness: 1500, damping: 80, mass: 0.1 }
 
   function switchLanguage() {
@@ -59,11 +58,10 @@ export default function Navbar({ activePage }: { activePage: string }) {
   }
 
   useEffect(() => { setMounted(true) }, [])
+
   useEffect(() => {
-  tabs.forEach(tab => {
-    router.prefetch('/' + locale + '/' + tab.page)
-  })
-}, [locale])
+    tabs.forEach(tab => router.prefetch('/' + locale + '/' + tab.page))
+  }, [locale])
 
   useEffect(() => {
     if (!mounted || !navRef.current) return
@@ -185,31 +183,36 @@ export default function Navbar({ activePage }: { activePage: string }) {
         style={{
           position: 'fixed', bottom: 0, left: 0, right: 0,
           height: '72px',
-          background: isDark ? 'rgba(10,12,18,0.94)' : 'rgba(250,250,252,0.94)',
-          backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)',
-          borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.05)'}`,
+          background: isDark ? 'rgba(10,12,18,0.96)' : 'rgba(255,255,255,0.96)',
+          backdropFilter: 'blur(40px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+          borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'}`,
           display: 'flex', alignItems: 'center',
           zIndex: 100,
           paddingBottom: 'env(safe-area-inset-bottom)',
           boxShadow: isDark
-            ? '0 -1px 0 rgba(255,255,255,0.05), 0 -8px 32px rgba(0,0,0,0.5)'
-            : '0 -1px 0 rgba(0,0,0,0.04), 0 -8px 32px rgba(0,0,0,0.05)',
+            ? '0 -1px 0 rgba(255,255,255,0.04), 0 -20px 60px rgba(0,0,0,0.6)'
+            : '0 -1px 0 rgba(0,0,0,0.03), 0 -20px 60px rgba(0,0,0,0.08)',
           touchAction: 'none', userSelect: 'none',
         }}
       >
         {mounted && tabWidth > 0 && (
           <motion.div style={{
-            position: 'absolute', top: '10px',
-            x: bubbleX, width: bubbleW, height: '52px',
+            position: 'absolute',
+            top: '10px',
+            x: bubbleX,
+            width: bubbleW,
+            height: '52px',
             background: isDark
-              ? 'linear-gradient(135deg, rgba(14,164,114,0.25), rgba(8,145,178,0.25))'
-              : 'linear-gradient(135deg, rgba(14,164,114,0.16), rgba(8,145,178,0.16))',
+              ? 'linear-gradient(135deg, rgba(14,164,114,0.3), rgba(8,145,178,0.3))'
+              : 'linear-gradient(135deg, rgba(14,164,114,0.18), rgba(8,145,178,0.18))',
             borderRadius: '18px',
-            backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-            border: `1px solid ${isDark ? 'rgba(14,164,114,0.35)' : 'rgba(14,164,114,0.22)'}`,
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: `1px solid ${isDark ? 'rgba(14,164,114,0.4)' : 'rgba(14,164,114,0.25)'}`,
             boxShadow: isDark
-              ? '0 0 20px rgba(14,164,114,0.2), inset 0 1px 0 rgba(255,255,255,0.08)'
-              : '0 0 20px rgba(14,164,114,0.1), inset 0 1px 0 rgba(255,255,255,0.7)',
+              ? '0 0 30px rgba(14,164,114,0.25), inset 0 1px 0 rgba(255,255,255,0.1)'
+              : '0 0 30px rgba(14,164,114,0.15), inset 0 1px 0 rgba(255,255,255,0.8)',
             pointerEvents: 'none',
           }} />
         )}
@@ -223,8 +226,8 @@ export default function Navbar({ activePage }: { activePage: string }) {
           return (
             <motion.button
               key={item.page}
-   onMouseEnter={() => router.prefetch('/' + locale + '/' + item.page)}
-onClick={() => !isDragging && router.push('/' + locale + '/' + item.page)}
+              onMouseEnter={() => router.prefetch('/' + locale + '/' + item.page)}
+              onClick={() => !isDragging && router.push('/' + locale + '/' + item.page)}
               animate={{ scale: isHighlighted ? 1.1 : 1, y: isHighlighted ? -3 : 0 }}
               transition={SPRING}
               style={{
