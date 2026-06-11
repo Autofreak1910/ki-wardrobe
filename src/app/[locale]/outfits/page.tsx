@@ -86,22 +86,8 @@ export default function OutfitsPage() {
           </button>
         </div>
 
-       {loading ? (
-  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '12px' }}>
-    {[1,2,3,4].map(i => (
-      <div key={i} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', overflow: 'hidden' }}>
-        <div style={{ height: '140px', background: 'var(--bg-secondary)' }} className="skeleton" />
-        <div style={{ padding: '12px 14px' }}>
-          <div style={{ height: '14px', width: '60%', background: 'var(--bg-secondary)', borderRadius: '6px', marginBottom: '8px' }} className="skeleton" />
-          <div style={{ height: '12px', width: '40%', background: 'var(--bg-secondary)', borderRadius: '6px' }} className="skeleton" />
-        </div>
-      </div>
-    ))}
-    <style>{`
-      .skeleton { animation: shimmer 1.5s ease-in-out infinite; }
-      @keyframes shimmer { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
-    `}</style>
-  </div>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-secondary)' }}>{t('outfits.loading')}</div>
         ) : outfits.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '48px 24px', background: 'var(--bg-secondary)', borderRadius: '20px', border: '1px solid var(--border)' }}>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>👔</div>
