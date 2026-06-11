@@ -33,19 +33,14 @@ export default function ProfilePage() {
   const isDark = theme === 'dark'
 
   useEffect(() => { loadProfile() }, [])
-
 async function loadProfile() {
   const { data: { session } } = await supabase.auth.getSession()
-  if (!session?.user) {
-    router.push('/' + locale + '/auth/login')
-    return
-  }
-  const user = session.user
-    const [profileRes, itemsRes, outfitsRes] = await Promise.all([
-      supabase.from('profiles').select('*').eq('id', user.id).single(),
-      supabase.from('clothing_items').select('id').eq('user_id', user.id),
-      supabase.from('outfits').select('id').eq('user_id', user.id),
-    ])
+  if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
+  const [profileRes, itemsRes, outfitsRes] = await Promise.all([
+    supabase.from('profiles').select('*').eq('id', session.user.id).single(),
+    supabase.from('clothing_items').select('id').eq('user_id', session.user.id),
+    supabase.from('outfits').select('id').eq('user_id', session.user.id),
+  ])
     if (profileRes.data) {
       setProfile(profileRes.data)
       setEditUsername(profileRes.data.username ?? '')

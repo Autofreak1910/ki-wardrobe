@@ -40,13 +40,13 @@ export default function OutfitsPage() {
     casual: '😎', uni: '🎒', work: '💼', date: '🌹', sport: '🏃', party: '🎉', festival: '🎪'
   }
 
-  async function loadData() {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-    const [outfitsRes, itemsRes] = await Promise.all([
-      supabase.from('outfits').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
-      supabase.from('clothing_items').select('*').eq('user_id', user.id)
-    ])
+ async function loadData() {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
+  const [outfitsRes, itemsRes] = await Promise.all([
+    supabase.from('outfits').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false }),
+    supabase.from('clothing_items').select('*').eq('user_id', session.user.id)
+  ])
     if (outfitsRes.data) setOutfits(outfitsRes.data)
     if (itemsRes.data) setItems(itemsRes.data)
     setLoading(false)

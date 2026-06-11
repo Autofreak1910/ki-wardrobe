@@ -55,10 +55,10 @@ export default function DresserPage() {
 
   useEffect(() => { loadWardrobe() }, [])
 
-  async function loadWardrobe() {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-    const { data } = await supabase.from('clothing_items').select('*').eq('user_id', user.id)
+async function loadWardrobe() {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
+  const { data } = await supabase.from('clothing_items').select('*').eq('user_id', session.user.id)
     if (data) {
       setWardrobeItems(data)
       setHasItems(data.length >= 3)
