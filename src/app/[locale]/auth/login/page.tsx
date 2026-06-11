@@ -33,11 +33,11 @@ export default function LoginPage() {
     }
   }
 
-  function switchLocale(newLocale: string) {
-    const newPath = pathname.replace('/' + locale, '/' + newLocale)
-    router.push(newPath)
-  }
-
+function switchLocale(newLocale: string) {
+  const segments = pathname.split('/')
+  segments[1] = newLocale
+  window.location.replace(segments.join('/'))
+}
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', fontFamily: "'DM Sans', sans-serif", padding: '24px', position: 'relative' }}>
 
