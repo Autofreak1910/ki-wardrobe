@@ -215,6 +215,19 @@ if (loading) return (
               style={{ width: '100%', padding: '14px 16px', background: 'transparent', border: 'none', borderRadius: '10px', fontSize: '15px', color: '#ef4444', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", fontWeight: 500, textAlign: 'left' as const, display: 'flex', alignItems: 'center', gap: '8px' }}>
               🚪 {locale === 'de' ? 'Abmelden' : 'Sign out'}
             </button>
+            {/* Links */}
+<div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', overflow: 'hidden', marginBottom: '12px' }}>
+  <div style={{ padding: '8px' }}>
+    <button onClick={() => router.push('/' + locale + '/feedback')}
+      style={{ width: '100%', padding: '14px 16px', background: 'transparent', border: 'none', borderRadius: '10px', fontSize: '14px', color: 'var(--text)', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", fontWeight: 500, textAlign: 'left' as const, display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border)' }}>
+      💬 {locale === 'de' ? 'Feedback & Features' : 'Feedback & Features'}
+    </button>
+    <button onClick={() => router.push('/' + locale + '/legal')}
+      style={{ width: '100%', padding: '14px 16px', background: 'transparent', border: 'none', borderRadius: '10px', fontSize: '14px', color: 'var(--text-secondary)', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", fontWeight: 400, textAlign: 'left' as const, display: 'flex', alignItems: 'center', gap: '8px' }}>
+      📄 {locale === 'de' ? 'Impressum & Datenschutz' : 'Legal & Privacy'}
+    </button>
+  </div>
+</div>
           </div>
         </div>
 
