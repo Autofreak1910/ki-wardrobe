@@ -39,23 +39,25 @@ export default function RegisterPage() {
 
   const selectedCountry = countries.find(c => c.code === country)
 
-  async function handleRegister() {
-    setLoading(true)
-    setError('')
-    const lang = selectedCountry?.lang ?? 'de'
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email, password,
-      options: {
-        data: { username, age: parseInt(age), country, language: lang },
-        emailRedirectTo: window.location.origin + '/' + lang + '/auth/callback',
-      },
-    })
-    if (signUpError) { setError(signUpError.message); setLoading(false); return }
-    if (data.user) {
-      await supabase.from('profiles').update({ username, age: parseInt(age), country, language: lang }).eq('id', data.user.id)
-    }
-    router.push('/' + lang + '/dresser')
+async function handleRegister() {
+  setLoading(true)
+  setError('')
+  const lang = selectedCountry?.lang ?? 'de'
+  const { data, error: signUpError } = await supabase.auth.signUp({
+    email, password,
+    options: {
+      data: { username, age: parseInt(age), country, language: lang },
+     emailRedirectTo: window.location.origin + '/' + lang + '/auth/callback?locale=' + lang,
+    },
+  })
+  if (signUpError) { setError(signUpError.message); setLoading(false); return }
+  if (data.user) {
+    await supabase.from('profiles').update({ username, age: parseInt(age), country, language: lang }).eq('id', data.user.id)
   }
+  // Zeige Email-Bestätigung
+  setStep(4)
+  setLoading(false)
+}
 
   const inputStyle = {
     width: '100%', background: 'var(--bg-secondary)', border: '1.5px solid var(--border)',
@@ -192,6 +194,27 @@ export default function RegisterPage() {
           </>
         )}
       </div>
+      {/* Step 4 — Email bestätigen */}
+{step === 4 && (
+  <div style={{ textAlign: 'center', padding: '16px 0' }}>
+    <div style={{ fontSize: '56px', marginBottom: '16px' }}>📧</div>
+    <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '26px', fontWeight: 400, color: 'var(--text)', marginBottom: '12px' }}>
+      {locale === 'de' ? 'Email bestätigen' : 'Check your email'}
+    </h2>
+    <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '8px' }}>
+      {locale === 'de' ? 'Wir haben eine Bestätigungs-Email an' : 'We sent a confirmation email to'}
+    </p>
+    <p style={{ fontSize: '14px', fontWeight: 600, color: '#0ea472', marginBottom: '24px' }}>{email}</p>
+    <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+      {locale === 'de' ? 'Klicke auf den Link in der Email um dein Konto zu aktivieren. Danach wirst du automatisch weitergeleitet.' : 'Click the link in the email to activate your account. You will be redirected automatically.'}
+    </p>
+    <div style={{ marginTop: '24px', padding: '12px 16px', background: isDark ? 'rgba(14,164,114,0.08)' : 'rgba(14,164,114,0.06)', borderRadius: '12px', border: '1px solid rgba(14,164,114,0.15)' }}>
+      <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+        {locale === 'de' ? '📥 Auch im Spam-Ordner schauen!' : '📥 Check your spam folder too!'}
+      </p>
+    </div>
+  </div>
+)}
 
       <p style={{ marginTop: '20px', fontSize: '12px', color: 'var(--text-secondary)' }}>
         KiWardrobe · Made with ❤️
