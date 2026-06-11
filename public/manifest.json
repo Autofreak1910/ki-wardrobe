@@ -1,0 +1,22 @@
+{
+  "name": "KiWardrobe",
+  "short_name": "KiWardrobe",
+  "description": "Dein persönlicher KI-Stylist",
+  "start_url": "/de/dresser",
+  "display": "standalone",
+  "background_color": "#f7f6f3",
+  "theme_color": "#0ea472",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

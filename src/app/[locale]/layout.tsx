@@ -29,6 +29,14 @@ export default async function LocaleLayout({
         <link rel="prefetch" href={`/${locale}/wardrobe`} />
         <link rel="prefetch" href={`/${locale}/outfits`} />
         <link rel="prefetch" href={`/${locale}/profile`} />
+        <head>
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="KiWardrobe" />
+  <meta name="theme-color" content="#0ea472" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
+</head>
       </head>
       <body>
         <NextIntlClientProvider locale={locale} messages={messages}>
