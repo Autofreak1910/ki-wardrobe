@@ -27,6 +27,15 @@ export default async function LocaleLayout({
     <html lang={locale}>
       <head>
   <script dangerouslySetInnerHTML={{ __html: `
+    (function() {
+      document.documentElement.style.cssText = 'background:#0ea472!important';
+      document.addEventListener('DOMContentLoaded', function() {
+        document.body.style.cssText = 'background:#0ea472!important';
+      });
+    })();
+  `}} />
+  <link rel="manifest" href="/manifest.json" />
+  <script dangerouslySetInnerHTML={{ __html: `
     document.documentElement.style.background = '#0ea472';
     document.body && (document.body.style.background = '#0ea472');
   `}} />
@@ -35,8 +44,8 @@ export default async function LocaleLayout({
         
         <link rel="manifest" href="/manifest.json" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="KiWardrobe" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#0ea472" />
         <meta name="theme-color" content="#0ea472" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
         <link rel="prefetch" href={`/${locale}/dresser`} />
