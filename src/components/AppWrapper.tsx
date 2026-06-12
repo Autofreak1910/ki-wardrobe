@@ -5,80 +5,61 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import SplashScreen from './SplashScreen'
 
-export default function AppWrapper({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  const [showSplash, setShowSplash] = useState(false)
-
+export default function AppWrapper({ children }: { children: React.ReactNode }) {
+  const [showSplash, setShowSplash] = useState(true)
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
 
   useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event) => {
+    const isAppPage = pathname.includes('/dresser') || pathname.includes('/wardrobe') || pathname.includes('/outfits') || pathname.includes('/profile')
+    
+    if (!isAppPage) {
+      setShowSplash(false)
+      return
+    }
+
+    const hasSeenSplash = sessionStorage.getItem('splashShown')
+    if (hasSeenSplash) {
+      setShowSplash(false)
+      return
+    }
+
+    // Daten vorladen während Splash
+    preloadData()
+
+    supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') {
         router.push('/' + pathname.split('/')[1] + '/auth/login')
       }
     })
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [supabase, router, pathname])
-
-  useEffect(() => {
-    const hasSeenSplash = sessionStorage.getItem('splashShown')
-
-    const isAppPage =
-      pathname.includes('/dresser') ||
-      pathname.includes('/wardrobe') ||
-      pathname.includes('/outfits') ||
-      pathname.includes('/profile')
-
-    if (!hasSeenSplash && isAppPage) {
-      setShowSplash(true)
-      sessionStorage.setItem('splashShown', 'true')
-
-      preloadData()
-    }
-  }, [pathname])
+  }, [])
 
   async function preloadData() {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-
+    const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) return
-
     await Promise.all([
-      supabase
-        .from('clothing_items')
-        .select('*')
-        .eq('user_id', session.user.id),
-
-      supabase
-        .from('outfits')
-        .select('*')
-        .eq('user_id', session.user.id),
-
-      supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', session.user.id)
-        .single(),
+      supabase.from('clothing_items').select('*').eq('user_id', session.user.id),
+      supabase.from('outfits').select('*').eq('user_id', session.user.id),
+      supabase.from('profiles').select('*').eq('id', session.user.id).single(),
     ])
+  }
+
+  function handleSplashDone() {
+    sessionStorage.setItem('splashShown', 'true')
+    setShowSplash(false)
   }
 
   return (
     <>
-      {showSplash && (
-        <SplashScreen onDone={() => setShowSplash(false)} />
-      )}
-      {children}
+      {showSplash && <SplashScreen onDone={handleSplashDone} />}
+      <div style={{
+        opacity: showSplash ? 0 : 1,
+        transition: 'opacity 0.4s ease',
+        height: '100%',
+      }}>
+        {children}
+      </div>
     </>
   )
 }

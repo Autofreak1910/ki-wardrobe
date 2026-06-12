@@ -12,7 +12,7 @@ export default function SplashScreen({ onDone }: { onDone: () => void }) {
 
   useEffect(() => {
     // Phase 1: Logo erscheint
-    setTimeout(() => setPhase('loading'), 800)
+setTimeout(() => setPhase('loading'), 400)
 
     // Progress Bar
     const interval = setInterval(() => {
@@ -25,7 +25,7 @@ export default function SplashScreen({ onDone }: { onDone: () => void }) {
           }, 300)
           return 100
         }
-        return prev + Math.random() * 15 + 5
+        return prev + Math.random() * 20 + 10
       })
     }, 120)
 
