@@ -1,46 +1,49 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, RefObject } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useLocale } from 'next-intl'
 import { useTheme } from '@/context/ThemeContext'
 
-const steps = [
+type Rect = { top: number; left: number; width: number; height: number }
+
+const STEPS = [
   {
-    // Zeigt auf den Dress Me Button (unten mitte)
-    spotlight: { bottom: 140, left: '50%', width: 280, height: 60, xOffset: -140 },
-    arrow: 'up',
-    tooltipPos: { bottom: 210, left: '50%', xOffset: -150 },
-    titleDe: 'Dress Me ✦',
-    titleEn: 'Dress Me ✦',
-    descDe: 'Drück diesen Button — deine KI erstellt sofort ein perfektes Outfit!',
-    descEn: 'Press this button — your AI creates a perfect outfit instantly!',
+    refKey: 'dressMeRef' as const,
+    titleDe: '✦ Dress Me',
+    titleEn: '✦ Dress Me',
+    descDe: 'Drück diesen Button — deine KI erstellt sofort ein perfektes Outfit, passend zum Anlass und Wetter!',
+    descEn: 'Press this button — your AI instantly creates a perfect outfit matching your occasion and weather!',
+    tooltipPos: 'above' as const,
   },
   {
-    // Zeigt auf Wetter Card (oben rechts)
-    spotlight: { top: 80, right: 18, width: 120, height: 110, xOffset: 0 },
-    arrow: 'down',
-    tooltipPos: { top: 200, right: 18, xOffset: 0 },
-    titleDe: 'Echtes Wetter 🌤',
-    titleEn: 'Real Weather 🌤',
-    descDe: 'Dein Standort, echte Temperatur — die KI wählt wetterpassende Outfits.',
-    descEn: 'Your location, real temperature — AI picks weather-appropriate outfits.',
+    refKey: 'weatherRef' as const,
+    titleDe: '🌤 Echtes Wetter',
+    titleEn: '🌤 Real Weather',
+    descDe: 'Hier siehst du deine echte Temperatur — die KI wählt automatisch wetterpassende Outfits.',
+    descEn: 'Your real temperature — AI automatically picks weather-appropriate outfits.',
+    tooltipPos: 'below' as const,
   },
   {
-    // Zeigt auf Kategorie Grid
-    spotlight: { top: 320, left: 18, right: 18, width: -1, height: 200, xOffset: 0 },
-    arrow: 'down',
-    tooltipPos: { top: 530, left: '50%', xOffset: -150 },
-    titleDe: 'Kategorien wählen 👕',
-    titleEn: 'Choose Categories 👕',
-    descDe: 'Tippe an was du anziehen willst — Outfit wird daran angepasst.',
-    descEn: 'Tap what you want to wear — outfit gets customized to your choice.',
+    refKey: 'categoryRef' as const,
+    titleDe: '👕 Kategorien',
+    titleEn: '👕 Categories',
+    descDe: 'Wähle was ins Outfit soll — nur Oberteil und Hose, oder alles. Du entscheidest!',
+    descEn: 'Choose what goes in — just top and pants, or everything. You decide!',
+    tooltipPos: 'below' as const,
   },
 ]
 
-export default function WelcomeOverlay() {
+interface Props {
+  weatherRef: RefObject<HTMLDivElement>
+  categoryRef: RefObject<HTMLDivElement>
+  dressMeRef: RefObject<HTMLButtonElement>
+}
+
+export default function WelcomeOverlay({ weatherRef, categoryRef, dressMeRef }: Props) {
   const [show, setShow] = useState(false)
   const [step, setStep] = useState(0)
+  const [rect, setRect] = useState<Rect | null>(null)
   const { theme } = useTheme()
   const locale = useLocale()
   const isDark = theme === 'dark'
@@ -51,10 +54,25 @@ export default function WelcomeOverlay() {
   const muted  = isDark ? '#4d6080' : '#6b7fa8'
   const accent = isDark ? '#4d7eff' : '#3b6bff'
 
+  const refs = { weatherRef, categoryRef, dressMeRef }
+
   useEffect(() => {
     const seen = localStorage.getItem('kw_welcome_seen')
-    if (!seen) setTimeout(() => setShow(true), 800)
+    if (!seen) setTimeout(() => setShow(true), 900)
   }, [])
+
+  useEffect(() => {
+    if (!show) return
+    measureStep(step)
+  }, [show, step])
+
+  function measureStep(s: number) {
+    const refKey = STEPS[s].refKey
+    const el = refs[refKey]?.current
+    if (!el) return
+    const r = el.getBoundingClientRect()
+    setRect({ top: r.top, left: r.left, width: r.width, height: r.height })
+  }
 
   function finish() {
     localStorage.setItem('kw_welcome_seen', 'true')
@@ -62,129 +80,233 @@ export default function WelcomeOverlay() {
   }
 
   function next() {
-    if (step < steps.length - 1) setStep(s => s + 1)
-    else finish()
+    if (step < STEPS.length - 1) {
+      setRect(null)
+      setTimeout(() => {
+        setStep(s => s + 1)
+      }, 150)
+    } else {
+      finish()
+    }
   }
 
-  const current = steps[step]
-  const isLast = step === steps.length - 1
+  const current = STEPS[step]
+  const isLast = step === STEPS.length - 1
+  const PAD = 10
 
-  // Spotlight position berechnen
-  const spotStyle: any = {
-    position: 'fixed',
-    borderRadius: '16px',
-    border: `2px solid ${accent}`,
-    boxShadow: `0 0 0 9999px rgba(0,0,0,0.65)`,
-    zIndex: 10000,
-    pointerEvents: 'none',
-  }
-  if (current.spotlight.top !== undefined) spotStyle.top = current.spotlight.top
-  if (current.spotlight.bottom !== undefined) spotStyle.bottom = current.spotlight.bottom
-  if (current.spotlight.left !== undefined) spotStyle.left = current.spotlight.left
-  if (current.spotlight.right !== undefined) spotStyle.right = current.spotlight.right
-  spotStyle.width = current.spotlight.width === -1 ? `calc(100% - 36px)` : current.spotlight.width
-  spotStyle.height = current.spotlight.height
+  // Tooltip position berechnen
+  function getTooltipStyle(): React.CSSProperties {
+    if (!rect) return { display: 'none' }
 
-  // Tooltip position
-  const tipStyle: any = {
-    position: 'fixed',
-    width: '300px',
-    zIndex: 10001,
-  }
-  if (current.tooltipPos.top !== undefined) tipStyle.top = current.tooltipPos.top
-  if (current.tooltipPos.bottom !== undefined) tipStyle.bottom = current.tooltipPos.bottom
-  if (current.tooltipPos.left !== undefined) {
-    tipStyle.left = current.tooltipPos.left
-    tipStyle.transform = `translateX(${current.tooltipPos.xOffset}px)`
-  }
-  if (current.tooltipPos.right !== undefined) {
-    tipStyle.right = current.tooltipPos.right
+    const TIP_W = Math.min(300, window.innerWidth - 32)
+    const TIP_H = 180
+
+    let left = rect.left + rect.width / 2 - TIP_W / 2
+    // Clamp horizontal
+    left = Math.max(16, Math.min(window.innerWidth - TIP_W - 16, left))
+
+    if (current.tooltipPos === 'above') {
+      const top = rect.top - TIP_H - 16
+      return {
+        position: 'fixed',
+        top: Math.max(16, top),
+        left,
+        width: TIP_W,
+        zIndex: 10001,
+      }
+    } else {
+      const top = rect.top + rect.height + 16
+      return {
+        position: 'fixed',
+        top: Math.min(window.innerHeight - TIP_H - 16, top),
+        left,
+        width: TIP_W,
+        zIndex: 10001,
+      }
+    }
   }
 
   return (
     <AnimatePresence>
       {show && (
         <>
-          {/* Spotlight highlight */}
+          {/* Dark overlay with hole */}
           <motion.div
-            key={`spot-${step}`}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            style={spotStyle}
-          />
-
-          {/* Pulsing ring on spotlight */}
-          <motion.div
-            key={`ring-${step}`}
-            animate={{ scale: [1, 1.04, 1], opacity: [0.6, 1, 0.6] }}
-            transition={{ duration: 1.8, repeat: Infinity }}
-            style={{ ...spotStyle, border: `2px solid ${accent}`, boxShadow: 'none', background: 'transparent' }}
-          />
-
-          {/* Tap to dismiss full overlay */}
-          <div
+            transition={{ duration: 0.25 }}
             onClick={next}
-            style={{ position: 'fixed', inset: 0, zIndex: 9999, cursor: 'pointer' }}
-          />
-
-          {/* Tooltip card */}
-          <motion.div
-            key={`tip-${step}`}
-            initial={{ opacity: 0, y: current.arrow === 'up' ? 12 : -12, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            style={tipStyle}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 9999,
+              cursor: 'pointer',
+            }}
           >
-            {/* Arrow */}
-            <div style={{
-              width: 0, height: 0,
-              borderLeft: '10px solid transparent',
-              borderRight: '10px solid transparent',
-              ...(current.arrow === 'up'
-                ? { borderBottom: `10px solid ${card}`, margin: '0 auto 0 24px' }
-                : { borderTop: `10px solid ${card}`, margin: '0 auto 0 24px', order: 2 }),
-            }} />
-
-            <div style={{
-              background: card,
-              border: `1px solid ${border}`,
-              borderRadius: '20px',
-              padding: '18px 20px',
-              boxShadow: isDark ? '0 8px 40px rgba(0,0,0,0.6)' : `0 8px 40px ${accent}20`,
-            }}>
-              {/* Progress */}
-              <div style={{ display: 'flex', gap: '5px', marginBottom: '12px' }}>
-                {steps.map((_, i) => (
-                  <div key={i} style={{ height: '3px', flex: 1, borderRadius: '2px', background: i <= step ? accent : border, transition: 'background 0.3s' }} />
-                ))}
-              </div>
-
-              <h3 style={{ fontSize: '16px', fontWeight: 800, color: text, marginBottom: '6px', letterSpacing: '-0.02em', fontFamily: "'DM Sans', sans-serif" }}>
-                {locale === 'de' ? current.titleDe : current.titleEn}
-              </h3>
-              <p style={{ fontSize: '13px', color: muted, lineHeight: 1.6, marginBottom: '16px', fontFamily: "'DM Sans', sans-serif" }}>
-                {locale === 'de' ? current.descDe : current.descEn}
-              </p>
-
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <button onClick={(e) => { e.stopPropagation(); finish() }}
-                  style={{ fontSize: '12px', color: muted, background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", padding: '4px 0' }}>
-                  {locale === 'de' ? 'Überspringen' : 'Skip'}
-                </button>
-                <motion.button whileTap={{ scale: 0.96 }}
-                  onClick={(e) => { e.stopPropagation(); next() }}
-                  style={{ flex: 1, background: `linear-gradient(135deg, ${accent}, #6b9fff)`, border: 'none', borderRadius: '12px', padding: '11px', fontSize: '14px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: `0 4px 16px ${accent}40` }}>
-                  {isLast
-                    ? (locale === 'de' ? "Los geht's 🚀" : "Let's go 🚀")
-                    : (locale === 'de' ? 'Weiter →' : 'Next →')
-                  }
-                </motion.button>
-              </div>
-            </div>
+            {rect && (
+              <svg width="100%" height="100%" style={{ position: 'absolute', inset: 0 }}>
+                <defs>
+                  <mask id="hole">
+                    <rect width="100%" height="100%" fill="white" />
+                    <rect
+                      x={rect.left - PAD}
+                      y={rect.top - PAD}
+                      width={rect.width + PAD * 2}
+                      height={rect.height + PAD * 2}
+                      rx="16"
+                      fill="black"
+                    />
+                  </mask>
+                </defs>
+                <rect
+                  width="100%" height="100%"
+                  fill="rgba(0,0,0,0.72)"
+                  mask="url(#hole)"
+                />
+              </svg>
+            )}
           </motion.div>
+
+          {/* Spotlight border + pulse */}
+          {rect && (
+            <>
+              <motion.div
+                key={`spot-${step}`}
+                initial={{ opacity: 0, scale: 0.92 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                style={{
+                  position: 'fixed',
+                  top: rect.top - PAD,
+                  left: rect.left - PAD,
+                  width: rect.width + PAD * 2,
+                  height: rect.height + PAD * 2,
+                  borderRadius: '18px',
+                  border: `2px solid ${accent}`,
+                  zIndex: 10000,
+                  pointerEvents: 'none',
+                }}
+              />
+              {/* Pulse */}
+              <motion.div
+                animate={{ scale: [1, 1.03, 1], opacity: [0.7, 1, 0.7] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                style={{
+                  position: 'fixed',
+                  top: rect.top - PAD,
+                  left: rect.left - PAD,
+                  width: rect.width + PAD * 2,
+                  height: rect.height + PAD * 2,
+                  borderRadius: '18px',
+                  border: `2px solid ${accent}`,
+                  boxShadow: `0 0 20px ${accent}60`,
+                  zIndex: 10000,
+                  pointerEvents: 'none',
+                }}
+              />
+            </>
+          )}
+
+          {/* Tooltip */}
+          {rect && (
+            <motion.div
+              key={`tip-${step}`}
+              initial={{ opacity: 0, y: current.tooltipPos === 'above' ? 8 : -8, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              style={getTooltipStyle()}
+            >
+              {/* Arrow */}
+              {current.tooltipPos === 'above' && (
+                <div style={{
+                  width: 0, height: 0,
+                  borderLeft: '10px solid transparent',
+                  borderRight: '10px solid transparent',
+                  borderTop: `10px solid ${card}`,
+                  position: 'absolute', bottom: -10,
+                  left: '50%', transform: 'translateX(-50%)',
+                  filter: 'drop-shadow(0 1px 0 rgba(0,0,0,0.1))',
+                }} />
+              )}
+              {current.tooltipPos === 'below' && (
+                <div style={{
+                  width: 0, height: 0,
+                  borderLeft: '10px solid transparent',
+                  borderRight: '10px solid transparent',
+                  borderBottom: `10px solid ${card}`,
+                  position: 'absolute', top: -10,
+                  left: '50%', transform: 'translateX(-50%)',
+                }} />
+              )}
+
+              <div style={{
+                background: card,
+                border: `1px solid ${border}`,
+                borderRadius: '20px',
+                padding: '18px 20px',
+                boxShadow: isDark
+                  ? '0 8px 40px rgba(0,0,0,0.7)'
+                  : `0 8px 40px ${accent}20`,
+              }}>
+                {/* Progress */}
+                <div style={{ display: 'flex', gap: '4px', marginBottom: '14px' }}>
+                  {STEPS.map((_, i) => (
+                    <div key={i} style={{
+                      flex: 1, height: '3px', borderRadius: '2px',
+                      background: i <= step ? accent : border,
+                      transition: 'background 0.3s',
+                    }} />
+                  ))}
+                </div>
+
+                <h3 style={{
+                  fontSize: '16px', fontWeight: 800,
+                  color: text, marginBottom: '7px',
+                  letterSpacing: '-0.02em',
+                  fontFamily: "'DM Sans', sans-serif",
+                }}>
+                  {locale === 'de' ? current.titleDe : current.titleEn}
+                </h3>
+                <p style={{
+                  fontSize: '13px', color: muted,
+                  lineHeight: 1.6, marginBottom: '16px',
+                  fontFamily: "'DM Sans', sans-serif",
+                }}>
+                  {locale === 'de' ? current.descDe : current.descEn}
+                </p>
+
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); finish() }}
+                    style={{
+                      fontSize: '12px', color: muted,
+                      background: 'transparent', border: 'none',
+                      cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
+                      padding: '4px 0', whiteSpace: 'nowrap' as const,
+                    }}>
+                    {locale === 'de' ? 'Überspringen' : 'Skip'}
+                  </button>
+                  <motion.button
+                    whileTap={{ scale: 0.96 }}
+                    onClick={(e) => { e.stopPropagation(); next() }}
+                    style={{
+                      flex: 1, background: `linear-gradient(135deg, ${accent}, #6b9fff)`,
+                      border: 'none', borderRadius: '12px', padding: '11px',
+                      fontSize: '14px', fontWeight: 700, color: '#fff',
+                      cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
+                      boxShadow: `0 4px 16px ${accent}40`,
+                      letterSpacing: '-0.01em',
+                    }}>
+                    {isLast
+                      ? (locale === 'de' ? "Los geht's 🚀" : "Let's go 🚀")
+                      : (locale === 'de' ? 'Weiter →' : 'Next →')
+                    }
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          )}
         </>
       )}
     </AnimatePresence>

@@ -75,6 +75,9 @@ export default function DresserPage() {
   const supabase = createClient()
   const isDark = theme === 'dark'
   const mainRef = useRef<HTMLElement>(null)
+  const weatherRef = useRef<HTMLDivElement>(null)
+const categoryRef = useRef<HTMLDivElement>(null)
+const dressMeRef = useRef<HTMLButtonElement>(null)
 
   const days = locale === 'de'
     ? ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag']
@@ -204,7 +207,11 @@ const accentDim = isDark ? 'rgba(77,126,255,0.1)' : 'rgba(59,107,255,0.08)'
 return (
     <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' as const, background: bg, overflow: 'hidden', fontFamily: "'DM Sans', sans-serif", position: 'relative' as const }}>
 
-      <WelcomeOverlay />
+    <WelcomeOverlay
+  weatherRef={weatherRef}
+  categoryRef={categoryRef}
+  dressMeRef={dressMeRef}
+/>
 
       {/* Background glows */}
       <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
@@ -249,11 +256,12 @@ return (
           </div>
 
           {/* Right: Weather Card */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.1, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            onClick={fetchWeather}
-            style={{ flexShrink: 0, width: '120px', background: card, border: `1px solid ${border}`, borderRadius: '20px', padding: '14px 12px', textAlign: 'center' as const, cursor: 'pointer', boxShadow: isDark ? 'none' : '0 2px 16px rgba(10,46,30,0.07)' }}>
+ <motion.div
+  ref={weatherRef}
+  initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }}
+  transition={{ delay: 0.1, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+  onClick={fetchWeather}
+  style={{ flexShrink: 0, width: '120px', background: card, border: `1px solid ${border}`, borderRadius: '20px', padding: '14px 12px', textAlign: 'center' as const, cursor: 'pointer', boxShadow: isDark ? 'none' : '0 2px 16px rgba(10,46,30,0.07)' }}>
             {weatherLoading ? (
               <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.2, repeat: Infinity }}
                 style={{ width: '60px', height: '14px', borderRadius: '6px', background: border, margin: '0 auto 8px' }} />
@@ -307,7 +315,7 @@ return (
             </motion.div>
 
             {/* ── Category Grid (große Kacheln wie Konkurrenz) ── */}
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18, duration: 0.4 }} style={{ marginBottom: '22px' }}>
+           <motion.div ref={categoryRef} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18, duration: 0.4 }} style={{ marginBottom: '22px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                 <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: muted }}>
                   {t('dresser.whatForOutfit')}
@@ -361,7 +369,7 @@ return (
 
             {/* ── CTA Button ── */}
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24, duration: 0.4 }} style={{ marginBottom: '28px' }}>
-              <motion.button onClick={generateOutfit} disabled={loading} whileTap={!loading ? { scale: 0.97 } : {}}
+              <motion.button ref={dressMeRef} onClick={generateOutfit} disabled={loading} whileTap={!loading ? { scale: 0.97 } : {}}
                 style={{ width: '100%', padding: '19px', borderRadius: '100px', border: 'none', background: loading ? (isDark ? '#0f1a14' : '#e6f7f0') : 'linear-gradient(135deg, #0ea472 0%, #0891b2 100%)', color: loading ? muted : '#fff', fontSize: '17px', fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', letterSpacing: '-0.02em', WebkitTapHighlightColor: 'transparent', transition: 'all 0.2s', boxShadow: loading ? 'none' : '0 6px 28px rgba(14,164,114,0.45)' }}>
                 {loading ? (
                   <>
