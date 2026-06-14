@@ -63,8 +63,8 @@ export default function RegisterPage() {
     if (data.user) {
       await supabase.from('profiles').update({ username, age: parseInt(age), country, language: lang }).eq('id', data.user.id)
     }
-    setStep(4)
-    setLoading(false)
+  setLoading(false)
+router.push('/' + lang + '/dresser')
   }
 
   const inputStyle = {
