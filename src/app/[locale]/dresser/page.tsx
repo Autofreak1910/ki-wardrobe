@@ -333,10 +333,10 @@ export default function DresserPage() {
         }
 
         /* CTA */
-        .d-cta {
+       .d-cta {
           width:100%; padding:16px;
           border-radius:12px; border:none;
-          background:var(--text); color:var(--bg);
+          background:#000000; color:#ffffff;
           font-size:15px; font-weight:600;
           font-family:'DM Sans',sans-serif;
           cursor:pointer; margin-bottom:24px;
