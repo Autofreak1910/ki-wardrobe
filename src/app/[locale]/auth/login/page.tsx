@@ -6,7 +6,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useTheme } from '@/context/ThemeContext'
 import { useTranslations, useLocale } from 'next-intl'
-import Image from 'next/image'
+import { motion } from 'framer-motion'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -21,58 +21,76 @@ export default function LoginPage() {
   const locale = useLocale()
   const isDark = theme === 'dark'
 
+  const bg     = isDark ? '#080c18' : '#f0f4ff'
+  const card   = isDark ? '#0d1225' : '#ffffff'
+  const border = isDark ? '#1a2540' : '#dde3f5'
+  const text   = isDark ? '#e8eeff' : '#0a1628'
+  const muted  = isDark ? '#4d6080' : '#6b7fa8'
+  const accent = isDark ? '#4d7eff' : '#3b6bff'
+
   async function handleLogin() {
     setLoading(true)
     setError('')
     const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) {
-      setError(error.message)
-      setLoading(false)
-    } else {
-      router.push('/' + locale + '/dresser')
-    }
+    if (error) { setError(error.message); setLoading(false) }
+    else { router.push('/' + locale + '/dresser') }
   }
 
-function switchLocale(newLocale: string) {
-  const segments = pathname.split('/')
-  segments[1] = newLocale
-  window.location.replace(segments.join('/'))
-}
+  function switchLocale(nl: string) {
+    const s = pathname.split('/')
+    s[1] = nl
+    window.location.replace(s.join('/'))
+  }
+
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', fontFamily: "'DM Sans', sans-serif", padding: '24px', position: 'relative' }}>
+    <div style={{ minHeight: '100dvh', background: bg, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', fontFamily: "'DM Sans', sans-serif", padding: '24px', position: 'relative', overflow: 'hidden' }}>
+
+      {/* Background glows */}
+      <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+        <div style={{ position: 'absolute', top: '-100px', right: '-80px', width: '400px', height: '400px', borderRadius: '50%', background: isDark ? 'rgba(77,126,255,0.08)' : 'rgba(59,107,255,0.1)', filter: 'blur(80px)' }} />
+        <div style={{ position: 'absolute', bottom: '-80px', left: '-80px', width: '350px', height: '350px', borderRadius: '50%', background: isDark ? 'rgba(77,126,255,0.05)' : 'rgba(59,107,255,0.07)', filter: 'blur(80px)' }} />
+        {!isDark && (
+          <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.4 }} xmlns="http://www.w3.org/2000/svg">
+            <defs><pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="0.9" fill="#3b6bff" opacity="0.2" /></pattern></defs>
+            <rect width="100%" height="100%" fill="url(#dots)" />
+          </svg>
+        )}
+      </div>
 
       {/* Top buttons */}
-      <div style={{ position: 'absolute', top: '20px', right: '20px', display: 'flex', gap: '8px' }}>
+      <div style={{ position: 'absolute', top: '20px', right: '20px', display: 'flex', gap: '8px', zIndex: 10 }}>
         <button onClick={() => switchLocale(locale === 'de' ? 'en' : 'de')}
-          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '10px', padding: '8px 14px', cursor: 'pointer', fontSize: '13px', color: 'var(--text)', fontFamily: "'DM Sans', sans-serif" }}>
-          {locale === 'de' ? '🇬🇧 EN' : '🇩🇪 DE'}
+          style={{ background: card, border: `1px solid ${border}`, borderRadius: '10px', padding: '8px 14px', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: muted, fontFamily: "'DM Sans', sans-serif" }}>
+          {locale === 'de' ? 'EN' : 'DE'}
         </button>
         <button onClick={toggle}
-          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '10px', padding: '8px 14px', cursor: 'pointer', fontSize: '18px' }}>
-          {isDark ? '☀️' : '🌙'}
+          style={{ background: card, border: `1px solid ${border}`, borderRadius: '10px', padding: '8px 12px', cursor: 'pointer', fontSize: '15px' }}>
+          {isDark ? '○' : '●'}
         </button>
       </div>
 
-      {/* Logo + Icon */}
-      <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-        <div style={{ width: '80px', height: '80px', borderRadius: '22px', overflow: 'hidden', margin: '0 auto 16px', boxShadow: '0 8px 32px rgba(14,164,114,0.3)' }}>
+      {/* Logo */}
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        style={{ textAlign: 'center', marginBottom: '36px', position: 'relative', zIndex: 1 }}>
+        <div style={{ width: '76px', height: '76px', borderRadius: '22px', overflow: 'hidden', margin: '0 auto 16px', boxShadow: `0 8px 32px ${accent}40` }}>
           <img src="/icon-512.png" alt="KiWardrobe" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
-        <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '32px', fontWeight: 400, color: 'var(--text)', marginBottom: '6px' }}>
-          Ki<em style={{ color: '#0ea472' }}>Wardrobe</em>
+        <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '30px', fontWeight: 400, color: text, marginBottom: '6px', letterSpacing: '-0.02em' }}>
+          Ki<em style={{ color: accent }}>Wardrobe</em>
         </h1>
-        <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>{t('tagline')}</p>
-      </div>
+        <p style={{ fontSize: '13px', color: muted }}>{t('tagline')}</p>
+      </motion.div>
 
       {/* Card */}
-      <div style={{ width: '100%', maxWidth: '400px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '24px', padding: '32px', boxShadow: isDark ? '0 8px 40px rgba(0,0,0,0.4)' : '0 8px 40px rgba(0,0,0,0.08)' }}>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        style={{ width: '100%', maxWidth: '400px', background: card, border: `1px solid ${border}`, borderRadius: '24px', padding: '32px', boxShadow: isDark ? '0 8px 40px rgba(0,0,0,0.4)' : '0 8px 40px rgba(59,107,255,0.08)', position: 'relative', zIndex: 1 }}>
 
-        <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '26px', fontWeight: 400, color: 'var(--text)', marginBottom: '6px' }}>
+        <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '26px', fontWeight: 400, color: text, marginBottom: '6px', letterSpacing: '-0.02em' }}>
           {t('welcomeBack')}
         </h2>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '28px' }}>
+        <p style={{ color: muted, fontSize: '14px', marginBottom: '28px' }}>
           {t('noAccount')}{' '}
-          <Link href={'/' + locale + '/auth/register'} style={{ color: '#0ea472', fontWeight: 600, textDecoration: 'none' }}>
+          <Link href={'/' + locale + '/auth/register'} style={{ color: accent, fontWeight: 600, textDecoration: 'none' }}>
             {t('register')}
           </Link>
         </p>
@@ -83,46 +101,49 @@ function switchLocale(newLocale: string) {
           </div>
         )}
 
-        <div style={{ marginBottom: '16px' }}>
-          <label style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>{t('email')}</label>
-          <input
-            type="email" value={email} onChange={e => setEmail(e.target.value)}
+        <div style={{ marginBottom: '14px' }}>
+          <label style={{ fontSize: '12px', fontWeight: 600, color: muted, display: 'block', marginBottom: '7px', letterSpacing: '0.04em', textTransform: 'uppercase' as const }}>
+            {t('email')}
+          </label>
+          <input type="email" value={email} onChange={e => setEmail(e.target.value)}
             placeholder="deine@email.com"
-            style={{ width: '100%', background: 'var(--bg-secondary)', border: '1.5px solid var(--border)', borderRadius: '12px', padding: '13px 16px', fontSize: '14px', color: 'var(--text)', outline: 'none', boxSizing: 'border-box' as const, fontFamily: "'DM Sans', sans-serif", transition: 'border-color 0.2s' }}
-            onFocus={e => e.target.style.borderColor = '#0ea472'}
-            onBlur={e => e.target.style.borderColor = 'var(--border)'}
+            onKeyDown={e => e.key === 'Enter' && handleLogin()}
+            style={{ width: '100%', background: isDark ? '#080c18' : '#f8faff', border: `1.5px solid ${border}`, borderRadius: '12px', padding: '13px 16px', fontSize: '14px', color: text, outline: 'none', boxSizing: 'border-box' as const, fontFamily: "'DM Sans', sans-serif", transition: 'border-color 0.2s' }}
+            onFocus={e => e.target.style.borderColor = accent}
+            onBlur={e => e.target.style.borderColor = border}
           />
         </div>
 
         <div style={{ marginBottom: '24px' }}>
-          <label style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>{t('password')}</label>
-          <input
-            type="password" value={password} onChange={e => setPassword(e.target.value)}
+          <label style={{ fontSize: '12px', fontWeight: 600, color: muted, display: 'block', marginBottom: '7px', letterSpacing: '0.04em', textTransform: 'uppercase' as const }}>
+            {t('password')}
+          </label>
+          <input type="password" value={password} onChange={e => setPassword(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleLogin()}
             placeholder="••••••••"
-            style={{ width: '100%', background: 'var(--bg-secondary)', border: '1.5px solid var(--border)', borderRadius: '12px', padding: '13px 16px', fontSize: '14px', color: 'var(--text)', outline: 'none', boxSizing: 'border-box' as const, fontFamily: "'DM Sans', sans-serif", transition: 'border-color 0.2s' }}
-            onFocus={e => e.target.style.borderColor = '#0ea472'}
-            onBlur={e => e.target.style.borderColor = 'var(--border)'}
+            style={{ width: '100%', background: isDark ? '#080c18' : '#f8faff', border: `1.5px solid ${border}`, borderRadius: '12px', padding: '13px 16px', fontSize: '14px', color: text, outline: 'none', boxSizing: 'border-box' as const, fontFamily: "'DM Sans', sans-serif", transition: 'border-color 0.2s' }}
+            onFocus={e => e.target.style.borderColor = accent}
+            onBlur={e => e.target.style.borderColor = border}
           />
         </div>
 
-        <button onClick={handleLogin} disabled={loading}
-          style={{ width: '100%', background: loading ? 'var(--bg-secondary)' : 'linear-gradient(135deg, #0ea472 0%, #0891b2 100%)', border: loading ? '1px solid var(--border)' : 'none', borderRadius: '12px', padding: '14px', fontSize: '15px', fontWeight: 600, color: loading ? 'var(--text-secondary)' : '#fff', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: "'DM Serif Display', serif", transition: 'all 0.2s' }}>
+        <motion.button whileTap={{ scale: 0.98 }} onClick={handleLogin} disabled={loading}
+          style={{ width: '100%', background: loading ? (isDark ? '#0d1225' : '#e8eeff') : `linear-gradient(135deg, ${accent} 0%, #6b9fff 100%)`, border: loading ? `1px solid ${border}` : 'none', borderRadius: '14px', padding: '15px', fontSize: '15px', fontWeight: 700, color: loading ? muted : '#fff', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'all 0.2s', letterSpacing: '-0.01em', boxShadow: loading ? 'none' : `0 4px 20px ${accent}40` }}>
           {loading ? t('loading') : t('loginButton')}
-        </button>
+        </motion.button>
 
-        {/* Features */}
-        <div style={{ display: 'flex', gap: '8px', marginTop: '24px', justifyContent: 'center' }}>
+        {/* Feature pills */}
+        <div style={{ display: 'flex', gap: '6px', marginTop: '20px' }}>
           {[t('feature1'), t('feature2'), t('feature3')].map((feat, i) => (
-            <div key={i} style={{ flex: 1, background: isDark ? 'rgba(14,164,114,0.08)' : 'rgba(14,164,114,0.06)', borderRadius: '10px', padding: '8px 6px', fontSize: '10px', color: 'var(--text-secondary)', textAlign: 'center' as const, border: '1px solid rgba(14,164,114,0.12)', lineHeight: 1.4 }}>
-              ✦ {feat}
+            <div key={i} style={{ flex: 1, background: isDark ? `rgba(77,126,255,0.08)` : `rgba(59,107,255,0.06)`, borderRadius: '10px', padding: '8px 6px', fontSize: '10px', color: muted, textAlign: 'center' as const, border: `1px solid ${isDark ? 'rgba(77,126,255,0.15)' : 'rgba(59,107,255,0.12)'}`, lineHeight: 1.4 }}>
+              {feat}
             </div>
           ))}
         </div>
-      </div>
+      </motion.div>
 
-      <p style={{ marginTop: '24px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-        KiWardrobe · Made with ❤️
+      <p style={{ marginTop: '20px', fontSize: '11px', color: muted, position: 'relative', zIndex: 1 }}>
+        KiWardrobe · Made with ♥
       </p>
     </div>
   )

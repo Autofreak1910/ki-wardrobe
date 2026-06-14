@@ -1,5 +1,5 @@
 'use client'
-
+import WelcomeOverlay from '@/components/WelcomeOverlay'
 import { useState, useEffect, useRef } from 'react'
 import { useTheme } from '@/context/ThemeContext'
 import { useTranslations, useLocale } from 'next-intl'
@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from '@/components/Navbar'
+
 
 function getGreeting(locale: string): string {
   const h = new Date().getHours()
@@ -200,8 +201,10 @@ const muted     = isDark ? '#4d6080' : '#6b7fa8'
 const accent    = isDark ? '#4d7eff' : '#3b6bff'
 const accentDim = isDark ? 'rgba(77,126,255,0.1)' : 'rgba(59,107,255,0.08)'
 
-  return (
+return (
     <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' as const, background: bg, overflow: 'hidden', fontFamily: "'DM Sans', sans-serif", position: 'relative' as const }}>
+
+      <WelcomeOverlay />
 
       {/* Background glows */}
       <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
