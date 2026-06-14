@@ -1,6 +1,6 @@
 'use client'
 import WelcomeOverlay from '@/components/WelcomeOverlay'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, RefObject } from 'react'
 import { useTheme } from '@/context/ThemeContext'
 import { useTranslations, useLocale } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
