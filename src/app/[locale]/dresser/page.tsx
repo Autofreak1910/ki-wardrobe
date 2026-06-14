@@ -78,14 +78,24 @@ export default function DresserPage() {
   const weatherRef = useRef<HTMLDivElement>(null)
 const categoryRef = useRef<HTMLDivElement>(null)
 const dressMeRef = useRef<HTMLButtonElement>(null)
-
+const [showUnlock, setShowUnlock] = useState(false)
+useEffect(() => { loadWardrobe(); fetchWeather() }, [])
   const days = locale === 'de'
     ? ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag']
     : ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
   const today = days[new Date().getDay()]
   const dateStr = new Date().toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-GB', { day: 'numeric', month: 'long' })
+useEffect(() => { loadWardrobe(); fetchWeather() }, [])
 
-  useEffect(() => { loadWardrobe(); fetchWeather() }, [])
+useEffect(() => {
+  if (wardrobeItems.length >= 3) {
+    const seen = localStorage.getItem('kw_welcome_seen')
+    if (!seen) {
+      setShowUnlock(true)
+      setTimeout(() => setShowUnlock(false), 2800)
+    }
+  }
+}, [wardrobeItems.length])
 
   async function loadWardrobe() {
     const { data: { session } } = await supabase.auth.getSession()
@@ -207,12 +217,83 @@ const accentDim = isDark ? 'rgba(77,126,255,0.1)' : 'rgba(59,107,255,0.08)'
 return (
     <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' as const, background: bg, overflow: 'hidden', fontFamily: "'DM Sans', sans-serif", position: 'relative' as const }}>
 
- <WelcomeOverlay
+<WelcomeOverlay
   weatherRef={weatherRef}
   categoryRef={categoryRef}
   dressMeRef={dressMeRef}
   itemCount={wardrobeItems.length}
 />
+
+{/* Unlock Animation */}
+<AnimatePresence>
+  {showUnlock && (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9998,
+        display: 'flex', flexDirection: 'column' as const,
+        alignItems: 'center', justifyContent: 'center', gap: '0px',
+        background: isDark ? 'rgba(8,12,24,0.96)' : 'rgba(240,244,255,0.96)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+      }}
+    >
+      {/* Konfetti */}
+      {[...Array(12)].map((_, i) => (
+        <motion.div key={i}
+          initial={{ opacity: 0, x: 0, y: 0, scale: 0 }}
+          animate={{ opacity: [0, 1, 1, 0], x: (Math.cos(i * 30 * Math.PI / 180)) * 120, y: (Math.sin(i * 30 * Math.PI / 180)) * 120, scale: [0, 1.2, 1, 0] }}
+          transition={{ delay: 0.4 + i * 0.04, duration: 1 }}
+          style={{ position: 'absolute', width: '10px', height: '10px', borderRadius: '50%', background: i % 3 === 0 ? accent : i % 3 === 1 ? '#6b9fff' : '#a855f7' }}
+        />
+      ))}
+
+      {/* Lock Icon */}
+      <motion.div
+        initial={{ scale: 0, rotate: -20 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ type: 'spring', damping: 10, stiffness: 200, delay: 0.1 }}
+        style={{
+          width: '110px', height: '110px', borderRadius: '32px',
+          background: `linear-gradient(135deg, ${accent}, #6b9fff)`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: `0 0 80px ${accent}70, 0 0 40px ${accent}40`,
+          marginBottom: '28px',
+        }}
+      >
+        {/* Schloss öffnet sich nach oben */}
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <motion.path
+            initial={{ d: "M7 11V7a5 5 0 0110 0v4" }}
+            animate={{ d: "M7 11V5a3 3 0 016 0" }}
+            transition={{ delay: 0.6, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          />
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        </svg>
+      </motion.div>
+
+      <motion.p
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5, duration: 0.4 }}
+        style={{ fontSize: '26px', fontWeight: 800, color: text, letterSpacing: '-0.04em', fontFamily: "'DM Sans', sans-serif", marginBottom: '8px' }}
+      >
+        {locale === 'de' ? 'Entsperrt! 🎉' : 'Unlocked! 🎉'}
+      </motion.p>
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.7 }}
+        style={{ fontSize: '15px', color: muted, fontFamily: "'DM Sans', sans-serif", textAlign: 'center' as const, maxWidth: '260px', lineHeight: 1.5 }}
+      >
+        {locale === 'de' ? 'Dein Stylist ist bereit — lass uns loslegen!' : 'Your stylist is ready — let\'s go!'}
+      </motion.p>
+    </motion.div>
+  )}
+</AnimatePresence>
 
       {/* Background glows */}
       <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
