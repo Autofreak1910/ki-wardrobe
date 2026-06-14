@@ -93,23 +93,57 @@ export default function DresserPage() {
   }
 
   async function fetchWeather() {
-    setWeatherLoading(true)
-    try {
-      const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
-        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 6000 })
+  setWeatherLoading(true)
+  try {
+    // Geolocation mit kurzem Timeout
+    const pos = await Promise.race([
+      new Promise<GeolocationPosition>((resolve, reject) =>
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          timeout: 5000,
+          maximumAge: 300000, // Cache 5 Min
+          enableHighAccuracy: false,
+        })
+      ),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('timeout')), 5000)
       )
-      const { latitude: lat, longitude: lon } = pos.coords
-      const wr = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode,is_day&timezone=auto`)
-      const wd = await wr.json()
+    ])
+
+    const { latitude: lat, longitude: lon } = pos.coords
+
+    // Parallel fetchen
+    const [weatherRes, geoRes] = await Promise.all([
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode,is_day&timezone=auto`),
+      fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`)
+    ])
+
+    const [wd, gd] = await Promise.all([weatherRes.json(), geoRes.json()])
+
+    const { icon, condition } = parseWeatherCode(wd.current.weathercode, wd.current.is_day === 1)
+    const city = gd.address?.city || gd.address?.town || gd.address?.village || ''
+
+    setWeather({ temp: Math.round(wd.current.temperature_2m), condition, icon, city })
+
+  } catch (err: any) {
+    // Fallback: IP-basiertes Wetter ohne GPS
+    try {
+      const ipRes = await fetch('https://ipapi.co/json/')
+      const ipData = await ipRes.json()
+      const { latitude: lat, longitude: lon, city } = ipData
+
+      const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode,is_day&timezone=auto`)
+      const wd = await weatherRes.json()
       const { icon, condition } = parseWeatherCode(wd.current.weathercode, wd.current.is_day === 1)
-      const gr = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`)
-      const gd = await gr.json()
-      const city = gd.address?.city || gd.address?.town || gd.address?.village || ''
-      setWeather({ temp: Math.round(wd.current.temperature_2m), condition, icon, city })
+
+      setWeather({ temp: Math.round(wd.current.temperature_2m), condition, icon, city: city || '' })
     } catch {
-      setWeather({ temp: 18, condition: 'Unbekannt', icon: '🌤️', city: '' })
-    } finally { setWeatherLoading(false) }
+      // Letzter Fallback
+      setWeather({ temp: 18, condition: locale === 'de' ? 'Schönes Wetter' : 'Nice weather', icon: '🌤️', city: '' })
+    }
+  } finally {
+    setWeatherLoading(false)
   }
+}
 
   function toggleCategory(cat: string) {
     setActiveCategories(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat])
