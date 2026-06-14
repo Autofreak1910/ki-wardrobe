@@ -280,17 +280,104 @@ return (
           </motion.div>
         </motion.div>
 
-        {!hasItems ? (
-          <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
-            style={{ textAlign: 'center', padding: '56px 24px', border: `1px solid ${border}`, borderRadius: '20px', background: card }}>
-            <p style={{ fontSize: '18px', fontWeight: 700, color: text, marginBottom: '10px', letterSpacing: '-0.03em' }}>{t('dresser.notEnough')}</p>
-            <p style={{ fontSize: '13px', color: muted, lineHeight: 1.7, marginBottom: '24px' }}>{t('dresser.notEnoughSub')}</p>
-            <motion.button whileTap={{ scale: 0.96 }} onClick={() => router.push('/' + locale + '/wardrobe')}
-              style={{ padding: '13px 28px', background: accent, color: '#fff', border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: '0 4px 16px rgba(14,164,114,0.35)' }}>
-              {t('dresser.uploadNow')}
-            </motion.button>
-          </motion.div>
-        ) : (
+    {!hasItems ? (
+  <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+    
+    {/* Ausgegrautet Preview */}
+    <div style={{ position: 'relative', marginBottom: '20px' }}>
+      
+      {/* Blur Overlay mit Lock */}
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 10,
+        display: 'flex', flexDirection: 'column' as const,
+        alignItems: 'center', justifyContent: 'center',
+        gap: '12px',
+        backdropFilter: 'blur(6px)',
+        WebkitBackdropFilter: 'blur(6px)',
+        borderRadius: '20px',
+        background: isDark ? 'rgba(8,12,24,0.6)' : 'rgba(240,244,255,0.6)',
+      }}>
+        <div style={{
+          width: '56px', height: '56px', borderRadius: '16px',
+          background: `linear-gradient(135deg, ${accent}, #6b9fff)`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: `0 8px 24px ${accent}50`,
+        }}>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0110 0v4"/>
+          </svg>
+        </div>
+        <div style={{ textAlign: 'center' as const, padding: '0 24px' }}>
+          <p style={{ fontSize: '16px', fontWeight: 800, color: text, marginBottom: '4px', letterSpacing: '-0.02em' }}>
+            {locale === 'de' ? 'Kleidung hinzufügen' : 'Add clothes first'}
+          </p>
+          <p style={{ fontSize: '13px', color: muted, lineHeight: 1.5 }}>
+            {locale === 'de' ? 'Lade mind. 3 Teile hoch um Outfits zu generieren' : 'Upload at least 3 items to generate outfits'}
+          </p>
+        </div>
+        <motion.button whileTap={{ scale: 0.96 }}
+          onClick={() => router.push('/' + locale + '/wardrobe')}
+          style={{
+            padding: '12px 24px',
+            background: `linear-gradient(135deg, ${accent}, #6b9fff)`,
+            border: 'none', borderRadius: '100px',
+            fontSize: '14px', fontWeight: 700, color: '#fff',
+            cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
+            boxShadow: `0 4px 16px ${accent}40`,
+          }}>
+          {locale === 'de' ? '+ Kleidung hochladen' : '+ Upload clothes'}
+        </motion.button>
+      </div>
+
+      {/* Fake ausgegrautet Content darunter */}
+      <div style={{ filter: 'blur(3px)', opacity: 0.35, pointerEvents: 'none', userSelect: 'none' as const }}>
+        
+        {/* Fake Occasion chips */}
+        <div style={{ marginBottom: '22px' }}>
+          <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: muted, marginBottom: '10px' }}>
+            {locale === 'de' ? 'Anlass' : 'Occasion'}
+          </p>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' as const }}>
+            {['Casual', 'Uni', 'Arbeit', 'Date', 'Sport', 'Party', 'Festival'].map((occ, i) => (
+              <div key={i} style={{ padding: '8px 16px', borderRadius: '100px', border: `1px solid ${i === 0 ? accent : border}`, background: i === 0 ? accent : card, color: i === 0 ? '#fff' : muted, fontSize: '13px', fontWeight: i === 0 ? 600 : 400 }}>
+                {occ}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Fake Category Grid */}
+        <div style={{ marginBottom: '22px' }}>
+          <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: muted, marginBottom: '10px' }}>
+            {locale === 'de' ? 'Was soll ins Outfit?' : 'What to include?'}
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            {categoryConfig.map((cat, i) => (
+              <div key={i} style={{
+                gridColumn: i === categoryConfig.length - 1 && categoryConfig.length % 2 !== 0 ? '1 / -1' : undefined,
+                display: 'flex', flexDirection: 'column' as const,
+                alignItems: 'center', justifyContent: 'center', gap: '10px',
+                padding: '22px 16px', borderRadius: '18px',
+                border: `1.5px solid ${border}`, background: card,
+              }}>
+                <span style={{ color: muted }}>{cat.icon}</span>
+                <span style={{ fontSize: '14px', fontWeight: 600, color: muted }}>
+                  {locale === 'de' ? cat.labelDe : cat.labelEn}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Fake Dress Me Button */}
+        <div style={{ width: '100%', padding: '19px', borderRadius: '100px', background: `linear-gradient(135deg, ${accent}, #6b9fff)`, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '17px', fontWeight: 700, color: '#fff' }}>✦ {locale === 'de' ? 'Dress Me' : 'Dress Me'}</span>
+        </div>
+      </div>
+    </div>
+  </motion.div>
+) : (
           <>
             {/* ── Occasion chips ── */}
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, duration: 0.4 }} style={{ marginBottom: '22px' }}>
