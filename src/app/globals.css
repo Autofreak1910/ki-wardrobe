@@ -56,12 +56,20 @@ input {
 }
 
 main {
-  animation: pageIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: pageIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes pageIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: scale(0.98) translateY(4px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0px);
+  }
 }
 
 .app-container {
