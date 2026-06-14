@@ -279,10 +279,10 @@ export default function DresserPage() {
           font-size:11px; font-weight:500; letter-spacing:0.06em;
           text-transform:uppercase; color:var(--text-secondary); margin-bottom:8px;
         }
-        .d-title {
-          font-family:'DM Serif Display',serif;
-          font-size:34px; font-weight:400; line-height:1.1;
-          letter-spacing:-0.025em; color:var(--text); margin-bottom:12px;
+    .d-title {
+          font-family:'DM Sans',sans-serif;
+          font-size:28px; font-weight:700; line-height:1.1;
+          letter-spacing:-0.03em; color:var(--text); margin-bottom:12px;
         }
         .d-meta {
           display:inline-flex; align-items:center; gap:6px;
@@ -434,9 +434,9 @@ export default function DresserPage() {
           font-size:10px; font-weight:700; letter-spacing:0.07em;
           text-transform:uppercase; color:var(--text-secondary); margin-bottom:7px;
         }
-        .d-ai-dot {
+    .d-ai-dot {
           width:5px; height:5px; border-radius:50%;
-          background:#0ea472; flex-shrink:0;
+          background:var(--text-secondary); flex-shrink:0;
         }
         .d-ai-text { font-size:13px; color:var(--text-secondary); line-height:1.6; }
 

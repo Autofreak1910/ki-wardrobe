@@ -195,7 +195,7 @@ return (
     <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '900px', width: '100%', margin: '0 auto',  padding: '84px 16px 100px 16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
           <div>
-            <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '28px', fontWeight: 400, color: 'var(--text)', marginBottom: '4px' }}>
+          <h1 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text)', marginBottom: '4px', letterSpacing: '-0.03em' }}>
               {t('wardrobe.title')}
             </h1>
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
