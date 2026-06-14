@@ -11,7 +11,6 @@ export default function Navbar({ activePage }: { activePage: string }) {
   const locale = useLocale()
   const router = useRouter()
   const pathname = usePathname()
-  const t = useTranslations()
   const isDark = theme === 'dark'
   const navRef = useRef<HTMLDivElement>(null)
   const [mounted, setMounted] = useState(false)
@@ -22,10 +21,46 @@ export default function Navbar({ activePage }: { activePage: string }) {
   const dragIndexRef = useRef(-1)
 
   const tabs = [
-    { page: 'dresser', emoji: '✦', label: 'Dress Me' },
-   { page: 'wardrobe', emoji: '👕', label: locale === 'de' ? 'Schrank' : 'Wardrobe' },
-    { page: 'outfits', emoji: '💫', label: 'Outfits' },
-    { page: 'profile', emoji: '👤', label: locale === 'de' ? 'Profil' : 'Profile' },
+    {
+      page: 'dresser',
+      label: locale === 'de' ? 'Stylist' : 'Stylist',
+      icon: (active: boolean) => (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/>
+          <path d="M19 15l.75 2.25L22 18l-2.25.75L19 21l-.75-2.25L16 18l2.25-.75L19 15z"/>
+        </svg>
+      )
+    },
+    {
+      page: 'wardrobe',
+      label: locale === 'de' ? 'Schrank' : 'Wardrobe',
+      icon: (active: boolean) => (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <path d="M16 10a4 4 0 01-8 0"/>
+        </svg>
+      )
+    },
+    {
+      page: 'outfits',
+      label: 'Outfits',
+      icon: (active: boolean) => (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+        </svg>
+      )
+    },
+    {
+      page: 'profile',
+      label: locale === 'de' ? 'Profil' : 'Profile',
+      icon: (active: boolean) => (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      )
+    },
   ]
 
   const activeIndex = tabs.findIndex(t => t.page === activePage)
@@ -41,13 +76,13 @@ export default function Navbar({ activePage }: { activePage: string }) {
   }
 
   function getPos(index: number, w: number) {
-    return { x: index * w + w * 0.08, width: w * 0.84 }
+    return { x: index * w + w * 0.06, width: w * 0.88 }
   }
 
   function snap(index: number, w: number, stretch = false) {
     const pos = getPos(index, w)
     animate(bubbleX, pos.x, { ...SPRING })
-    animate(bubbleW, stretch ? pos.width * 1.12 : pos.width, { ...SPRING })
+    animate(bubbleW, stretch ? pos.width * 1.08 : pos.width, { ...SPRING })
   }
 
   function getIndex(clientX: number) {
@@ -58,10 +93,7 @@ export default function Navbar({ activePage }: { activePage: string }) {
   }
 
   useEffect(() => { setMounted(true) }, [])
-
-  useEffect(() => {
-    tabs.forEach(tab => router.prefetch('/' + locale + '/' + tab.page))
-  }, [locale])
+  useEffect(() => { tabs.forEach(tab => router.prefetch('/' + locale + '/' + tab.page)) }, [locale])
 
   useEffect(() => {
     if (!mounted || !navRef.current) return
@@ -87,8 +119,7 @@ export default function Navbar({ activePage }: { activePage: string }) {
     const idx = getIndex(x)
     dragIndexRef.current = idx
     setDragIndex(idx)
-    const w = navRef.current.offsetWidth / tabs.length
-    snap(idx, w, true)
+    snap(idx, navRef.current.offsetWidth / tabs.length, true)
   }
 
   function onDragMove(e: React.TouchEvent | React.MouseEvent) {
@@ -99,15 +130,12 @@ export default function Navbar({ activePage }: { activePage: string }) {
     if (idx === dragIndexRef.current) return
     dragIndexRef.current = idx
     setDragIndex(idx)
-    const w = navRef.current.offsetWidth / tabs.length
-    snap(idx, w, true)
+    snap(idx, navRef.current.offsetWidth / tabs.length, true)
   }
 
   function onDragEnd(e: React.TouchEvent | React.MouseEvent) {
     if (!isDragging || !navRef.current) return
-    const x = 'changedTouches' in e
-      ? e.changedTouches[0].clientX
-      : (e as React.MouseEvent).clientX
+    const x = 'changedTouches' in e ? e.changedTouches[0].clientX : (e as React.MouseEvent).clientX
     const targetIndex = getIndex(x)
     const w = navRef.current.offsetWidth / tabs.length
     setIsDragging(false)
@@ -123,53 +151,54 @@ export default function Navbar({ activePage }: { activePage: string }) {
     setIsDragging(false)
     setDragIndex(-1)
     dragIndexRef.current = -1
-    const w = navRef.current.offsetWidth / tabs.length
-    snap(currentActiveIndex.current, w)
+    snap(currentActiveIndex.current, navRef.current.offsetWidth / tabs.length)
   }
+
+  const accent = '#0ea472'
+  const navBg = isDark ? 'rgba(8,15,12,0.97)' : 'rgba(240,253,248,0.97)'
+  const navBorder = isDark ? '#1a3328' : '#d1f0e4'
 
   return (
     <>
+      {/* Desktop */}
       <nav style={{
-        borderBottom: '1px solid var(--border)', padding: '0 24px',
+        borderBottom: `1px solid ${navBorder}`,
+        padding: '0 24px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        height: '60px',
-        background: isDark ? 'rgba(13,17,23,0.92)' : 'rgba(255,255,255,0.92)',
+        height: '56px',
+        background: navBg,
         position: 'fixed' as const, top: 0, left: 0, right: 0, zIndex: 100,
-        backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-        boxShadow: isDark ? '0 1px 0 rgba(255,255,255,0.05)' : '0 1px 0 rgba(0,0,0,0.06)',
+        backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
       }}>
-        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '20px', color: 'var(--text)' }}>
-          Ki<em style={{ color: '#0ea472' }}>Wardrobe</em>
-        </div>
-        <div className="desktop-nav" style={{ display: 'flex', gap: '4px' }}>
-          {['dresser', 'wardrobe', 'outfits', 'style'].map(page => (
-            <button key={page} onClick={() => router.push('/' + locale + '/' + page)}
+        <span style={{ fontSize: '15px', fontWeight: 700, letterSpacing: '-0.03em', color: isDark ? '#e8f5ee' : '#0a2e1e', fontFamily: "'DM Sans', sans-serif" }}>
+          Ki<em style={{ fontFamily: "'DM Serif Display', serif", fontStyle: 'italic' }}>Wardrobe</em>
+        </span>
+        <div className="desktop-nav" style={{ display: 'flex', gap: '2px' }}>
+          {tabs.map(tab => (
+            <button key={tab.page} onClick={() => router.push('/' + locale + '/' + tab.page)}
               style={{
-                padding: '8px 14px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-                fontSize: '13px', fontWeight: 500, fontFamily: "'DM Sans', sans-serif",
-                background: page === activePage ? 'linear-gradient(135deg, #0ea472, #0891b2)' : 'transparent',
-                color: page === activePage ? '#fff' : 'var(--text-secondary)',
-                transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                transform: page === activePage ? 'scale(1.05)' : 'scale(1)',
+                padding: '6px 14px', borderRadius: '8px', border: 'none', cursor: 'pointer',
+                fontSize: '13px', fontWeight: tab.page === activePage ? 600 : 400,
+                fontFamily: "'DM Sans', sans-serif",
+                background: tab.page === activePage ? (isDark ? 'rgba(14,164,114,0.15)' : 'rgba(14,164,114,0.1)') : 'transparent',
+                color: tab.page === activePage ? accent : isDark ? '#4d7a62' : '#6b9e87',
+                transition: 'all 0.15s',
               }}>
-              {t('nav.' + page)}
+              {tab.label}
             </button>
           ))}
         </div>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <button onClick={switchLanguage} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', fontSize: '12px', color: 'var(--text)', fontFamily: "'DM Sans', sans-serif" }}>
-            {locale === 'de' ? '🇬🇧' : '🇩🇪'}
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+          <button onClick={switchLanguage} style={{ background: 'transparent', border: `1px solid ${navBorder}`, borderRadius: '6px', padding: '5px 10px', cursor: 'pointer', fontSize: '12px', color: isDark ? '#4d7a62' : '#6b9e87', fontFamily: "'DM Sans', sans-serif" }}>
+            {locale === 'de' ? 'EN' : 'DE'}
           </button>
-          <button onClick={toggle} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '6px 10px', cursor: 'pointer', fontSize: '16px' }}>
-            {isDark ? '☀️' : '🌙'}
-          </button>
-          <button onClick={() => router.push('/' + locale + '/profile')}
-            style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg, #0ea472, #0891b2)', border: 'none', cursor: 'pointer', fontSize: '14px', color: '#fff', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(14,164,114,0.4)' }}>
-            👤
+          <button onClick={toggle} style={{ background: 'transparent', border: `1px solid ${navBorder}`, borderRadius: '6px', padding: '5px 9px', cursor: 'pointer', fontSize: '13px', color: isDark ? '#4d7a62' : '#6b9e87' }}>
+            {isDark ? '○' : '●'}
           </button>
         </div>
       </nav>
 
+      {/* Mobile */}
       <div
         ref={navRef}
         className="mobile-nav"
@@ -183,85 +212,64 @@ export default function Navbar({ activePage }: { activePage: string }) {
         style={{
           position: 'fixed', bottom: 0, left: 0, right: 0,
           height: '72px',
-          background: isDark ? 'rgba(10,12,18,0.96)' : 'rgba(255,255,255,0.96)',
-          backdropFilter: 'blur(40px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(40px) saturate(180%)',
-          borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'}`,
+          background: navBg,
+          backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)',
+          borderTop: `1px solid ${navBorder}`,
           display: 'flex', alignItems: 'center',
           zIndex: 100,
           paddingBottom: 'env(safe-area-inset-bottom)',
-          boxShadow: isDark
-            ? '0 -1px 0 rgba(255,255,255,0.04), 0 -20px 60px rgba(0,0,0,0.6)'
-            : '0 -1px 0 rgba(0,0,0,0.03), 0 -20px 60px rgba(0,0,0,0.08)',
           touchAction: 'none', userSelect: 'none',
         }}
       >
         {mounted && tabWidth > 0 && (
           <motion.div style={{
-            position: 'absolute',
-            top: '10px',
-            x: bubbleX,
-            width: bubbleW,
-            height: '52px',
-            background: isDark
-              ? 'linear-gradient(135deg, rgba(14,164,114,0.3), rgba(8,145,178,0.3))'
-              : 'linear-gradient(135deg, rgba(14,164,114,0.18), rgba(8,145,178,0.18))',
-            borderRadius: '18px',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            border: `1px solid ${isDark ? 'rgba(14,164,114,0.4)' : 'rgba(14,164,114,0.25)'}`,
-            boxShadow: isDark
-              ? '0 0 30px rgba(14,164,114,0.25), inset 0 1px 0 rgba(255,255,255,0.1)'
-              : '0 0 30px rgba(14,164,114,0.15), inset 0 1px 0 rgba(255,255,255,0.8)',
+            position: 'absolute', top: '8px',
+            x: bubbleX, width: bubbleW, height: '56px',
+            background: isDark ? 'rgba(14,164,114,0.08)' : 'rgba(14,164,114,0.08)',
+            borderRadius: '14px',
+            border: `1px solid ${isDark ? 'rgba(14,164,114,0.15)' : 'rgba(14,164,114,0.2)'}`,
             pointerEvents: 'none',
           }} />
         )}
 
         {tabs.map((item) => {
           const isActive = activePage === item.page
-          const isHighlighted = isDragging
-            ? dragIndex === tabs.findIndex(t => t.page === item.page)
-            : isActive
+          const tabIdx = tabs.findIndex(t => t.page === item.page)
+          const isHighlighted = isDragging ? dragIndex === tabIdx : isActive
 
           return (
             <motion.button
               key={item.page}
-              onMouseEnter={() => router.prefetch('/' + locale + '/' + item.page)}
               onClick={() => !isDragging && router.push('/' + locale + '/' + item.page)}
-              animate={{ scale: isHighlighted ? 1.1 : 1, y: isHighlighted ? -3 : 0 }}
+              animate={{ scale: isHighlighted ? 1.04 : 1 }}
               transition={SPRING}
               style={{
                 display: 'flex', flexDirection: 'column' as const,
-                alignItems: 'center', gap: '3px',
+                alignItems: 'center', justifyContent: 'center', gap: '3px',
                 background: 'none', border: 'none',
-                cursor: 'pointer', padding: '8px 0', flex: 1,
+                cursor: 'pointer', padding: '0', flex: 1, height: '72px',
                 position: 'relative' as const, zIndex: 1,
                 pointerEvents: isDragging ? 'none' : 'auto',
                 WebkitTapHighlightColor: 'transparent',
               }}
             >
               <motion.span
-                animate={{
-                  filter: isHighlighted ? 'none' : 'grayscale(1)',
-                  opacity: isHighlighted ? 1 : 0.38,
-                  scale: isHighlighted ? 1.08 : 1,
-                }}
-                transition={SPRING}
-                style={{ fontSize: '22px', display: 'block', lineHeight: 1 }}
+                animate={{ color: isHighlighted ? accent : isDark ? '#2d5c40' : '#a8d4bc' }}
+                transition={{ duration: 0.12 }}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
-                {item.emoji}
+                {item.icon(isHighlighted)}
               </motion.span>
               <motion.span
                 animate={{
-                  color: isHighlighted ? '#0ea472' : isDark ? '#6b7280' : '#9ca3af',
-                  opacity: isHighlighted ? 1 : 0.6,
+                  color: isHighlighted ? accent : isDark ? '#2d5c40' : '#a8d4bc',
+                  fontWeight: isHighlighted ? 600 : 400,
                 }}
                 transition={{ duration: 0.12 }}
                 style={{
                   fontSize: '10px',
-                  fontWeight: isHighlighted ? 700 : 400,
                   fontFamily: "'DM Sans', sans-serif",
-                  letterSpacing: '0.01em',
+                  letterSpacing: '-0.01em',
                 }}
               >
                 {item.label}

@@ -8,6 +8,23 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from '@/components/Navbar'
 
+function getGreeting(locale: string): string {
+  const h = new Date().getHours()
+  if (locale === 'de') {
+    if (h < 5)  return 'Gute Nacht'
+    if (h < 12) return 'Guten Morgen'
+    if (h < 17) return 'Guten Tag'
+    if (h < 22) return 'Guten Abend'
+    return 'Gute Nacht'
+  } else {
+    if (h < 5)  return 'Good night'
+    if (h < 12) return 'Good morning'
+    if (h < 17) return 'Good afternoon'
+    if (h < 22) return 'Good evening'
+    return 'Good night'
+  }
+}
+
 const occasions = ['casual', 'uni', 'work', 'date', 'sport', 'party', 'festival'] as const
 const categoryConfig = [
   { key: 'tops',   label: 'Tops' },
@@ -21,7 +38,6 @@ type ClothingItem = { id: string; image_url: string; category: string; color: st
 type Outfit = { items: string[]; reasoning: string; itemObjects: ClothingItem[] }
 type Weather = { temp: number; condition: string; icon: string; city: string }
 
-// WMO weather code → emoji + label
 function parseWeatherCode(code: number, isDay: boolean): { icon: string; condition: string } {
   if (code === 0) return { icon: isDay ? '☀️' : '🌙', condition: isDay ? 'Sonnig' : 'Klar' }
   if (code <= 2)  return { icon: '⛅', condition: 'Leicht bewölkt' }
@@ -45,6 +61,7 @@ export default function DresserPage() {
   const [activeCategories, setActiveCategories] = useState<string[]>(['tops', 'hosen', 'jacken', 'schuhe', 'acc'])
   const [weather, setWeather] = useState<Weather | null>(null)
   const [weatherLoading, setWeatherLoading] = useState(true)
+  const [username, setUsername] = useState<string>('')
   const { theme } = useTheme()
   const t = useTranslations()
   const locale = useLocale()
@@ -64,16 +81,22 @@ export default function DresserPage() {
     fetchWeather()
   }, [])
 
+  async function loadWardrobe() {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
+    const { data } = await supabase.from('clothing_items').select('*').eq('user_id', session.user.id)
+    if (data) { setWardrobeItems(data); setHasItems(data.length >= 3) }
+    const { data: profile } = await supabase.from('profiles').select('username').eq('id', session.user.id).single()
+    if (profile?.username) setUsername(profile.username)
+  }
+
   async function fetchWeather() {
     setWeatherLoading(true)
     try {
-      // 1. GPS holen
       const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
         navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 6000 })
       )
       const { latitude: lat, longitude: lon } = pos.coords
-
-      // 2. Wetter von Open-Meteo (kostenlos, kein Key)
       const weatherRes = await fetch(
         `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode,is_day&timezone=auto`
       )
@@ -82,28 +105,15 @@ export default function DresserPage() {
       const code = weatherData.current.weathercode
       const isDay = weatherData.current.is_day === 1
       const { icon, condition } = parseWeatherCode(code, isDay)
-
-      // 3. Stadtname via Open-Meteo Geocoding reverse
-      const geoRes = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`
-      )
+      const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`)
       const geoData = await geoRes.json()
       const city = geoData.address?.city || geoData.address?.town || geoData.address?.village || ''
-
       setWeather({ temp, condition, icon, city })
     } catch {
-      // Kein Standort erlaubt oder Fehler → Fallback
       setWeather({ temp: 18, condition: locale === 'de' ? 'Unbekannt' : 'Unknown', icon: '🌤️', city: '' })
     } finally {
       setWeatherLoading(false)
     }
-  }
-
-  async function loadWardrobe() {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
-    const { data } = await supabase.from('clothing_items').select('*').eq('user_id', session.user.id)
-    if (data) { setWardrobeItems(data); setHasItems(data.length >= 3) }
   }
 
   function toggleCategory(cat: string) {
@@ -116,12 +126,7 @@ export default function DresserPage() {
     setLoading(true); setSaved(false); setOutfit(null)
     const filteredItems = wardrobeItems.filter(i => activeCategories.includes(i.category))
     const itemsToUse = filteredItems.length >= 2 ? filteredItems : wardrobeItems
-
-    // Echtes Wetter an die KI übergeben
-    const weatherStr = weather
-      ? `${weather.temp}°C, ${weather.condition}`
-      : '18°C'
-
+    const weatherStr = weather ? `${weather.temp}°C, ${weather.condition}` : '18°C'
     try {
       const res = await fetch('/api/generate-outfit', {
         method: 'POST',
@@ -158,12 +163,12 @@ export default function DresserPage() {
     setSaved(true)
   }
 
-  const bg       = isDark ? '#080f0c' : '#f0fdf8'
-  const card     = isDark ? '#0f1a14' : '#ffffff'
-  const border   = isDark ? '#1a3328' : '#d1f0e4'
-  const text     = isDark ? '#e8f5ee' : '#0a2e1e'
-  const muted    = isDark ? '#4d7a62' : '#6b9e87'
-  const accent   = '#0ea472'
+  const bg        = isDark ? '#080f0c' : '#f0fdf8'
+  const card      = isDark ? '#0f1a14' : '#ffffff'
+  const border    = isDark ? '#1a3328' : '#d1f0e4'
+  const text      = isDark ? '#e8f5ee' : '#0a2e1e'
+  const muted     = isDark ? '#4d7a62' : '#6b9e87'
+  const accent    = '#0ea472'
   const accentDim = isDark ? 'rgba(14,164,114,0.1)' : 'rgba(14,164,114,0.1)'
 
   return (
@@ -193,46 +198,49 @@ export default function DresserPage() {
 
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }} style={{ marginBottom: '40px' }}>
-          <p style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: accent, marginBottom: '8px', opacity: 0.8 }}>
+
+          <p style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: accent, marginBottom: '10px', opacity: 0.7 }}>
             {today} · {dateStr}
           </p>
-          <h1 style={{ fontSize: '34px', fontWeight: 800, letterSpacing: '-0.04em', color: text, lineHeight: 1.05, marginBottom: '16px' }}>
-            {t('dresser.title')}
+
+          {/* Begrüßung */}
+          <h1 style={{ fontSize: '32px', fontWeight: 800, letterSpacing: '-0.04em', color: text, lineHeight: 1.1, marginBottom: username ? '4px' : '16px' }}>
+            {getGreeting(locale)}{username ? ',' : ''}
           </h1>
+          {username && (
+            <motion.p
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.15, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              style={{ fontSize: '32px', fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: '16px', background: 'linear-gradient(135deg, #0ea472, #0891b2)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
+            >
+              {username}.
+            </motion.p>
+          )}
 
           {/* Wetter Pill */}
           <AnimatePresence mode="wait">
             {weatherLoading ? (
-              <motion.div key="loading"
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: accentDim, border: `1px solid ${border}`, borderRadius: '100px', padding: '6px 14px' }}>
+              <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: accentDim, border: `1px solid ${border}`, borderRadius: '100px', padding: '7px 16px' }}>
                 <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.2, repeat: Infinity }}
-                  style={{ width: '60px', height: '12px', borderRadius: '6px', background: border }} />
+                  style={{ width: '70px', height: '12px', borderRadius: '6px', background: border }} />
               </motion.div>
             ) : (
-              <motion.div key="weather"
-                initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: accentDim, border: `1px solid ${border}`, borderRadius: '100px', padding: '6px 14px', cursor: 'pointer' }}
+              <motion.div key="weather" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
                 onClick={fetchWeather}
-                title={locale === 'de' ? 'Aktualisieren' : 'Refresh'}
-              >
-                <span style={{ fontSize: '14px', lineHeight: 1 }}>{weather?.icon}</span>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: text, letterSpacing: '-0.01em' }}>
-                  {weather?.temp}°C
-                </span>
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: accentDim, border: `1px solid ${border}`, borderRadius: '100px', padding: '7px 16px', cursor: 'pointer' }}>
+                <span style={{ fontSize: '15px', lineHeight: 1 }}>{weather?.icon}</span>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: text, letterSpacing: '-0.02em' }}>{weather?.temp}°C</span>
                 {weather?.condition && (
-                  <>
-                    <span style={{ width: '2px', height: '2px', borderRadius: '50%', background: border, display: 'inline-block', flexShrink: 0 }} />
-                    <span style={{ fontSize: '12px', color: muted, letterSpacing: '-0.01em' }}>{weather.condition}</span>
-                  </>
+                  <><span style={{ width: '3px', height: '3px', borderRadius: '50%', background: border, display: 'inline-block' }} />
+                  <span style={{ fontSize: '12px', color: muted }}>{weather.condition}</span></>
                 )}
                 {weather?.city && (
-                  <>
-                    <span style={{ width: '2px', height: '2px', borderRadius: '50%', background: border, display: 'inline-block', flexShrink: 0 }} />
-                    <span style={{ fontSize: '12px', color: muted, letterSpacing: '-0.01em' }}>{weather.city}</span>
-                  </>
+                  <><span style={{ width: '3px', height: '3px', borderRadius: '50%', background: border, display: 'inline-block' }} />
+                  <span style={{ fontSize: '12px', color: muted }}>{weather.city}</span></>
                 )}
-                <span style={{ width: '2px', height: '2px', borderRadius: '50%', background: border, display: 'inline-block', flexShrink: 0 }} />
+                <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: border, display: 'inline-block' }} />
                 <span style={{ fontSize: '12px', color: muted }}>{wardrobeItems.length} {t('wardrobe.pieces')}</span>
               </motion.div>
             )}
