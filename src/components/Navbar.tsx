@@ -13,13 +13,12 @@ export default function Navbar({ activePage }: { activePage: string }) {
   const pathname = usePathname()
   const isDark = theme === 'dark'
   const navRef = useRef<HTMLDivElement>(null)
-  const pillRef = useRef<HTMLDivElement>(null)
   const [mounted, setMounted] = useState(false)
-  const [tabWidth, setTabWidth] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [dragIndex, setDragIndex] = useState(-1)
   const currentActiveIndex = useRef(0)
   const dragIndexRef = useRef(-1)
+  const initializedRef = useRef(false)
 
   const tabs = [
     {
@@ -61,31 +60,21 @@ export default function Navbar({ activePage }: { activePage: string }) {
   ]
 
   const activeIndex = tabs.findIndex(t => t.page === activePage)
-  const bubbleX = useMotionValue(0)
+  const PILL = 64
+  const NAV_H = 88
+
+  // Start bubbleX at -999 so it's hidden until positioned correctly
+  const bubbleX = useMotionValue(-999)
   const bubbleScale = useMotionValue(1)
+  const bubbleOpacity = useMotionValue(0)
+
   const SPRING = { type: 'spring' as const, stiffness: 600, damping: 40, mass: 0.6 }
-  const SNAP_SPRING = { type: 'spring' as const, stiffness: 400, damping: 35, mass: 0.8 }
+  const SNAP   = { type: 'spring' as const, stiffness: 400, damping: 38, mass: 0.8 }
 
-  function switchLanguage() {
-    const nl = locale === 'de' ? 'en' : 'de'
-    const s = pathname.split('/')
-    s[1] = nl
-    window.location.replace(s.join('/'))
-  }
-
-  const PILL_W = 64
-  const PILL_H = 64
-
-  function getPillX(index: number, totalW: number) {
-    const tabW = totalW / tabs.length
-    return index * tabW + tabW / 2 - PILL_W / 2
-  }
-
-  function snap(index: number, stretch = false) {
-    if (!navRef.current) return
-    const x = getPillX(index, navRef.current.offsetWidth)
-    animate(bubbleX, x, stretch ? SPRING : SNAP_SPRING)
-    animate(bubbleScale, stretch ? 1.18 : 1, stretch ? SPRING : SNAP_SPRING)
+  function getPillX(index: number) {
+    if (!navRef.current) return 0
+    const tabW = navRef.current.offsetWidth / tabs.length
+    return index * tabW + tabW / 2 - PILL / 2
   }
 
   function getIndex(clientX: number) {
@@ -95,22 +84,38 @@ export default function Navbar({ activePage }: { activePage: string }) {
     return Math.max(0, Math.min(tabs.length - 1, Math.floor((clientX - left) / w)))
   }
 
+  function snap(index: number, stretch = false) {
+    const x = getPillX(index)
+    animate(bubbleX, x, stretch ? SPRING : SNAP)
+    animate(bubbleScale, stretch ? 1.15 : 1, SPRING)
+  }
+
+  function switchLanguage() {
+    const nl = locale === 'de' ? 'en' : 'de'
+    const s = pathname.split('/')
+    s[1] = nl
+    window.location.replace(s.join('/'))
+  }
+
   useEffect(() => { setMounted(true) }, [])
   useEffect(() => { tabs.forEach(t => router.prefetch('/' + locale + '/' + t.page)) }, [locale])
 
   useEffect(() => {
-    if (!mounted || !navRef.current) return
-    const w = navRef.current.offsetWidth / tabs.length
-    setTabWidth(w)
+    if (!mounted || !navRef.current || initializedRef.current) return
+    initializedRef.current = true
+    // Set position instantly without animation on first mount
+    const x = getPillX(activeIndex)
+    bubbleX.set(x)
+    bubbleOpacity.set(1)
     currentActiveIndex.current = activeIndex
-    bubbleX.set(getPillX(activeIndex, navRef.current.offsetWidth))
   }, [mounted])
 
+  // Only animate when tab actually changes (not on mount)
   useEffect(() => {
-    if (!mounted || !navRef.current || isDragging) return
+    if (!mounted || !initializedRef.current || isDragging) return
     currentActiveIndex.current = activeIndex
     snap(activeIndex)
-  }, [activeIndex, mounted])
+  }, [activeIndex])
 
   function onDragStart(e: React.TouchEvent | React.MouseEvent) {
     if (!navRef.current) return
@@ -127,30 +132,26 @@ export default function Navbar({ activePage }: { activePage: string }) {
     e.preventDefault()
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
     const idx = getIndex(clientX)
-
-    // Smooth follow during drag
     const left = navRef.current.getBoundingClientRect().left
     const totalW = navRef.current.offsetWidth
-    const rawX = clientX - left - PILL_W / 2
-    const clampedX = Math.max(0, Math.min(totalW - PILL_W, rawX))
+    const rawX = clientX - left - PILL / 2
+    const clampedX = Math.max(0, Math.min(totalW - PILL, rawX))
     animate(bubbleX, clampedX, { duration: 0 })
-
     if (idx !== dragIndexRef.current) {
       dragIndexRef.current = idx
       setDragIndex(idx)
-      animate(bubbleScale, 1.15, SPRING)
     }
   }
 
   function onDragEnd(e: React.TouchEvent | React.MouseEvent) {
-    if (!isDragging || !navRef.current) return
+    if (!isDragging) return
     const x = 'changedTouches' in e ? e.changedTouches[0].clientX : (e as React.MouseEvent).clientX
     const targetIndex = getIndex(x)
     setIsDragging(false)
     setDragIndex(-1)
     dragIndexRef.current = -1
     currentActiveIndex.current = targetIndex
-    snap(targetIndex, false)
+    snap(targetIndex)
     router.push('/' + locale + '/' + tabs[targetIndex].page)
   }
 
@@ -159,23 +160,21 @@ export default function Navbar({ activePage }: { activePage: string }) {
     setIsDragging(false)
     setDragIndex(-1)
     dragIndexRef.current = -1
-    snap(currentActiveIndex.current, false)
+    snap(currentActiveIndex.current)
   }
 
-  const accent = '#0ea472'
-  const navBg = isDark ? 'rgba(8,15,12,0.92)' : 'rgba(240,253,248,0.92)'
+  const accent   = '#0ea472'
+  const navBg    = isDark ? 'rgba(8,15,12,0.93)' : 'rgba(240,253,248,0.93)'
   const navBorder = isDark ? '#1a3328' : '#d1f0e4'
 
   return (
     <>
-      {/* Desktop Navbar */}
+      {/* Desktop */}
       <nav style={{
-        borderBottom: `1px solid ${navBorder}`,
-        padding: '0 24px',
+        borderBottom: `1px solid ${navBorder}`, padding: '0 24px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        height: '56px',
-        background: navBg,
-        position: 'fixed' as const, top: 0, left: 0, right: 0, zIndex: 100,
+        height: '56px', background: navBg, position: 'fixed' as const,
+        top: 0, left: 0, right: 0, zIndex: 100,
         backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
       }}>
         <span style={{ fontSize: '15px', fontWeight: 700, letterSpacing: '-0.03em', color: isDark ? '#e8f5ee' : '#0a2e1e', fontFamily: "'DM Sans', sans-serif" }}>
@@ -199,7 +198,7 @@ export default function Navbar({ activePage }: { activePage: string }) {
         </div>
       </nav>
 
-      {/* Mobile Navbar */}
+      {/* Mobile */}
       <div
         ref={navRef}
         className="mobile-nav"
@@ -212,7 +211,7 @@ export default function Navbar({ activePage }: { activePage: string }) {
         onMouseLeave={onLeave}
         style={{
           position: 'fixed', bottom: 0, left: 0, right: 0,
-          height: '80px',
+          height: `${NAV_H}px`,
           background: navBg,
           backdropFilter: 'blur(40px)', WebkitBackdropFilter: 'blur(40px)',
           borderTop: `1px solid ${navBorder}`,
@@ -222,36 +221,33 @@ export default function Navbar({ activePage }: { activePage: string }) {
           touchAction: 'none', userSelect: 'none',
         }}
       >
-        {/* Liquid Glass Bubble */}
-        {mounted && (
-          <motion.div
-            style={{
-              position: 'absolute',
-              top: '50%',
-              y: '-50%',
-              x: bubbleX,
-              width: PILL_W,
-              height: PILL_H,
-              scale: bubbleScale,
-              borderRadius: '50%',
-              // Liquid glass effect
-              background: isDark
-                ? 'radial-gradient(circle at 35% 35%, rgba(14,164,114,0.35) 0%, rgba(8,145,178,0.2) 50%, rgba(14,164,114,0.1) 100%)'
-                : 'radial-gradient(circle at 35% 35%, rgba(255,255,255,0.9) 0%, rgba(14,164,114,0.25) 50%, rgba(8,145,178,0.15) 100%)',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-              border: isDark
-                ? '1px solid rgba(14,164,114,0.4)'
-                : '1px solid rgba(255,255,255,0.8)',
-              boxShadow: isDark
-                ? '0 4px 24px rgba(14,164,114,0.3), inset 0 1px 0 rgba(255,255,255,0.1)'
-                : '0 4px 24px rgba(14,164,114,0.25), inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -1px 0 rgba(14,164,114,0.1)',
-              pointerEvents: 'none',
-            }}
-          />
-        )}
+        {/* Liquid Glass Bubble — only shown after mount + positioned */}
+        <motion.div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            y: '-50%',
+            x: bubbleX,
+            opacity: bubbleOpacity,
+            width: PILL,
+            height: PILL,
+            scale: bubbleScale,
+            borderRadius: '50%',
+            background: isDark
+              ? 'radial-gradient(circle at 35% 30%, rgba(14,164,114,0.4) 0%, rgba(8,145,178,0.2) 55%, rgba(14,164,114,0.08) 100%)'
+              : 'radial-gradient(circle at 35% 30%, rgba(255,255,255,0.95) 0%, rgba(14,164,114,0.3) 55%, rgba(8,145,178,0.15) 100%)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            border: isDark
+              ? '1px solid rgba(14,164,114,0.45)'
+              : '1px solid rgba(255,255,255,0.85)',
+            boxShadow: isDark
+              ? '0 4px 28px rgba(14,164,114,0.28), inset 0 1px 0 rgba(255,255,255,0.12)'
+              : '0 4px 28px rgba(14,164,114,0.22), inset 0 1.5px 0 rgba(255,255,255,0.95), inset 0 -1px 0 rgba(14,164,114,0.12)',
+            pointerEvents: 'none',
+          }}
+        />
 
-        {/* Tab buttons */}
         {tabs.map((item) => {
           const isActive = activePage === item.page
           const tabIdx = tabs.findIndex(t => t.page === item.page)
@@ -267,15 +263,14 @@ export default function Navbar({ activePage }: { activePage: string }) {
                 display: 'flex', flexDirection: 'column' as const,
                 alignItems: 'center', justifyContent: 'center', gap: '3px',
                 background: 'none', border: 'none',
-                cursor: 'pointer', flex: 1, height: '80px',
+                cursor: 'pointer', flex: 1, height: `${NAV_H}px`,
                 position: 'relative' as const, zIndex: 1,
                 pointerEvents: isDragging ? 'none' : 'auto',
-                WebkitTapHighlightColor: 'transparent',
-                padding: 0,
+                WebkitTapHighlightColor: 'transparent', padding: 0,
               }}
             >
               <motion.span
-                animate={{ color: isHighlighted ? (isDark ? '#0ea472' : '#0a2e1e') : isDark ? '#2a4a35' : '#b8d4c4' }}
+                animate={{ color: isHighlighted ? (isDark ? accent : '#0a2e1e') : isDark ? '#2a4a35' : '#b8d4c4' }}
                 transition={{ duration: 0.15 }}
                 style={{ display: 'flex' }}
               >
@@ -285,7 +280,7 @@ export default function Navbar({ activePage }: { activePage: string }) {
                 animate={{
                   color: isHighlighted ? (isDark ? accent : '#0a2e1e') : isDark ? '#2a4a35' : '#b8d4c4',
                   fontWeight: isHighlighted ? 700 : 400,
-                  opacity: isHighlighted ? 1 : 0.6,
+                  opacity: isHighlighted ? 1 : 0.55,
                 }}
                 transition={{ duration: 0.15 }}
                 style={{ fontSize: '10px', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em' }}
