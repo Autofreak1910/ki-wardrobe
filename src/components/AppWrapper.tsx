@@ -3,20 +3,14 @@
 import { useState, useEffect, useRef } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { motion, AnimatePresence } from 'framer-motion'
 import SplashScreen from './SplashScreen'
 
 const TAB_ORDER = ['dresser', 'wardrobe', 'outfits', 'profile']
 
-function getTabIndex(pathname: string) {
-  return TAB_ORDER.findIndex(t => pathname.includes(t))
-}
-
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
   const [showSplash, setShowSplash] = useState(true)
-  const [displayChildren, setDisplayChildren] = useState(children)
-  const [transitionKey, setTransitionKey] = useState(0)
-  const [direction, setDirection] = useState(0) // -1 left, 1 right
+  const [animating, setAnimating] = useState(false)
+  const [direction, setDirection] = useState(0)
   const pathname = usePathname()
   const prevPathname = useRef(pathname)
   const router = useRouter()
@@ -36,17 +30,15 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
   }, [])
 
   useEffect(() => {
-    const prevIdx = getTabIndex(prevPathname.current)
-    const nextIdx = getTabIndex(pathname)
+    const prevIdx = TAB_ORDER.findIndex(t => prevPathname.current.includes(t))
+    const nextIdx = TAB_ORDER.findIndex(t => pathname.includes(t))
     if (prevIdx !== -1 && nextIdx !== -1 && prevIdx !== nextIdx) {
       setDirection(nextIdx > prevIdx ? 1 : -1)
-    } else {
-      setDirection(0)
+      setAnimating(true)
+      setTimeout(() => setAnimating(false), 280)
     }
     prevPathname.current = pathname
-    setDisplayChildren(children)
-    setTransitionKey(k => k + 1)
-  }, [pathname, children])
+  }, [pathname])
 
   async function preloadData() {
     const { data: { session } } = await supabase.auth.getSession()
@@ -63,23 +55,9 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
     setShowSplash(false)
   }
 
-  const variants = {
-    enter: (dir: number) => ({
-      x: dir === 0 ? 0 : dir > 0 ? '30%' : '-30%',
-      opacity: 0,
-      scale: dir === 0 ? 0.98 : 1,
-    }),
-    center: {
-      x: 0,
-      opacity: 1,
-      scale: 1,
-    },
-    exit: (dir: number) => ({
-      x: dir === 0 ? 0 : dir > 0 ? '-30%' : '30%',
-      opacity: 0,
-      scale: dir === 0 ? 0.98 : 1,
-    }),
-  }
+  const translateX = animating
+    ? '0%'
+    : '0%'
 
   return (
     <>
@@ -88,31 +66,30 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
         opacity: showSplash ? 0 : 1,
         transition: 'opacity 0.3s ease',
         height: '100%',
-        overflow: 'hidden',
-        position: 'relative',
       }}>
-        <AnimatePresence mode="popLayout" custom={direction}>
-          <motion.div
-            key={transitionKey}
-            custom={direction}
-            variants={variants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{
-              duration: 0.28,
-              ease: [0.32, 0, 0.67, 0],
-            }}
-            style={{
-              position: 'absolute',
-              inset: 0,
-              willChange: 'transform, opacity',
-            }}
-          >
-            {displayChildren}
-          </motion.div>
-        </AnimatePresence>
+        <div
+          key={pathname}
+          style={{
+            height: '100%',
+            animation: animating
+              ? `slideIn${direction > 0 ? 'Right' : 'Left'} 0.28s cubic-bezier(0.32, 0, 0.67, 0) both`
+              : 'none',
+          }}
+        >
+          {children}
+        </div>
       </div>
+
+      <style>{`
+        @keyframes slideInRight {
+          from { opacity: 0; transform: translateX(24px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideInLeft {
+          from { opacity: 0; transform: translateX(-24px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+      `}</style>
     </>
   )
 }
