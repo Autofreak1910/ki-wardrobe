@@ -97,52 +97,45 @@ export default function DresserPage() {
     setSaved(true)
   }
 
-  const bg     = isDark ? '#0a0a0a' : '#f9f9f7'
-  const card   = isDark ? '#141414' : '#ffffff'
-  const border = isDark ? '#222'    : '#e8e8e6'
-  const text   = isDark ? '#f0f0f0' : '#0a0a0a'
-  const muted  = isDark ? '#555'    : '#999'
-
-  // Accent orbs — subtile Farb-Blobs im Hintergrund
-  const orb1 = isDark ? 'rgba(14,164,114,0.07)' : 'rgba(14,164,114,0.08)'
-  const orb2 = isDark ? 'rgba(8,145,178,0.05)'  : 'rgba(8,145,178,0.06)'
-  const orb3 = isDark ? 'rgba(14,164,114,0.04)' : 'rgba(14,164,114,0.05)'
+  const bg     = isDark ? '#080f0c' : '#f0fdf8'
+  const card   = isDark ? '#0f1a14' : '#ffffff'
+  const border = isDark ? '#1a3328' : '#d1f0e4'
+  const text   = isDark ? '#e8f5ee' : '#0a2e1e'
+  const muted  = isDark ? '#4d7a62' : '#6b9e87'
+  const accent = '#0ea472'
+  const accentDim = isDark ? 'rgba(14,164,114,0.1)' : 'rgba(14,164,114,0.1)'
 
   return (
     <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' as const, background: bg, overflow: 'hidden', fontFamily: "'DM Sans', sans-serif", position: 'relative' as const }}>
 
-      {/* ── Background orbs ── */}
+      {/* Background */}
       <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
-        {/* Top-right warm glow */}
-        <div style={{ position: 'absolute', top: '-80px', right: '-60px', width: '380px', height: '380px', borderRadius: '50%', background: orb1, filter: 'blur(80px)' }} />
-        {/* Bottom-left cool glow */}
-        <div style={{ position: 'absolute', bottom: '80px', left: '-80px', width: '320px', height: '320px', borderRadius: '50%', background: orb2, filter: 'blur(80px)' }} />
-        {/* Center soft accent */}
-        <div style={{ position: 'absolute', top: '40%', left: '50%', transform: 'translate(-50%,-50%)', width: '500px', height: '300px', borderRadius: '50%', background: orb3, filter: 'blur(100px)' }} />
+        {/* Top right glow */}
+        <div style={{ position: 'absolute', top: '-120px', right: '-80px', width: '420px', height: '420px', borderRadius: '50%', background: isDark ? 'rgba(14,164,114,0.06)' : 'rgba(14,164,114,0.12)', filter: 'blur(90px)' }} />
+        {/* Bottom left glow */}
+        <div style={{ position: 'absolute', bottom: '60px', left: '-100px', width: '350px', height: '350px', borderRadius: '50%', background: isDark ? 'rgba(8,145,178,0.04)' : 'rgba(8,145,178,0.08)', filter: 'blur(90px)' }} />
 
-        {/* Subtle grid lines — light mode only */}
+        {/* Light mode: dot grid */}
         {!isDark && (
-          <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.35 }} xmlns="http://www.w3.org/2000/svg">
+          <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.5 }} xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#0ea472" strokeWidth="0.4" />
+              <pattern id="dotgrid" width="28" height="28" patternUnits="userSpaceOnUse">
+                <circle cx="1" cy="1" r="0.9" fill="#0ea472" opacity="0.25" />
               </pattern>
             </defs>
-            <rect width="100%" height="100%" fill="url(#grid)" />
-            {/* Fade edges */}
-            <rect width="100%" height="100%" fill={`radial-gradient(ellipse at 50% 50%, transparent 30%, ${bg} 80%)`} />
+            <rect width="100%" height="100%" fill="url(#dotgrid)" />
           </svg>
         )}
 
-        {/* Dark mode: subtle noise texture feel via lines */}
+        {/* Dark mode: faint lines */}
         {isDark && (
-          <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.12 }} xmlns="http://www.w3.org/2000/svg">
+          <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.07 }} xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse">
-                <circle cx="1" cy="1" r="0.8" fill="#0ea472" />
+              <pattern id="linegrid" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#0ea472" strokeWidth="0.5" />
               </pattern>
             </defs>
-            <rect width="100%" height="100%" fill="url(#dots)" />
+            <rect width="100%" height="100%" fill="url(#linegrid)" />
           </svg>
         )}
       </div>
@@ -152,112 +145,75 @@ export default function DresserPage() {
       <main ref={mainRef} style={{ flex: 1, overflowY: 'auto' as const, overflowX: 'hidden', maxWidth: '520px', width: '100%', margin: '0 auto', padding: '64px 20px 108px', WebkitOverflowScrolling: 'touch' as any, position: 'relative', zIndex: 1 }}>
 
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          style={{ marginBottom: '44px' }}
-        >
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.1 }}
-            style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: muted, marginBottom: '10px' }}
-          >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }} style={{ marginBottom: '40px' }}>
+          <p style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: accent, marginBottom: '8px', opacity: 0.8 }}>
             {today} · {dateStr}
-          </motion.p>
-          <motion.h1
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            style={{ fontSize: '36px', fontWeight: 800, letterSpacing: '-0.05em', color: text, lineHeight: 1, marginBottom: '20px' }}
-          >
+          </p>
+          <h1 style={{ fontSize: '34px', fontWeight: 800, letterSpacing: '-0.04em', color: text, lineHeight: 1.05, marginBottom: '16px' }}>
             {t('dresser.title')}
-          </motion.h1>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.25 }}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', background: card, border: `1px solid ${border}`, borderRadius: '100px', padding: '6px 14px' }}
-          >
-            <span style={{ fontSize: '12px', color: muted, letterSpacing: '-0.01em' }}>☀️ 18°C</span>
-            <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: border, display: 'inline-block' }} />
+          </h1>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: accentDim, border: `1px solid ${border}`, borderRadius: '100px', padding: '6px 14px' }}>
+            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: accent }} />
+            <span style={{ fontSize: '12px', color: muted, letterSpacing: '-0.01em' }}>18°C</span>
+            <span style={{ width: '2px', height: '2px', borderRadius: '50%', background: border, display: 'inline-block' }} />
             <span style={{ fontSize: '12px', color: muted, letterSpacing: '-0.01em' }}>{wardrobeItems.length} {t('wardrobe.pieces')}</span>
-          </motion.div>
+          </div>
         </motion.div>
 
         {!hasItems ? (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            style={{ textAlign: 'center', padding: '56px 24px', border: `1px solid ${border}`, borderRadius: '20px', background: card }}
-          >
+          <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} style={{ textAlign: 'center', padding: '56px 24px', border: `1px solid ${border}`, borderRadius: '20px', background: card }}>
             <p style={{ fontSize: '18px', fontWeight: 700, color: text, marginBottom: '10px', letterSpacing: '-0.03em' }}>{t('dresser.notEnough')}</p>
             <p style={{ fontSize: '13px', color: muted, lineHeight: 1.7, marginBottom: '24px' }}>{t('dresser.notEnoughSub')}</p>
-            <motion.button
-              whileTap={{ scale: 0.96 }}
-              onClick={() => router.push('/' + locale + '/wardrobe')}
-              style={{ padding: '13px 28px', background: text, color: bg, border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em' }}
-            >
+            <motion.button whileTap={{ scale: 0.96 }} onClick={() => router.push('/' + locale + '/wardrobe')}
+              style={{ padding: '13px 28px', background: accent, color: '#fff', border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em', boxShadow: '0 4px 16px rgba(14,164,114,0.35)' }}>
               {t('dresser.uploadNow')}
             </motion.button>
           </motion.div>
         ) : (
           <>
             {/* Occasion */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              style={{ marginBottom: '28px' }}
-            >
-              <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: muted, marginBottom: '14px' }}>
+            <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.45, ease: [0.16, 1, 0.3, 1] }} style={{ marginBottom: '24px' }}>
+              <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: muted, marginBottom: '12px' }}>
                 {locale === 'de' ? 'Anlass' : 'Occasion'}
               </p>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' as const }}>
-                {occasions.map((occ, i) => (
-                  <motion.button
-                    key={occ}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.22 + i * 0.04, duration: 0.35 }}
-                    whileTap={{ scale: 0.91 }}
-                    onClick={() => { setSelected(occ); setOutfit(null); setSaved(false) }}
-                    style={{
-                      padding: '9px 16px', borderRadius: '100px',
-                      border: `1px solid ${selected === occ ? text : border}`,
-                      background: selected === occ ? text : card,
-                      color: selected === occ ? bg : muted,
-                      fontSize: '13px', fontWeight: selected === occ ? 700 : 500,
-                      fontFamily: "'DM Sans', sans-serif",
-                      cursor: 'pointer', letterSpacing: '-0.01em',
-                      transition: 'all 0.15s cubic-bezier(0.16, 1, 0.3, 1)',
-                      WebkitTapHighlightColor: 'transparent',
-                      backdropFilter: 'blur(8px)',
-                    }}
-                  >
-                    {t('dresser.occasions.' + occ)}
-                  </motion.button>
-                ))}
+                {occasions.map((occ, i) => {
+                  const isOn = selected === occ
+                  return (
+                    <motion.button key={occ}
+                      initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.12 + i * 0.03 }}
+                      whileTap={{ scale: 0.92 }}
+                      onClick={() => { setSelected(occ); setOutfit(null); setSaved(false) }}
+                      style={{
+                        padding: '8px 16px', borderRadius: '100px',
+                        border: `1px solid ${isOn ? accent : border}`,
+                        background: isOn ? accent : card,
+                        color: isOn ? '#fff' : muted,
+                        fontSize: '13px', fontWeight: isOn ? 600 : 400,
+                        fontFamily: "'DM Sans', sans-serif", cursor: 'pointer',
+                        letterSpacing: '-0.01em', transition: 'all 0.15s',
+                        WebkitTapHighlightColor: 'transparent',
+                        boxShadow: isOn ? '0 2px 12px rgba(14,164,114,0.3)' : 'none',
+                      }}
+                    >
+                      {t('dresser.occasions.' + occ)}
+                    </motion.button>
+                  )
+                })}
               </div>
             </motion.div>
 
             {/* Categories */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.28, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              style={{ marginBottom: '28px', padding: '18px', borderRadius: '16px', border: `1px solid ${border}`, background: card, backdropFilter: 'blur(12px)' }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+              style={{ marginBottom: '24px', padding: '16px 18px', borderRadius: '16px', border: `1px solid ${border}`, background: card }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                 <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: muted }}>
                   {t('dresser.whatForOutfit')}
                 </p>
-                <motion.button
-                  whileTap={{ scale: 0.92 }}
+                <motion.button whileTap={{ scale: 0.92 }}
                   onClick={() => { setActiveCategories(['tops','hosen','jacken','schuhe','acc']); setOutfit(null) }}
-                  style={{ fontSize: '11px', fontWeight: 700, padding: '5px 12px', borderRadius: '100px', border: `1px solid ${activeCategories.length === 5 ? text : border}`, background: activeCategories.length === 5 ? text : 'transparent', color: activeCategories.length === 5 ? bg : muted, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em' }}
-                >
+                  style={{ fontSize: '11px', fontWeight: 600, padding: '4px 12px', borderRadius: '100px', border: `1px solid ${activeCategories.length === 5 ? accent : border}`, background: activeCategories.length === 5 ? accentDim : 'transparent', color: activeCategories.length === 5 ? accent : muted, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
                   {locale === 'de' ? 'Alle' : 'All'}
                 </motion.button>
               </div>
@@ -266,23 +222,19 @@ export default function DresserPage() {
                   const isOn = activeCategories.includes(cat.key)
                   const exists = wardrobeItems.some(i => i.category === cat.key)
                   return (
-                    <motion.button
-                      key={cat.key}
-                      whileTap={{ scale: 0.91 }}
+                    <motion.button key={cat.key} whileTap={{ scale: 0.92 }}
                       onClick={() => toggleCategory(cat.key)}
                       style={{
-                        padding: '8px 14px', borderRadius: '100px',
-                        border: `1px solid ${isOn ? text : border}`,
-                        background: isOn ? text : 'transparent',
-                        color: isOn ? bg : exists ? text : muted,
-                        fontSize: '12px', fontWeight: isOn ? 700 : 500,
-                        fontFamily: "'DM Sans', sans-serif",
-                        cursor: 'pointer', opacity: exists ? 1 : 0.3,
-                        transition: 'all 0.12s cubic-bezier(0.16, 1, 0.3, 1)',
-                        WebkitTapHighlightColor: 'transparent',
+                        padding: '7px 14px', borderRadius: '100px',
+                        border: `1px solid ${isOn ? accent : border}`,
+                        background: isOn ? accentDim : 'transparent',
+                        color: isOn ? accent : exists ? text : muted,
+                        fontSize: '12px', fontWeight: isOn ? 600 : 400,
+                        fontFamily: "'DM Sans', sans-serif", cursor: 'pointer',
+                        opacity: exists ? 1 : 0.35,
+                        transition: 'all 0.12s', WebkitTapHighlightColor: 'transparent',
                         letterSpacing: '-0.01em',
-                      }}
-                    >
+                      }}>
                       {cat.label}
                     </motion.button>
                   )
@@ -291,40 +243,25 @@ export default function DresserPage() {
             </motion.div>
 
             {/* CTA */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.32, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              style={{ marginBottom: '32px' }}
-            >
-              <motion.button
-                onClick={generateOutfit}
-                disabled={loading}
-                whileTap={!loading ? { scale: 0.97 } : {}}
+            <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24, duration: 0.45, ease: [0.16, 1, 0.3, 1] }} style={{ marginBottom: '28px' }}>
+              <motion.button onClick={generateOutfit} disabled={loading} whileTap={!loading ? { scale: 0.97 } : {}}
                 style={{
-                  width: '100%', padding: '19px',
-                  borderRadius: '16px', border: 'none',
-                  background: loading ? (isDark ? '#1a1a1a' : '#ebebeb') : text,
-                  color: loading ? muted : bg,
+                  width: '100%', padding: '18px',
+                  borderRadius: '14px', border: 'none',
+                  background: loading ? (isDark ? '#0f1a14' : '#e6f7f0') : `linear-gradient(135deg, #0ea472 0%, #0891b2 100%)`,
+                  color: loading ? muted : '#fff',
                   fontSize: '16px', fontWeight: 700,
                   fontFamily: "'DM Sans', sans-serif",
                   cursor: loading ? 'not-allowed' : 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-                  letterSpacing: '-0.02em',
-                  WebkitTapHighlightColor: 'transparent',
-                  transition: 'background 0.2s',
-                  boxShadow: loading ? 'none' : isDark
-                    ? '0 0 0 1px #333, 0 8px 32px rgba(0,0,0,0.5)'
-                    : '0 1px 2px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.12)',
-                }}
-              >
+                  letterSpacing: '-0.02em', WebkitTapHighlightColor: 'transparent',
+                  transition: 'all 0.2s',
+                  boxShadow: loading ? 'none' : '0 4px 24px rgba(14,164,114,0.4), 0 1px 0 rgba(255,255,255,0.1) inset',
+                }}>
                 {loading ? (
                   <>
-                    <motion.span
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
-                      style={{ display: 'block', width: '17px', height: '17px', borderRadius: '50%', border: `2px solid ${border}`, borderTopColor: muted, flexShrink: 0 }}
-                    />
+                    <motion.span animate={{ rotate: 360 }} transition={{ duration: 0.7, repeat: Infinity, ease: 'linear' }}
+                      style={{ display: 'block', width: '16px', height: '16px', borderRadius: '50%', border: `2px solid ${border}`, borderTopColor: accent, flexShrink: 0 }} />
                     {t('dresser.generating')}
                   </>
                 ) : t('dresser.button')}
@@ -334,38 +271,35 @@ export default function DresserPage() {
             {/* Result */}
             <AnimatePresence mode="wait">
               {outfit && (
-                <motion.div
-                  key="outfit"
-                  initial={{ opacity: 0, y: 24, scale: 0.96 }}
+                <motion.div key="outfit"
+                  initial={{ opacity: 0, y: 20, scale: 0.97 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -12, scale: 0.96 }}
-                  transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-                  style={{ border: `1px solid ${border}`, borderRadius: '20px', overflow: 'hidden', background: card }}
-                >
-                  <div style={{ padding: '16px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${border}` }}>
+                  exit={{ opacity: 0, y: -10, scale: 0.97 }}
+                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                  style={{ border: `1px solid ${border}`, borderRadius: '20px', overflow: 'hidden', background: card, boxShadow: isDark ? '0 0 0 1px #1a3328' : '0 4px 24px rgba(10,46,30,0.08)' }}>
+
+                  <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${border}`, background: accentDim }}>
                     <div>
-                      <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: muted, marginBottom: '3px' }}>
+                      <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: accent, marginBottom: '2px' }}>
                         {t('dresser.outfitFor')}
                       </p>
                       <p style={{ fontSize: '16px', fontWeight: 800, color: text, letterSpacing: '-0.03em' }}>
                         {t('dresser.occasions.' + selected)}
                       </p>
                     </div>
-                    <motion.button
-                      whileTap={{ scale: 0.91 }}
-                      onClick={saveOutfit}
+                    <motion.button whileTap={{ scale: 0.91 }} onClick={saveOutfit}
                       style={{
                         display: 'inline-flex', alignItems: 'center', gap: '5px',
                         padding: '8px 14px', borderRadius: '100px',
-                        border: `1px solid ${saved ? text : border}`,
-                        background: saved ? text : 'transparent',
-                        color: saved ? bg : text,
-                        fontSize: '12px', fontWeight: 700,
+                        border: `1px solid ${saved ? accent : border}`,
+                        background: saved ? accent : 'transparent',
+                        color: saved ? '#fff' : text,
+                        fontSize: '12px', fontWeight: 600,
                         fontFamily: "'DM Sans', sans-serif", cursor: 'pointer',
                         WebkitTapHighlightColor: 'transparent',
                         transition: 'all 0.15s', letterSpacing: '-0.01em',
-                      }}
-                    >
+                        boxShadow: saved ? '0 2px 10px rgba(14,164,114,0.35)' : 'none',
+                      }}>
                       {saved ? `✓ ${t('dresser.saved')}` : `♡ ${t('dresser.save')}`}
                     </motion.button>
                   </div>
@@ -373,30 +307,19 @@ export default function DresserPage() {
                   <div style={{ display: 'grid', gridTemplateColumns: `repeat(${outfit.itemObjects.length >= 3 ? 3 : 2}, 1fr)`, gap: '1px', background: border }}>
                     {outfit.itemObjects.length > 0
                       ? outfit.itemObjects.map((item, i) => (
-                        <motion.div
-                          key={i}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: 0.1 + i * 0.08 }}
-                          style={{ background: card }}
-                        >
-                          <div style={{ aspectRatio: '1', overflow: 'hidden', background: isDark ? '#111' : '#f5f5f3' }}>
+                        <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.08 + i * 0.07 }} style={{ background: card }}>
+                          <div style={{ aspectRatio: '1', overflow: 'hidden', background: isDark ? '#0a1510' : '#f0fdf8' }}>
                             <img src={item.image_url} alt={item.name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                           </div>
-                          <div style={{ padding: '10px 12px' }}>
-                            <p style={{ fontSize: '12px', fontWeight: 700, color: text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, marginBottom: '2px', letterSpacing: '-0.01em' }}>{item.name}</p>
-                            <p style={{ fontSize: '11px', color: muted }}>{item.color}{item.brand ? ` · ${item.brand}` : ''}</p>
+                          <div style={{ padding: '9px 11px' }}>
+                            <p style={{ fontSize: '11px', fontWeight: 700, color: text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, marginBottom: '1px', letterSpacing: '-0.01em' }}>{item.name}</p>
+                            <p style={{ fontSize: '10px', color: muted }}>{item.color}{item.brand ? ` · ${item.brand}` : ''}</p>
                           </div>
                         </motion.div>
                       ))
                       : outfit.items.map((name, i) => (
-                        <motion.div
-                          key={i}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: i * 0.08 }}
-                          style={{ background: card, padding: '20px 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80px' }}
-                        >
+                        <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.07 }}
+                          style={{ background: card, padding: '20px 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80px' }}>
                           <p style={{ fontSize: '12px', fontWeight: 600, color: text, textAlign: 'center' as const }}>{name}</p>
                         </motion.div>
                       ))
@@ -404,13 +327,10 @@ export default function DresserPage() {
                   </div>
 
                   {outfit.reasoning && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.35 }}
-                      style={{ padding: '16px 18px', borderTop: `1px solid ${border}` }}
-                    >
-                      <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: muted, marginBottom: '8px' }}>
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+                      style={{ padding: '14px 18px', borderTop: `1px solid ${border}` }}>
+                      <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: accent, marginBottom: '7px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ display: 'inline-block', width: '5px', height: '5px', borderRadius: '50%', background: accent }} />
                         {t('dresser.kiStylist')}
                       </p>
                       <p style={{ fontSize: '13px', color: muted, lineHeight: 1.7, letterSpacing: '-0.01em' }}>{outfit.reasoning}</p>
@@ -418,11 +338,8 @@ export default function DresserPage() {
                   )}
 
                   <div style={{ padding: '0 18px 18px' }}>
-                    <motion.button
-                      whileTap={{ scale: 0.97 }}
-                      onClick={generateOutfit}
-                      style={{ width: '100%', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: 'transparent', border: `1px solid ${border}`, borderRadius: '12px', fontSize: '13px', fontWeight: 600, color: muted, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer', WebkitTapHighlightColor: 'transparent', letterSpacing: '-0.01em' }}
-                    >
+                    <motion.button whileTap={{ scale: 0.97 }} onClick={generateOutfit}
+                      style={{ width: '100%', padding: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: accentDim, border: `1px solid ${border}`, borderRadius: '10px', fontSize: '12px', fontWeight: 600, color: accent, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer', WebkitTapHighlightColor: 'transparent', letterSpacing: '-0.01em' }}>
                       ↻ {t('dresser.newOutfit')}
                     </motion.button>
                   </div>
