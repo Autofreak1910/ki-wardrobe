@@ -10,11 +10,11 @@ import Navbar from '@/components/Navbar'
 
 const occasions = ['casual', 'uni', 'work', 'date', 'sport', 'party', 'festival'] as const
 const categoryConfig = [
-  { key: 'tops', label: 'Tops' },
-  { key: 'hosen', label: 'Pants' },
+  { key: 'tops',   label: 'Tops' },
+  { key: 'hosen',  label: 'Pants' },
   { key: 'jacken', label: 'Jacket' },
   { key: 'schuhe', label: 'Shoes' },
-  { key: 'acc', label: 'Acc' },
+  { key: 'acc',    label: 'Acc' },
 ]
 
 type ClothingItem = { id: string; image_url: string; category: string; color: string; name?: string; brand?: string }
@@ -97,17 +97,59 @@ export default function DresserPage() {
     setSaved(true)
   }
 
-  const bg = isDark ? '#0a0a0a' : '#f9f9f7'
-  const card = isDark ? '#141414' : '#ffffff'
-  const border = isDark ? '#222' : '#e8e8e6'
-  const text = isDark ? '#f0f0f0' : '#0a0a0a'
-  const muted = isDark ? '#555' : '#999'
+  const bg     = isDark ? '#0a0a0a' : '#f9f9f7'
+  const card   = isDark ? '#141414' : '#ffffff'
+  const border = isDark ? '#222'    : '#e8e8e6'
+  const text   = isDark ? '#f0f0f0' : '#0a0a0a'
+  const muted  = isDark ? '#555'    : '#999'
+
+  // Accent orbs — subtile Farb-Blobs im Hintergrund
+  const orb1 = isDark ? 'rgba(14,164,114,0.07)' : 'rgba(14,164,114,0.08)'
+  const orb2 = isDark ? 'rgba(8,145,178,0.05)'  : 'rgba(8,145,178,0.06)'
+  const orb3 = isDark ? 'rgba(14,164,114,0.04)' : 'rgba(14,164,114,0.05)'
 
   return (
-    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' as const, background: bg, overflow: 'hidden', fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' as const, background: bg, overflow: 'hidden', fontFamily: "'DM Sans', sans-serif", position: 'relative' as const }}>
+
+      {/* ── Background orbs ── */}
+      <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
+        {/* Top-right warm glow */}
+        <div style={{ position: 'absolute', top: '-80px', right: '-60px', width: '380px', height: '380px', borderRadius: '50%', background: orb1, filter: 'blur(80px)' }} />
+        {/* Bottom-left cool glow */}
+        <div style={{ position: 'absolute', bottom: '80px', left: '-80px', width: '320px', height: '320px', borderRadius: '50%', background: orb2, filter: 'blur(80px)' }} />
+        {/* Center soft accent */}
+        <div style={{ position: 'absolute', top: '40%', left: '50%', transform: 'translate(-50%,-50%)', width: '500px', height: '300px', borderRadius: '50%', background: orb3, filter: 'blur(100px)' }} />
+
+        {/* Subtle grid lines — light mode only */}
+        {!isDark && (
+          <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.35 }} xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#0ea472" strokeWidth="0.4" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)" />
+            {/* Fade edges */}
+            <rect width="100%" height="100%" fill={`radial-gradient(ellipse at 50% 50%, transparent 30%, ${bg} 80%)`} />
+          </svg>
+        )}
+
+        {/* Dark mode: subtle noise texture feel via lines */}
+        {isDark && (
+          <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.12 }} xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse">
+                <circle cx="1" cy="1" r="0.8" fill="#0ea472" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#dots)" />
+          </svg>
+        )}
+      </div>
+
       <Navbar activePage="dresser" />
 
-      <main ref={mainRef} style={{ flex: 1, overflowY: 'auto' as const, overflowX: 'hidden', maxWidth: '520px', width: '100%', margin: '0 auto', padding: '64px 20px 108px', WebkitOverflowScrolling: 'touch' as any }}>
+      <main ref={mainRef} style={{ flex: 1, overflowY: 'auto' as const, overflowX: 'hidden', maxWidth: '520px', width: '100%', margin: '0 auto', padding: '64px 20px 108px', WebkitOverflowScrolling: 'touch' as any, position: 'relative', zIndex: 1 }}>
 
         {/* Header */}
         <motion.div
@@ -136,9 +178,9 @@ export default function DresserPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.25 }}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', background: card, border: `1px solid ${border}`, borderRadius: '100px', padding: '6px 14px' }}
           >
-            <span style={{ fontSize: '12px', color: muted, letterSpacing: '-0.01em' }}>18°C</span>
+            <span style={{ fontSize: '12px', color: muted, letterSpacing: '-0.01em' }}>☀️ 18°C</span>
             <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: border, display: 'inline-block' }} />
             <span style={{ fontSize: '12px', color: muted, letterSpacing: '-0.01em' }}>{wardrobeItems.length} {t('wardrobe.pieces')}</span>
           </motion.div>
@@ -184,13 +226,14 @@ export default function DresserPage() {
                     style={{
                       padding: '9px 16px', borderRadius: '100px',
                       border: `1px solid ${selected === occ ? text : border}`,
-                      background: selected === occ ? text : 'transparent',
+                      background: selected === occ ? text : card,
                       color: selected === occ ? bg : muted,
                       fontSize: '13px', fontWeight: selected === occ ? 700 : 500,
                       fontFamily: "'DM Sans', sans-serif",
                       cursor: 'pointer', letterSpacing: '-0.01em',
                       transition: 'all 0.15s cubic-bezier(0.16, 1, 0.3, 1)',
                       WebkitTapHighlightColor: 'transparent',
+                      backdropFilter: 'blur(8px)',
                     }}
                   >
                     {t('dresser.occasions.' + occ)}
@@ -204,7 +247,7 @@ export default function DresserPage() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.28, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              style={{ marginBottom: '28px', padding: '18px', borderRadius: '16px', border: `1px solid ${border}`, background: card }}
+              style={{ marginBottom: '28px', padding: '18px', borderRadius: '16px', border: `1px solid ${border}`, background: card, backdropFilter: 'blur(12px)' }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                 <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: muted }}>
@@ -247,7 +290,7 @@ export default function DresserPage() {
               </div>
             </motion.div>
 
-            {/* CTA Button */}
+            {/* CTA */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
@@ -258,13 +301,10 @@ export default function DresserPage() {
                 onClick={generateOutfit}
                 disabled={loading}
                 whileTap={!loading ? { scale: 0.97 } : {}}
-                animate={loading ? {} : { boxShadow: ['0 0 0 0 rgba(0,0,0,0)', '0 0 0 0 rgba(0,0,0,0)'] }}
                 style={{
                   width: '100%', padding: '19px',
                   borderRadius: '16px', border: 'none',
-                  background: loading
-                    ? (isDark ? '#1a1a1a' : '#ebebeb')
-                    : text,
+                  background: loading ? (isDark ? '#1a1a1a' : '#ebebeb') : text,
                   color: loading ? muted : bg,
                   fontSize: '16px', fontWeight: 700,
                   fontFamily: "'DM Sans', sans-serif",
@@ -273,6 +313,9 @@ export default function DresserPage() {
                   letterSpacing: '-0.02em',
                   WebkitTapHighlightColor: 'transparent',
                   transition: 'background 0.2s',
+                  boxShadow: loading ? 'none' : isDark
+                    ? '0 0 0 1px #333, 0 8px 32px rgba(0,0,0,0.5)'
+                    : '0 1px 2px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.12)',
                 }}
               >
                 {loading ? (
@@ -299,7 +342,6 @@ export default function DresserPage() {
                   transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
                   style={{ border: `1px solid ${border}`, borderRadius: '20px', overflow: 'hidden', background: card }}
                 >
-                  {/* Top */}
                   <div style={{ padding: '16px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${border}` }}>
                     <div>
                       <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: muted, marginBottom: '3px' }}>
@@ -321,15 +363,13 @@ export default function DresserPage() {
                         fontSize: '12px', fontWeight: 700,
                         fontFamily: "'DM Sans', sans-serif", cursor: 'pointer',
                         WebkitTapHighlightColor: 'transparent',
-                        transition: 'all 0.15s',
-                        letterSpacing: '-0.01em',
+                        transition: 'all 0.15s', letterSpacing: '-0.01em',
                       }}
                     >
                       {saved ? `✓ ${t('dresser.saved')}` : `♡ ${t('dresser.save')}`}
                     </motion.button>
                   </div>
 
-                  {/* Grid */}
                   <div style={{ display: 'grid', gridTemplateColumns: `repeat(${outfit.itemObjects.length >= 3 ? 3 : 2}, 1fr)`, gap: '1px', background: border }}>
                     {outfit.itemObjects.length > 0
                       ? outfit.itemObjects.map((item, i) => (
@@ -363,7 +403,6 @@ export default function DresserPage() {
                     }
                   </div>
 
-                  {/* AI */}
                   {outfit.reasoning && (
                     <motion.div
                       initial={{ opacity: 0 }}
@@ -378,7 +417,6 @@ export default function DresserPage() {
                     </motion.div>
                   )}
 
-                  {/* Regen */}
                   <div style={{ padding: '0 18px 18px' }}>
                     <motion.button
                       whileTap={{ scale: 0.97 }}
