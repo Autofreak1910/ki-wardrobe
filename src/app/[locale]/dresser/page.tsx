@@ -52,6 +52,7 @@ export default function DresserPage() {
     ? ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag']
     : ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
   const today = days[new Date().getDay()]
+  // TEST
   const dateStr = new Date().toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-GB', { day: 'numeric', month: 'long' })
 
   useEffect(() => { loadWardrobe() }, [])
