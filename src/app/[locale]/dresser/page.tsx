@@ -9,22 +9,12 @@ import Navbar from '@/components/Navbar'
 
 const occasions = ['casual', 'uni', 'work', 'date', 'sport', 'party', 'festival'] as const
 
-const occasionConfig: Record<string, { label: string; icon: string }> = {
-  casual:   { label: 'Casual',   icon: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z' },
-  uni:      { label: 'Uni',      icon: 'M12 3L1 9l4 2.18V15c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2v-3.82L21 9 12 3zm6 12H6v-2.5l6 3.27 6-3.27V15z' },
-  work:     { label: 'Work',     icon: 'M20 6h-2.18c.07-.44.18-.86.18-1.3C18 2.99 16.54 2 15 2c-.88 0-1.61.39-2.15.97L12 3.76l-.85-.79C10.61 2.39 9.88 2 9 2 7.46 2 6 2.99 6 4.7c0 .44.11.86.18 1.3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z' },
-  date:     { label: 'Date',     icon: 'M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z' },
-  sport:    { label: 'Sport',    icon: 'M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z' },
-  party:    { label: 'Party',    icon: 'M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z' },
-  festival: { label: 'Festival', icon: 'M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z' },
-}
-
 const categoryConfig = [
-  { key: 'tops',   label: 'Tops',   path: 'M3 6c0-1.1.9-2 2-2h14c1.1 0 2 .9 2 2v2H3V6zm0 4h18v10c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V10z' },
-  { key: 'hosen',  label: 'Hosen',  path: 'M6 2h12l2 8-4 1v11h-4v-6h-4v6H4V11L0 10z' },
-  { key: 'jacken', label: 'Jacken', path: 'M16.5 3C14.76 3 13.09 3.81 12 5.09 10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3z' },
-  { key: 'schuhe', label: 'Schuhe', path: 'M13.5 4l2.5 8H4L1.5 4h12zM1 14h22v2H1v-2zm0 4h22v2H1v-2z' },
-  { key: 'acc',    label: 'Acc',    path: 'M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z' },
+  { key: 'tops',   label: 'Tops' },
+  { key: 'hosen',  label: 'Hosen' },
+  { key: 'jacken', label: 'Jacken' },
+  { key: 'schuhe', label: 'Schuhe' },
+  { key: 'acc',    label: 'Acc' },
 ]
 
 type ClothingItem = {
@@ -40,14 +30,6 @@ type Outfit = {
   items: string[]
   reasoning: string
   itemObjects: ClothingItem[]
-}
-
-function OccasionIcon({ path, size = 16 }: { path: string; size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
-      <path d={path} />
-    </svg>
-  )
 }
 
 export default function DresserPage() {
@@ -67,8 +49,8 @@ export default function DresserPage() {
   const mainRef = useRef<HTMLElement>(null)
 
   const days = locale === 'de'
-    ? ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag']
-    : ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+    ? ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag']
+    : ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
   const today = days[new Date().getDay()]
   const dateStr = new Date().toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-GB', { day: 'numeric', month: 'long' })
 
@@ -111,8 +93,8 @@ export default function DresserPage() {
             return itemName === searchName ||
               itemName.includes(searchName) ||
               searchName.includes(itemName) ||
-              itemName.split(' ').some(word => word.length > 3 && searchName.includes(word)) ||
-              searchName.split(' ').some(word => word.length > 3 && itemName.includes(word))
+              itemName.split(' ').some(w => w.length > 3 && searchName.includes(w)) ||
+              searchName.split(' ').some(w => w.length > 3 && itemName.includes(w))
           })
         }).filter(Boolean)
         setOutfit({ items: data.items, reasoning: data.reasoning, itemObjects: matchedItems })
@@ -135,171 +117,139 @@ export default function DresserPage() {
   }
 
   return (
-    <div className="app-container dresser-root">
+    <div className="app-container d-root">
       <Navbar activePage="dresser" />
+      <main ref={mainRef} className="d-main">
 
-      <main ref={mainRef} className="dresser-main">
-
-        <header className="dresser-header">
-          <div className="dresser-date-row">
-            <span className="dresser-date-label">{today}, {dateStr}</span>
-            <div className="dresser-weather-pill">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.79 1.42-1.41zM4 10.5H1v2h3v-2zm9-9.95h-2V3.5h2V.55zm7.45 3.91l-1.41-1.41-1.79 1.79 1.41 1.41 1.79-1.79zm-3.21 13.7l1.79 1.8 1.41-1.41-1.8-1.79-1.4 1.4zM20 10.5v2h3v-2h-3zm-8-5c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm-1 16.95h2V19.5h-2v2.95zm-7.45-3.91l1.41 1.41 1.79-1.8-1.41-1.41-1.79 1.8z"/></svg>
-              <span>18°C</span>
-              <span className="dresser-weather-dot" />
-              <span>{wardrobeItems.length} {t('wardrobe.pieces')}</span>
-            </div>
+        {/* Header */}
+        <div className="d-header">
+          <p className="d-eyebrow">{today} · {dateStr}</p>
+          <h1 className="d-title">{t('dresser.title')}</h1>
+          <div className="d-meta">
+            <span className="d-meta-item">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" opacity=".5"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 000-1.41l-1.06-1.06zm1.06-12.37l-1.06 1.06a.996.996 0 000 1.41c.39.39 1.03.39 1.41 0l1.06-1.06a.996.996 0 000-1.41-.996.996 0 00-1.41 0zM7.05 18.36l-1.06 1.06a.996.996 0 000 1.41c.39.39 1.03.39 1.41 0l1.06-1.06a.996.996 0 000-1.41-.96.96 0 00-1.41 0z"/></svg>
+              18°C
+            </span>
+            <span className="d-meta-dot" />
+            <span className="d-meta-item">{wardrobeItems.length} {t('wardrobe.pieces')}</span>
           </div>
-          <h1 className="dresser-title">{t('dresser.title')}</h1>
-        </header>
+        </div>
 
         {!hasItems ? (
-          <div className="dresser-empty">
-            <div className="dresser-empty-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/>
-                <path d="M16 10a4 4 0 01-8 0"/>
-              </svg>
+          <div className="d-empty">
+            <div className="d-empty-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
             </div>
-            <p className="dresser-empty-title">{t('dresser.notEnough')}</p>
-            <p className="dresser-empty-sub">{t('dresser.notEnoughSub')}</p>
-            <button className="btn-primary" onClick={() => router.push('/' + locale + '/wardrobe')}>
+            <p className="d-empty-title">{t('dresser.notEnough')}</p>
+            <p className="d-empty-sub">{t('dresser.notEnoughSub')}</p>
+            <button className="d-btn-primary" onClick={() => router.push('/' + locale + '/wardrobe')}>
               {t('dresser.uploadNow')}
             </button>
           </div>
         ) : (
           <>
-            <section className="dresser-section">
-              <p className="dresser-section-label">{locale === 'de' ? 'Anlass' : 'Occasion'}</p>
-              <div className="occasion-grid">
-                {occasions.map(occ => {
-                  const cfg = occasionConfig[occ]
-                  const isActive = selected === occ
-                  return (
-                    <button
-                      key={occ}
-                      className={`occasion-chip${isActive ? ' occasion-chip--active' : ''}`}
-                      onClick={() => { setSelected(occ); setOutfit(null); setSaved(false) }}
-                    >
-                      <span className="occasion-chip-icon">
-                        <OccasionIcon path={cfg.icon} size={14} />
-                      </span>
-                      <span>{t('dresser.occasions.' + occ)}</span>
-                    </button>
-                  )
-                })}
+            {/* Occasion */}
+            <div className="d-block">
+              <p className="d-label">{locale === 'de' ? 'Anlass' : 'Occasion'}</p>
+              <div className="d-chips">
+                {occasions.map(occ => (
+                  <button
+                    key={occ}
+                    className={`d-chip${selected === occ ? ' d-chip--on' : ''}`}
+                    onClick={() => { setSelected(occ); setOutfit(null); setSaved(false) }}
+                  >
+                    {t('dresser.occasions.' + occ)}
+                  </button>
+                ))}
               </div>
-            </section>
+            </div>
 
-            <section className="dresser-section">
-              <div className="dresser-row-between">
-                <p className="dresser-section-label">{t('dresser.whatForOutfit')}</p>
+            {/* Categories */}
+            <div className="d-block">
+              <div className="d-block-head">
+                <p className="d-label">{t('dresser.whatForOutfit')}</p>
                 <button
-                  className={`btn-ghost-sm${activeCategories.length === 5 ? ' btn-ghost-sm--active' : ''}`}
-                  onClick={() => { setActiveCategories(['tops', 'hosen', 'jacken', 'schuhe', 'acc']); setOutfit(null) }}
+                  className={`d-chip-sm${activeCategories.length === 5 ? ' d-chip-sm--on' : ''}`}
+                  onClick={() => { setActiveCategories(['tops','hosen','jacken','schuhe','acc']); setOutfit(null) }}
                 >
                   {locale === 'de' ? 'Alle' : 'All'}
                 </button>
               </div>
-              <div className="category-row">
+              <div className="d-chips">
                 {categoryConfig.map(cat => {
-                  const isActive = activeCategories.includes(cat.key)
-                  const hasInWardrobe = wardrobeItems.some(i => i.category === cat.key)
+                  const isOn = activeCategories.includes(cat.key)
+                  const exists = wardrobeItems.some(i => i.category === cat.key)
                   return (
                     <button
                       key={cat.key}
-                      className={`category-chip${isActive ? ' category-chip--active' : ''}${!hasInWardrobe ? ' category-chip--disabled' : ''}`}
+                      className={`d-chip${isOn ? ' d-chip--on' : ''}${!exists ? ' d-chip--dim' : ''}`}
                       onClick={() => toggleCategory(cat.key)}
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                        <path d={cat.path} />
-                      </svg>
-                      <span>{cat.label}</span>
+                      {cat.label}
                     </button>
                   )
                 })}
               </div>
-            </section>
+            </div>
 
+            {/* CTA */}
             <button
-              className={`btn-generate${loading ? ' btn-generate--loading' : ''}`}
+              className={`d-cta${loading ? ' d-cta--loading' : ''}`}
               onClick={generateOutfit}
               disabled={loading}
             >
-              {loading ? (
-                <>
-                  <span className="spinner" />
-                  <span>{t('dresser.generating')}</span>
-                </>
-              ) : (
-                <>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2zm6 10l.75 2.25L21 15l-2.25.75L18 18l-.75-2.25L15 15l2.25-.75L18 12zM6 14l.5 1.5L8 16l-1.5.5L6 18l-.5-1.5L4 16l1.5-.5L6 14z"/>
-                  </svg>
-                  <span>{t('dresser.button')}</span>
-                </>
-              )}
+              {loading
+                ? <><span className="d-spinner" /><span>{t('dresser.generating')}</span></>
+                : <span>{t('dresser.button')}</span>
+              }
             </button>
 
+            {/* Result */}
             {outfit && (
-              <div className="outfit-card">
-                <div className="outfit-card-header">
+              <div className="d-card">
+                <div className="d-card-top">
                   <div>
-                    <p className="outfit-card-eyebrow">{t('dresser.outfitFor')}</p>
-                    <p className="outfit-card-occasion">{t('dresser.occasions.' + selected)}</p>
+                    <p className="d-card-eyebrow">{t('dresser.outfitFor')}</p>
+                    <p className="d-card-title">{t('dresser.occasions.' + selected)}</p>
                   </div>
-                  <button
-                    className={`btn-save${saved ? ' btn-save--saved' : ''}`}
-                    onClick={saveOutfit}
-                  >
-                    {saved ? (
-                      <>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                        <span>{t('dresser.saved')}</span>
-                      </>
-                    ) : (
-                      <>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
-                        <span>{t('dresser.save')}</span>
-                      </>
-                    )}
+                  <button className={`d-save${saved ? ' d-save--on' : ''}`} onClick={saveOutfit}>
+                    {saved
+                      ? <><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> {t('dresser.saved')}</>
+                      : <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg> {t('dresser.save')}</>
+                    }
                   </button>
                 </div>
 
-                <div className={`outfit-grid outfit-grid--${outfit.itemObjects.length >= 3 ? '3' : '2'}`}>
+                <div className={`d-grid d-grid--${outfit.itemObjects.length >= 3 ? '3' : '2'}`}>
                   {outfit.itemObjects.length > 0
                     ? outfit.itemObjects.map((item, i) => (
-                      <div key={i} className="outfit-item">
-                        <div className="outfit-item-img">
-                          <img src={item.image_url} alt={item.name ?? ''} />
-                        </div>
-                        <div className="outfit-item-info">
-                          <p className="outfit-item-name">{item.name}</p>
-                          <p className="outfit-item-sub">{item.color}{item.brand ? ` · ${item.brand}` : ''}</p>
+                      <div key={i} className="d-item">
+                        <div className="d-item-img"><img src={item.image_url} alt={item.name ?? ''} /></div>
+                        <div className="d-item-info">
+                          <p className="d-item-name">{item.name}</p>
+                          <p className="d-item-sub">{item.color}{item.brand ? ` · ${item.brand}` : ''}</p>
                         </div>
                       </div>
                     ))
                     : outfit.items.map((name, i) => (
-                      <div key={i} className="outfit-item outfit-item--text">
-                        <p>{name}</p>
-                      </div>
+                      <div key={i} className="d-item d-item--text"><p>{name}</p></div>
                     ))
                   }
                 </div>
 
                 {outfit.reasoning && (
-                  <div className="outfit-reasoning">
-                    <div className="outfit-reasoning-header">
-                      <div className="outfit-reasoning-dot" />
-                      <span>{t('dresser.kiStylist')}</span>
-                    </div>
-                    <p className="outfit-reasoning-text">{outfit.reasoning}</p>
+                  <div className="d-ai">
+                    <p className="d-ai-label">
+                      <span className="d-ai-dot" />
+                      {t('dresser.kiStylist')}
+                    </p>
+                    <p className="d-ai-text">{outfit.reasoning}</p>
                   </div>
                 )}
 
-                <div className="outfit-card-footer">
-                  <button className="btn-regen" onClick={generateOutfit}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+                <div className="d-card-foot">
+                  <button className="d-regen" onClick={generateOutfit}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
                     {t('dresser.newOutfit')}
                   </button>
                 </div>
@@ -310,222 +260,229 @@ export default function DresserPage() {
       </main>
 
       <style>{`
-        .dresser-root {
-          height: 100vh; height: 100dvh;
-          display: flex; flex-direction: column;
-          background: var(--bg);
-          font-family: 'DM Sans', sans-serif;
-          overflow: hidden;
+        .d-root {
+          height:100vh; height:100dvh;
+          display:flex; flex-direction:column;
+          background:var(--bg); overflow:hidden;
         }
-        .dresser-main {
-          flex: 1; overflow-y: auto; overflow-x: hidden;
-          max-width: 560px; width: 100%; margin: 0 auto;
-          padding: 84px 20px 110px;
-          -webkit-overflow-scrolling: touch;
+        .d-main {
+          flex:1; overflow-y:auto; overflow-x:hidden;
+          max-width:540px; width:100%; margin:0 auto;
+          padding:80px 20px 108px;
+          -webkit-overflow-scrolling:touch;
         }
-        .dresser-header { margin-bottom: 28px; }
-        .dresser-date-row {
-          display: flex; align-items: center;
-          justify-content: space-between; margin-bottom: 10px;
+
+        /* Header */
+        .d-header { margin-bottom:32px; }
+        .d-eyebrow {
+          font-size:11px; font-weight:500; letter-spacing:0.06em;
+          text-transform:uppercase; color:var(--text-secondary); margin-bottom:8px;
         }
-        .dresser-date-label {
-          font-size: 12px; font-weight: 500;
-          color: var(--text-secondary);
-          letter-spacing: 0.04em; text-transform: uppercase;
+        .d-title {
+          font-family:'DM Serif Display',serif;
+          font-size:34px; font-weight:400; line-height:1.1;
+          letter-spacing:-0.025em; color:var(--text); margin-bottom:12px;
         }
-        .dresser-weather-pill {
-          display: flex; align-items: center; gap: 5px;
-          background: var(--bg-secondary); border: 1px solid var(--border);
-          border-radius: 100px; padding: 5px 12px;
-          font-size: 12px; color: var(--text-secondary);
+        .d-meta {
+          display:inline-flex; align-items:center; gap:6px;
+          font-size:12px; color:var(--text-secondary);
         }
-        .dresser-weather-dot {
-          width: 3px; height: 3px; border-radius: 50%; background: var(--border);
+        .d-meta-item { display:flex; align-items:center; gap:4px; }
+        .d-meta-dot { width:3px; height:3px; border-radius:50%; background:var(--border); }
+
+        /* Blocks */
+        .d-block { margin-bottom:24px; }
+        .d-block-head {
+          display:flex; align-items:center;
+          justify-content:space-between; margin-bottom:10px;
         }
-        .dresser-title {
-          font-family: 'DM Serif Display', serif;
-          font-size: 36px; font-weight: 400;
-          color: var(--text); line-height: 1.15; letter-spacing: -0.02em;
+        .d-label {
+          font-size:11px; font-weight:600; letter-spacing:0.07em;
+          text-transform:uppercase; color:var(--text-secondary);
         }
-        .dresser-section { margin-bottom: 20px; }
-        .dresser-section-label {
-          font-size: 11px; font-weight: 600;
-          color: var(--text-secondary);
-          letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px;
+
+        /* Chips */
+        .d-chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+        .d-chip {
+          padding:8px 15px; border-radius:8px;
+          border:1px solid var(--border);
+          background:transparent;
+          color:var(--text-secondary);
+          font-size:13px; font-weight:500;
+          font-family:'DM Sans',sans-serif;
+          cursor:pointer; transition:all 0.12s;
+          -webkit-tap-highlight-color:transparent;
+          letter-spacing:-0.01em;
         }
-        .dresser-row-between {
-          display: flex; align-items: center;
-          justify-content: space-between; margin-bottom: 10px;
+        .d-chip:active { transform:scale(0.96); }
+        .d-chip--on {
+          background:var(--text); border-color:var(--text); color:var(--bg);
         }
-        .dresser-row-between .dresser-section-label { margin-bottom: 0; }
-        .occasion-grid { display: flex; flex-wrap: wrap; gap: 7px; }
-        .occasion-chip {
-          display: inline-flex; align-items: center; gap: 6px;
-          padding: 8px 14px; border-radius: 100px;
-          border: 1px solid var(--border); background: var(--bg-card);
-          color: var(--text-secondary); font-size: 13px; font-weight: 500;
-          font-family: 'DM Sans', sans-serif; cursor: pointer;
-          transition: all 0.15s; -webkit-tap-highlight-color: transparent;
+        .d-chip--dim { opacity:0.3; }
+        .d-chip-sm {
+          font-size:11px; font-weight:600;
+          font-family:'DM Sans',sans-serif;
+          padding:5px 11px; border-radius:6px;
+          border:1px solid var(--border);
+          background:transparent; color:var(--text-secondary);
+          cursor:pointer; transition:all 0.12s; white-space:nowrap;
         }
-        .occasion-chip:active { transform: scale(0.96); }
-        .occasion-chip--active {
-          background: var(--text); border-color: var(--text); color: var(--bg);
+        .d-chip-sm--on {
+          background:var(--text); border-color:var(--text); color:var(--bg);
         }
-        .occasion-chip-icon { display: flex; align-items: center; opacity: 0.7; }
-        .occasion-chip--active .occasion-chip-icon { opacity: 1; }
-        .category-row { display: flex; gap: 7px; flex-wrap: wrap; }
-        .category-chip {
-          display: inline-flex; align-items: center; gap: 5px;
-          padding: 7px 13px; border-radius: 100px;
-          border: 1px solid var(--border); background: var(--bg-card);
-          color: var(--text-secondary); font-size: 12px; font-weight: 500;
-          font-family: 'DM Sans', sans-serif; cursor: pointer;
-          transition: all 0.15s; -webkit-tap-highlight-color: transparent;
+
+        /* CTA */
+        .d-cta {
+          width:100%; padding:16px;
+          border-radius:12px; border:none;
+          background:var(--text); color:var(--bg);
+          font-size:15px; font-weight:600;
+          font-family:'DM Sans',sans-serif;
+          cursor:pointer; margin-bottom:24px;
+          display:flex; align-items:center;
+          justify-content:center; gap:8px;
+          transition:opacity 0.15s, transform 0.15s;
+          -webkit-tap-highlight-color:transparent;
+          letter-spacing:-0.01em;
         }
-        .category-chip:active { transform: scale(0.96); }
-        .category-chip--active { background: #0ea472; border-color: #0ea472; color: #fff; }
-        .category-chip--disabled { opacity: 0.35; }
-        .btn-ghost-sm {
-          font-size: 12px; font-weight: 600; font-family: 'DM Sans', sans-serif;
-          color: var(--text-secondary); background: transparent;
-          border: 1px solid var(--border); border-radius: 100px;
-          padding: 5px 12px; cursor: pointer; transition: all 0.15s;
+        .d-cta:active { transform:scale(0.985); opacity:0.85; }
+        .d-cta--loading {
+          background:var(--bg-secondary);
+          color:var(--text-secondary); cursor:not-allowed;
         }
-        .btn-ghost-sm--active { background: var(--text); border-color: var(--text); color: var(--bg); }
-        .btn-generate {
-          width: 100%; display: flex; align-items: center;
-          justify-content: center; gap: 9px;
-          padding: 17px 24px; margin-bottom: 24px;
-          border-radius: 16px; border: none;
-          background: linear-gradient(135deg, #0ea472 0%, #0891b2 100%);
-          color: #fff; font-size: 16px; font-weight: 600;
-          font-family: 'DM Sans', sans-serif; cursor: pointer;
-          transition: opacity 0.15s, transform 0.15s;
-          -webkit-tap-highlight-color: transparent;
-          box-shadow: 0 4px 20px rgba(14,164,114,0.35);
+        .d-spinner {
+          width:15px; height:15px; border-radius:50%; flex-shrink:0;
+          border:2px solid var(--border); border-top-color:var(--text-secondary);
+          animation:dspin .65s linear infinite;
         }
-        .btn-generate:active { transform: scale(0.98); opacity: 0.9; }
-        .btn-generate--loading {
-          background: var(--bg-secondary); color: var(--text-secondary);
-          box-shadow: none; cursor: not-allowed;
+        @keyframes dspin { to { transform:rotate(360deg); } }
+
+        /* Card */
+        .d-card {
+          border:1px solid var(--border); border-radius:16px;
+          overflow:hidden; background:var(--bg-card);
+          animation:dslide .3s cubic-bezier(.16,1,.3,1);
         }
-        .spinner {
-          width: 16px; height: 16px;
-          border: 2px solid rgba(255,255,255,0.3);
-          border-top-color: #fff; border-radius: 50%;
-          animation: spin 0.7s linear infinite; flex-shrink: 0;
+        @keyframes dslide {
+          from { opacity:0; transform:translateY(12px); }
+          to   { opacity:1; transform:translateY(0); }
         }
-        .btn-generate--loading .spinner {
-          border-color: var(--border); border-top-color: var(--text-secondary);
+        .d-card-top {
+          display:flex; align-items:center;
+          justify-content:space-between;
+          padding:14px 16px;
+          border-bottom:1px solid var(--border);
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .outfit-card {
-          background: var(--bg-card); border: 1px solid var(--border);
-          border-radius: 20px; overflow: hidden;
-          animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        .d-card-eyebrow {
+          font-size:10px; font-weight:600; letter-spacing:0.07em;
+          text-transform:uppercase; color:var(--text-secondary); margin-bottom:2px;
         }
-        @keyframes slideUp {
-          from { opacity: 0; transform: translateY(16px); }
-          to   { opacity: 1; transform: translateY(0); }
+        .d-card-title {
+          font-size:15px; font-weight:700;
+          color:var(--text); letter-spacing:-0.02em;
         }
-        .outfit-card-header {
-          display: flex; align-items: center; justify-content: space-between;
-          padding: 16px 18px; border-bottom: 1px solid var(--border);
+
+        /* Save */
+        .d-save {
+          display:inline-flex; align-items:center; gap:5px;
+          padding:7px 13px; border-radius:8px;
+          border:1px solid var(--border);
+          background:transparent; color:var(--text);
+          font-size:12px; font-weight:600;
+          font-family:'DM Sans',sans-serif; cursor:pointer;
+          transition:all 0.15s; -webkit-tap-highlight-color:transparent;
         }
-        .outfit-card-eyebrow {
-          font-size: 10px; font-weight: 600;
-          letter-spacing: 0.08em; text-transform: uppercase;
-          color: var(--text-secondary); margin-bottom: 3px;
+        .d-save--on { background:var(--text); border-color:var(--text); color:var(--bg); }
+
+        /* Grid */
+        .d-grid { display:grid; gap:8px; padding:12px; }
+        .d-grid--3 { grid-template-columns:repeat(3,1fr); }
+        .d-grid--2 { grid-template-columns:repeat(2,1fr); }
+        .d-item {
+          border-radius:10px; overflow:hidden;
+          border:1px solid var(--border); background:var(--bg-secondary);
         }
-        .outfit-card-occasion {
-          font-size: 15px; font-weight: 700;
-          color: var(--text); letter-spacing: -0.01em;
+        .d-item-img { aspect-ratio:1; overflow:hidden; }
+        .d-item-img img {
+          width:100%; height:100%; object-fit:cover;
+          display:block; transition:transform .3s;
         }
-        .btn-save {
-          display: inline-flex; align-items: center; gap: 5px;
-          padding: 8px 14px; border-radius: 100px;
-          border: 1px solid var(--border); background: transparent;
-          color: var(--text); font-size: 12px; font-weight: 600;
-          font-family: 'DM Sans', sans-serif; cursor: pointer;
-          transition: all 0.2s; -webkit-tap-highlight-color: transparent;
+        .d-item:active .d-item-img img { transform:scale(1.05); }
+        .d-item-info { padding:7px 9px; }
+        .d-item-name {
+          font-size:11px; font-weight:600; color:var(--text);
+          white-space:nowrap; overflow:hidden;
+          text-overflow:ellipsis; margin-bottom:1px;
         }
-        .btn-save--saved { background: #0ea472; border-color: #0ea472; color: #fff; }
-        .outfit-grid { display: grid; gap: 10px; padding: 14px; }
-        .outfit-grid--3 { grid-template-columns: repeat(3, 1fr); }
-        .outfit-grid--2 { grid-template-columns: repeat(2, 1fr); }
-        .outfit-item {
-          border-radius: 12px; overflow: hidden;
-          border: 1px solid var(--border); background: var(--bg-secondary);
+        .d-item-sub { font-size:10px; color:var(--text-secondary); }
+        .d-item--text {
+          display:flex; align-items:center; justify-content:center;
+          padding:16px 8px; min-height:80px;
+          font-size:12px; font-weight:500; color:var(--text); text-align:center;
         }
-        .outfit-item-img { aspect-ratio: 1; overflow: hidden; }
-        .outfit-item-img img {
-          width: 100%; height: 100%; object-fit: cover;
-          display: block; transition: transform 0.3s;
+
+        /* AI */
+        .d-ai {
+          margin:0 12px 12px;
+          border:1px solid var(--border);
+          border-radius:10px; padding:12px 14px;
+          background:var(--bg-secondary);
         }
-        .outfit-item:active .outfit-item-img img { transform: scale(1.04); }
-        .outfit-item-info { padding: 8px 10px; }
-        .outfit-item-name {
-          font-size: 12px; font-weight: 600; color: var(--text);
-          white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px;
+        .d-ai-label {
+          display:flex; align-items:center; gap:7px;
+          font-size:10px; font-weight:700; letter-spacing:0.07em;
+          text-transform:uppercase; color:var(--text-secondary); margin-bottom:7px;
         }
-        .outfit-item-sub { font-size: 11px; color: var(--text-secondary); }
-        .outfit-item--text {
-          display: flex; align-items: center; justify-content: center;
-          padding: 20px 12px; min-height: 90px;
-          font-size: 13px; font-weight: 500; color: var(--text); text-align: center;
+        .d-ai-dot {
+          width:5px; height:5px; border-radius:50%;
+          background:#0ea472; flex-shrink:0;
         }
-        .outfit-reasoning {
-          margin: 0 14px 14px; background: var(--bg-secondary);
-          border-radius: 14px; padding: 14px 16px; border: 1px solid var(--border);
+        .d-ai-text { font-size:13px; color:var(--text-secondary); line-height:1.6; }
+
+        /* Footer */
+        .d-card-foot { padding:0 12px 12px; }
+        .d-regen {
+          width:100%; padding:11px;
+          display:flex; align-items:center;
+          justify-content:center; gap:6px;
+          background:transparent;
+          border:1px solid var(--border);
+          border-radius:8px; font-size:12px;
+          font-weight:500; color:var(--text-secondary);
+          font-family:'DM Sans',sans-serif;
+          cursor:pointer; transition:background .12s;
+          -webkit-tap-highlight-color:transparent;
         }
-        .outfit-reasoning-header {
-          display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
-          font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
-          text-transform: uppercase; color: #0ea472;
+        .d-regen:active { background:var(--bg-secondary); }
+
+        /* Primary btn */
+        .d-btn-primary {
+          padding:12px 24px; background:var(--text); color:var(--bg);
+          border:none; border-radius:10px; font-size:14px; font-weight:600;
+          font-family:'DM Sans',sans-serif; cursor:pointer;
+          transition:opacity .15s; -webkit-tap-highlight-color:transparent;
         }
-        .outfit-reasoning-dot {
-          width: 6px; height: 6px; border-radius: 50%;
-          background: #0ea472; flex-shrink: 0;
+        .d-btn-primary:active { opacity:0.8; }
+
+        /* Empty */
+        .d-empty {
+          text-align:center; padding:48px 24px;
+          border:1px solid var(--border); border-radius:16px;
+          background:var(--bg-card);
         }
-        .outfit-reasoning-text {
-          font-size: 13px; color: var(--text-secondary); line-height: 1.65;
+        .d-empty-icon {
+          width:48px; height:48px; border-radius:12px;
+          border:1px solid var(--border); background:var(--bg-secondary);
+          display:flex; align-items:center; justify-content:center;
+          margin:0 auto 16px; color:var(--text-secondary);
         }
-        .outfit-card-footer { padding: 0 14px 14px; }
-        .btn-regen {
-          width: 100%; display: flex; align-items: center;
-          justify-content: center; gap: 7px; padding: 12px;
-          background: transparent; border: 1px solid var(--border);
-          border-radius: 12px; font-size: 13px; font-weight: 500;
-          color: var(--text-secondary); font-family: 'DM Sans', sans-serif;
-          cursor: pointer; transition: all 0.15s;
-          -webkit-tap-highlight-color: transparent;
+        .d-empty-title {
+          font-family:'DM Serif Display',serif;
+          font-size:18px; color:var(--text); margin-bottom:8px;
         }
-        .btn-regen:active { background: var(--bg-secondary); }
-        .btn-primary {
-          display: inline-flex; align-items: center; justify-content: center;
-          padding: 13px 28px; background: var(--text); color: var(--bg);
-          border: none; border-radius: 12px; font-size: 14px; font-weight: 600;
-          font-family: 'DM Sans', sans-serif; cursor: pointer;
-          transition: opacity 0.15s; -webkit-tap-highlight-color: transparent;
-        }
-        .btn-primary:active { opacity: 0.8; }
-        .dresser-empty {
-          text-align: center; padding: 48px 24px;
-          background: var(--bg-card); border-radius: 20px; border: 1px solid var(--border);
-        }
-        .dresser-empty-icon {
-          width: 56px; height: 56px; border-radius: 16px;
-          background: var(--bg-secondary); border: 1px solid var(--border);
-          display: flex; align-items: center; justify-content: center;
-          margin: 0 auto 18px; color: var(--text-secondary);
-        }
-        .dresser-empty-title {
-          font-family: 'DM Serif Display', serif;
-          font-size: 20px; color: var(--text); margin-bottom: 8px;
-        }
-        .dresser-empty-sub {
-          font-size: 14px; color: var(--text-secondary);
-          line-height: 1.6; margin-bottom: 24px;
+        .d-empty-sub {
+          font-size:13px; color:var(--text-secondary);
+          line-height:1.6; margin-bottom:20px;
         }
       `}</style>
     </div>
