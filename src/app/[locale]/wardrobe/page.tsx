@@ -214,7 +214,7 @@ return (
 
         <div onClick={() => !uploading && fileInputRef.current?.click()}
           style={{ border: `2px dashed ${uploading ? '#0ea472' : 'var(--border)'}`, borderRadius: '14px', padding: '24px', textAlign: 'center', cursor: uploading ? 'default' : 'pointer', marginBottom: '16px', transition: 'all 0.2s', background: uploading ? (isDark ? 'rgba(14,164,114,0.05)' : '#f0fdf8') : 'var(--bg-secondary)' }}>
-          <div style={{ fontSize: '24px', marginBottom: '6px' }}>☁️</div>
+    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '6px' }}>↑</div>
           <p style={{ fontWeight: 500, color: 'var(--text)', marginBottom: '2px', fontSize: '14px' }}>{t('wardrobe.upload')}</p>
           <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{t('wardrobe.uploadSub')}</p>
         </div>
@@ -237,14 +237,14 @@ return (
           {categories.map(cat => (
             <button key={cat} onClick={() => setFilter(cat)}
               style={{ padding: '6px 14px', borderRadius: '20px', border: filter === cat ? 'none' : '1px solid var(--border)', background: filter === cat ? 'linear-gradient(135deg, #0ea472, #0891b2)' : 'var(--bg-secondary)', color: filter === cat ? '#fff' : 'var(--text-secondary)', fontSize: '12px', fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap' as const, fontFamily: "'DM Sans', sans-serif", flexShrink: 0 }}>
-              {cat === 'all' ? `${t('wardrobe.all')} (${items.length})` : `${categoryEmoji[cat]} ${getCategoryLabel(cat)}`}
+             {cat === 'all' ? `${t('wardrobe.all')} (${items.length})` : getCategoryLabel(cat)}
             </button>
           ))}
         </div>
 
         {filtered.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-secondary)' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>👗</div>
+   <div style={{ fontSize: '32px', marginBottom: '16px', color: 'var(--border)' }}>—</div>
             <p style={{ fontSize: '16px', fontWeight: 500, marginBottom: '8px', color: 'var(--text)' }}>{t('wardrobe.nothingHere')}</p>
             <p style={{ fontSize: '14px' }}>{t('wardrobe.uploadFirst')}</p>
           </div>
