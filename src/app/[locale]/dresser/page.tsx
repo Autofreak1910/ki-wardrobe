@@ -207,10 +207,11 @@ const accentDim = isDark ? 'rgba(77,126,255,0.1)' : 'rgba(59,107,255,0.08)'
 return (
     <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' as const, background: bg, overflow: 'hidden', fontFamily: "'DM Sans', sans-serif", position: 'relative' as const }}>
 
-    <WelcomeOverlay
+ <WelcomeOverlay
   weatherRef={weatherRef}
   categoryRef={categoryRef}
   dressMeRef={dressMeRef}
+  itemCount={wardrobeItems.length}
 />
 
       {/* Background glows */}
