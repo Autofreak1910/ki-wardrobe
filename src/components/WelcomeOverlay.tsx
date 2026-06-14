@@ -58,10 +58,12 @@ export default function WelcomeOverlay({ weatherRef, categoryRef, dressMeRef, it
   const refs = { weatherRef, categoryRef, dressMeRef }
 
   useEffect(() => {
-    if (itemCount < 3) return
-    const seen = localStorage.getItem('kw_welcome_seen')
-    if (!seen) setTimeout(() => setShow(true), 800)
-  }, [itemCount])
+  if (itemCount < 3) return
+  const seen = localStorage.getItem('kw_welcome_seen')
+  if (!seen) {
+    setShow(true)
+  }
+}, [itemCount])
 
   useEffect(() => {
     if (!show) return

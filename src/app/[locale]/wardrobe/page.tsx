@@ -96,6 +96,11 @@ const accentDim = isDark ? 'rgba(77,126,255,0.1)' : 'rgba(59,107,255,0.08)'
       setProgress(100)
       setAnalyzeStep(locale === 'de' ? 'Fertig!' : 'Done!')
       setAnalyzeResult(`${analysis.name} · ${analysis.color}${analysis.brand ? ' · ' + analysis.brand : ''}`)
+      // Tutorial triggern wenn 3 Items erreicht
+const newCount = items.length + 1
+if (newCount === 3) {
+  localStorage.removeItem('kw_welcome_seen')
+}
       setTimeout(() => { setAnalyzing(false); setProgress(0); loadItems() }, 2000)
     } catch (err) {
       console.error(err)
