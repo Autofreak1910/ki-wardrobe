@@ -9,24 +9,25 @@ export default function SplashScreen({ onDone }: { onDone: () => void }) {
   const [isDark, setIsDark] = useState(false)
 
   useEffect(() => {
-    // System-Theme erkennen — gleiches wie das statische iOS-Bild nutzt!
     setIsDark(window.matchMedia('(prefers-color-scheme: dark)').matches)
 
     const interval = setInterval(() => {
       setProgress(prev => {
         if (prev >= 100) {
           clearInterval(interval)
-          setTimeout(() => {
-            setDone(true)
-            setTimeout(onDone, 500)
-          }, 200)
+          setTimeout(() => { setDone(true); setTimeout(onDone, 400) }, 150)
           return 100
         }
-        return prev + Math.random() * 20 + 10
+        return prev + Math.random() * 18 + 8
       })
-    }, 110)
+    }, 100)
     return () => clearInterval(interval)
   }, [])
+
+  const bg = isDark ? '#0a0a0a' : '#fafafa'
+  const fg = isDark ? '#fafafa' : '#09090b'
+  const sub = isDark ? '#71717a' : '#71717a'
+  const bar = isDark ? '#27272a' : '#e4e4e7'
 
   return (
     <AnimatePresence>
@@ -34,44 +35,48 @@ export default function SplashScreen({ onDone }: { onDone: () => void }) {
         <motion.div
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.5, ease: 'easeInOut' }}
+          transition={{ duration: 0.35, ease: 'easeInOut' }}
           style={{
             position: 'fixed', inset: 0, zIndex: 9999,
-            background: isDark
-              ? 'linear-gradient(145deg, #0a3d2b 0%, #0a2e3d 100%)'
-              : 'linear-gradient(145deg, #0ea472 0%, #0891b2 100%)',
+            background: bg,
             display: 'flex', flexDirection: 'column' as const,
             alignItems: 'center', justifyContent: 'center',
             fontFamily: "'DM Sans', sans-serif",
           }}
         >
-          <div style={{ position: 'absolute', top: '-100px', right: '-100px', width: '400px', height: '400px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />
-          <div style={{ position: 'absolute', bottom: '-80px', left: '-80px', width: '300px', height: '300px', borderRadius: '50%', background: 'rgba(255,255,255,0.03)' }} />
-
-          {/* Icon — steht still wie im statischen Bild, kein Cut sichtbar */}
-          <div style={{
-            width: '96px', height: '96px', borderRadius: '26px',
-            overflow: 'hidden', marginBottom: '24px',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-            position: 'relative', zIndex: 2,
-          }}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.92 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            style={{
+              width: '72px', height: '72px', borderRadius: '20px',
+              overflow: 'hidden', marginBottom: '20px',
+              boxShadow: isDark
+                ? '0 0 0 1px #27272a, 0 8px 24px rgba(0,0,0,0.5)'
+                : '0 0 0 1px #e4e4e7, 0 8px 24px rgba(0,0,0,0.08)',
+            }}
+          >
             <img src="/icon-512.png" alt="KiWardrobe" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          </div>
+          </motion.div>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 14 }}
+          <motion.p
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            style={{ fontFamily: "'DM Serif Display', serif", fontSize: '40px', fontWeight: 400, color: '#fff', marginBottom: '6px', lineHeight: 1, position: 'relative', zIndex: 2 }}
+            transition={{ delay: 0.1, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            style={{
+              fontFamily: "'DM Serif Display', serif",
+              fontSize: '26px', fontWeight: 400,
+              color: fg, marginBottom: '4px', letterSpacing: '-0.02em',
+            }}
           >
             Ki<em>Wardrobe</em>
-          </motion.h1>
+          </motion.p>
 
           <motion.p
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.7 }}
-            transition={{ delay: 0.25, duration: 0.5 }}
-            style={{ fontSize: '14px', color: 'rgba(255,255,255,0.7)', letterSpacing: '0.06em', marginBottom: '44px', position: 'relative', zIndex: 2 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.4 }}
+            style={{ fontSize: '13px', color: sub, marginBottom: '40px', letterSpacing: '0.02em' }}
           >
             Your AI Stylist
           </motion.p>
@@ -79,18 +84,20 @@ export default function SplashScreen({ onDone }: { onDone: () => void }) {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.35, duration: 0.4 }}
-            style={{ width: '180px', position: 'relative', zIndex: 2 }}
+            transition={{ delay: 0.3, duration: 0.3 }}
+            style={{ width: '120px' }}
           >
-            <div style={{ height: '3px', background: 'rgba(255,255,255,0.2)', borderRadius: '2px', overflow: 'hidden', marginBottom: '12px' }}>
+            <div style={{
+              height: '2px', background: bar,
+              borderRadius: '2px', overflow: 'hidden',
+            }}>
               <div style={{
-                height: '100%', background: 'rgba(255,255,255,0.9)', borderRadius: '2px',
-                width: `${Math.min(progress, 100)}%`, transition: 'width 0.12s ease',
+                height: '100%', background: '#0ea472',
+                borderRadius: '2px',
+                width: `${Math.min(progress, 100)}%`,
+                transition: 'width 0.1s linear',
               }} />
             </div>
-            <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', textAlign: 'center' as const, letterSpacing: '0.08em' }}>
-              {progress < 40 ? 'Loading...' : progress < 80 ? 'Almost ready...' : 'Starting...'}
-            </p>
           </motion.div>
         </motion.div>
       )}

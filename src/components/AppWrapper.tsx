@@ -13,19 +13,11 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     const isAppPage = pathname.includes('/dresser') || pathname.includes('/wardrobe') || pathname.includes('/outfits') || pathname.includes('/profile')
-    
-    if (!isAppPage) {
-      setShowSplash(false)
-      return
-    }
+    if (!isAppPage) { setShowSplash(false); return }
 
     const hasSeenSplash = sessionStorage.getItem('splashShown')
-    if (hasSeenSplash) {
-      setShowSplash(false)
-      return
-    }
+    if (hasSeenSplash) { setShowSplash(false); return }
 
-    // Daten vorladen während Splash
     preloadData()
 
     supabase.auth.onAuthStateChange((event) => {
@@ -55,7 +47,7 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
       {showSplash && <SplashScreen onDone={handleSplashDone} />}
       <div style={{
         opacity: showSplash ? 0 : 1,
-        transition: 'opacity 0.4s ease',
+        transition: 'opacity 0.3s ease',
         height: '100%',
       }}>
         {children}
