@@ -162,10 +162,9 @@ export default function Navbar({ activePage }: { activePage: string }) {
     dragIndexRef.current = -1
     snap(currentActiveIndex.current)
   }
-
-  const accent   = '#0ea472'
-  const navBg    = isDark ? 'rgba(8,15,12,0.93)' : 'rgba(240,253,248,0.93)'
-  const navBorder = isDark ? '#1a3328' : '#d1f0e4'
+const accent    = isDark ? '#4d7eff' : '#3b6bff'
+const navBg     = isDark ? 'rgba(8,12,24,0.93)' : 'rgba(240,244,255,0.93)'
+const navBorder = isDark ? '#1a2540' : '#dde3f5'
 
   return (
     <>
@@ -232,19 +231,19 @@ export default function Navbar({ activePage }: { activePage: string }) {
             width: PILL,
             height: PILL,
             scale: bubbleScale,
-            borderRadius: '50%',
-            background: isDark
-              ? 'radial-gradient(circle at 35% 30%, rgba(14,164,114,0.4) 0%, rgba(8,145,178,0.2) 55%, rgba(14,164,114,0.08) 100%)'
-              : 'radial-gradient(circle at 35% 30%, rgba(255,255,255,0.95) 0%, rgba(14,164,114,0.3) 55%, rgba(8,145,178,0.15) 100%)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            border: isDark
-              ? '1px solid rgba(14,164,114,0.45)'
-              : '1px solid rgba(255,255,255,0.85)',
-            boxShadow: isDark
-              ? '0 4px 28px rgba(14,164,114,0.28), inset 0 1px 0 rgba(255,255,255,0.12)'
-              : '0 4px 28px rgba(14,164,114,0.22), inset 0 1.5px 0 rgba(255,255,255,0.95), inset 0 -1px 0 rgba(14,164,114,0.12)',
-            pointerEvents: 'none',
+           borderRadius: '50%',
+background: isDark
+  ? 'radial-gradient(circle at 35% 30%, rgba(77,126,255,0.45) 0%, rgba(59,107,255,0.2) 55%, rgba(77,126,255,0.08) 100%)'
+  : 'radial-gradient(circle at 35% 30%, rgba(255,255,255,0.98) 0%, rgba(59,107,255,0.25) 55%, rgba(100,150,255,0.15) 100%)',
+backdropFilter: 'blur(16px)',
+WebkitBackdropFilter: 'blur(16px)',
+border: isDark
+  ? '1px solid rgba(77,126,255,0.45)'
+  : '1px solid rgba(255,255,255,0.9)',
+boxShadow: isDark
+  ? '0 4px 28px rgba(77,126,255,0.3), inset 0 1px 0 rgba(255,255,255,0.12)'
+  : '0 4px 28px rgba(59,107,255,0.2), inset 0 1.5px 0 rgba(255,255,255,0.98), inset 0 -1px 0 rgba(59,107,255,0.1)',
+pointerEvents: 'none',
           }}
         />
 

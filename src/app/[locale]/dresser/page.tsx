@@ -158,13 +158,13 @@ export default function DresserPage() {
     setSaved(true)
   }
 
-  const bg        = isDark ? '#080f0c' : '#f0fdf8'
-  const card      = isDark ? '#0f1a14' : '#ffffff'
-  const border    = isDark ? '#1a3328' : '#d1f0e4'
-  const text      = isDark ? '#e8f5ee' : '#0a2e1e'
-  const muted     = isDark ? '#4d7a62' : '#6b9e87'
-  const accent    = '#0ea472'
-  const accentDim = 'rgba(14,164,114,0.1)'
+  const bg        = isDark ? '#080c18' : '#f0f4ff'
+const card      = isDark ? '#0d1225' : '#ffffff'
+const border    = isDark ? '#1a2540' : '#dde3f5'
+const text      = isDark ? '#e8eeff' : '#0a1628'
+const muted     = isDark ? '#4d6080' : '#6b7fa8'
+const accent    = isDark ? '#4d7eff' : '#3b6bff'
+const accentDim = isDark ? 'rgba(77,126,255,0.1)' : 'rgba(59,107,255,0.08)'
 
   return (
     <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' as const, background: bg, overflow: 'hidden', fontFamily: "'DM Sans', sans-serif", position: 'relative' as const }}>
