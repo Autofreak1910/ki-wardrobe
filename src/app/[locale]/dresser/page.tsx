@@ -29,15 +29,15 @@ const occasions = ['casual', 'uni', 'work', 'date', 'sport', 'party', 'festival'
 
 const categoryConfig = [
   { key: 'tops',   labelDe: 'Oberteil', labelEn: 'Top',
-    icon: <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.57a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.57a2 2 0 00-1.34-2.23z"/></svg> },
+    icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.57a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.57a2 2 0 00-1.34-2.23z"/></svg> },
   { key: 'hosen',  labelDe: 'Hose',     labelEn: 'Pants',
-    icon: <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3h18v4l-4 14h-4l-1-8-1 8H7L3 7V3z"/></svg> },
+    icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3h18v4l-4 14h-4l-1-8-1 8H7L3 7V3z"/></svg> },
   { key: 'jacken', labelDe: 'Jacke',    labelEn: 'Jacket',
-    icon: <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 2l4 4-2 2 2 14H4L6 8 4 6l4-4"/><path d="M12 2v7"/><path d="M8 2c0 2.5 1.5 4 4 4s4-1.5 4-4"/></svg> },
+    icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 2l4 4-2 2 2 14H4L6 8 4 6l4-4"/><path d="M12 2v7"/><path d="M8 2c0 2.5 1.5 4 4 4s4-1.5 4-4"/></svg> },
   { key: 'schuhe', labelDe: 'Schuhe',   labelEn: 'Shoes',
-    icon: <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 18h20v2a1 1 0 01-1 1H3a1 1 0 01-1-1v-2z"/><path d="M2 18l4-9h3l2 4 3-7h4l2 12"/></svg> },
+    icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 18h20v2a1 1 0 01-1 1H3a1 1 0 01-1-1v-2z"/><path d="M2 18l4-9h3l2 4 3-7h4l2 12"/></svg> },
   { key: 'acc',    labelDe: 'Accessoires', labelEn: 'Accessories',
-    icon: <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="12" r="3"/><path d="M9 12h6"/></svg> },
+    icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="12" r="3"/><path d="M9 12h6"/></svg> },
 ]
 
 type ClothingItem = { id: string; image_url: string; category: string; color: string; name?: string; brand?: string }
@@ -79,7 +79,6 @@ export default function DresserPage() {
 const categoryRef = useRef<HTMLDivElement>(null)
 const dressMeRef = useRef<HTMLButtonElement>(null)
 const [showUnlock, setShowUnlock] = useState(false)
-useEffect(() => { loadWardrobe(); fetchWeather() }, [])
   const days = locale === 'de'
     ? ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag']
     : ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
@@ -261,7 +260,7 @@ return (
           background: `linear-gradient(135deg, ${accent}, #6b9fff)`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           boxShadow: `0 0 80px ${accent}70, 0 0 40px ${accent}40`,
-          marginBottom: '28px',
+          marginBottom: '14px',
         }}
       >
         {/* Schloss öffnet sich nach oben */}
@@ -432,7 +431,7 @@ return (
 ) : (
           <>
             {/* ── Occasion chips ── */}
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, duration: 0.4 }} style={{ marginBottom: '22px' }}>
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, duration: 0.4 }} style={{ marginBottom: '12px' }}>
               <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: muted, marginBottom: '10px' }}>
                 {locale === 'de' ? 'Anlass' : 'Occasion'}
               </p>
@@ -483,7 +482,7 @@ return (
                         gridColumn: isLast && isOdd ? '1 / -1' : undefined,
                         display: 'flex', flexDirection: 'column' as const,
                         alignItems: 'center', justifyContent: 'center', gap: '10px',
-                        padding: isLast && isOdd ? '18px' : '22px 16px',
+         padding: isLast && isOdd ? '10px' : '12px 16px',
                         borderRadius: '18px',
                         border: `1.5px solid ${isOn ? accent : border}`,
                         background: isOn ? accentDim : card,
