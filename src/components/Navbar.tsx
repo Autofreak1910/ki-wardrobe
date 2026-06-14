@@ -223,8 +223,8 @@ export default function Navbar({ activePage }: { activePage: string }) {
       >
         {mounted && tabWidth > 0 && (
           <motion.div style={{
-            position: 'absolute', top: '8px',
-            x: bubbleX, width: bubbleW, height: '56px',
+            position: 'absolute', top: '6px',
+            x: bubbleX, width: bubbleW, height: '60px',
             background: isDark ? 'rgba(14,164,114,0.08)' : 'rgba(14,164,114,0.08)',
             borderRadius: '14px',
             border: `1px solid ${isDark ? 'rgba(14,164,114,0.15)' : 'rgba(14,164,114,0.2)'}`,
