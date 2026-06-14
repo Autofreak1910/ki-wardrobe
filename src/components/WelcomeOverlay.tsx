@@ -7,40 +7,34 @@ import { useTheme } from '@/context/ThemeContext'
 
 const steps = [
   {
-    icon: (
-      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/>
-        <path d="M19 15l.75 2.25L22 18l-2.25.75L19 21l-.75-2.25L16 18l2.25-.75L19 15z"/>
-      </svg>
-    ),
-    titleDe: 'Dress Me',
-    titleEn: 'Dress Me',
-    descDe: 'Drück den großen Button — deine KI erstellt sofort ein Outfit aus deinem Kleiderschrank, passend zum Anlass und Wetter.',
-    descEn: 'Hit the big button — your AI instantly creates an outfit from your wardrobe, matching the occasion and weather.',
+    // Zeigt auf den Dress Me Button (unten mitte)
+    spotlight: { bottom: 140, left: '50%', width: 280, height: 60, xOffset: -140 },
+    arrow: 'up',
+    tooltipPos: { bottom: 210, left: '50%', xOffset: -150 },
+    titleDe: 'Dress Me ✦',
+    titleEn: 'Dress Me ✦',
+    descDe: 'Drück diesen Button — deine KI erstellt sofort ein perfektes Outfit!',
+    descEn: 'Press this button — your AI creates a perfect outfit instantly!',
   },
   {
-    icon: (
-      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
-        <line x1="3" y1="6" x2="21" y2="6"/>
-        <path d="M16 10a4 4 0 01-8 0"/>
-      </svg>
-    ),
-    titleDe: 'Kleiderschrank',
-    titleEn: 'Wardrobe',
-    descDe: 'Foto machen, KI analysiert automatisch Farbe, Kategorie und Style. Je mehr Teile, desto besser die Outfits.',
-    descEn: 'Take a photo, AI automatically analyzes color, category and style. More items = better outfits.',
+    // Zeigt auf Wetter Card (oben rechts)
+    spotlight: { top: 80, right: 18, width: 120, height: 110, xOffset: 0 },
+    arrow: 'down',
+    tooltipPos: { top: 200, right: 18, xOffset: 0 },
+    titleDe: 'Echtes Wetter 🌤',
+    titleEn: 'Real Weather 🌤',
+    descDe: 'Dein Standort, echte Temperatur — die KI wählt wetterpassende Outfits.',
+    descEn: 'Your location, real temperature — AI picks weather-appropriate outfits.',
   },
   {
-    icon: (
-      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
-      </svg>
-    ),
-    titleDe: 'Outfits speichern',
-    titleEn: 'Save Outfits',
-    descDe: 'Gefällt dir ein Outfit? Speicher es mit einem Tap und finde es später unter Outfits wieder.',
-    descEn: 'Love an outfit? Save it with one tap and find it later under Outfits.',
+    // Zeigt auf Kategorie Grid
+    spotlight: { top: 320, left: 18, right: 18, width: -1, height: 200, xOffset: 0 },
+    arrow: 'down',
+    tooltipPos: { top: 530, left: '50%', xOffset: -150 },
+    titleDe: 'Kategorien wählen 👕',
+    titleEn: 'Choose Categories 👕',
+    descDe: 'Tippe an was du anziehen willst — Outfit wird daran angepasst.',
+    descEn: 'Tap what you want to wear — outfit gets customized to your choice.',
   },
 ]
 
@@ -51,7 +45,6 @@ export default function WelcomeOverlay() {
   const locale = useLocale()
   const isDark = theme === 'dark'
 
-  const bg     = isDark ? '#080c18' : '#f0f4ff'
   const card   = isDark ? '#0d1225' : '#ffffff'
   const border = isDark ? '#1a2540' : '#dde3f5'
   const text   = isDark ? '#e8eeff' : '#0a1628'
@@ -60,9 +53,7 @@ export default function WelcomeOverlay() {
 
   useEffect(() => {
     const seen = localStorage.getItem('kw_welcome_seen')
-    if (!seen) {
-      setTimeout(() => setShow(true), 600)
-    }
+    if (!seen) setTimeout(() => setShow(true), 800)
   }, [])
 
   function finish() {
@@ -70,76 +61,131 @@ export default function WelcomeOverlay() {
     setShow(false)
   }
 
+  function next() {
+    if (step < steps.length - 1) setStep(s => s + 1)
+    else finish()
+  }
+
   const current = steps[step]
   const isLast = step === steps.length - 1
+
+  // Spotlight position berechnen
+  const spotStyle: any = {
+    position: 'fixed',
+    borderRadius: '16px',
+    border: `2px solid ${accent}`,
+    boxShadow: `0 0 0 9999px rgba(0,0,0,0.65)`,
+    zIndex: 10000,
+    pointerEvents: 'none',
+  }
+  if (current.spotlight.top !== undefined) spotStyle.top = current.spotlight.top
+  if (current.spotlight.bottom !== undefined) spotStyle.bottom = current.spotlight.bottom
+  if (current.spotlight.left !== undefined) spotStyle.left = current.spotlight.left
+  if (current.spotlight.right !== undefined) spotStyle.right = current.spotlight.right
+  spotStyle.width = current.spotlight.width === -1 ? `calc(100% - 36px)` : current.spotlight.width
+  spotStyle.height = current.spotlight.height
+
+  // Tooltip position
+  const tipStyle: any = {
+    position: 'fixed',
+    width: '300px',
+    zIndex: 10001,
+  }
+  if (current.tooltipPos.top !== undefined) tipStyle.top = current.tooltipPos.top
+  if (current.tooltipPos.bottom !== undefined) tipStyle.bottom = current.tooltipPos.bottom
+  if (current.tooltipPos.left !== undefined) {
+    tipStyle.left = current.tooltipPos.left
+    tipStyle.transform = `translateX(${current.tooltipPos.xOffset}px)`
+  }
+  if (current.tooltipPos.right !== undefined) {
+    tipStyle.right = current.tooltipPos.right
+  }
 
   return (
     <AnimatePresence>
       {show && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '20px', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
-          onClick={finish}
-        >
+        <>
+          {/* Spotlight highlight */}
           <motion.div
-            initial={{ y: 80, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 80, opacity: 0 }}
-            transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-            onClick={e => e.stopPropagation()}
-            style={{ width: '100%', maxWidth: '420px', background: card, border: `1px solid ${border}`, borderRadius: '28px', padding: '32px 28px', boxShadow: isDark ? '0 -8px 60px rgba(0,0,0,0.6)' : '0 -8px 60px rgba(59,107,255,0.15)' }}
+            key={`spot-${step}`}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            style={spotStyle}
+          />
+
+          {/* Pulsing ring on spotlight */}
+          <motion.div
+            key={`ring-${step}`}
+            animate={{ scale: [1, 1.04, 1], opacity: [0.6, 1, 0.6] }}
+            transition={{ duration: 1.8, repeat: Infinity }}
+            style={{ ...spotStyle, border: `2px solid ${accent}`, boxShadow: 'none', background: 'transparent' }}
+          />
+
+          {/* Tap to dismiss full overlay */}
+          <div
+            onClick={next}
+            style={{ position: 'fixed', inset: 0, zIndex: 9999, cursor: 'pointer' }}
+          />
+
+          {/* Tooltip card */}
+          <motion.div
+            key={`tip-${step}`}
+            initial={{ opacity: 0, y: current.arrow === 'up' ? 12 : -12, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            style={tipStyle}
           >
-            {/* Progress dots */}
-            <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', marginBottom: '28px' }}>
-              {steps.map((_, i) => (
-                <motion.div key={i}
-                  animate={{ width: i === step ? '28px' : '8px', background: i <= step ? accent : border }}
-                  transition={{ duration: 0.3 }}
-                  style={{ height: '4px', borderRadius: '2px' }} />
-              ))}
-            </div>
+            {/* Arrow */}
+            <div style={{
+              width: 0, height: 0,
+              borderLeft: '10px solid transparent',
+              borderRight: '10px solid transparent',
+              ...(current.arrow === 'up'
+                ? { borderBottom: `10px solid ${card}`, margin: '0 auto 0 24px' }
+                : { borderTop: `10px solid ${card}`, margin: '0 auto 0 24px', order: 2 }),
+            }} />
 
-            {/* Icon */}
-            <AnimatePresence mode="wait">
-              <motion.div key={step}
-                initial={{ opacity: 0, scale: 0.8, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.8, y: -10 }}
-                transition={{ duration: 0.25 }}
-                style={{ textAlign: 'center' as const }}
-              >
-                <div style={{ width: '80px', height: '80px', borderRadius: '24px', background: `rgba(${isDark ? '77,126,255' : '59,107,255'},0.1)`, border: `1px solid ${border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', color: accent }}>
-                  {current.icon}
-                </div>
-                <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '26px', fontWeight: 400, color: text, marginBottom: '12px', letterSpacing: '-0.02em' }}>
-                  {locale === 'de' ? current.titleDe : current.titleEn}
-                </h3>
-                <p style={{ fontSize: '15px', color: muted, lineHeight: 1.65, marginBottom: '28px' }}>
-                  {locale === 'de' ? current.descDe : current.descEn}
-                </p>
-              </motion.div>
-            </AnimatePresence>
+            <div style={{
+              background: card,
+              border: `1px solid ${border}`,
+              borderRadius: '20px',
+              padding: '18px 20px',
+              boxShadow: isDark ? '0 8px 40px rgba(0,0,0,0.6)' : `0 8px 40px ${accent}20`,
+            }}>
+              {/* Progress */}
+              <div style={{ display: 'flex', gap: '5px', marginBottom: '12px' }}>
+                {steps.map((_, i) => (
+                  <div key={i} style={{ height: '3px', flex: 1, borderRadius: '2px', background: i <= step ? accent : border, transition: 'background 0.3s' }} />
+                ))}
+              </div>
 
-            {/* Buttons */}
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button onClick={finish}
-                style={{ padding: '13px 18px', background: 'transparent', border: `1px solid ${border}`, borderRadius: '14px', fontSize: '13px', color: muted, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", fontWeight: 500 }}>
-                {locale === 'de' ? 'Überspringen' : 'Skip'}
-              </button>
-              <motion.button whileTap={{ scale: 0.97 }}
-                onClick={() => isLast ? finish() : setStep(s => s + 1)}
-                style={{ flex: 1, background: `linear-gradient(135deg, ${accent}, #6b9fff)`, border: 'none', borderRadius: '14px', padding: '13px', fontSize: '15px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em', boxShadow: `0 4px 20px ${accent}40` }}>
-                {isLast
-                  ? (locale === 'de' ? 'Los geht\'s 🚀' : 'Let\'s go 🚀')
-                  : (locale === 'de' ? 'Weiter' : 'Next') + ' →'
-                }
-              </motion.button>
+              <h3 style={{ fontSize: '16px', fontWeight: 800, color: text, marginBottom: '6px', letterSpacing: '-0.02em', fontFamily: "'DM Sans', sans-serif" }}>
+                {locale === 'de' ? current.titleDe : current.titleEn}
+              </h3>
+              <p style={{ fontSize: '13px', color: muted, lineHeight: 1.6, marginBottom: '16px', fontFamily: "'DM Sans', sans-serif" }}>
+                {locale === 'de' ? current.descDe : current.descEn}
+              </p>
+
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <button onClick={(e) => { e.stopPropagation(); finish() }}
+                  style={{ fontSize: '12px', color: muted, background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", padding: '4px 0' }}>
+                  {locale === 'de' ? 'Überspringen' : 'Skip'}
+                </button>
+                <motion.button whileTap={{ scale: 0.96 }}
+                  onClick={(e) => { e.stopPropagation(); next() }}
+                  style={{ flex: 1, background: `linear-gradient(135deg, ${accent}, #6b9fff)`, border: 'none', borderRadius: '12px', padding: '11px', fontSize: '14px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: `0 4px 16px ${accent}40` }}>
+                  {isLast
+                    ? (locale === 'de' ? "Los geht's 🚀" : "Let's go 🚀")
+                    : (locale === 'de' ? 'Weiter →' : 'Next →')
+                  }
+                </motion.button>
+              </div>
             </div>
           </motion.div>
-        </motion.div>
+        </>
       )}
     </AnimatePresence>
   )
