@@ -19,6 +19,21 @@ const categoryConfig = [
 
 type ClothingItem = { id: string; image_url: string; category: string; color: string; name?: string; brand?: string }
 type Outfit = { items: string[]; reasoning: string; itemObjects: ClothingItem[] }
+type Weather = { temp: number; condition: string; icon: string; city: string }
+
+// WMO weather code → emoji + label
+function parseWeatherCode(code: number, isDay: boolean): { icon: string; condition: string } {
+  if (code === 0) return { icon: isDay ? '☀️' : '🌙', condition: isDay ? 'Sonnig' : 'Klar' }
+  if (code <= 2)  return { icon: '⛅', condition: 'Leicht bewölkt' }
+  if (code === 3) return { icon: '☁️', condition: 'Bewölkt' }
+  if (code <= 49) return { icon: '🌫️', condition: 'Neblig' }
+  if (code <= 59) return { icon: '🌦️', condition: 'Nieselregen' }
+  if (code <= 69) return { icon: '🌧️', condition: 'Regen' }
+  if (code <= 79) return { icon: '❄️', condition: 'Schnee' }
+  if (code <= 82) return { icon: '🌧️', condition: 'Regenschauer' }
+  if (code <= 86) return { icon: '🌨️', condition: 'Schneeschauer' }
+  return { icon: '⛈️', condition: 'Gewitter' }
+}
 
 export default function DresserPage() {
   const [selected, setSelected] = useState<string>('casual')
@@ -28,6 +43,8 @@ export default function DresserPage() {
   const [wardrobeItems, setWardrobeItems] = useState<ClothingItem[]>([])
   const [hasItems, setHasItems] = useState(true)
   const [activeCategories, setActiveCategories] = useState<string[]>(['tops', 'hosen', 'jacken', 'schuhe', 'acc'])
+  const [weather, setWeather] = useState<Weather | null>(null)
+  const [weatherLoading, setWeatherLoading] = useState(true)
   const { theme } = useTheme()
   const t = useTranslations()
   const locale = useLocale()
@@ -42,7 +59,45 @@ export default function DresserPage() {
   const today = days[new Date().getDay()]
   const dateStr = new Date().toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-GB', { day: 'numeric', month: 'long' })
 
-  useEffect(() => { loadWardrobe() }, [])
+  useEffect(() => {
+    loadWardrobe()
+    fetchWeather()
+  }, [])
+
+  async function fetchWeather() {
+    setWeatherLoading(true)
+    try {
+      // 1. GPS holen
+      const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
+        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 6000 })
+      )
+      const { latitude: lat, longitude: lon } = pos.coords
+
+      // 2. Wetter von Open-Meteo (kostenlos, kein Key)
+      const weatherRes = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode,is_day&timezone=auto`
+      )
+      const weatherData = await weatherRes.json()
+      const temp = Math.round(weatherData.current.temperature_2m)
+      const code = weatherData.current.weathercode
+      const isDay = weatherData.current.is_day === 1
+      const { icon, condition } = parseWeatherCode(code, isDay)
+
+      // 3. Stadtname via Open-Meteo Geocoding reverse
+      const geoRes = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`
+      )
+      const geoData = await geoRes.json()
+      const city = geoData.address?.city || geoData.address?.town || geoData.address?.village || ''
+
+      setWeather({ temp, condition, icon, city })
+    } catch {
+      // Kein Standort erlaubt oder Fehler → Fallback
+      setWeather({ temp: 18, condition: locale === 'de' ? 'Unbekannt' : 'Unknown', icon: '🌤️', city: '' })
+    } finally {
+      setWeatherLoading(false)
+    }
+  }
 
   async function loadWardrobe() {
     const { data: { session } } = await supabase.auth.getSession()
@@ -61,11 +116,17 @@ export default function DresserPage() {
     setLoading(true); setSaved(false); setOutfit(null)
     const filteredItems = wardrobeItems.filter(i => activeCategories.includes(i.category))
     const itemsToUse = filteredItems.length >= 2 ? filteredItems : wardrobeItems
+
+    // Echtes Wetter an die KI übergeben
+    const weatherStr = weather
+      ? `${weather.temp}°C, ${weather.condition}`
+      : '18°C'
+
     try {
       const res = await fetch('/api/generate-outfit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-locale': locale },
-        body: JSON.stringify({ items: itemsToUse, occasion: selected, weather: '18°C', categories: activeCategories }),
+        body: JSON.stringify({ items: itemsToUse, occasion: selected, weather: weatherStr, categories: activeCategories }),
       })
       const data = await res.json()
       if (data.success) {
@@ -97,12 +158,12 @@ export default function DresserPage() {
     setSaved(true)
   }
 
-  const bg     = isDark ? '#080f0c' : '#f0fdf8'
-  const card   = isDark ? '#0f1a14' : '#ffffff'
-  const border = isDark ? '#1a3328' : '#d1f0e4'
-  const text   = isDark ? '#e8f5ee' : '#0a2e1e'
-  const muted  = isDark ? '#4d7a62' : '#6b9e87'
-  const accent = '#0ea472'
+  const bg       = isDark ? '#080f0c' : '#f0fdf8'
+  const card     = isDark ? '#0f1a14' : '#ffffff'
+  const border   = isDark ? '#1a3328' : '#d1f0e4'
+  const text     = isDark ? '#e8f5ee' : '#0a2e1e'
+  const muted    = isDark ? '#4d7a62' : '#6b9e87'
+  const accent   = '#0ea472'
   const accentDim = isDark ? 'rgba(14,164,114,0.1)' : 'rgba(14,164,114,0.1)'
 
   return (
@@ -110,31 +171,17 @@ export default function DresserPage() {
 
       {/* Background */}
       <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
-        {/* Top right glow */}
         <div style={{ position: 'absolute', top: '-120px', right: '-80px', width: '420px', height: '420px', borderRadius: '50%', background: isDark ? 'rgba(14,164,114,0.06)' : 'rgba(14,164,114,0.12)', filter: 'blur(90px)' }} />
-        {/* Bottom left glow */}
         <div style={{ position: 'absolute', bottom: '60px', left: '-100px', width: '350px', height: '350px', borderRadius: '50%', background: isDark ? 'rgba(8,145,178,0.04)' : 'rgba(8,145,178,0.08)', filter: 'blur(90px)' }} />
-
-        {/* Light mode: dot grid */}
         {!isDark && (
           <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.5 }} xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="dotgrid" width="28" height="28" patternUnits="userSpaceOnUse">
-                <circle cx="1" cy="1" r="0.9" fill="#0ea472" opacity="0.25" />
-              </pattern>
-            </defs>
+            <defs><pattern id="dotgrid" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="0.9" fill="#0ea472" opacity="0.25" /></pattern></defs>
             <rect width="100%" height="100%" fill="url(#dotgrid)" />
           </svg>
         )}
-
-        {/* Dark mode: faint lines */}
         {isDark && (
           <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.07 }} xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="linegrid" width="40" height="40" patternUnits="userSpaceOnUse">
-                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#0ea472" strokeWidth="0.5" />
-              </pattern>
-            </defs>
+            <defs><pattern id="linegrid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="#0ea472" strokeWidth="0.5" /></pattern></defs>
             <rect width="100%" height="100%" fill="url(#linegrid)" />
           </svg>
         )}
@@ -152,16 +199,49 @@ export default function DresserPage() {
           <h1 style={{ fontSize: '34px', fontWeight: 800, letterSpacing: '-0.04em', color: text, lineHeight: 1.05, marginBottom: '16px' }}>
             {t('dresser.title')}
           </h1>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: accentDim, border: `1px solid ${border}`, borderRadius: '100px', padding: '6px 14px' }}>
-            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: accent }} />
-            <span style={{ fontSize: '12px', color: muted, letterSpacing: '-0.01em' }}>18°C</span>
-            <span style={{ width: '2px', height: '2px', borderRadius: '50%', background: border, display: 'inline-block' }} />
-            <span style={{ fontSize: '12px', color: muted, letterSpacing: '-0.01em' }}>{wardrobeItems.length} {t('wardrobe.pieces')}</span>
-          </div>
+
+          {/* Wetter Pill */}
+          <AnimatePresence mode="wait">
+            {weatherLoading ? (
+              <motion.div key="loading"
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: accentDim, border: `1px solid ${border}`, borderRadius: '100px', padding: '6px 14px' }}>
+                <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.2, repeat: Infinity }}
+                  style={{ width: '60px', height: '12px', borderRadius: '6px', background: border }} />
+              </motion.div>
+            ) : (
+              <motion.div key="weather"
+                initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: accentDim, border: `1px solid ${border}`, borderRadius: '100px', padding: '6px 14px', cursor: 'pointer' }}
+                onClick={fetchWeather}
+                title={locale === 'de' ? 'Aktualisieren' : 'Refresh'}
+              >
+                <span style={{ fontSize: '14px', lineHeight: 1 }}>{weather?.icon}</span>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: text, letterSpacing: '-0.01em' }}>
+                  {weather?.temp}°C
+                </span>
+                {weather?.condition && (
+                  <>
+                    <span style={{ width: '2px', height: '2px', borderRadius: '50%', background: border, display: 'inline-block', flexShrink: 0 }} />
+                    <span style={{ fontSize: '12px', color: muted, letterSpacing: '-0.01em' }}>{weather.condition}</span>
+                  </>
+                )}
+                {weather?.city && (
+                  <>
+                    <span style={{ width: '2px', height: '2px', borderRadius: '50%', background: border, display: 'inline-block', flexShrink: 0 }} />
+                    <span style={{ fontSize: '12px', color: muted, letterSpacing: '-0.01em' }}>{weather.city}</span>
+                  </>
+                )}
+                <span style={{ width: '2px', height: '2px', borderRadius: '50%', background: border, display: 'inline-block', flexShrink: 0 }} />
+                <span style={{ fontSize: '12px', color: muted }}>{wardrobeItems.length} {t('wardrobe.pieces')}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
 
         {!hasItems ? (
-          <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} style={{ textAlign: 'center', padding: '56px 24px', border: `1px solid ${border}`, borderRadius: '20px', background: card }}>
+          <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
+            style={{ textAlign: 'center', padding: '56px 24px', border: `1px solid ${border}`, borderRadius: '20px', background: card }}>
             <p style={{ fontSize: '18px', fontWeight: 700, color: text, marginBottom: '10px', letterSpacing: '-0.03em' }}>{t('dresser.notEnough')}</p>
             <p style={{ fontSize: '13px', color: muted, lineHeight: 1.7, marginBottom: '24px' }}>{t('dresser.notEnoughSub')}</p>
             <motion.button whileTap={{ scale: 0.96 }} onClick={() => router.push('/' + locale + '/wardrobe')}
@@ -185,18 +265,7 @@ export default function DresserPage() {
                       transition={{ delay: 0.12 + i * 0.03 }}
                       whileTap={{ scale: 0.92 }}
                       onClick={() => { setSelected(occ); setOutfit(null); setSaved(false) }}
-                      style={{
-                        padding: '8px 16px', borderRadius: '100px',
-                        border: `1px solid ${isOn ? accent : border}`,
-                        background: isOn ? accent : card,
-                        color: isOn ? '#fff' : muted,
-                        fontSize: '13px', fontWeight: isOn ? 600 : 400,
-                        fontFamily: "'DM Sans', sans-serif", cursor: 'pointer',
-                        letterSpacing: '-0.01em', transition: 'all 0.15s',
-                        WebkitTapHighlightColor: 'transparent',
-                        boxShadow: isOn ? '0 2px 12px rgba(14,164,114,0.3)' : 'none',
-                      }}
-                    >
+                      style={{ padding: '8px 16px', borderRadius: '100px', border: `1px solid ${isOn ? accent : border}`, background: isOn ? accent : card, color: isOn ? '#fff' : muted, fontSize: '13px', fontWeight: isOn ? 600 : 400, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer', letterSpacing: '-0.01em', transition: 'all 0.15s', WebkitTapHighlightColor: 'transparent', boxShadow: isOn ? '0 2px 12px rgba(14,164,114,0.3)' : 'none' }}>
                       {t('dresser.occasions.' + occ)}
                     </motion.button>
                   )
@@ -224,17 +293,7 @@ export default function DresserPage() {
                   return (
                     <motion.button key={cat.key} whileTap={{ scale: 0.92 }}
                       onClick={() => toggleCategory(cat.key)}
-                      style={{
-                        padding: '7px 14px', borderRadius: '100px',
-                        border: `1px solid ${isOn ? accent : border}`,
-                        background: isOn ? accentDim : 'transparent',
-                        color: isOn ? accent : exists ? text : muted,
-                        fontSize: '12px', fontWeight: isOn ? 600 : 400,
-                        fontFamily: "'DM Sans', sans-serif", cursor: 'pointer',
-                        opacity: exists ? 1 : 0.35,
-                        transition: 'all 0.12s', WebkitTapHighlightColor: 'transparent',
-                        letterSpacing: '-0.01em',
-                      }}>
+                      style={{ padding: '7px 14px', borderRadius: '100px', border: `1px solid ${isOn ? accent : border}`, background: isOn ? accentDim : 'transparent', color: isOn ? accent : exists ? text : muted, fontSize: '12px', fontWeight: isOn ? 600 : 400, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer', opacity: exists ? 1 : 0.35, transition: 'all 0.12s', WebkitTapHighlightColor: 'transparent', letterSpacing: '-0.01em' }}>
                       {cat.label}
                     </motion.button>
                   )
@@ -245,19 +304,7 @@ export default function DresserPage() {
             {/* CTA */}
             <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24, duration: 0.45, ease: [0.16, 1, 0.3, 1] }} style={{ marginBottom: '28px' }}>
               <motion.button onClick={generateOutfit} disabled={loading} whileTap={!loading ? { scale: 0.97 } : {}}
-                style={{
-                  width: '100%', padding: '18px',
-                  borderRadius: '14px', border: 'none',
-                  background: loading ? (isDark ? '#0f1a14' : '#e6f7f0') : `linear-gradient(135deg, #0ea472 0%, #0891b2 100%)`,
-                  color: loading ? muted : '#fff',
-                  fontSize: '16px', fontWeight: 700,
-                  fontFamily: "'DM Sans', sans-serif",
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-                  letterSpacing: '-0.02em', WebkitTapHighlightColor: 'transparent',
-                  transition: 'all 0.2s',
-                  boxShadow: loading ? 'none' : '0 4px 24px rgba(14,164,114,0.4), 0 1px 0 rgba(255,255,255,0.1) inset',
-                }}>
+                style={{ width: '100%', padding: '18px', borderRadius: '14px', border: 'none', background: loading ? (isDark ? '#0f1a14' : '#e6f7f0') : 'linear-gradient(135deg, #0ea472 0%, #0891b2 100%)', color: loading ? muted : '#fff', fontSize: '16px', fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', letterSpacing: '-0.02em', WebkitTapHighlightColor: 'transparent', transition: 'all 0.2s', boxShadow: loading ? 'none' : '0 4px 24px rgba(14,164,114,0.4), 0 1px 0 rgba(255,255,255,0.1) inset' }}>
                 {loading ? (
                   <>
                     <motion.span animate={{ rotate: 360 }} transition={{ duration: 0.7, repeat: Infinity, ease: 'linear' }}
@@ -280,26 +327,11 @@ export default function DresserPage() {
 
                   <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${border}`, background: accentDim }}>
                     <div>
-                      <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: accent, marginBottom: '2px' }}>
-                        {t('dresser.outfitFor')}
-                      </p>
-                      <p style={{ fontSize: '16px', fontWeight: 800, color: text, letterSpacing: '-0.03em' }}>
-                        {t('dresser.occasions.' + selected)}
-                      </p>
+                      <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: accent, marginBottom: '2px' }}>{t('dresser.outfitFor')}</p>
+                      <p style={{ fontSize: '16px', fontWeight: 800, color: text, letterSpacing: '-0.03em' }}>{t('dresser.occasions.' + selected)}</p>
                     </div>
                     <motion.button whileTap={{ scale: 0.91 }} onClick={saveOutfit}
-                      style={{
-                        display: 'inline-flex', alignItems: 'center', gap: '5px',
-                        padding: '8px 14px', borderRadius: '100px',
-                        border: `1px solid ${saved ? accent : border}`,
-                        background: saved ? accent : 'transparent',
-                        color: saved ? '#fff' : text,
-                        fontSize: '12px', fontWeight: 600,
-                        fontFamily: "'DM Sans', sans-serif", cursor: 'pointer',
-                        WebkitTapHighlightColor: 'transparent',
-                        transition: 'all 0.15s', letterSpacing: '-0.01em',
-                        boxShadow: saved ? '0 2px 10px rgba(14,164,114,0.35)' : 'none',
-                      }}>
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '8px 14px', borderRadius: '100px', border: `1px solid ${saved ? accent : border}`, background: saved ? accent : 'transparent', color: saved ? '#fff' : text, fontSize: '12px', fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer', WebkitTapHighlightColor: 'transparent', transition: 'all 0.15s', letterSpacing: '-0.01em', boxShadow: saved ? '0 2px 10px rgba(14,164,114,0.35)' : 'none' }}>
                       {saved ? `✓ ${t('dresser.saved')}` : `♡ ${t('dresser.save')}`}
                     </motion.button>
                   </div>
