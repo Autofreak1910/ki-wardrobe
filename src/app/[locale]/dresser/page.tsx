@@ -612,7 +612,26 @@ return (
         )}
       </motion.div>
     </AnimatePresence>
-
+{outfit.outfits.length < 3 && (
+  <motion.div
+    initial={{ opacity: 0, y: 6 }}
+    animate={{ opacity: 1, y: 0 }}
+    style={{
+      margin: '0 18px 12px',
+      padding: '10px 14px',
+      borderRadius: '12px',
+      background: accentDim,
+      border: `1px solid ${border}`,
+      display: 'flex', alignItems: 'center', gap: '8px',
+    }}>
+    <span style={{ fontSize: '16px' }}>👕</span>
+    <p style={{ fontSize: '12px', color: accent, fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}>
+      {locale === 'de'
+        ? `Lade mehr Klamotten hoch für bis zu 3 Vorschläge!`
+        : `Upload more clothes for up to 3 suggestions!`}
+    </p>
+  </motion.div>
+)}
     <div style={{ padding: '0 18px 18px' }}>
       <motion.button whileTap={{ scale: 0.97 }} onClick={generateOutfit}
         style={{ width: '100%', padding: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: accentDim, border: `1px solid ${border}`, borderRadius: '10px', fontSize: '12px', fontWeight: 600, color: accent, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer', WebkitTapHighlightColor: 'transparent' }}>
