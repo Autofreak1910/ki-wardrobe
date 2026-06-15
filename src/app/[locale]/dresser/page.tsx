@@ -173,8 +173,8 @@ const todayCount = lastDate === today ? parseInt(localStorage.getItem('kw_outfit
 const DAILY_LIMIT = 3 // später isPremium ? 15 : 3
 if (todayCount >= DAILY_LIMIT) {
 setLimitMsg(locale === 'de'
-  ? 'Du hast heute bereits 3 Outfits erstellt. Upgrade auf Premium für 15 täglich!'
-  : "You've created 3 outfits today. Upgrade to Premium for 15 daily!")
+  ? 'Tageslimit erreicht — 3/3 Outfits'
+  : 'Daily limit reached — 3/3 outfits')
 setTimeout(() => setLimitMsg(null), 4000)
   return
 }
@@ -219,9 +219,9 @@ async function saveOutfit() {
   const { count } = await supabase.from('outfits').select('*', { count: 'exact', head: true }).eq('user_id', session.user.id) as any
   const SAVE_LIMIT = 5
   if ((count ?? 0) >= SAVE_LIMIT) {
-    setLimitMsg(locale === 'de'
-      ? 'Max. 5 gespeicherte Outfits. Upgrade auf Premium für unbegrenzt!'
-      : 'Max. 5 saved outfits. Upgrade to Premium for unlimited!')
+   setLimitMsg(locale === 'de'
+  ? 'Limit erreicht — Max. 5 gespeichert'
+  : 'Limit reached — Max. 5 saved')
     setTimeout(() => setLimitMsg(null), 4000)
     return
   }
@@ -254,22 +254,30 @@ return (
 
 <AnimatePresence>
   {limitMsg && (
-    <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      style={{
-        position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)',
-        zIndex: 9997, background: accent, color: '#fff',
-        padding: '12px 20px', borderRadius: '14px',
-        fontSize: '13px', fontWeight: 600,
-        fontFamily: "'DM Sans', sans-serif",
-        boxShadow: `0 4px 20px ${accent}50`,
-        maxWidth: '320px', textAlign: 'center' as const,
-        whiteSpace: 'pre-wrap' as const,
-      }}>
-      🔒 {limitMsg}
-    </motion.div>
+<motion.div
+  initial={{ opacity: 0, y: -20 }}
+  animate={{ opacity: 1, y: 0 }}
+  exit={{ opacity: 0, y: -20 }}
+  onClick={() => router.push('/' + locale + '/profile')}
+  style={{
+    position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)',
+    zIndex: 9997, background: card, border: `1px solid ${border}`,
+    padding: '14px 18px', borderRadius: '18px',
+    fontFamily: "'DM Sans', sans-serif",
+    boxShadow: `0 8px 32px rgba(0,0,0,0.2)`,
+    maxWidth: '300px', width: '90%',
+    cursor: 'pointer',
+  }}>
+  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+    <span style={{ fontSize: '20px' }}>🔒</span>
+    <p style={{ fontSize: '13px', fontWeight: 700, color: text }}>{limitMsg}</p>
+  </div>
+  <div style={{ background: `linear-gradient(135deg, ${accent}, #6b9fff)`, borderRadius: '10px', padding: '10px', textAlign: 'center' as const }}>
+    <p style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>
+      {locale === 'de' ? '✦ Jetzt upgraden für €4,99/Mo' : '✦ Upgrade now for €4.99/mo'}
+    </p>
+  </div>
+</motion.div>
   )}
 </AnimatePresence>
 {/* Unlock Animation */}
