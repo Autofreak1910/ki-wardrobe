@@ -245,7 +245,7 @@ const [showDna, setShowDna] = useState(false)
 {/* Style DNA Button */}
 <motion.div
   initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-  onClick={generateStyleDna}
+onClick={isPremium ? generateStyleDna : () => setShowUpgrade(true)}
   whileTap={{ scale: 0.98 }}
   style={{
     background: card, border: `1px solid ${border}`,
@@ -254,10 +254,12 @@ const [showDna, setShowDna] = useState(false)
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
   }}>
   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-    <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: `linear-gradient(135deg, ${accent}, #6b9fff)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>🧬</div>
+    <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: `linear-gradient(135deg, ${accent}, #6b9fff)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>{isPremium ? '🧬' : '🔒'}</div>
     <div>
       <p style={{ fontSize: '14px', fontWeight: 700, color: text, marginBottom: '2px' }}>Style DNA</p>
-      <p style={{ fontSize: '12px', color: muted }}>{locale === 'de' ? 'KI analysiert deinen persönlichen Stil' : 'AI analyzes your personal style'}</p>
+      <p style={{ fontSize: '12px', color: muted }}>{isPremium
+  ? locale === 'de' ? 'KI analysiert deinen persönlichen Stil' : 'AI analyzes your personal style'
+  : locale === 'de' ? 'Nur für Pro · Upgrade für €4,99' : 'Pro only · Upgrade for €4.99'}</p>
     </div>
   </div>
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
