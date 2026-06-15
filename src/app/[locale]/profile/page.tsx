@@ -303,15 +303,12 @@ async function saveAge() {
   {/* Alter */}
   <div style={{ padding: '14px 16px' }}>
     <label style={{ fontSize: '11px', fontWeight: 600, color: muted, display: 'block', marginBottom: '8px', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>{locale === 'de' ? 'Alter' : 'Age'}</label>
-    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' as const, alignItems: 'center' }}>
-      {['13-15', '16-18', '19-22', '23-27', '28-35', '35+'].map(range => (
-        <motion.button key={range} whileTap={{ scale: 0.95 }} onClick={() => setEditAge(range)}
-          style={{ padding: '7px 12px', borderRadius: '100px', border: `1px solid ${editAge === range ? accent : border}`, background: editAge === range ? accent : 'transparent', color: editAge === range ? '#fff' : muted, fontSize: '12px', fontWeight: editAge === range ? 600 : 400, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'all 0.15s' }}>
-          {range}
-        </motion.button>
-      ))}
+    <div style={{ display: 'flex', gap: '8px' }}>
+      <input type="number" value={editAge} onChange={e => setEditAge(e.target.value)}
+        placeholder="25" min="13" max="99"
+        style={{ flex: 1, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 12px', fontSize: '14px', color: text, outline: 'none', fontFamily: "'DM Sans', sans-serif", background: isDark ? '#080c18' : '#f8faff', minWidth: 0 }} />
       <motion.button whileTap={{ scale: 0.95 }} onClick={saveAge}
-        style={{ marginLeft: 'auto', background: savedAge ? accent : accentDim, border: `1px solid ${savedAge ? accent : border}`, borderRadius: '10px', padding: '7px 14px', fontSize: '12px', fontWeight: 600, color: savedAge ? '#fff' : accent, cursor: 'pointer', transition: 'all 0.2s' }}>
+        style={{ background: savedAge ? accent : 'transparent', border: `1px solid ${savedAge ? accent : border}`, borderRadius: '10px', padding: '10px 16px', fontSize: '13px', fontWeight: 600, color: savedAge ? '#fff' : text, cursor: 'pointer', whiteSpace: 'nowrap' as const, transition: 'all 0.2s' }}>
         {savedAge ? '✓' : locale === 'de' ? 'Speichern' : 'Save'}
       </motion.button>
     </div>
