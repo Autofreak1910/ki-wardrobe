@@ -413,11 +413,28 @@ onClick={isPremium ? generateStyleDna : () => setShowUpgrade(true)}
                   </div>
                 </div>
               ))}
-            </div>
+      </div>
           </motion.div>
         </div>
+
+        <motion.button whileTap={{ scale: 0.97 }}
+          onClick={async () => {
+            const { data: { session } } = await supabase.auth.getSession()
+            if (!session?.user) return
+            const res = await fetch('/api/create-checkout-session', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId: session.user.id, userEmail: session.user.email }),
+            })
+            const data = await res.json()
+            if (data.url) window.location.href = data.url
+          }}
+          style={{ width: '100%', padding: '15px', background: `linear-gradient(135deg, ${accent}, #6b9fff)`, border: 'none', borderRadius: '14px', fontSize: '15px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: `0 4px 20px ${accent}40`, marginBottom: '10px' }}>
+          {locale === 'de' ? '✦ Für €4,99/Monat abonnieren' : '✦ Subscribe for €4.99/month'}
+        </motion.button>
+
         <p style={{ textAlign: 'center' as const, fontSize: '11px', color: muted }}>
-          {locale === 'de' ? 'Auf Pro tippen zum Upgraden · Jederzeit kündbar' : 'Tap Pro to upgrade · Cancel anytime'}
+          {locale === 'de' ? 'Jederzeit kündbar · Keine versteckten Kosten' : 'Cancel anytime · No hidden fees'}
         </p>
       </motion.div>
     </motion.div>
