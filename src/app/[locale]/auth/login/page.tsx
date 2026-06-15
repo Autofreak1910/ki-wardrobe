@@ -14,6 +14,7 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [magicSent, setMagicSent] = useState(false)
+  const [otp, setOtp] = useState('')
   const router = useRouter()
   const pathname = usePathname()
   const supabase = createClient()
@@ -133,40 +134,62 @@ export default function LoginPage() {
           {loading ? t('loading') : t('loginButton')}
         </motion.button>
 {/* Divider */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '16px 0' }}>
-          <div style={{ flex: 1, height: '1px', background: border }} />
-          <p style={{ fontSize: '11px', color: muted, fontWeight: 500 }}>{locale === 'de' ? 'oder' : 'or'}</p>
-          <div style={{ flex: 1, height: '1px', background: border }} />
-        </div>
+<div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '16px 0' }}>
+  <div style={{ flex: 1, height: '1px', background: border }} />
+  <p style={{ fontSize: '11px', color: muted, fontWeight: 500 }}>{locale === 'de' ? 'oder' : 'or'}</p>
+  <div style={{ flex: 1, height: '1px', background: border }} />
+</div>
 
-        {/* Magic Link */}
-        <motion.button whileTap={{ scale: 0.98 }}
-          onClick={async () => {
-            if (!email) { setError(locale === 'de' ? 'Bitte Email eingeben' : 'Please enter your email'); return }
-            setLoading(true); setError('')
-            const { error } = await supabase.auth.signInWithOtp({
-              email,
-              options: { emailRedirectTo: window.location.origin + '/' + locale + '/auth/callback?locale=' + locale }
-            })
-            if (error) { setError(error.message) }
-            else { setMagicSent(true) }
-            setLoading(false)
-          }}
-          disabled={loading}
-          style={{ width: '100%', background: 'transparent', border: `1.5px solid ${border}`, borderRadius: '14px', padding: '14px', fontSize: '14px', fontWeight: 600, color: text, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: "'DM Sans', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s', marginBottom: '12px' }}>
-          ✉️ {locale === 'de' ? 'Magic Link senden' : 'Send Magic Link'}
-        </motion.button>
+{!magicSent ? (
+  <motion.button whileTap={{ scale: 0.98 }}
+    onClick={async () => {
+      if (!email) { setError(locale === 'de' ? 'Bitte Email eingeben' : 'Please enter your email'); return }
+      setLoading(true); setError('')
+      const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } })
+      if (error) { setError(error.message) }
+      else { setMagicSent(true) }
+      setLoading(false)
+    }}
+    disabled={loading}
+    style={{ width: '100%', background: 'transparent', border: `1.5px solid ${border}`, borderRadius: '14px', padding: '14px', fontSize: '14px', fontWeight: 600, color: text, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: "'DM Sans', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s', marginBottom: '12px' }}>
+    ✉️ {locale === 'de' ? 'Code per Email senden' : 'Send code by email'}
+  </motion.button>
+) : (
+  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+    <p style={{ fontSize: '12px', color: muted, marginBottom: '8px', textAlign: 'center' as const }}>
+      {locale === 'de' ? `Code gesendet an ${email}` : `Code sent to ${email}`}
+    </p>
+    <input
+      type="text"
+      maxLength={6}
+      placeholder="000000"
+      value={otp}
+      onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
+      style={{ width: '100%', background: isDark ? '#080c18' : '#f8faff', border: `1.5px solid ${border}`, borderRadius: '12px', padding: '13px 16px', fontSize: '24px', color: text, outline: 'none', boxSizing: 'border-box' as const, fontFamily: "'DM Sans', sans-serif", textAlign: 'center' as const, letterSpacing: '0.3em', marginBottom: '10px' }}
+      onFocus={e => e.target.style.borderColor = accent}
+      onBlur={e => e.target.style.borderColor = border}
+    />
+    <motion.button whileTap={{ scale: 0.98 }}
+      onClick={async () => {
+        if (otp.length !== 6) return
+        setLoading(true); setError('')
+        const { error } = await supabase.auth.verifyOtp({ email, token: otp, type: 'email' })
+        if (error) { setError(error.message); setLoading(false) }
+        else { router.push('/' + locale + '/dresser') }
+      }}
+      disabled={loading || otp.length !== 6}
+      style={{ width: '100%', background: otp.length === 6 ? `linear-gradient(135deg, ${accent}, #6b9fff)` : (isDark ? '#0d1225' : '#e8eeff'), border: 'none', borderRadius: '14px', padding: '14px', fontSize: '15px', fontWeight: 700, color: otp.length === 6 ? '#fff' : muted, cursor: otp.length === 6 ? 'pointer' : 'not-allowed', fontFamily: "'DM Sans', sans-serif", marginBottom: '10px', transition: 'all 0.2s' }}>
+      {loading ? '...' : locale === 'de' ? 'Einloggen →' : 'Login →'}
+    </motion.button>
+    <button onClick={() => { setMagicSent(false); setOtp('') }}
+      style={{ width: '100%', background: 'transparent', border: 'none', fontSize: '12px', color: muted, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", padding: '4px' }}>
+      {locale === 'de' ? '← Andere Email verwenden' : '← Use different email'}
+ </button>
+  </motion.div>
+)}
 
-        {magicSent && (
-          <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-            style={{ background: isDark ? 'rgba(77,126,255,0.1)' : 'rgba(59,107,255,0.08)', border: `1px solid ${border}`, borderRadius: '12px', padding: '12px 16px', textAlign: 'center' as const, marginBottom: '12px' }}>
-            <p style={{ fontSize: '13px', color: accent, fontWeight: 600 }}>✉️ {locale === 'de' ? 'Link gesendet! Schau in deine Emails.' : 'Link sent! Check your emails.'}</p>
-            <p style={{ fontSize: '11px', color: muted, marginTop: '4px' }}>📥 {locale === 'de' ? 'Auch im Spam schauen!' : 'Check spam too!'}</p>
-          </motion.div>
-        )}
-
-        {/* Feature pills */}
-        <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
+    {/* Feature pills */}
+        <div style={{ display: 'flex', gap: '6px', marginTop: '20px' }}>
           {[t('feature1'), t('feature2'), t('feature3')].map((feat, i) => (
             <div key={i} style={{ flex: 1, background: isDark ? `rgba(77,126,255,0.08)` : `rgba(59,107,255,0.06)`, borderRadius: '10px', padding: '8px 6px', fontSize: '10px', color: muted, textAlign: 'center' as const, border: `1px solid ${isDark ? 'rgba(77,126,255,0.15)' : 'rgba(59,107,255,0.12)'}`, lineHeight: 1.4 }}>
               {feat}
