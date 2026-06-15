@@ -246,27 +246,8 @@ export default function WardrobePage() {
           </select>
         </div>
 
-       {/* Style DNA Banner */}
+{/* Style DNA Banner */}
 {items.length >= 5 && (
-  <motion.div
-    initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-    onClick={() => router.push('/' + locale + '/profile')}
-    whileTap={{ scale: 0.98 }}
-    style={{ background: `linear-gradient(135deg, ${accent}15, #6b9fff10)`, border: `1px solid ${border}`, borderRadius: '14px', padding: '14px 16px', marginBottom: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
-    <span style={{ fontSize: '24px' }}>🧬</span>
-    <div style={{ flex: 1 }}>
-      <p style={{ fontSize: '13px', fontWeight: 700, color: text, marginBottom: '2px' }}>{locale === 'de' ? 'Style DNA entdecken' : 'Discover your Style DNA'}</p>
-      <p style={{ fontSize: '11px', color: muted }}>{locale === 'de' ? `KI analysiert deine ${items.length} Kleidungsstücke` : `AI analyzes your ${items.length} items`}</p>
-    </div>
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
-  </motion.div>
-)}
-
-{/* Upload */}
-<motion.div
-  whileTap={{ scale: 0.99 }}
-  onClick={() => !uploading && fileInputRef.current?.click()}
-  style={{ border: `2px dashed ${uploading ? accent : border}`, borderRadius: '16px', padding: '22px', textAlign: 'center', cursor: uploading ? 'default' : 'pointer', marginBottom: '16px', transition: 'all 0.2s', background: uploading ? accentDim : card }}>
   <motion.div
     initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
     onClick={() => router.push('/' + locale + '/profile')}
@@ -290,18 +271,19 @@ export default function WardrobePage() {
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
   </motion.div>
 )}
-          whileTap={{ scale: 0.99 }}
-          onClick={() => !uploading && fileInputRef.current?.click()}
-          style={{ border: `2px dashed ${uploading ? accent : border}`, borderRadius: '16px', padding: '22px', textAlign: 'center', cursor: uploading ? 'default' : 'pointer', marginBottom: '16px', transition: 'all 0.2s', background: uploading ? accentDim : card }}
-        >
-          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: accentDim, border: `1px solid ${border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
-            </svg>
-          </div>
-          <p style={{ fontWeight: 600, color: text, marginBottom: '2px', fontSize: '14px', letterSpacing: '-0.01em' }}>{t('wardrobe.upload')}</p>
-          <p style={{ fontSize: '12px', color: muted }}>{t('wardrobe.uploadSub')}</p>
-        </motion.div>
+
+<motion.div
+  whileTap={{ scale: 0.99 }}
+  onClick={() => !uploading && fileInputRef.current?.click()}
+  style={{ border: `2px dashed ${uploading ? accent : border}`, borderRadius: '16px', padding: '22px', textAlign: 'center' as const, cursor: uploading ? 'default' : 'pointer', marginBottom: '16px', transition: 'all 0.2s', background: uploading ? accentDim : card }}>
+  <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: accentDim, border: `1px solid ${border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+    </svg>
+  </div>
+  <p style={{ fontWeight: 600, color: text, marginBottom: '2px', fontSize: '14px', letterSpacing: '-0.01em' }}>{t('wardrobe.upload')}</p>
+  <p style={{ fontSize: '12px', color: muted }}>{t('wardrobe.uploadSub')}</p>
+</motion.div>
         <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleUpload} style={{ display: 'none' }} />
 
         {/* Analyze progress */}
