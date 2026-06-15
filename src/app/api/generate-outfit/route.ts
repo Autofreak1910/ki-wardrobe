@@ -10,63 +10,48 @@ export async function POST(request: NextRequest) {
       `- ${item.name ?? item.category} (${item.category}, ${item.color}${item.brand ? ', ' + item.brand : ''})`
     ).join('\n')
 
+    const outfitCount = items.length >= 6 ? 3 : items.length >= 4 ? 2 : 1
+
+    const vibes = isEnglish
+      ? ['Casual Cool', 'Minimal Chic', 'Bold Statement']
+      : ['Casual Cool', 'Minimal Chic', 'Bold Statement']
+
+    const outfitTemplate = (count: number) =>
+      Array.from({ length: count }, (_, i) => `    {
+      "items": ["exakter Name aus Liste", "exakter Name aus Liste"],
+      "reasoning": "kurze Begründung warum das passt",
+      "vibe": "${vibes[i]}"
+    }`).join(',\n')
+
     const prompt = isEnglish
-      ? `You are a fashion stylist. Create 3 DIFFERENT outfit suggestions for the occasion "${occasion}" from these clothing items:
+      ? `You are a fashion stylist. Create ${outfitCount} outfit suggestion${outfitCount > 1 ? 's' : ''} for "${occasion}":
 
 ${itemList}
 
 Weather: ${weather}
 
-Create 3 distinct combinations with different styles/moods. Respond ONLY with JSON:
+Respond ONLY with JSON:
 {
   "outfits": [
-    {
-      "items": ["exact name from list", "exact name from list"],
-      "reasoning": "brief explanation why this works",
-      "vibe": "Casual Cool"
-    },
-    {
-      "items": ["exact name from list", "exact name from list"],
-      "reasoning": "brief explanation why this works",
-      "vibe": "Minimal Chic"
-    },
-    {
-      "items": ["exact name from list", "exact name from list"],
-      "reasoning": "brief explanation why this works",
-      "vibe": "Bold Statement"
-    }
+${outfitTemplate(outfitCount)}
   ]
 }
 
-Only use exact names from the list! Each outfit must be different!`
-      : `Du bist ein Fashion-Stylist. Erstelle 3 VERSCHIEDENE Outfit-Vorschläge für den Anlass "${occasion}" aus diesen Kleidungsstücken:
+Only use exact names from the list!`
+      : `Du bist ein Fashion-Stylist. Erstelle ${outfitCount} Outfit-Vorschlag${outfitCount > 1 ? 'schläge' : ''} für "${occasion}":
 
 ${itemList}
 
 Wetter: ${weather}
 
-Erstelle 3 verschiedene Kombinationen mit unterschiedlichen Styles. Antworte NUR mit JSON:
+Antworte NUR mit JSON:
 {
   "outfits": [
-    {
-      "items": ["exakter Name aus Liste", "exakter Name aus Liste"],
-      "reasoning": "kurze Begründung warum das passt",
-      "vibe": "Casual Cool"
-    },
-    {
-      "items": ["exakter Name aus Liste", "exakter Name aus Liste"],
-      "reasoning": "kurze Begründung warum das passt",
-      "vibe": "Minimal Chic"
-    },
-    {
-      "items": ["exakter Name aus Liste", "exakter Name aus Liste"],
-      "reasoning": "kurze Begründung warum das passt",
-      "vibe": "Bold Statement"
-    }
+${outfitTemplate(outfitCount)}
   ]
 }
 
-Nur exakte Namen aus der Liste! Jedes Outfit muss anders sein!`
+Nur exakte Namen aus der Liste!`
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -87,7 +72,6 @@ Nur exakte Namen aus der Liste! Jedes Outfit muss anders sein!`
     if (!jsonMatch) throw new Error('No JSON')
     const result = JSON.parse(jsonMatch[0])
 
-    // Backwards compatibility — erster Outfit auch als items/reasoning
     const first = result.outfits?.[0]
     return NextResponse.json({
       success: true,
