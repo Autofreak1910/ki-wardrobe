@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from '@/components/Navbar'
 
-type Profile = { id: string; username: string; is_premium: boolean; age?: string; country?: string; created_at: string }
+type Profile = { id: string; username: string; is_premium: boolean; age?: string; country?: string; created_at: string; email?: string }
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -52,7 +52,7 @@ const [showDna, setShowDna] = useState(false)
       supabase.from('clothing_items').select('id').eq('user_id', session.user.id),
       supabase.from('outfits').select('id').eq('user_id', session.user.id),
     ])
-    if (profileRes.data) { setProfile(profileRes.data); setEditUsername(profileRes.data.username ?? '') }
+if (profileRes.data) { setProfile({ ...profileRes.data, email: session.user.email }); setEditUsername(profileRes.data.username ?? '') }
     setItemCount(itemsRes.data?.length ?? 0)
     setOutfitCount(outfitsRes.data?.length ?? 0)
     setLoading(false)
@@ -286,34 +286,38 @@ onClick={isPremium ? generateStyleDna : () => setShowUpgrade(true)}
           </div>
         </div>
 
-        {/* Settings */}
-        <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden', marginBottom: '10px' }}>
-          <div style={{ padding: '10px 16px', borderBottom: `1px solid ${border}`, background: accentDim }}>
-            <p style={{ fontSize: '10px', fontWeight: 700, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
-              {locale === 'de' ? 'Einstellungen' : 'Settings'}
-            </p>
-          </div>
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px' }}>
-              <p style={{ fontSize: '14px', color: text, fontWeight: 500 }}>Dark Mode</p>
-              <button onClick={toggle}
-                style={{ width: '44px', height: '26px', borderRadius: '13px', border: 'none', background: isDark ? accent : border, cursor: 'pointer', position: 'relative' as const, transition: 'background 0.2s' }}>
-                <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#fff', position: 'absolute', top: '3px', transition: 'left 0.2s', left: isDark ? '21px' : '3px', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
-              </button>
-            </div>
-            <div style={{ height: '1px', background: border, margin: '0 16px' }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px' }}>
-              <p style={{ fontSize: '14px', color: text, fontWeight: 500 }}>{locale === 'de' ? 'Sprache' : 'Language'}</p>
-              <button onClick={() => {
-                const nl = locale === 'de' ? 'en' : 'de'
-                const s = window.location.pathname.split('/')
-                s[1] = nl; window.location.replace(s.join('/'))
-              }} style={{ background: accentDim, border: `1px solid ${border}`, borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: accent, fontFamily: "'DM Sans', sans-serif" }}>
-                {locale === 'de' ? 'EN' : 'DE'}
-              </button>
-            </div>
-          </div>
-        </div>
+  <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden', marginBottom: '10px' }}>
+  <div style={{ padding: '10px 16px', borderBottom: `1px solid ${border}`, background: accentDim }}>
+    <p style={{ fontSize: '10px', fontWeight: 700, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
+      {locale === 'de' ? 'Einstellungen' : 'Settings'}
+    </p>
+  </div>
+  <div>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px' }}>
+      <p style={{ fontSize: '14px', color: text, fontWeight: 500 }}>Dark Mode</p>
+      <button onClick={toggle}
+        style={{ width: '44px', height: '26px', borderRadius: '13px', border: 'none', background: isDark ? accent : border, cursor: 'pointer', position: 'relative' as const, transition: 'background 0.2s' }}>
+        <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#fff', position: 'absolute', top: '3px', transition: 'left 0.2s', left: isDark ? '21px' : '3px', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+      </button>
+    </div>
+    <div style={{ height: '1px', background: border, margin: '0 16px' }} />
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px' }}>
+      <p style={{ fontSize: '14px', color: text, fontWeight: 500 }}>Email</p>
+      <p style={{ fontSize: '12px', color: muted }}>{profile?.email ?? ''}</p>
+    </div>
+    <div style={{ height: '1px', background: border, margin: '0 16px' }} />
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px' }}>
+      <p style={{ fontSize: '14px', color: text, fontWeight: 500 }}>{locale === 'de' ? 'Sprache' : 'Language'}</p>
+      <button onClick={() => {
+        const nl = locale === 'de' ? 'en' : 'de'
+        const s = window.location.pathname.split('/')
+        s[1] = nl; window.location.replace(s.join('/'))
+      }} style={{ background: accentDim, border: `1px solid ${border}`, borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: accent, fontFamily: "'DM Sans', sans-serif" }}>
+        {locale === 'de' ? 'EN' : 'DE'}
+      </button>
+    </div>
+  </div>
+</div>
 
         {/* Links */}
         <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden', marginBottom: '10px' }}>
