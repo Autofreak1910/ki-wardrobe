@@ -258,7 +258,7 @@ return (
   initial={{ opacity: 0, y: -20 }}
   animate={{ opacity: 1, y: 0 }}
   exit={{ opacity: 0, y: -20 }}
-  onClick={() => router.push('/' + locale + '/profile')}
+onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
  style={{
   position: 'fixed', top: '80px',
   left: '16px', right: '16px',

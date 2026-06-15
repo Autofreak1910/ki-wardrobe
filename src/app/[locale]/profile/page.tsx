@@ -47,6 +47,10 @@ const [savedAge, setSavedAge] = useState(false)
   })()
 
   useEffect(() => { loadProfile() }, [])
+  useEffect(() => {
+  const params = new URLSearchParams(window.location.search)
+  if (params.get('upgrade') === 'true') setShowUpgrade(true)
+}, [])
 
   async function loadProfile() {
     const { data: { session } } = await supabase.auth.getSession()
