@@ -39,9 +39,9 @@ const categoryConfig = [
   { key: 'acc',    labelDe: 'Accessoires', labelEn: 'Accessories',
     icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="12" r="3"/><path d="M9 12h6"/></svg> },
 ]
-
 type ClothingItem = { id: string; image_url: string; category: string; color: string; name?: string; brand?: string }
-type Outfit = { items: string[]; reasoning: string; itemObjects: ClothingItem[] }
+type OutfitSingle = { items: string[]; reasoning: string; vibe?: string; itemObjects: ClothingItem[] }
+type OutfitGroup = { outfits: OutfitSingle[]; active: number }
 type Weather = { temp: number; condition: string; icon: string; city: string }
 
 function parseWeatherCode(code: number, isDay: boolean): { icon: string; condition: string } {
@@ -60,7 +60,7 @@ function parseWeatherCode(code: number, isDay: boolean): { icon: string; conditi
 export default function DresserPage() {
   const [selected, setSelected] = useState<string>('casual')
   const [loading, setLoading] = useState(false)
-  const [outfit, setOutfit] = useState<Outfit | null>(null)
+const [outfit, setOutfit] = useState<OutfitGroup | null>(null)
   const [saved, setSaved] = useState(false)
   const [wardrobeItems, setWardrobeItems] = useState<ClothingItem[]>([])
   const [hasItems, setHasItems] = useState(true)
@@ -163,21 +163,22 @@ useEffect(() => {
     setOutfit(null)
   }
 
-  async function generateOutfit() {
-    if (wardrobeItems.length < 3) return
-    setLoading(true); setSaved(false); setOutfit(null)
-    const filteredItems = wardrobeItems.filter(i => activeCategories.includes(i.category))
-    const itemsToUse = filteredItems.length >= 2 ? filteredItems : wardrobeItems
-    const weatherStr = weather ? `${weather.temp}°C, ${weather.condition}` : '18°C'
-    try {
-      const res = await fetch('/api/generate-outfit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-locale': locale },
-        body: JSON.stringify({ items: itemsToUse, occasion: selected, weather: weatherStr, categories: activeCategories }),
-      })
-      const data = await res.json()
-      if (data.success) {
-        const matchedItems = data.items.map((name: string) =>
+async function generateOutfit() {
+  if (wardrobeItems.length < 3) return
+  setLoading(true); setSaved(false); setOutfit(null)
+  const filteredItems = wardrobeItems.filter(i => activeCategories.includes(i.category))
+  const itemsToUse = filteredItems.length >= 2 ? filteredItems : wardrobeItems
+  const weatherStr = weather ? `${weather.temp}°C, ${weather.condition}` : '18°C'
+  try {
+    const res = await fetch('/api/generate-outfit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-locale': locale },
+      body: JSON.stringify({ items: itemsToUse, occasion: selected, weather: weatherStr, categories: activeCategories }),
+    })
+    const data = await res.json()
+    if (data.success && data.outfits) {
+      const mappedOutfits = data.outfits.map((o: { items: string[]; reasoning: string; vibe?: string }) => {
+        const matchedItems = o.items.map((name: string) =>
           wardrobeItems.find(i => {
             const a = (i.name ?? '').toLowerCase().trim()
             const b = name.toLowerCase().trim()
@@ -186,24 +187,27 @@ useEffect(() => {
               b.split(' ').some(w => w.length > 3 && a.includes(w))
           })
         ).filter(Boolean)
-        setOutfit({ items: data.items, reasoning: data.reasoning, itemObjects: matchedItems })
-        setTimeout(() => mainRef.current?.scrollTo({ top: mainRef.current.scrollHeight, behavior: 'smooth' }), 200)
-      }
-    } catch (err) { console.error(err) }
-    finally { setLoading(false) }
-  }
+        return { items: o.items, reasoning: o.reasoning, vibe: o.vibe, itemObjects: matchedItems }
+      })
+      setOutfit({ outfits: mappedOutfits, active: 0 })
+      setTimeout(() => mainRef.current?.scrollTo({ top: mainRef.current.scrollHeight, behavior: 'smooth' }), 200)
+    }
+  } catch (err) { console.error(err) }
+  finally { setLoading(false) }
+}
 
-  async function saveOutfit() {
-    if (!outfit) return
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session?.user) return
-    await supabase.from('outfits').insert({
-      user_id: session.user.id, occasion: selected,
-      item_ids: outfit.itemObjects.map(i => i.id),
-      name: `${t('dresser.occasions.' + selected)} Outfit`,
-    })
-    setSaved(true)
-  }
+async function saveOutfit() {
+  if (!outfit) return
+  const active = outfit.outfits[outfit.active]
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) return
+  await supabase.from('outfits').insert({
+    user_id: session.user.id, occasion: selected,
+    item_ids: active.itemObjects.map(i => i.id),
+    name: `${t('dresser.occasions.' + selected)} Outfit`,
+  })
+  setSaved(true)
+}
 
   const bg        = isDark ? '#080c18' : '#f0f4ff'
 const card      = isDark ? '#0d1225' : '#ffffff'
@@ -528,66 +532,89 @@ return (
 
             {/* ── Outfit Result ── */}
             <AnimatePresence mode="wait">
-              {outfit && (
-                <motion.div key="outfit"
-                  initial={{ opacity: 0, y: 20, scale: 0.97 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -10, scale: 0.97 }}
-                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                  style={{ border: `1px solid ${border}`, borderRadius: '20px', overflow: 'hidden', background: card, boxShadow: isDark ? 'none' : '0 4px 24px rgba(10,46,30,0.08)' }}>
+             {outfit && (
+  <motion.div key="outfit"
+    initial={{ opacity: 0, y: 20, scale: 0.97 }}
+    animate={{ opacity: 1, y: 0, scale: 1 }}
+    exit={{ opacity: 0, y: -10, scale: 0.97 }}
+    transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+    style={{ border: `1px solid ${border}`, borderRadius: '20px', overflow: 'hidden', background: card, boxShadow: isDark ? 'none' : '0 4px 24px rgba(10,46,30,0.08)' }}>
 
-                  <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${border}`, background: accentDim }}>
-                    <div>
-                      <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: accent, marginBottom: '2px' }}>{t('dresser.outfitFor')}</p>
-                      <p style={{ fontSize: '16px', fontWeight: 800, color: text, letterSpacing: '-0.03em' }}>{t('dresser.occasions.' + selected)}</p>
-                    </div>
-                    <motion.button whileTap={{ scale: 0.91 }} onClick={saveOutfit}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '8px 14px', borderRadius: '100px', border: `1px solid ${saved ? accent : border}`, background: saved ? accent : 'transparent', color: saved ? '#fff' : text, fontSize: '12px', fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer', WebkitTapHighlightColor: 'transparent', transition: 'all 0.15s', boxShadow: saved ? '0 2px 10px rgba(14,164,114,0.35)' : 'none' }}>
-                      {saved ? `✓ ${t('dresser.saved')}` : `♡ ${t('dresser.save')}`}
-                    </motion.button>
-                  </div>
+    {/* Header */}
+    <div style={{ padding: '14px 18px', borderBottom: `1px solid ${border}`, background: accentDim }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+        <div>
+          <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: accent, marginBottom: '2px' }}>{t('dresser.outfitFor')}</p>
+          <p style={{ fontSize: '16px', fontWeight: 800, color: text, letterSpacing: '-0.03em' }}>{t('dresser.occasions.' + selected)}</p>
+        </div>
+        <motion.button whileTap={{ scale: 0.91 }} onClick={saveOutfit}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '8px 14px', borderRadius: '100px', border: `1px solid ${saved ? accent : border}`, background: saved ? accent : 'transparent', color: saved ? '#fff' : text, fontSize: '12px', fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer', transition: 'all 0.15s' }}>
+          {saved ? `✓ ${t('dresser.saved')}` : `♡ ${t('dresser.save')}`}
+        </motion.button>
+      </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: `repeat(${outfit.itemObjects.length >= 3 ? 3 : 2}, 1fr)`, gap: '1px', background: border }}>
-                    {outfit.itemObjects.length > 0
-                      ? outfit.itemObjects.map((item, i) => (
-                        <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.08 + i * 0.07 }} style={{ background: card }}>
-                          <div style={{ aspectRatio: '1', overflow: 'hidden', background: isDark ? '#0a1510' : '#f0fdf8' }}>
-                            <img src={item.image_url} alt={item.name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                          </div>
-                          <div style={{ padding: '9px 11px' }}>
-                            <p style={{ fontSize: '11px', fontWeight: 700, color: text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, marginBottom: '1px' }}>{item.name}</p>
-                            <p style={{ fontSize: '10px', color: muted }}>{item.color}{item.brand ? ` · ${item.brand}` : ''}</p>
-                          </div>
-                        </motion.div>
-                      ))
-                      : outfit.items.map((name, i) => (
-                        <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.07 }}
-                          style={{ background: card, padding: '20px 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80px' }}>
-                          <p style={{ fontSize: '12px', fontWeight: 600, color: text, textAlign: 'center' as const }}>{name}</p>
-                        </motion.div>
-                      ))
-                    }
-                  </div>
+      {/* 3 Vibe Tabs */}
+      <div style={{ display: 'flex', gap: '6px' }}>
+        {outfit.outfits.map((o, i) => (
+          <motion.button key={i} whileTap={{ scale: 0.95 }}
+            onClick={() => { setOutfit({ ...outfit, active: i }); setSaved(false) }}
+            style={{
+              flex: 1, padding: '8px 4px', borderRadius: '10px',
+              border: `1px solid ${outfit.active === i ? accent : border}`,
+              background: outfit.active === i ? accent : 'transparent',
+              color: outfit.active === i ? '#fff' : muted,
+              fontSize: '11px', fontWeight: 600,
+              cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
+              transition: 'all 0.15s', WebkitTapHighlightColor: 'transparent',
+            }}>
+            {o.vibe ?? `Outfit ${i + 1}`}
+          </motion.button>
+        ))}
+      </div>
+    </div>
 
-                  {outfit.reasoning && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
-                      style={{ padding: '14px 18px', borderTop: `1px solid ${border}` }}>
-                      <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: accent, marginBottom: '7px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ display: 'inline-block', width: '5px', height: '5px', borderRadius: '50%', background: accent }} />
-                        {t('dresser.kiStylist')}
-                      </p>
-                      <p style={{ fontSize: '13px', color: muted, lineHeight: 1.7 }}>{outfit.reasoning}</p>
-                    </motion.div>
-                  )}
+    {/* Active Outfit */}
+    <AnimatePresence mode="wait">
+      <motion.div key={outfit.active}
+        initial={{ opacity: 0, x: 10 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -10 }}
+        transition={{ duration: 0.2 }}>
 
-                  <div style={{ padding: '0 18px 18px' }}>
-                    <motion.button whileTap={{ scale: 0.97 }} onClick={generateOutfit}
-                      style={{ width: '100%', padding: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: accentDim, border: `1px solid ${border}`, borderRadius: '10px', fontSize: '12px', fontWeight: 600, color: accent, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer', WebkitTapHighlightColor: 'transparent' }}>
-                      ↻ {t('dresser.newOutfit')}
-                    </motion.button>
-                  </div>
-                </motion.div>
-              )}
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${outfit.outfits[outfit.active].itemObjects.length >= 3 ? 3 : 2}, 1fr)`, gap: '1px', background: border }}>
+          {outfit.outfits[outfit.active].itemObjects.map((item, i) => (
+            <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.06 }} style={{ background: card }}>
+              <div style={{ aspectRatio: '1', overflow: 'hidden', background: isDark ? '#0a1510' : '#f0fdf8' }}>
+                <img src={item.image_url} alt={item.name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              </div>
+              <div style={{ padding: '9px 11px' }}>
+                <p style={{ fontSize: '11px', fontWeight: 700, color: text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, marginBottom: '1px' }}>{item.name}</p>
+                <p style={{ fontSize: '10px', color: muted }}>{item.color}{item.brand ? ` · ${item.brand}` : ''}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {outfit.outfits[outfit.active].reasoning && (
+          <div style={{ padding: '14px 18px', borderTop: `1px solid ${border}` }}>
+            <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: accent, marginBottom: '7px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ display: 'inline-block', width: '5px', height: '5px', borderRadius: '50%', background: accent }} />
+              {t('dresser.kiStylist')}
+            </p>
+            <p style={{ fontSize: '13px', color: muted, lineHeight: 1.7 }}>{outfit.outfits[outfit.active].reasoning}</p>
+          </div>
+        )}
+      </motion.div>
+    </AnimatePresence>
+
+    <div style={{ padding: '0 18px 18px' }}>
+      <motion.button whileTap={{ scale: 0.97 }} onClick={generateOutfit}
+        style={{ width: '100%', padding: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: accentDim, border: `1px solid ${border}`, borderRadius: '10px', fontSize: '12px', fontWeight: 600, color: accent, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer', WebkitTapHighlightColor: 'transparent' }}>
+        ↻ {t('dresser.newOutfit')}
+      </motion.button>
+    </div>
+</motion.div>
+)}
             </AnimatePresence>
           </>
         )}

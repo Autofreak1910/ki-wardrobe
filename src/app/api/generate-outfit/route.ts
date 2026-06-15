@@ -11,32 +11,62 @@ export async function POST(request: NextRequest) {
     ).join('\n')
 
     const prompt = isEnglish
-      ? `You are a fashion stylist. Create an outfit for the occasion "${occasion}" from these clothing items:
+      ? `You are a fashion stylist. Create 3 DIFFERENT outfit suggestions for the occasion "${occasion}" from these clothing items:
 
 ${itemList}
 
 Weather: ${weather}
 
-Choose 2-4 matching pieces and respond ONLY with JSON:
+Create 3 distinct combinations with different styles/moods. Respond ONLY with JSON:
 {
-  "items": ["exact name from list above", "exact name from list above"],
-  "reasoning": "brief explanation in English why this combination works"
+  "outfits": [
+    {
+      "items": ["exact name from list", "exact name from list"],
+      "reasoning": "brief explanation why this works",
+      "vibe": "Casual Cool"
+    },
+    {
+      "items": ["exact name from list", "exact name from list"],
+      "reasoning": "brief explanation why this works",
+      "vibe": "Minimal Chic"
+    },
+    {
+      "items": ["exact name from list", "exact name from list"],
+      "reasoning": "brief explanation why this works",
+      "vibe": "Bold Statement"
+    }
+  ]
 }
 
-Only use exact names from the list!`
-      : `Du bist ein Fashion-Stylist. Erstelle ein Outfit für den Anlass "${occasion}" aus diesen Kleidungsstücken:
+Only use exact names from the list! Each outfit must be different!`
+      : `Du bist ein Fashion-Stylist. Erstelle 3 VERSCHIEDENE Outfit-Vorschläge für den Anlass "${occasion}" aus diesen Kleidungsstücken:
 
 ${itemList}
 
 Wetter: ${weather}
 
-Wähle 2-4 passende Teile und antworte NUR mit JSON:
+Erstelle 3 verschiedene Kombinationen mit unterschiedlichen Styles. Antworte NUR mit JSON:
 {
-  "items": ["exakter Name aus Liste oben", "exakter Name aus Liste oben"],
-  "reasoning": "kurze Begründung auf Deutsch warum diese Kombination passt"
+  "outfits": [
+    {
+      "items": ["exakter Name aus Liste", "exakter Name aus Liste"],
+      "reasoning": "kurze Begründung warum das passt",
+      "vibe": "Casual Cool"
+    },
+    {
+      "items": ["exakter Name aus Liste", "exakter Name aus Liste"],
+      "reasoning": "kurze Begründung warum das passt",
+      "vibe": "Minimal Chic"
+    },
+    {
+      "items": ["exakter Name aus Liste", "exakter Name aus Liste"],
+      "reasoning": "kurze Begründung warum das passt",
+      "vibe": "Bold Statement"
+    }
+  ]
 }
 
-Nur exakte Namen aus der Liste verwenden!`
+Nur exakte Namen aus der Liste! Jedes Outfit muss anders sein!`
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -46,7 +76,7 @@ Nur exakte Namen aus der Liste verwenden!`
       },
       body: JSON.stringify({
         model: 'gpt-4o-mini',
-        max_tokens: 500,
+        max_tokens: 1000,
         messages: [{ role: 'user', content: prompt }]
       })
     })
@@ -56,7 +86,15 @@ Nur exakte Namen aus der Liste verwenden!`
     const jsonMatch = text.match(/\{[\s\S]*\}/)
     if (!jsonMatch) throw new Error('No JSON')
     const result = JSON.parse(jsonMatch[0])
-    return NextResponse.json({ success: true, ...result })
+
+    // Backwards compatibility — erster Outfit auch als items/reasoning
+    const first = result.outfits?.[0]
+    return NextResponse.json({
+      success: true,
+      outfits: result.outfits,
+      items: first?.items ?? [],
+      reasoning: first?.reasoning ?? '',
+    })
 
   } catch (error) {
     console.error('Outfit error:', error)
