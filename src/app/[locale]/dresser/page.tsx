@@ -235,24 +235,6 @@ async function saveOutfit() {
   })
   setSaved(true)
 }
-const SAVE_LIMIT = 5 // später isPremium ? Infinity : 5
-if (count >= SAVE_LIMIT) {
- setLimitMsg(locale === 'de' ? '...' : '...')
-setTimeout(() => setLimitMsg(null), 4000)(locale === 'de'
-    ? `Free Plan: Max. 5 gespeicherte Outfits. Upgrade auf Premium für unbegrenzt!`
-    : `Free Plan: Max. 5 saved outfits. Upgrade to Premium for unlimited!`)
-  return
-}
-  const active = outfit.outfits[outfit.active]
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session?.user) return
-  await supabase.from('outfits').insert({
-    user_id: session.user.id, occasion: selected,
-    item_ids: active.itemObjects.map(i => i.id),
-    name: `${t('dresser.occasions.' + selected)} Outfit`,
-  })
-  setSaved(true)
-}
 
   const bg        = isDark ? '#080c18' : '#f0f4ff'
 const card      = isDark ? '#0d1225' : '#ffffff'

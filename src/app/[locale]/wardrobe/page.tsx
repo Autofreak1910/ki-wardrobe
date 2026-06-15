@@ -29,6 +29,7 @@ export default function WardrobePage() {
   const [editDate, setEditDate] = useState('')
   const [editPrice, setEditPrice] = useState('')
   const [saving, setSaving] = useState(false)
+  const [limitMsg, setLimitMsg] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { theme } = useTheme()
   const t = useTranslations()
@@ -37,13 +38,13 @@ export default function WardrobePage() {
   const supabase = createClient()
   const isDark = theme === 'dark'
 
-const bg        = isDark ? '#080c18' : '#f0f4ff'
-const card      = isDark ? '#0d1225' : '#ffffff'
-const border    = isDark ? '#1a2540' : '#dde3f5'
-const text      = isDark ? '#e8eeff' : '#0a1628'
-const muted     = isDark ? '#4d6080' : '#6b7fa8'
-const accent    = isDark ? '#4d7eff' : '#3b6bff'
-const accentDim = isDark ? 'rgba(77,126,255,0.1)' : 'rgba(59,107,255,0.08)'
+  const bg        = isDark ? '#080c18' : '#f0f4ff'
+  const card      = isDark ? '#0d1225' : '#ffffff'
+  const border    = isDark ? '#1a2540' : '#dde3f5'
+  const text      = isDark ? '#e8eeff' : '#0a1628'
+  const muted     = isDark ? '#4d6080' : '#6b7fa8'
+  const accent    = isDark ? '#4d7eff' : '#3b6bff'
+  const accentDim = isDark ? 'rgba(77,126,255,0.1)' : 'rgba(59,107,255,0.08)'
   const secondary = isDark ? '#0f1a14' : '#e6f7f0'
 
   useEffect(() => { loadItems() }, [])
@@ -58,15 +59,18 @@ const accentDim = isDark ? 'rgba(77,126,255,0.1)' : 'rgba(59,107,255,0.08)'
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    // Limit check
-const isPremium = false // später von Supabase
-const LIMIT = isPremium ? Infinity : 20
-if (items.length >= LIMIT) {
-  alert(locale === 'de'
-    ? `Free Plan: Max. 20 Kleidungsstücke. Upgrade auf Premium für unbegrenzt!`
-    : `Free Plan: Max. 20 items. Upgrade to Premium for unlimited!`)
-  return
-}
+
+    const isPremium = false
+    const LIMIT = isPremium ? Infinity : 20
+    if (items.length >= LIMIT) {
+      setLimitMsg(locale === 'de'
+        ? 'Max. 20 Kleidungsstücke im Free Plan. Upgrade für unbegrenzt!'
+        : 'Max. 20 items in Free Plan. Upgrade for unlimited!')
+      setTimeout(() => setLimitMsg(null), 4000)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
+    }
+
     const convertedFile = await convertToJpeg(file)
     setUploading(true); setAnalyzing(true); setAnalyzeResult(''); setProgress(0)
     try {
@@ -105,11 +109,10 @@ if (items.length >= LIMIT) {
       setProgress(100)
       setAnalyzeStep(locale === 'de' ? 'Fertig!' : 'Done!')
       setAnalyzeResult(`${analysis.name} · ${analysis.color}${analysis.brand ? ' · ' + analysis.brand : ''}`)
-      // Tutorial triggern wenn 3 Items erreicht
-const newCount = items.length + 1
-if (newCount === 3) {
-  localStorage.removeItem('kw_welcome_seen')
-}
+      const newCount = items.length + 1
+      if (newCount === 3) {
+        localStorage.removeItem('kw_welcome_seen')
+      }
       setTimeout(() => { setAnalyzing(false); setProgress(0); loadItems() }, 2000)
     } catch (err) {
       console.error(err)
@@ -163,7 +166,9 @@ if (newCount === 3) {
   }
 
   function openItem(item: ClothingItem) {
-    setSelectedItem(item); setEditDate(item.purchase_date ?? ''); setEditPrice(item.purchase_price?.toString() ?? '')
+    setSelectedItem(item)
+    setEditDate(item.purchase_date ?? '')
+    setEditPrice(item.purchase_price?.toString() ?? '')
   }
 
   const catLabels: Record<string, string> = { tops: 'Tops', hosen: 'Pants', jacken: 'Jacket', schuhe: 'Shoes', acc: 'Acc' }
@@ -196,6 +201,27 @@ if (newCount === 3) {
 
       <Navbar activePage="wardrobe" />
 
+      {/* Limit Banner */}
+      <AnimatePresence>
+        {limitMsg && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            style={{
+              position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)',
+              zIndex: 9997, background: accent, color: '#fff',
+              padding: '12px 20px', borderRadius: '14px',
+              fontSize: '13px', fontWeight: 600,
+              fontFamily: "'DM Sans', sans-serif",
+              boxShadow: `0 4px 20px ${accent}50`,
+              maxWidth: '320px', textAlign: 'center' as const,
+            }}>
+            🔒 {limitMsg}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '900px', width: '100%', margin: '0 auto', padding: '84px 16px 108px', position: 'relative', zIndex: 1 }}>
 
         {/* Header */}
@@ -208,7 +234,7 @@ if (newCount === 3) {
               {t('wardrobe.title')}
             </h1>
             <p style={{ fontSize: '13px', color: muted }}>
-              {items.length} {t('wardrobe.pieces')}{totalValue > 0 && ` · ~€${totalValue.toFixed(0)}`}
+              {items.length} / 20 {t('wardrobe.pieces')}{totalValue > 0 && ` · ~€${totalValue.toFixed(0)}`}
             </p>
           </div>
           <select value={sort} onChange={e => setSort(e.target.value)}
