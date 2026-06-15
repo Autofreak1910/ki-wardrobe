@@ -22,7 +22,6 @@ export default function ProfilePage() {
 const [editAge, setEditAge] = useState('')
 const [savedEmail, setSavedEmail] = useState(false)
 const [savedAge, setSavedAge] = useState(false)
-  const [showUpgrade, setShowUpgrade] = useState(false)
   const [dna, setDna] = useState<any>(null)
   const [dnaLoading, setDnaLoading] = useState(false)
   const [showDna, setShowDna] = useState(false)
@@ -199,7 +198,18 @@ async function saveAge() {
         {/* Upgrade Banner */}
         {!isPremium && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-            onClick={() => setShowUpgrade(true)} whileTap={{ scale: 0.99 }}
+    onClick={async () => {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) return
+  const res = await fetch('/api/create-checkout-session', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId: session.user.id, userEmail: session.user.email }),
+  })
+  const data = await res.json()
+  if (data.url) window.location.href = data.url
+}}
+whileTap={{ scale: 0.99 }}
             style={{ background: `linear-gradient(135deg, ${accent}, #6b9fff)`, borderRadius: '20px', padding: '20px', marginBottom: '12px', cursor: 'pointer', position: 'relative' as const, overflow: 'hidden', boxShadow: `0 8px 32px ${accent}40` }}>
             <div style={{ position: 'absolute', top: '-30px', right: '-30px', width: '120px', height: '120px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
             <div style={{ position: 'absolute', bottom: '-20px', left: '-20px', width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
@@ -252,7 +262,17 @@ async function saveAge() {
 
         {/* Style DNA Button */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-          onClick={isPremium ? generateStyleDna : () => setShowUpgrade(true)}
+        onClick={isPremium ? generateStyleDna : async () => {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) return
+  const res = await fetch('/api/create-checkout-session', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId: session.user.id, userEmail: session.user.email }),
+  })
+  const data = await res.json()
+  if (data.url) window.location.href = data.url
+}}
           whileTap={{ scale: 0.98 }}
           style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', padding: '16px 18px', marginBottom: '12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -365,132 +385,79 @@ async function saveAge() {
         <p style={{ textAlign: 'center' as const, fontSize: '11px', color: muted, letterSpacing: '0.04em' }}>KiWardrobe · v1.0</p>
       </main>
 
-      {/* Style DNA Modal */}
-      <AnimatePresence>
-        {showDna && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={() => setShowDna(false)}
-            style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '16px' }}>
-            <motion.div initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 60, opacity: 0 }}
-              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-              onClick={e => e.stopPropagation()}
-              style={{ width: '100%', maxWidth: '420px', background: card, border: `1px solid ${border}`, borderRadius: '28px', padding: '28px 24px 32px', maxHeight: '85vh', overflowY: 'auto' as const }}>
-              {dnaLoading ? (
-                <div style={{ textAlign: 'center' as const, padding: '40px 0' }}>
-                  <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                    style={{ width: '40px', height: '40px', borderRadius: '50%', border: `3px solid ${border}`, borderTopColor: accent, margin: '0 auto 16px' }} />
-                  <p style={{ fontSize: '14px', color: muted }}>{locale === 'de' ? 'KI analysiert deinen Stil...' : 'AI analyzing your style...'}</p>
-                </div>
-              ) : dna ? (
-                <>
-                  <div style={{ textAlign: 'center' as const, marginBottom: '24px' }}>
-                    <div style={{ fontSize: '48px', marginBottom: '8px' }}>{dna.styleEmoji}</div>
-                    <h2 style={{ fontSize: '22px', fontWeight: 800, color: text, letterSpacing: '-0.03em', marginBottom: '8px' }}>{dna.styleType}</h2>
-                    <p style={{ fontSize: '13px', color: muted, lineHeight: 1.6 }}>{dna.description}</p>
+{/* Style DNA Modal */}
+<AnimatePresence>
+  {showDna && (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      onClick={() => setShowDna(false)}
+      style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '16px' }}>
+      <motion.div initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 60, opacity: 0 }}
+        transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+        onClick={e => e.stopPropagation()}
+        style={{ width: '100%', maxWidth: '420px', background: card, border: `1px solid ${border}`, borderRadius: '28px', padding: '28px 24px 32px', maxHeight: '85vh', overflowY: 'auto' as const }}>
+        {dnaLoading ? (
+          <div style={{ textAlign: 'center' as const, padding: '40px 0' }}>
+            <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+              style={{ width: '40px', height: '40px', borderRadius: '50%', border: `3px solid ${border}`, borderTopColor: accent, margin: '0 auto 16px' }} />
+            <p style={{ fontSize: '14px', color: muted }}>{locale === 'de' ? 'KI analysiert deinen Stil...' : 'AI analyzing your style...'}</p>
+          </div>
+        ) : dna ? (
+          <>
+            <div style={{ textAlign: 'center' as const, marginBottom: '24px' }}>
+              <div style={{ fontSize: '48px', marginBottom: '8px' }}>{dna.styleEmoji}</div>
+              <h2 style={{ fontSize: '22px', fontWeight: 800, color: text, letterSpacing: '-0.03em', marginBottom: '8px' }}>{dna.styleType}</h2>
+              <p style={{ fontSize: '13px', color: muted, lineHeight: 1.6 }}>{dna.description}</p>
+            </div>
+            <div style={{ background: accentDim, border: `1px solid ${border}`, borderRadius: '14px', padding: '14px 16px', marginBottom: '12px' }}>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '10px' }}>{locale === 'de' ? 'Deine Farben' : 'Your Colors'}</p>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' as const }}>
+                {dna.dominantColors?.map((color: string, i: number) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: card, border: `1px solid ${border}`, borderRadius: '100px', padding: '5px 12px' }}>
+                    <span style={{ fontSize: '14px' }}>{dna.colorEmojis?.[i] ?? '🎨'}</span>
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: text }}>{color}</span>
                   </div>
-                  <div style={{ background: accentDim, border: `1px solid ${border}`, borderRadius: '14px', padding: '14px 16px', marginBottom: '12px' }}>
-                    <p style={{ fontSize: '11px', fontWeight: 700, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '10px' }}>{locale === 'de' ? 'Deine Farben' : 'Your Colors'}</p>
-                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' as const }}>
-                      {dna.dominantColors?.map((color: string, i: number) => (
-                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: card, border: `1px solid ${border}`, borderRadius: '100px', padding: '5px 12px' }}>
-                          <span style={{ fontSize: '14px' }}>{dna.colorEmojis?.[i] ?? '🎨'}</span>
-                          <span style={{ fontSize: '12px', fontWeight: 600, color: text }}>{color}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div style={{ background: accentDim, border: `1px solid ${border}`, borderRadius: '14px', padding: '14px 16px', marginBottom: '12px' }}>
-                    <p style={{ fontSize: '11px', fontWeight: 700, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '12px' }}>Style Mix</p>
-                    {dna.stylePercentages?.map((s: { style: string; percent: number }, i: number) => (
-                      <div key={i} style={{ marginBottom: '8px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                          <span style={{ fontSize: '12px', fontWeight: 600, color: text }}>{s.style}</span>
-                          <span style={{ fontSize: '12px', color: muted }}>{s.percent}%</span>
-                        </div>
-                        <div style={{ height: '6px', background: border, borderRadius: '3px', overflow: 'hidden' }}>
-                          <motion.div initial={{ width: 0 }} animate={{ width: `${s.percent}%` }} transition={{ delay: 0.2 + i * 0.1, duration: 0.6 }}
-                            style={{ height: '100%', background: `linear-gradient(90deg, ${accent}, #6b9fff)`, borderRadius: '3px' }} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
-                    <div style={{ background: accentDim, border: `1px solid ${border}`, borderRadius: '14px', padding: '12px 14px' }}>
-                      <p style={{ fontSize: '11px', fontWeight: 700, color: accent, marginBottom: '8px', textTransform: 'uppercase' as const }}>{locale === 'de' ? 'Stärken' : 'Strengths'}</p>
-                      {dna.strengths?.map((s: string, i: number) => <p key={i} style={{ fontSize: '12px', color: text, marginBottom: '4px' }}>✓ {s}</p>)}
-                    </div>
-                    <div style={{ background: accentDim, border: `1px solid ${border}`, borderRadius: '14px', padding: '12px 14px' }}>
-                      <p style={{ fontSize: '11px', fontWeight: 700, color: accent, marginBottom: '8px', textTransform: 'uppercase' as const }}>{locale === 'de' ? 'Dir fehlt' : 'Missing'}</p>
-                      {dna.missing?.map((s: string, i: number) => <p key={i} style={{ fontSize: '12px', color: text, marginBottom: '4px' }}>+ {s}</p>)}
-                    </div>
-                  </div>
-                  {dna.tip && (
-                    <div style={{ background: `linear-gradient(135deg, ${accent}15, #6b9fff10)`, border: `1px solid ${border}`, borderRadius: '14px', padding: '14px 16px' }}>
-                      <p style={{ fontSize: '11px', fontWeight: 700, color: accent, marginBottom: '6px', textTransform: 'uppercase' as const }}>{locale === 'de' ? '✦ Style Tipp' : '✦ Style Tip'}</p>
-                      <p style={{ fontSize: '13px', color: text, lineHeight: 1.6 }}>{dna.tip}</p>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <p style={{ textAlign: 'center' as const, color: muted, fontSize: '14px', padding: '20px 0' }}>{locale === 'de' ? 'Fehler beim Laden' : 'Error loading'}</p>
-              )}
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Upgrade Modal */}
-      <AnimatePresence>
-        {showUpgrade && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={() => setShowUpgrade(false)}
-            style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '16px' }}>
-            <motion.div initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 60, opacity: 0 }}
-              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-              onClick={e => e.stopPropagation()}
-              style={{ width: '100%', maxWidth: '420px', background: card, border: `1px solid ${border}`, borderRadius: '28px', padding: '28px 24px 32px', boxShadow: isDark ? '0 -8px 60px rgba(0,0,0,0.7)' : `0 -8px 60px ${accent}20` }}>
-              <div style={{ textAlign: 'center' as const, marginBottom: '24px' }}>
-                <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: `linear-gradient(135deg, ${accent}, #6b9fff)`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px', fontSize: '24px', boxShadow: `0 8px 24px ${accent}50` }}>✦</div>
-                <h2 style={{ fontSize: '22px', fontWeight: 800, color: text, letterSpacing: '-0.03em', marginBottom: '6px' }}>KiWardrobe Pro</h2>
-                <p style={{ fontSize: '13px', color: muted }}>{locale === 'de' ? 'Dein persönlicher KI-Stylist ohne Limits' : 'Your personal AI stylist without limits'}</p>
+                ))}
               </div>
-              {[
-                { icon: '👗', title: locale === 'de' ? '15 Outfits täglich' : '15 outfits daily', sub: locale === 'de' ? 'Statt 3 im Free Plan' : 'Instead of 3 in Free Plan' },
-                { icon: '∞', title: locale === 'de' ? 'Unbegrenzt Kleidung' : 'Unlimited clothes', sub: locale === 'de' ? 'Statt max. 20 Teile' : 'Instead of max. 20 items' },
-                { icon: '♡', title: locale === 'de' ? 'Unbegrenzt speichern' : 'Unlimited saved', sub: locale === 'de' ? 'Statt max. 5 Outfits' : 'Instead of max. 5 outfits' },
-                { icon: '✦', title: 'Style DNA', sub: locale === 'de' ? 'KI analysiert deinen Stil' : 'AI analyzes your style' },
-              ].map((f, i) => (
-                <div key={i} style={{ display: 'flex', gap: '12px', alignItems: 'center', padding: '10px 0', borderBottom: i < 3 ? `1px solid ${border}` : 'none' }}>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: accentDim, border: `1px solid ${border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', flexShrink: 0 }}>{f.icon}</div>
-                  <div>
-                    <p style={{ fontSize: '14px', fontWeight: 700, color: text, marginBottom: '2px' }}>{f.title}</p>
-                    <p style={{ fontSize: '12px', color: muted }}>{f.sub}</p>
+            </div>
+            <div style={{ background: accentDim, border: `1px solid ${border}`, borderRadius: '14px', padding: '14px 16px', marginBottom: '12px' }}>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '12px' }}>Style Mix</p>
+              {dna.stylePercentages?.map((s: { style: string; percent: number }, i: number) => (
+                <div key={i} style={{ marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: text }}>{s.style}</span>
+                    <span style={{ fontSize: '12px', color: muted }}>{s.percent}%</span>
                   </div>
-                  <div style={{ marginLeft: 'auto', color: accent, fontSize: '16px' }}>✓</div>
+                  <div style={{ height: '6px', background: border, borderRadius: '3px', overflow: 'hidden' }}>
+                    <motion.div initial={{ width: 0 }} animate={{ width: `${s.percent}%` }} transition={{ delay: 0.2 + i * 0.1, duration: 0.6 }}
+                      style={{ height: '100%', background: `linear-gradient(90deg, ${accent}, #6b9fff)`, borderRadius: '3px' }} />
+                  </div>
                 </div>
               ))}
-              <motion.button whileTap={{ scale: 0.97 }}
-                onClick={async () => {
-                  const { data: { session } } = await supabase.auth.getSession()
-                  if (!session?.user) return
-                  const res = await fetch('/api/create-checkout-session', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId: session.user.id, userEmail: session.user.email }),
-                  })
-                  const data = await res.json()
-                  if (data.url) window.location.href = data.url
-                }}
-                style={{ width: '100%', marginTop: '20px', padding: '16px', background: `linear-gradient(135deg, ${accent}, #6b9fff)`, border: 'none', borderRadius: '16px', fontSize: '16px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: `0 6px 24px ${accent}50` }}>
-                {locale === 'de' ? 'Für €4,99/Monat upgraden →' : 'Upgrade for €4.99/month →'}
-              </motion.button>
-              <p style={{ textAlign: 'center' as const, fontSize: '11px', color: muted, marginTop: '10px' }}>
-                {locale === 'de' ? 'Jederzeit kündbar · Keine versteckten Kosten' : 'Cancel anytime · No hidden fees'}
-              </p>
-            </motion.div>
-          </motion.div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
+              <div style={{ background: accentDim, border: `1px solid ${border}`, borderRadius: '14px', padding: '12px 14px' }}>
+                <p style={{ fontSize: '11px', fontWeight: 700, color: accent, marginBottom: '8px', textTransform: 'uppercase' as const }}>{locale === 'de' ? 'Stärken' : 'Strengths'}</p>
+                {dna.strengths?.map((s: string, i: number) => <p key={i} style={{ fontSize: '12px', color: text, marginBottom: '4px' }}>✓ {s}</p>)}
+              </div>
+              <div style={{ background: accentDim, border: `1px solid ${border}`, borderRadius: '14px', padding: '12px 14px' }}>
+                <p style={{ fontSize: '11px', fontWeight: 700, color: accent, marginBottom: '8px', textTransform: 'uppercase' as const }}>{locale === 'de' ? 'Dir fehlt' : 'Missing'}</p>
+                {dna.missing?.map((s: string, i: number) => <p key={i} style={{ fontSize: '12px', color: text, marginBottom: '4px' }}>+ {s}</p>)}
+              </div>
+            </div>
+            {dna.tip && (
+              <div style={{ background: `linear-gradient(135deg, ${accent}15, #6b9fff10)`, border: `1px solid ${border}`, borderRadius: '14px', padding: '14px 16px' }}>
+                <p style={{ fontSize: '11px', fontWeight: 700, color: accent, marginBottom: '6px', textTransform: 'uppercase' as const }}>{locale === 'de' ? '✦ Style Tipp' : '✦ Style Tip'}</p>
+                <p style={{ fontSize: '13px', color: text, lineHeight: 1.6 }}>{dna.tip}</p>
+              </div>
+            )}
+          </>
+        ) : (
+          <p style={{ textAlign: 'center' as const, color: muted, fontSize: '14px', padding: '20px 0' }}>{locale === 'de' ? 'Fehler beim Laden' : 'Error loading'}</p>
         )}
-      </AnimatePresence>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
     </div>
   )
 }
