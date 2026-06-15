@@ -524,7 +524,7 @@ return (
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2zm6 10l.75 2.25L21 15l-2.25.75L18 18l-.75-2.25L15 15l2.25-.75L18 12z"/>
                     </svg>
-                    {t('dresser.button')}
+             {t('dresser.button')} ✦
                   </>
                 )}
               </motion.button>
