@@ -552,7 +552,13 @@ return (
           {saved ? `✓ ${t('dresser.saved')}` : `♡ ${t('dresser.save')}`}
         </motion.button>
       </div>
-
+{outfit.outfits.length < 3 && (
+  <p style={{ fontSize: '11px', color: muted, marginBottom: '8px', textAlign: 'center' as const }}>
+    {locale === 'de'
+      ? `💡 Lade mehr Kleidung hoch für bis zu 3 Outfit-Vorschläge`
+      : `💡 Upload more clothes for up to 3 outfit suggestions`}
+  </p>
+)}
       {/* 3 Vibe Tabs */}
       <div style={{ display: 'flex', gap: '6px' }}>
         {outfit.outfits.map((o, i) => (
