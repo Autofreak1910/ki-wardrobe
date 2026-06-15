@@ -25,6 +25,7 @@ const [savedAge, setSavedAge] = useState(false)
   const [dna, setDna] = useState<any>(null)
   const [dnaLoading, setDnaLoading] = useState(false)
   const [showDna, setShowDna] = useState(false)
+  const [showUpgrade, setShowUpgrade] = useState(false)
   const { theme, toggle } = useTheme()
   const locale = useLocale()
   const router = useRouter()
@@ -194,85 +195,21 @@ async function saveAge() {
             ))}
           </div>
         </motion.div>
-
-   {/* Upgrade Banner */}
+{/* Upgrade Banner */}
 {!isPremium && (
   <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-    style={{ marginBottom: '12px' }}>
-    
-    <p style={{ fontSize: '11px', fontWeight: 700, color: muted, letterSpacing: '0.12em', textTransform: 'uppercase' as const, textAlign: 'center' as const, marginBottom: '14px' }}>
-      {locale === 'de' ? 'Wähle deinen Plan' : 'Choose your plan'}
-    </p>
-
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-
-      {/* Free Card */}
-      <div style={{ background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', border: `1px solid ${border}`, borderRadius: '18px', padding: '18px 16px' }}>
-        <p style={{ fontSize: '11px', fontWeight: 700, color: muted, letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>FREE</p>
-        <p style={{ fontSize: '28px', fontWeight: 800, color: text, letterSpacing: '-0.04em', marginBottom: '2px' }}>€0</p>
-        <p style={{ fontSize: '11px', color: muted, marginBottom: '16px' }}>{locale === 'de' ? 'für immer kostenlos' : 'free forever'}</p>
-        <div style={{ height: '1px', background: border, marginBottom: '14px' }} />
-        {[
-          { title: locale === 'de' ? '3 Outfits' : '3 Outfits', sub: locale === 'de' ? 'pro Tag generieren' : 'per day' },
-          { title: locale === 'de' ? 'Max. 20 Kleidungsstücke' : 'Max. 20 items', sub: locale === 'de' ? 'im Kleiderschrank' : 'in wardrobe' },
-          { title: locale === 'de' ? 'Max. 5 Outfits speichern' : 'Max. 5 saved', sub: locale === 'de' ? 'in deiner Sammlung' : 'in collection' },
-          { title: locale === 'de' ? 'Basis KI-Styling' : 'Basic AI styling', sub: locale === 'de' ? 'wetterbasierte Vorschläge' : 'weather-based' },
-        ].map((f, i) => (
-          <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', marginBottom: '10px' }}>
-            <span style={{ fontSize: '12px', color: muted, marginTop: '1px', flexShrink: 0 }}>○</span>
-            <div>
-              <p style={{ fontSize: '12px', fontWeight: 600, color: text, marginBottom: '1px' }}>{f.title}</p>
-              <p style={{ fontSize: '11px', color: muted }}>{f.sub}</p>
-            </div>
-          </div>
-        ))}
+    onClick={() => setShowUpgrade(true)}
+    whileTap={{ scale: 0.98 }}
+    style={{ background: accentDim, border: `1px solid ${accent}40`, borderRadius: '14px', padding: '12px 16px', marginBottom: '12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <span style={{ fontSize: '16px' }}>✦</span>
+      <div>
+        <p style={{ fontSize: '13px', fontWeight: 700, color: accent, marginBottom: '1px' }}>KiWardrobe Pro</p>
+        <p style={{ fontSize: '11px', color: muted }}>{locale === 'de' ? 'Mehr Outfits · Unbegrenzt · Style DNA' : 'More outfits · Unlimited · Style DNA'}</p>
       </div>
-
-      {/* Pro Card */}
-      <motion.div
-        whileTap={{ scale: 0.98 }}
-        onClick={async () => {
-          const { data: { session } } = await supabase.auth.getSession()
-          if (!session?.user) return
-          const res = await fetch('/api/create-checkout-session', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: session.user.id, userEmail: session.user.email }),
-          })
-          const data = await res.json()
-          if (data.url) window.location.href = data.url
-        }}
-        style={{ background: `linear-gradient(160deg, ${accent}, #6b9fff)`, borderRadius: '18px', padding: '18px 16px', cursor: 'pointer', position: 'relative' as const, overflow: 'hidden', boxShadow: `0 8px 32px ${accent}50` }}>
-        
-        {/* Empfohlen Badge */}
-        <div style={{ position: 'absolute', top: '-1px', left: '50%', transform: 'translateX(-50%)', background: '#fff', borderRadius: '0 0 10px 10px', padding: '3px 12px' }}>
-          <p style={{ fontSize: '10px', fontWeight: 800, color: accent, letterSpacing: '0.06em', textTransform: 'uppercase' as const, whiteSpace: 'nowrap' as const }}>
-            {locale === 'de' ? 'Empfohlen' : 'Recommended'}
-          </p>
-        </div>
-
-        <div style={{ marginTop: '14px' }}>
-          <p style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>PRO</p>
-          <p style={{ fontSize: '28px', fontWeight: 800, color: '#fff', letterSpacing: '-0.04em', marginBottom: '2px' }}>€4,99</p>
-          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', marginBottom: '16px' }}>{locale === 'de' ? 'pro Monat · kündbar' : 'per month · cancel anytime'}</p>
-          <div style={{ height: '1px', background: 'rgba(255,255,255,0.2)', marginBottom: '14px' }} />
-          {[
-            { title: locale === 'de' ? '15 Outfits' : '15 Outfits', sub: locale === 'de' ? 'pro Tag · 5× mehr' : 'per day · 5× more' },
-            { title: locale === 'de' ? 'Unbegrenzt Kleidung' : 'Unlimited items', sub: locale === 'de' ? 'ohne Limit' : 'no limits' },
-            { title: locale === 'de' ? 'Unbegrenzt speichern' : 'Unlimited saved', sub: locale === 'de' ? 'alle Outfits' : 'all outfits' },
-            { title: 'Style DNA', sub: locale === 'de' ? 'KI analysiert deinen Stil' : 'AI analyzes your style' },
-          ].map((f, i) => (
-            <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', marginBottom: '10px' }}>
-              <span style={{ fontSize: '12px', color: '#fff', marginTop: '1px', flexShrink: 0 }}>✦</span>
-              <div>
-                <p style={{ fontSize: '12px', fontWeight: 700, color: '#fff', marginBottom: '1px' }}>{f.title}</p>
-                <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)' }}>{f.sub}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </motion.div>
-
+    </div>
+    <div style={{ background: accent, borderRadius: '8px', padding: '5px 10px', flexShrink: 0 }}>
+      <p style={{ fontSize: '12px', fontWeight: 700, color: '#fff' }}>€4,99</p>
     </div>
   </motion.div>
 )}
@@ -290,17 +227,7 @@ async function saveAge() {
 
         {/* Style DNA Button */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-        onClick={isPremium ? generateStyleDna : async () => {
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session?.user) return
-  const res = await fetch('/api/create-checkout-session', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId: session.user.id, userEmail: session.user.email }),
-  })
-  const data = await res.json()
-  if (data.url) window.location.href = data.url
-}}
+onClick={isPremium ? generateStyleDna : () => setShowUpgrade(true)}
           whileTap={{ scale: 0.98 }}
           style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', padding: '16px 18px', marginBottom: '12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -410,9 +337,92 @@ async function saveAge() {
           </button>
         </div>
 
-        <p style={{ textAlign: 'center' as const, fontSize: '11px', color: muted, letterSpacing: '0.04em' }}>KiWardrobe · v1.0</p>
+       <p style={{ textAlign: 'center' as const, fontSize: '11px', color: muted, letterSpacing: '0.04em' }}>KiWardrobe · v1.0</p>
       </main>
 
+<AnimatePresence>
+  {showUpgrade && (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      onClick={() => setShowUpgrade(false)}
+      style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '16px' }}>
+      <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
+        transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+        onClick={e => e.stopPropagation()}
+        style={{ width: '100%', maxWidth: '480px', background: isDark ? '#080c18' : '#f0f4ff', border: `1px solid ${border}`, borderRadius: '28px', padding: '28px 20px 32px' }}>
+        <p style={{ fontSize: '11px', fontWeight: 700, color: muted, letterSpacing: '0.12em', textTransform: 'uppercase' as const, textAlign: 'center' as const, marginBottom: '20px' }}>
+          {locale === 'de' ? 'Wähle deinen Plan' : 'Choose your plan'}
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
+          {/* Free */}
+          <div style={{ background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', border: `1px solid ${border}`, borderRadius: '18px', padding: '16px 14px' }}>
+            <p style={{ fontSize: '11px', fontWeight: 700, color: muted, letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '4px' }}>FREE</p>
+            <p style={{ fontSize: '26px', fontWeight: 800, color: text, letterSpacing: '-0.04em', marginBottom: '2px' }}>€0</p>
+            <p style={{ fontSize: '11px', color: muted, marginBottom: '12px' }}>{locale === 'de' ? 'für immer kostenlos' : 'free forever'}</p>
+            <div style={{ height: '1px', background: border, marginBottom: '12px' }} />
+            {[
+              { title: '3 Outfits', sub: locale === 'de' ? 'pro Tag' : 'per day' },
+              { title: locale === 'de' ? 'Max. 20 Teile' : 'Max. 20 items', sub: '' },
+              { title: locale === 'de' ? 'Max. 5 speichern' : 'Max. 5 saved', sub: '' },
+              { title: locale === 'de' ? 'Basis KI-Styling' : 'Basic AI', sub: '' },
+            ].map((f, i) => (
+              <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
+                <span style={{ fontSize: '11px', color: muted, flexShrink: 0, marginTop: '2px' }}>○</span>
+                <div>
+                  <p style={{ fontSize: '11px', fontWeight: 600, color: text }}>{f.title}</p>
+                  {f.sub && <p style={{ fontSize: '10px', color: muted }}>{f.sub}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* Pro */}
+          <motion.div whileTap={{ scale: 0.98 }}
+            onClick={async (e) => {
+              e.stopPropagation()
+              const { data: { session } } = await supabase.auth.getSession()
+              if (!session?.user) return
+              const res = await fetch('/api/create-checkout-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: session.user.id, userEmail: session.user.email }),
+              })
+              const data = await res.json()
+              if (data.url) window.location.href = data.url
+            }}
+            style={{ background: `linear-gradient(160deg, ${accent}, #6b9fff)`, borderRadius: '18px', padding: '16px 14px', cursor: 'pointer', position: 'relative' as const, overflow: 'hidden', boxShadow: `0 8px 32px ${accent}50` }}>
+            <div style={{ position: 'absolute', top: '-1px', left: '50%', transform: 'translateX(-50%)', background: '#fff', borderRadius: '0 0 8px 8px', padding: '2px 10px' }}>
+              <p style={{ fontSize: '9px', fontWeight: 800, color: accent, letterSpacing: '0.06em', textTransform: 'uppercase' as const, whiteSpace: 'nowrap' as const }}>
+                {locale === 'de' ? 'Empfohlen' : 'Recommended'}
+              </p>
+            </div>
+            <div style={{ marginTop: '12px' }}>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '4px' }}>PRO</p>
+              <p style={{ fontSize: '26px', fontWeight: 800, color: '#fff', letterSpacing: '-0.04em', marginBottom: '2px' }}>€4,99</p>
+              <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', marginBottom: '12px' }}>{locale === 'de' ? 'pro Monat · kündbar' : 'per month'}</p>
+              <div style={{ height: '1px', background: 'rgba(255,255,255,0.2)', marginBottom: '12px' }} />
+              {[
+                { title: '15 Outfits', sub: locale === 'de' ? 'pro Tag · 5× mehr' : 'per day · 5× more' },
+                { title: locale === 'de' ? 'Unbegrenzt Kleidung' : 'Unlimited items', sub: '' },
+                { title: locale === 'de' ? 'Unbegrenzt speichern' : 'Unlimited saved', sub: '' },
+                { title: 'Style DNA', sub: locale === 'de' ? 'KI Stil-Analyse' : 'AI style analysis' },
+              ].map((f, i) => (
+                <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '11px', color: '#fff', flexShrink: 0, marginTop: '2px' }}>✦</span>
+                  <div>
+                    <p style={{ fontSize: '11px', fontWeight: 700, color: '#fff' }}>{f.title}</p>
+                    {f.sub && <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.7)' }}>{f.sub}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+        <p style={{ textAlign: 'center' as const, fontSize: '11px', color: muted }}>
+          {locale === 'de' ? 'Auf Pro tippen zum Upgraden · Jederzeit kündbar' : 'Tap Pro to upgrade · Cancel anytime'}
+        </p>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
 {/* Style DNA Modal */}
 <AnimatePresence>
   {showDna && (
