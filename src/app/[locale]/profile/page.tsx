@@ -244,48 +244,40 @@ export default function ProfilePage() {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
         </motion.div>
 
-        {/* Profil */}
-        <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden', marginBottom: '10px' }}>
-          <div style={{ padding: '10px 16px', borderBottom: `1px solid ${border}`, background: accentDim }}>
-            <p style={{ fontSize: '10px', fontWeight: 700, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>{locale === 'de' ? 'Profil' : 'Profile'}</p>
-          </div>
-          <div style={{ padding: '14px 16px' }}>
-            <label style={{ fontSize: '11px', fontWeight: 600, color: muted, display: 'block', marginBottom: '8px', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>
-              {locale === 'de' ? 'Benutzername' : 'Username'}
-            </label>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <input type="text" value={editUsername} onChange={e => setEditUsername(e.target.value)}
-                style={{ flex: 1, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 12px', fontSize: '14px', color: text, outline: 'none', fontFamily: "'DM Sans', sans-serif", background: isDark ? '#080c18' : '#f8faff', minWidth: 0 }} />
-              <motion.button whileTap={{ scale: 0.95 }} onClick={saveUsername} disabled={saving}
-                style={{ background: saved ? accent : 'transparent', border: `1px solid ${saved ? accent : border}`, borderRadius: '10px', padding: '10px 16px', fontSize: '13px', fontWeight: 600, color: saved ? '#fff' : text, cursor: 'pointer', whiteSpace: 'nowrap' as const, transition: 'all 0.2s' }}>
-                {saved ? '✓' : saving ? '...' : locale === 'de' ? 'Speichern' : 'Save'}
-              </motion.button>
-            </div>
-          </div>
-        </div>
 
-        {/* Konto */}
-        <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden', marginBottom: '10px' }}>
-          <div style={{ padding: '10px 16px', borderBottom: `1px solid ${border}`, background: accentDim }}>
-            <p style={{ fontSize: '10px', fontWeight: 700, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>{locale === 'de' ? 'Konto' : 'Account'}</p>
-          </div>
-          {[
-            { label: 'Email', value: profile?.email ?? '—' },
-            { label: locale === 'de' ? 'Alter' : 'Age', value: profile?.age ?? '—' },
-            { label: locale === 'de' ? 'Land' : 'Country', value: profile?.country ?? '—' },
-            { label: locale === 'de' ? 'Geschlecht' : 'Gender', value: genderLabel(profile?.gender) },
-            { label: 'Style', value: profile?.style_preferences?.join(', ') ?? '—' },
-            { label: 'Budget', value: budgetLabel(profile?.budget_range) },
-          ].map((item, i, arr) => (
-            <div key={item.label}>
-              {i > 0 && <div style={{ height: '1px', background: border, margin: '0 16px' }} />}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '13px 16px' }}>
-                <p style={{ fontSize: '14px', color: text, fontWeight: 500 }}>{item.label}</p>
-                <p style={{ fontSize: '12px', color: muted, maxWidth: '180px', textAlign: 'right' as const, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{item.value}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+ {/* Konto */}
+<div style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden', marginBottom: '10px' }}>
+  <div style={{ padding: '10px 16px', borderBottom: `1px solid ${border}`, background: accentDim }}>
+    <p style={{ fontSize: '10px', fontWeight: 700, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>{locale === 'de' ? 'Konto' : 'Account'}</p>
+  </div>
+
+  {/* Username */}
+  <div style={{ padding: '14px 16px', borderBottom: `1px solid ${border}` }}>
+    <label style={{ fontSize: '11px', fontWeight: 600, color: muted, display: 'block', marginBottom: '8px', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>
+      {locale === 'de' ? 'Benutzername' : 'Username'}
+    </label>
+    <div style={{ display: 'flex', gap: '8px' }}>
+      <input type="text" value={editUsername} onChange={e => setEditUsername(e.target.value)}
+        style={{ flex: 1, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 12px', fontSize: '14px', color: text, outline: 'none', fontFamily: "'DM Sans', sans-serif", background: isDark ? '#080c18' : '#f8faff', minWidth: 0 }} />
+      <motion.button whileTap={{ scale: 0.95 }} onClick={saveUsername} disabled={saving}
+        style={{ background: saved ? accent : 'transparent', border: `1px solid ${saved ? accent : border}`, borderRadius: '10px', padding: '10px 16px', fontSize: '13px', fontWeight: 600, color: saved ? '#fff' : text, cursor: 'pointer', whiteSpace: 'nowrap' as const, transition: 'all 0.2s' }}>
+        {saved ? '✓' : saving ? '...' : locale === 'de' ? 'Speichern' : 'Save'}
+      </motion.button>
+    </div>
+  </div>
+
+  {/* Email — nur anzeigen */}
+  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderBottom: `1px solid ${border}` }}>
+    <p style={{ fontSize: '14px', color: text, fontWeight: 500 }}>Email</p>
+    <p style={{ fontSize: '12px', color: muted }}>{profile?.email ?? '—'}</p>
+  </div>
+
+  {/* Alter — nur anzeigen */}
+  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px' }}>
+    <p style={{ fontSize: '14px', color: text, fontWeight: 500 }}>{locale === 'de' ? 'Alter' : 'Age'}</p>
+    <p style={{ fontSize: '12px', color: muted }}>{profile?.age ?? '—'}</p>
+  </div>
+</div>
 
         {/* Einstellungen */}
         <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden', marginBottom: '10px' }}>
