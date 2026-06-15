@@ -176,8 +176,6 @@ setLimitMsg(locale === 'de'
   ? 'Du hast heute bereits 3 Outfits erstellt. Upgrade auf Premium für 15 täglich!'
   : "You've created 3 outfits today. Upgrade to Premium for 15 daily!")
 setTimeout(() => setLimitMsg(null), 4000)
-    ? `Du hast heute bereits 3 Outfits erstellt. Upgrade auf Premium für 15 täglich!`
-    : `You've created 3 outfits today. Upgrade to Premium for 15 daily!`)
   return
 }
 // Count erhöhen
