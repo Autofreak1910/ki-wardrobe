@@ -259,15 +259,17 @@ return (
   animate={{ opacity: 1, y: 0 }}
   exit={{ opacity: 0, y: -20 }}
   onClick={() => router.push('/' + locale + '/profile')}
-  style={{
-    position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)',
-    zIndex: 9997, background: card, border: `1px solid ${border}`,
-    padding: '14px 18px', borderRadius: '18px',
-    fontFamily: "'DM Sans', sans-serif",
-    boxShadow: `0 8px 32px rgba(0,0,0,0.2)`,
-    maxWidth: '300px', width: '90%',
-    cursor: 'pointer',
-  }}>
+ style={{
+  position: 'fixed', top: '80px',
+  left: '16px', right: '16px',
+  margin: '0 auto',
+  maxWidth: '340px',
+  zIndex: 9997, background: card, border: `1px solid ${border}`,
+  padding: '14px 18px', borderRadius: '18px',
+  fontFamily: "'DM Sans', sans-serif",
+  boxShadow: `0 8px 32px rgba(0,0,0,0.25)`,
+  cursor: 'pointer',
+}}>
   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
     <span style={{ fontSize: '20px' }}>🔒</span>
     <p style={{ fontSize: '13px', fontWeight: 700, color: text }}>{limitMsg}</p>
