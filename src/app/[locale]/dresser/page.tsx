@@ -73,6 +73,7 @@ const [outfit, setOutfit] = useState<OutfitGroup | null>(null)
   const locale = useLocale()
   const router = useRouter()
   const supabase = createClient()
+  const [limitMsg, setLimitMsg] = useState<string | null>(null)
   const isDark = theme === 'dark'
   const mainRef = useRef<HTMLElement>(null)
   const weatherRef = useRef<HTMLDivElement>(null)
@@ -165,6 +166,23 @@ useEffect(() => {
 
 async function generateOutfit() {
   if (wardrobeItems.length < 3) return
+  // Outfit Tageslimit check
+const today = new Date().toDateString()
+const lastDate = localStorage.getItem('kw_outfit_date')
+const todayCount = lastDate === today ? parseInt(localStorage.getItem('kw_outfit_count') ?? '0') : 0
+const DAILY_LIMIT = 3 // später isPremium ? 15 : 3
+if (todayCount >= DAILY_LIMIT) {
+setLimitMsg(locale === 'de'
+  ? 'Du hast heute bereits 3 Outfits erstellt. Upgrade auf Premium für 15 täglich!'
+  : "You've created 3 outfits today. Upgrade to Premium for 15 daily!")
+setTimeout(() => setLimitMsg(null), 4000)
+    ? `Du hast heute bereits 3 Outfits erstellt. Upgrade auf Premium für 15 täglich!`
+    : `You've created 3 outfits today. Upgrade to Premium for 15 daily!`)
+  return
+}
+// Count erhöhen
+localStorage.setItem('kw_outfit_date', today)
+localStorage.setItem('kw_outfit_count', String(todayCount + 1))
   setLoading(true); setSaved(false); setOutfit(null)
   const filteredItems = wardrobeItems.filter(i => activeCategories.includes(i.category))
   const itemsToUse = filteredItems.length >= 2 ? filteredItems : wardrobeItems
@@ -198,6 +216,33 @@ async function generateOutfit() {
 
 async function saveOutfit() {
   if (!outfit) return
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) return
+  const { count } = await supabase.from('outfits').select('*', { count: 'exact', head: true }).eq('user_id', session.user.id) as any
+  const SAVE_LIMIT = 5
+  if ((count ?? 0) >= SAVE_LIMIT) {
+    setLimitMsg(locale === 'de'
+      ? 'Max. 5 gespeicherte Outfits. Upgrade auf Premium für unbegrenzt!'
+      : 'Max. 5 saved outfits. Upgrade to Premium for unlimited!')
+    setTimeout(() => setLimitMsg(null), 4000)
+    return
+  }
+  const active = outfit.outfits[outfit.active]
+  await supabase.from('outfits').insert({
+    user_id: session.user.id, occasion: selected,
+    item_ids: active.itemObjects.map(i => i.id),
+    name: `${t('dresser.occasions.' + selected)} Outfit`,
+  })
+  setSaved(true)
+}
+const SAVE_LIMIT = 5 // später isPremium ? Infinity : 5
+if (count >= SAVE_LIMIT) {
+ setLimitMsg(locale === 'de' ? '...' : '...')
+setTimeout(() => setLimitMsg(null), 4000)(locale === 'de'
+    ? `Free Plan: Max. 5 gespeicherte Outfits. Upgrade auf Premium für unbegrenzt!`
+    : `Free Plan: Max. 5 saved outfits. Upgrade to Premium for unlimited!`)
+  return
+}
   const active = outfit.outfits[outfit.active]
   const { data: { session } } = await supabase.auth.getSession()
   if (!session?.user) return
@@ -227,6 +272,26 @@ return (
   itemCount={wardrobeItems.length}
 />
 
+<AnimatePresence>
+  {limitMsg && (
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      style={{
+        position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)',
+        zIndex: 9997, background: accent, color: '#fff',
+        padding: '12px 20px', borderRadius: '14px',
+        fontSize: '13px', fontWeight: 600,
+        fontFamily: "'DM Sans', sans-serif",
+        boxShadow: `0 4px 20px ${accent}50`,
+        maxWidth: '320px', textAlign: 'center' as const,
+        whiteSpace: 'pre-wrap' as const,
+      }}>
+      🔒 {limitMsg}
+    </motion.div>
+  )}
+</AnimatePresence>
 {/* Unlock Animation */}
 <AnimatePresence>
   {showUnlock && (

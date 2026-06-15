@@ -58,6 +58,15 @@ const accentDim = isDark ? 'rgba(77,126,255,0.1)' : 'rgba(59,107,255,0.08)'
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+    // Limit check
+const isPremium = false // später von Supabase
+const LIMIT = isPremium ? Infinity : 20
+if (items.length >= LIMIT) {
+  alert(locale === 'de'
+    ? `Free Plan: Max. 20 Kleidungsstücke. Upgrade auf Premium für unbegrenzt!`
+    : `Free Plan: Max. 20 items. Upgrade to Premium for unlimited!`)
+  return
+}
     const convertedFile = await convertToJpeg(file)
     setUploading(true); setAnalyzing(true); setAnalyzeResult(''); setProgress(0)
     try {
