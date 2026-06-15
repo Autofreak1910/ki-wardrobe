@@ -486,11 +486,22 @@ onClick={isPremium ? generateStyleDna : () => setShowUpgrade(true)}
                 </div>
               ))}
 
-              <motion.button
-                whileTap={{ scale: 0.97 }}
-                style={{ width: '100%', marginTop: '20px', padding: '16px', background: `linear-gradient(135deg, ${accent}, #6b9fff)`, border: 'none', borderRadius: '16px', fontSize: '16px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: `0 6px 24px ${accent}50`, letterSpacing: '-0.01em' }}>
-                {locale === 'de' ? 'Für €4,99/Monat upgraden →' : 'Upgrade for €4.99/month →'}
-              </motion.button>
+           <motion.button
+  whileTap={{ scale: 0.97 }}
+  onClick={async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.user) return
+    const res = await fetch('/api/create-checkout-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: session.user.id, userEmail: session.user.email }),
+    })
+    const data = await res.json()
+    if (data.url) window.location.href = data.url
+  }}
+  style={{ width: '100%', marginTop: '20px', padding: '16px', background: `linear-gradient(135deg, ${accent}, #6b9fff)`, border: 'none', borderRadius: '16px', fontSize: '16px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: `0 6px 24px ${accent}50`, letterSpacing: '-0.01em' }}>
+  {locale === 'de' ? 'Für €4,99/Monat upgraden →' : 'Upgrade for €4.99/month →'}
+</motion.button>
               <p style={{ textAlign: 'center' as const, fontSize: '11px', color: muted, marginTop: '10px' }}>
                 {locale === 'de' ? 'Jederzeit kündbar · Keine versteckten Kosten' : 'Cancel anytime · No hidden fees'}
               </p>

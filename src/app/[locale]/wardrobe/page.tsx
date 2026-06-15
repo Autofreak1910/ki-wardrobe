@@ -246,9 +246,27 @@ export default function WardrobePage() {
           </select>
         </div>
 
-        {/* Upload */}
-        <motion.div
-        {items.length >= 5 && (
+       {/* Style DNA Banner */}
+{items.length >= 5 && (
+  <motion.div
+    initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+    onClick={() => router.push('/' + locale + '/profile')}
+    whileTap={{ scale: 0.98 }}
+    style={{ background: `linear-gradient(135deg, ${accent}15, #6b9fff10)`, border: `1px solid ${border}`, borderRadius: '14px', padding: '14px 16px', marginBottom: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
+    <span style={{ fontSize: '24px' }}>🧬</span>
+    <div style={{ flex: 1 }}>
+      <p style={{ fontSize: '13px', fontWeight: 700, color: text, marginBottom: '2px' }}>{locale === 'de' ? 'Style DNA entdecken' : 'Discover your Style DNA'}</p>
+      <p style={{ fontSize: '11px', color: muted }}>{locale === 'de' ? `KI analysiert deine ${items.length} Kleidungsstücke` : `AI analyzes your ${items.length} items`}</p>
+    </div>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+  </motion.div>
+)}
+
+{/* Upload */}
+<motion.div
+  whileTap={{ scale: 0.99 }}
+  onClick={() => !uploading && fileInputRef.current?.click()}
+  style={{ border: `2px dashed ${uploading ? accent : border}`, borderRadius: '16px', padding: '22px', textAlign: 'center', cursor: uploading ? 'default' : 'pointer', marginBottom: '16px', transition: 'all 0.2s', background: uploading ? accentDim : card }}>
   <motion.div
     initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
     onClick={() => router.push('/' + locale + '/profile')}
