@@ -356,20 +356,20 @@ onClick={isPremium ? generateStyleDna : () => setShowUpgrade(true)}
           {/* Free */}
           <div style={{ background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', border: `1px solid ${border}`, borderRadius: '18px', padding: '16px 14px' }}>
             <p style={{ fontSize: '11px', fontWeight: 700, color: muted, letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '4px' }}>FREE</p>
-            <p style={{ fontSize: '26px', fontWeight: 800, color: text, letterSpacing: '-0.04em', marginBottom: '2px' }}>€0</p>
+          <p style={{ fontSize: '32px', fontWeight: 800, color: text, letterSpacing: '-0.04em', marginBottom: '2px' }}>€0</p>
             <p style={{ fontSize: '11px', color: muted, marginBottom: '12px' }}>{locale === 'de' ? 'für immer kostenlos' : 'free forever'}</p>
             <div style={{ height: '1px', background: border, marginBottom: '12px' }} />
             {[
-              { title: '3 Outfits', sub: locale === 'de' ? 'pro Tag' : 'per day' },
-              { title: locale === 'de' ? 'Max. 20 Teile' : 'Max. 20 items', sub: '' },
-              { title: locale === 'de' ? 'Max. 5 speichern' : 'Max. 5 saved', sub: '' },
-              { title: locale === 'de' ? 'Basis KI-Styling' : 'Basic AI', sub: '' },
+            { title: locale === 'de' ? '3 Outfits pro Tag' : '3 outfits per day', sub: '' },
+{ title: locale === 'de' ? 'Max. 20 Kleidungsstücke' : 'Max. 20 items', sub: '' },
+{ title: locale === 'de' ? 'Max. 5 Outfits speichern' : 'Max. 5 saved outfits', sub: '' },
+{ title: locale === 'de' ? 'Basis KI-Styling' : 'Basic AI styling', sub: '' },
             ].map((f, i) => (
               <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
                 <span style={{ fontSize: '11px', color: muted, flexShrink: 0, marginTop: '2px' }}>○</span>
                 <div>
-                  <p style={{ fontSize: '11px', fontWeight: 600, color: text }}>{f.title}</p>
-                  {f.sub && <p style={{ fontSize: '10px', color: muted }}>{f.sub}</p>}
+                <p style={{ fontSize: '13px', fontWeight: 600, color: text }}>{f.title}</p>
+{f.sub && <p style={{ fontSize: '11px', color: muted }}>{f.sub}</p>}
                 </div>
               </div>
             ))}
@@ -396,7 +396,7 @@ onClick={isPremium ? generateStyleDna : () => setShowUpgrade(true)}
             </div>
             <div style={{ marginTop: '12px' }}>
               <p style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '4px' }}>PRO</p>
-              <p style={{ fontSize: '26px', fontWeight: 800, color: '#fff', letterSpacing: '-0.04em', marginBottom: '2px' }}>€4,99</p>
+           <p style={{ fontSize: '32px', fontWeight: 800, color: '#fff', letterSpacing: '-0.04em', marginBottom: '2px' }}>€4,99</p>
               <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', marginBottom: '12px' }}>{locale === 'de' ? 'pro Monat · kündbar' : 'per month'}</p>
               <div style={{ height: '1px', background: 'rgba(255,255,255,0.2)', marginBottom: '12px' }} />
               {[
