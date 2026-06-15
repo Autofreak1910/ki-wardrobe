@@ -18,6 +18,10 @@ export default function ProfilePage() {
   const [editUsername, setEditUsername] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [editEmail, setEditEmail] = useState('')
+const [editAge, setEditAge] = useState('')
+const [savedEmail, setSavedEmail] = useState(false)
+const [savedAge, setSavedAge] = useState(false)
   const [showUpgrade, setShowUpgrade] = useState(false)
   const [dna, setDna] = useState<any>(null)
   const [dnaLoading, setDnaLoading] = useState(false)
@@ -53,6 +57,8 @@ export default function ProfilePage() {
       supabase.from('outfits').select('id').eq('user_id', session.user.id),
     ])
     if (profileRes.data) { setProfile({ ...profileRes.data, email: session.user.email }); setEditUsername(profileRes.data.username ?? '') }
+    setEditEmail(session.user.email ?? '')
+setEditAge(profileRes.data?.age ?? '')
     setItemCount(itemsRes.data?.length ?? 0)
     setOutfitCount(outfitsRes.data?.length ?? 0)
     setLoading(false)
@@ -66,6 +72,21 @@ export default function ProfilePage() {
     setTimeout(() => setSaved(false), 2000)
     setProfile(prev => prev ? { ...prev, username: editUsername } : null)
   }
+  async function saveEmail() {
+  setSaving(true)
+  const { error } = await supabase.auth.updateUser({ email: editEmail })
+  if (!error) { setSavedEmail(true); setTimeout(() => setSavedEmail(false), 2000) }
+  setSaving(false)
+}
+
+async function saveAge() {
+  if (!profile) return
+  setSaving(true)
+  await supabase.from('profiles').update({ age: editAge }).eq('id', profile.id)
+  setProfile(prev => prev ? { ...prev, age: editAge } : null)
+  setSavedAge(true); setTimeout(() => setSavedAge(false), 2000)
+  setSaving(false)
+}
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -266,16 +287,34 @@ export default function ProfilePage() {
     </div>
   </div>
 
-  {/* Email — nur anzeigen */}
-  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderBottom: `1px solid ${border}` }}>
-    <p style={{ fontSize: '14px', color: text, fontWeight: 500 }}>Email</p>
-    <p style={{ fontSize: '12px', color: muted }}>{profile?.email ?? '—'}</p>
+  {/* Email */}
+  <div style={{ padding: '14px 16px', borderBottom: `1px solid ${border}` }}>
+    <label style={{ fontSize: '11px', fontWeight: 600, color: muted, display: 'block', marginBottom: '8px', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>Email</label>
+    <div style={{ display: 'flex', gap: '8px' }}>
+      <input type="email" value={editEmail} onChange={e => setEditEmail(e.target.value)}
+        style={{ flex: 1, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 12px', fontSize: '14px', color: text, outline: 'none', fontFamily: "'DM Sans', sans-serif", background: isDark ? '#080c18' : '#f8faff', minWidth: 0 }} />
+      <motion.button whileTap={{ scale: 0.95 }} onClick={saveEmail}
+        style={{ background: savedEmail ? accent : 'transparent', border: `1px solid ${savedEmail ? accent : border}`, borderRadius: '10px', padding: '10px 16px', fontSize: '13px', fontWeight: 600, color: savedEmail ? '#fff' : text, cursor: 'pointer', whiteSpace: 'nowrap' as const, transition: 'all 0.2s' }}>
+        {savedEmail ? '✓' : locale === 'de' ? 'Speichern' : 'Save'}
+      </motion.button>
+    </div>
   </div>
 
-  {/* Alter — nur anzeigen */}
-  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px' }}>
-    <p style={{ fontSize: '14px', color: text, fontWeight: 500 }}>{locale === 'de' ? 'Alter' : 'Age'}</p>
-    <p style={{ fontSize: '12px', color: muted }}>{profile?.age ?? '—'}</p>
+  {/* Alter */}
+  <div style={{ padding: '14px 16px' }}>
+    <label style={{ fontSize: '11px', fontWeight: 600, color: muted, display: 'block', marginBottom: '8px', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>{locale === 'de' ? 'Alter' : 'Age'}</label>
+    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' as const, alignItems: 'center' }}>
+      {['13-15', '16-18', '19-22', '23-27', '28-35', '35+'].map(range => (
+        <motion.button key={range} whileTap={{ scale: 0.95 }} onClick={() => setEditAge(range)}
+          style={{ padding: '7px 12px', borderRadius: '100px', border: `1px solid ${editAge === range ? accent : border}`, background: editAge === range ? accent : 'transparent', color: editAge === range ? '#fff' : muted, fontSize: '12px', fontWeight: editAge === range ? 600 : 400, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'all 0.15s' }}>
+          {range}
+        </motion.button>
+      ))}
+      <motion.button whileTap={{ scale: 0.95 }} onClick={saveAge}
+        style={{ marginLeft: 'auto', background: savedAge ? accent : accentDim, border: `1px solid ${savedAge ? accent : border}`, borderRadius: '10px', padding: '7px 14px', fontSize: '12px', fontWeight: 600, color: savedAge ? '#fff' : accent, cursor: 'pointer', transition: 'all 0.2s' }}>
+        {savedAge ? '✓' : locale === 'de' ? 'Speichern' : 'Save'}
+      </motion.button>
+    </div>
   </div>
 </div>
 
