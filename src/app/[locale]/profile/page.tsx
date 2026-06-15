@@ -195,65 +195,87 @@ async function saveAge() {
           </div>
         </motion.div>
 
-    {/* Upgrade Banner */}
+   {/* Upgrade Banner */}
 {!isPremium && (
   <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-    onClick={async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.user) return
-      const res = await fetch('/api/create-checkout-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: session.user.id, userEmail: session.user.email }),
-      })
-      const data = await res.json()
-      if (data.url) window.location.href = data.url
-    }}
-    whileTap={{ scale: 0.99 }}
-    style={{ marginBottom: '12px', cursor: 'pointer' }}>
-    <div style={{ background: `linear-gradient(135deg, ${accent}, #6b9fff)`, borderRadius: '16px 16px 0 0', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <div>
-        <p style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '2px' }}>KiWardrobe Pro</p>
-        <p style={{ fontSize: '13px', fontWeight: 600, color: '#fff' }}>{locale === 'de' ? 'Jetzt upgraden für €4,99/Mo →' : 'Upgrade now for €4.99/mo →'}</p>
-      </div>
-      <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '10px', padding: '6px 12px' }}>
-        <p style={{ fontSize: '16px', fontWeight: 800, color: '#fff' }}>€4,99</p>
-      </div>
-    </div>
-    <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '0 0 16px 16px', overflow: 'hidden' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', borderBottom: `1px solid ${border}` }}>
-        <div style={{ padding: '10px 14px' }}>
-          <p style={{ fontSize: '11px', fontWeight: 600, color: muted }}>Feature</p>
-        </div>
-        <div style={{ padding: '10px 14px', borderLeft: `1px solid ${border}`, textAlign: 'center' as const }}>
-          <p style={{ fontSize: '11px', fontWeight: 600, color: muted }}>Free</p>
-        </div>
-        <div style={{ padding: '10px 14px', borderLeft: `1px solid ${border}`, textAlign: 'center' as const, background: accentDim }}>
-          <p style={{ fontSize: '11px', fontWeight: 700, color: accent }}>Pro ✦</p>
-        </div>
-      </div>
-      {[
-        { label: locale === 'de' ? 'Outfits/Tag' : 'Outfits/day', free: '3', pro: '15' },
-        { label: locale === 'de' ? 'Kleidungsstücke' : 'Items', free: '20', pro: '∞' },
-        { label: locale === 'de' ? 'Outfits speichern' : 'Saved', free: '5', pro: '∞' },
-        { label: 'Style DNA', free: '✗', pro: '✦' },
-      ].map((row, i) => (
-        <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', borderBottom: i < 3 ? `1px solid ${border}` : 'none' }}>
-          <div style={{ padding: '11px 14px' }}>
-            <p style={{ fontSize: '13px', color: text, fontWeight: 500 }}>{row.label}</p>
+    style={{ marginBottom: '12px' }}>
+    
+    <p style={{ fontSize: '11px', fontWeight: 700, color: muted, letterSpacing: '0.12em', textTransform: 'uppercase' as const, textAlign: 'center' as const, marginBottom: '14px' }}>
+      {locale === 'de' ? 'Wähle deinen Plan' : 'Choose your plan'}
+    </p>
+
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+
+      {/* Free Card */}
+      <div style={{ background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', border: `1px solid ${border}`, borderRadius: '18px', padding: '18px 16px' }}>
+        <p style={{ fontSize: '11px', fontWeight: 700, color: muted, letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>FREE</p>
+        <p style={{ fontSize: '28px', fontWeight: 800, color: text, letterSpacing: '-0.04em', marginBottom: '2px' }}>€0</p>
+        <p style={{ fontSize: '11px', color: muted, marginBottom: '16px' }}>{locale === 'de' ? 'für immer kostenlos' : 'free forever'}</p>
+        <div style={{ height: '1px', background: border, marginBottom: '14px' }} />
+        {[
+          { title: locale === 'de' ? '3 Outfits' : '3 Outfits', sub: locale === 'de' ? 'pro Tag generieren' : 'per day' },
+          { title: locale === 'de' ? 'Max. 20 Kleidungsstücke' : 'Max. 20 items', sub: locale === 'de' ? 'im Kleiderschrank' : 'in wardrobe' },
+          { title: locale === 'de' ? 'Max. 5 Outfits speichern' : 'Max. 5 saved', sub: locale === 'de' ? 'in deiner Sammlung' : 'in collection' },
+          { title: locale === 'de' ? 'Basis KI-Styling' : 'Basic AI styling', sub: locale === 'de' ? 'wetterbasierte Vorschläge' : 'weather-based' },
+        ].map((f, i) => (
+          <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', marginBottom: '10px' }}>
+            <span style={{ fontSize: '12px', color: muted, marginTop: '1px', flexShrink: 0 }}>○</span>
+            <div>
+              <p style={{ fontSize: '12px', fontWeight: 600, color: text, marginBottom: '1px' }}>{f.title}</p>
+              <p style={{ fontSize: '11px', color: muted }}>{f.sub}</p>
+            </div>
           </div>
-          <div style={{ padding: '11px 14px', borderLeft: `1px solid ${border}`, textAlign: 'center' as const }}>
-            <p style={{ fontSize: '13px', color: row.free === '✗' ? '#ef4444' : muted, fontWeight: 500 }}>{row.free}</p>
-          </div>
-          <div style={{ padding: '11px 14px', borderLeft: `1px solid ${border}`, textAlign: 'center' as const, background: accentDim }}>
-            <p style={{ fontSize: '13px', color: accent, fontWeight: 700 }}>{row.pro}</p>
-          </div>
+        ))}
+      </div>
+
+      {/* Pro Card */}
+      <motion.div
+        whileTap={{ scale: 0.98 }}
+        onClick={async () => {
+          const { data: { session } } = await supabase.auth.getSession()
+          if (!session?.user) return
+          const res = await fetch('/api/create-checkout-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: session.user.id, userEmail: session.user.email }),
+          })
+          const data = await res.json()
+          if (data.url) window.location.href = data.url
+        }}
+        style={{ background: `linear-gradient(160deg, ${accent}, #6b9fff)`, borderRadius: '18px', padding: '18px 16px', cursor: 'pointer', position: 'relative' as const, overflow: 'hidden', boxShadow: `0 8px 32px ${accent}50` }}>
+        
+        {/* Empfohlen Badge */}
+        <div style={{ position: 'absolute', top: '-1px', left: '50%', transform: 'translateX(-50%)', background: '#fff', borderRadius: '0 0 10px 10px', padding: '3px 12px' }}>
+          <p style={{ fontSize: '10px', fontWeight: 800, color: accent, letterSpacing: '0.06em', textTransform: 'uppercase' as const, whiteSpace: 'nowrap' as const }}>
+            {locale === 'de' ? 'Empfohlen' : 'Recommended'}
+          </p>
         </div>
-      ))}
+
+        <div style={{ marginTop: '14px' }}>
+          <p style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>PRO</p>
+          <p style={{ fontSize: '28px', fontWeight: 800, color: '#fff', letterSpacing: '-0.04em', marginBottom: '2px' }}>€4,99</p>
+          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', marginBottom: '16px' }}>{locale === 'de' ? 'pro Monat · kündbar' : 'per month · cancel anytime'}</p>
+          <div style={{ height: '1px', background: 'rgba(255,255,255,0.2)', marginBottom: '14px' }} />
+          {[
+            { title: locale === 'de' ? '15 Outfits' : '15 Outfits', sub: locale === 'de' ? 'pro Tag · 5× mehr' : 'per day · 5× more' },
+            { title: locale === 'de' ? 'Unbegrenzt Kleidung' : 'Unlimited items', sub: locale === 'de' ? 'ohne Limit' : 'no limits' },
+            { title: locale === 'de' ? 'Unbegrenzt speichern' : 'Unlimited saved', sub: locale === 'de' ? 'alle Outfits' : 'all outfits' },
+            { title: 'Style DNA', sub: locale === 'de' ? 'KI analysiert deinen Stil' : 'AI analyzes your style' },
+          ].map((f, i) => (
+            <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', marginBottom: '10px' }}>
+              <span style={{ fontSize: '12px', color: '#fff', marginTop: '1px', flexShrink: 0 }}>✦</span>
+              <div>
+                <p style={{ fontSize: '12px', fontWeight: 700, color: '#fff', marginBottom: '1px' }}>{f.title}</p>
+                <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)' }}>{f.sub}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </motion.div>
+
     </div>
   </motion.div>
 )}
-
 {/* Premium Badge */}
 {isPremium && (
   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
