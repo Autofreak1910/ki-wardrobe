@@ -39,8 +39,8 @@ const [savedAge, setSavedAge] = useState(false)
   const muted     = isDark ? '#4d6080' : '#6b7fa8'
   const accent    = isDark ? '#4d7eff' : '#3b6bff'
   const accentDim = isDark ? 'rgba(77,126,255,0.1)' : 'rgba(59,107,255,0.08)'
-
-  const todayOutfits = (() => {
+const todayOutfits = (() => {
+    if (typeof window === 'undefined') return 0
     const today = new Date().toDateString()
     const lastDate = localStorage.getItem('kw_outfit_date')
     return lastDate === today ? parseInt(localStorage.getItem('kw_outfit_count') ?? '0') : 0
