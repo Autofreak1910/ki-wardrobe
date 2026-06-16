@@ -1,3 +1,5 @@
+export const maxDuration = 60
+
 import Replicate from 'replicate'
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
@@ -21,23 +23,35 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'limit_reached' }, { status: 403 })
       }
     } else {
-      // Premium: check 1 per day
       const today = new Date().toISOString().split('T')[0]
       const { count } = await supabase.from('avatar_results')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', session.user.id)
-        .gte('created_at', today + 'T00:00:00')
+        .gte('created_at', today + 'T00:00:00') as any
       if ((count ?? 0) >= 1) {
         return NextResponse.json({ error: 'daily_limit' }, { status: 403 })
       }
     }
+
+    // Upload selfie to Supabase Storage
+    const base64Data = personImage.replace(/^data:image\/\w+;base64,/, '')
+    const buffer = Buffer.from(base64Data, 'base64')
+    const fileName = `avatars/${session.user.id}/${Date.now()}.jpg`
+    
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(fileName, buffer, { contentType: 'image/jpeg', upsert: true })
+    
+    if (uploadError) throw uploadError
+
+    const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName)
 
     // Run Replicate
     const output = await replicate.run(
       'cuuupid/idm-vton:906425dbca90663ff5427624839572cc56ea7d380343d13e2a4c4b09d3f0c30f',
       {
         input: {
-          human_img: personImage,
+          human_img: publicUrl,
           garm_img: garmentImage,
           garment_des: garmentDescription || 'clothing item',
           is_checked: true,
