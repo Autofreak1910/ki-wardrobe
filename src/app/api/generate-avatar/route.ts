@@ -3,6 +3,8 @@ export const maxDuration = 60
 import Replicate from 'replicate'
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import sharp from 'sharp'
+
 
 const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN })
 
@@ -34,8 +36,9 @@ if (!user || userError) return NextResponse.json({ error: 'Unauthorized' }, { st
     }
 
     // Upload selfie to Supabase Storage
-    const base64Data = personImage.replace(/^data:image\/\w+;base64,/, '')
-    const buffer = Buffer.from(base64Data, 'base64')
+   const base64Data = personImage.replace(/^data:image\/\w+;base64,/, '')
+const rawBuffer = Buffer.from(base64Data, 'base64')
+const buffer = await sharp(rawBuffer).rotate().jpeg({ quality: 90 }).toBuffer()
     const fileName = `avatars/${user.id}/${Date.now()}.jpg`
     
     const { data: uploadData, error: uploadError } = await supabase.storage
