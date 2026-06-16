@@ -180,7 +180,7 @@ export default function AvatarPage() {
                     </button>
                   </div>
                 )}
-                <input ref={fileRef} type="file" accept="image/*" onChange={handleSelfie} style={{ display: 'none' }} />
+                <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={handleSelfie} style={{ display: 'none' }} />
               </div>
             </motion.div>
 
@@ -244,24 +244,57 @@ export default function AvatarPage() {
               </motion.div>
             )}
 
-            {/* Result */}
-            <AnimatePresence>
-              {result && (
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                  style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden', marginBottom: '16px' }}>
-                  <div style={{ padding: '10px 16px', borderBottom: `1px solid ${border}`, background: accentDim, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <p style={{ fontSize: '10px', fontWeight: 700, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
-                      ✦ {locale === 'de' ? 'Dein Avatar' : 'Your Avatar'}
-                    </p>
-                    <a href={result} download="kiwardrobe-avatar.jpg" target="_blank"
-                      style={{ fontSize: '11px', fontWeight: 600, color: accent, textDecoration: 'none' }}>
-                      {locale === 'de' ? '↓ Speichern' : '↓ Save'}
-                    </a>
-                  </div>
-                  <img src={result} style={{ width: '100%', display: 'block', maxHeight: '500px', objectFit: 'contain' }} />
-                </motion.div>
-              )}
-            </AnimatePresence>
+         {/* Result */}
+<AnimatePresence>
+  {result && (
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+      style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden', marginBottom: '16px' }}>
+      <div style={{ padding: '10px 16px', borderBottom: `1px solid ${border}`, background: accentDim, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <p style={{ fontSize: '10px', fontWeight: 700, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
+          ✦ {locale === 'de' ? 'Dein Avatar' : 'Your Avatar'}
+        </p>
+        <button
+          onClick={async () => {
+            try {
+              const response = await fetch(result)
+              const blob = await response.blob()
+              const url = URL.createObjectURL(blob)
+              const a = document.createElement('a')
+              a.href = url
+              a.download = 'kiwardrobe-avatar.jpg'
+              a.click()
+              URL.revokeObjectURL(url)
+            } catch {
+              window.open(result, '_blank')
+            }
+          }}
+          style={{ fontSize: '11px', fontWeight: 600, color: accent, background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
+          {locale === 'de' ? '↓ Speichern' : '↓ Save'}
+        </button>
+      </div>
+      <img
+        src={result}
+        style={{ width: '100%', display: 'block', maxHeight: '500px', objectFit: 'contain' }}
+        onError={(e) => {
+          e.currentTarget.style.display = 'none'
+          const div = document.createElement('div')
+          div.style.padding = '20px'
+          div.style.textAlign = 'center'
+          div.style.color = accent
+          div.innerHTML = `<a href="${result}" target="_blank" style="color:${accent};font-weight:600">🔗 ${locale === 'de' ? 'Bild öffnen →' : 'Open image →'}</a>`
+          e.currentTarget.parentNode?.appendChild(div)
+        }}
+      />
+      <div style={{ padding: '12px 16px' }}>
+        <button
+          onClick={() => window.open(result, '_blank')}
+          style={{ width: '100%', background: accentDim, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px', fontSize: '13px', fontWeight: 600, color: accent, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
+          🔗 {locale === 'de' ? 'In neuem Tab öffnen' : 'Open in new tab'}
+        </button>
+      </div>
+    </motion.div>
+  )}
+</AnimatePresence>
           </>
         )}
 
