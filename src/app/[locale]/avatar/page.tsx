@@ -48,13 +48,25 @@ export default function AvatarPage() {
     setPageLoading(false)
   }
 
-  function handleSelfie(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    const reader = new FileReader()
-    reader.onload = () => setSelfie(reader.result as string)
-    reader.readAsDataURL(file)
+function handleSelfie(e: React.ChangeEvent<HTMLInputElement>) {
+  const file = e.target.files?.[0]
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = () => {
+    const img = new Image()
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      canvas.width = img.naturalWidth
+      canvas.height = img.naturalHeight
+      const ctx = canvas.getContext('2d')!
+      ctx.drawImage(img, 0, 0)
+      setSelfie(canvas.toDataURL('image/jpeg', 0.9))
+setSelfie(canvas.toDataURL('image/jpeg', 0.9))
+    }
+    img.src = reader.result as string
   }
+  reader.readAsDataURL(file)
+}
 
   async function generateAvatar() {
     if (!selfie || !selectedItem) return
@@ -180,7 +192,7 @@ export default function AvatarPage() {
                     </button>
                   </div>
                 )}
-                <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={handleSelfie} style={{ display: 'none' }} />
+              <input ref={fileRef} type="file" accept="image/*" onChange={handleSelfie} style={{ display: 'none' }} />
               </div>
             </motion.div>
 
