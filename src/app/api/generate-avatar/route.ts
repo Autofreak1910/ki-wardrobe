@@ -9,8 +9,8 @@ const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN })
 export async function POST(req: Request) {
   try {
     const supabase = await createClient()
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+ const { data: { user }, error: userError } = await supabase.auth.getUser()
+if (!user || userError) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { personImage, garmentImage, garmentDescription } = await req.json()
 
