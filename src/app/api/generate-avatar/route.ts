@@ -63,11 +63,17 @@ if (!user || userError) return NextResponse.json({ error: 'Unauthorized' }, { st
     )
 
     const imageUrl = Array.isArray(output) ? output[0] : output
+    // Download und in Supabase speichern
+const imgResponse = await fetch(imageUrl as string)
+const imgBuffer = await imgResponse.arrayBuffer()
+const resultFileName = `results/${user.id}/${Date.now()}.jpg`
+await supabase.storage.from('avatars').upload(resultFileName, Buffer.from(imgBuffer), { contentType: 'image/jpeg', upsert: true })
+const { data: { publicUrl: savedUrl } } = supabase.storage.from('avatars').getPublicUrl(resultFileName)
 
     // Save result
     await supabase.from('avatar_results').insert({
       user_id: user.id,
-      image_url: imageUrl,
+      image_url: savedUrl,
     })
 
     // Decrement free tries
@@ -77,7 +83,7 @@ if (!user || userError) return NextResponse.json({ error: 'Unauthorized' }, { st
       }).eq('id', user.id)
     }
 
-    return NextResponse.json({ success: true, imageUrl })
+  return NextResponse.json({ success: true, imageUrl: savedUrl })
   } catch (err: any) {
     console.error(err)
     return NextResponse.json({ error: err.message }, { status: 500 })
