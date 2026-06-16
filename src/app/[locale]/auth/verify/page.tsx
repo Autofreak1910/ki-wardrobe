@@ -86,7 +86,13 @@ onChange={e => setOtp(e.target.value.slice(0, 6))}
           onClick={async () => {
             if (otp.length !== 6 || !email) return
             setLoading(true); setError('')
-            const { error } = await supabase.auth.verifyOtp({ email, token: otp, type: 'email' })
+          const { error } = await supabase.auth.signInWithOtp({ 
+  email, 
+  options: { 
+    shouldCreateUser: false,
+    data: { type: 'email' }
+  } 
+})
             if (error) { setError(locale === 'de' ? 'Ungültiger Code — bitte nochmal versuchen' : 'Invalid code — please try again'); setLoading(false) }
             else { router.push('/' + locale + '/dresser') }
           }}
