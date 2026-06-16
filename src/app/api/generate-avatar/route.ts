@@ -15,7 +15,7 @@ if (!user || userError) return NextResponse.json({ error: 'Unauthorized' }, { st
     const { personImage, garmentImage, garmentDescription } = await req.json()
 
     // Check limits
-    const { data: profile } = await supabase.from('profiles').select('is_premium, avatar_tries_left').eq('id', session.user.id).single()
+    const { data: profile } = await supabase.from('profiles').select('is_premium, avatar_tries_left').eq('id', user.id).single()
     if (!profile) return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
 
     if (!profile.is_premium) {
@@ -26,7 +26,7 @@ if (!user || userError) return NextResponse.json({ error: 'Unauthorized' }, { st
       const today = new Date().toISOString().split('T')[0]
       const { count } = await supabase.from('avatar_results')
         .select('*', { count: 'exact', head: true })
-        .eq('user_id', session.user.id)
+        .eq('user_id', user.id)
         .gte('created_at', today + 'T00:00:00') as any
       if ((count ?? 0) >= 1) {
         return NextResponse.json({ error: 'daily_limit' }, { status: 403 })
@@ -36,7 +36,7 @@ if (!user || userError) return NextResponse.json({ error: 'Unauthorized' }, { st
     // Upload selfie to Supabase Storage
     const base64Data = personImage.replace(/^data:image\/\w+;base64,/, '')
     const buffer = Buffer.from(base64Data, 'base64')
-    const fileName = `avatars/${session.user.id}/${Date.now()}.jpg`
+    const fileName = `avatars/${user.id}/${Date.now()}.jpg`
     
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('avatars')
@@ -66,7 +66,7 @@ if (!user || userError) return NextResponse.json({ error: 'Unauthorized' }, { st
 
     // Save result
     await supabase.from('avatar_results').insert({
-      user_id: session.user.id,
+      user_id: user.id,
       image_url: imageUrl,
     })
 
@@ -74,7 +74,7 @@ if (!user || userError) return NextResponse.json({ error: 'Unauthorized' }, { st
     if (!profile.is_premium) {
       await supabase.from('profiles').update({
         avatar_tries_left: (profile.avatar_tries_left ?? 0) - 1
-      }).eq('id', session.user.id)
+      }).eq('id', user.id)
     }
 
     return NextResponse.json({ success: true, imageUrl })
