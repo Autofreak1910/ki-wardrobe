@@ -48,7 +48,7 @@ if (!user || userError) return NextResponse.json({ error: 'Unauthorized' }, { st
 
     // Run Replicate
     const output = await replicate.run(
-  'fashn/fashn:310d96ccb2fd765e5bf8dc4d11a2a9f4e4d27faa56767f3d4a2b18b66e6ac95d'
+      'cuuupid/idm-vton:906425dbca90663ff5427624839572cc56ea7d380343d13e2a4c4b09d3f0c30f',
       {
         input: {
           human_img: publicUrl,
