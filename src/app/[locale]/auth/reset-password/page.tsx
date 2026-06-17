@@ -27,13 +27,11 @@ export default function ResetPasswordPage() {
   const muted  = isDark ? '#4d6080' : '#6b7fa8'
   const accent = isDark ? '#4d7eff' : '#3b6bff'
 
-  useEffect(() => {
-    supabase.auth.onAuthStateChange((event) => {
+useEffect(() => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') setReady(true)
     })
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setReady(true)
-    })
+    return () => listener.subscription.unsubscribe()
   }, [])
 
   async function handleUpdate() {
