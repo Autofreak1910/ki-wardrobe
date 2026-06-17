@@ -67,7 +67,8 @@ const [outfit, setOutfit] = useState<OutfitGroup | null>(null)
   const [activeCategories, setActiveCategories] = useState<string[]>(['tops', 'hosen', 'jacken', 'schuhe', 'acc'])
   const [weather, setWeather] = useState<Weather | null>(null)
   const [weatherLoading, setWeatherLoading] = useState(true)
-  const [username, setUsername] = useState<string>('')
+const [username, setUsername] = useState<string>('')
+  const [isPremium, setIsPremium] = useState(false)
   const { theme } = useTheme()
   const t = useTranslations()
   const locale = useLocale()
@@ -102,8 +103,9 @@ useEffect(() => {
     if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
     const { data } = await supabase.from('clothing_items').select('*').eq('user_id', session.user.id)
     if (data) { setWardrobeItems(data); setHasItems(data.length >= 3) }
-    const { data: profile } = await supabase.from('profiles').select('username').eq('id', session.user.id).single()
+ const { data: profile } = await supabase.from('profiles').select('username, is_premium').eq('id', session.user.id).single()
     if (profile?.username) setUsername(profile.username)
+    setIsPremium(profile?.is_premium ?? false)
   }
 
   async function fetchWeather() {
@@ -165,12 +167,12 @@ useEffect(() => {
   }
 
 async function generateOutfit() {
-  if (wardrobeItems.length < 3) return
+if (wardrobeItems.length < 3) return
   // Outfit Tageslimit check
 const today = new Date().toDateString()
 const lastDate = localStorage.getItem('kw_outfit_date')
 const todayCount = lastDate === today ? parseInt(localStorage.getItem('kw_outfit_count') ?? '0') : 0
-const DAILY_LIMIT = 3 // später isPremium ? 15 : 3
+const DAILY_LIMIT = isPremium ? 15 : 3
 if (todayCount >= DAILY_LIMIT) {
 setLimitMsg(locale === 'de'
   ? 'Tageslimit erreicht — 3/3 Outfits'
@@ -216,8 +218,8 @@ async function saveOutfit() {
   if (!outfit) return
   const { data: { session } } = await supabase.auth.getSession()
   if (!session?.user) return
-  const { count } = await supabase.from('outfits').select('*', { count: 'exact', head: true }).eq('user_id', session.user.id) as any
-  const SAVE_LIMIT = 5
+const { count } = await supabase.from('outfits').select('*', { count: 'exact', head: true }).eq('user_id', session.user.id) as any
+  const SAVE_LIMIT = isPremium ? Infinity : 5
   if ((count ?? 0) >= SAVE_LIMIT) {
    setLimitMsg(locale === 'de'
   ? 'Limit erreicht — Max. 5 gespeichert'

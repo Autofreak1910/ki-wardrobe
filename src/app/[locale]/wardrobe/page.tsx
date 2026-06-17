@@ -29,7 +29,8 @@ export default function WardrobePage() {
   const [editDate, setEditDate] = useState('')
   const [editPrice, setEditPrice] = useState('')
   const [saving, setSaving] = useState(false)
-  const [limitMsg, setLimitMsg] = useState<string | null>(null)
+ const [limitMsg, setLimitMsg] = useState<string | null>(null)
+  const [isPremium, setIsPremium] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { theme } = useTheme()
   const t = useTranslations()
@@ -49,19 +50,20 @@ export default function WardrobePage() {
 
   useEffect(() => { loadItems() }, [])
 
-  async function loadItems() {
+ async function loadItems() {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
     const { data } = await supabase.from('clothing_items').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false })
     if (data) setItems(data)
+    const { data: profile } = await supabase.from('profiles').select('is_premium').eq('id', session.user.id).single()
+    setIsPremium(profile?.is_premium ?? false)
   }
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
 
-    const isPremium = false
-    const LIMIT = isPremium ? Infinity : 20
+  const LIMIT = isPremium ? Infinity : 20
     if (items.length >= LIMIT) {
       setLimitMsg(locale === 'de'
         ? 'Max. 20 Kleidungsstücke im Free Plan. Upgrade für unbegrenzt!'
