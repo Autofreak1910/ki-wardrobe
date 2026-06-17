@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { useTheme } from '@/context/ThemeContext'
 import { useLocale } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useSearchParams } from 'next/navigation'
 
 const countries = [
   { code: 'de', flag: '🇩🇪', name: 'Deutschland', lang: 'de' },
@@ -35,8 +36,10 @@ export default function RegisterPage() {
   const [budgetRange, setBudgetRange] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const router = useRouter()
+const router = useRouter()
   const supabase = createClient()
+  const searchParams = useSearchParams()
+  const refCode = searchParams.get('ref')
   const { theme, toggle } = useTheme()
   const locale = useLocale()
   const isDark = theme === 'dark'
@@ -63,11 +66,23 @@ export default function RegisterPage() {
       },
     })
     if (signUpError) { setError(signUpError.message); setLoading(false); return }
-    if (data.user) {
+ if (data.user) {
       await supabase.from('profiles').update({
         username, age: parseInt(age), country, language: lang,
         gender, style_preferences: stylePrefs, budget_range: budgetRange
       }).eq('id', data.user.id)
+
+      if (refCode) {
+        try {
+          await fetch('/api/apply-referral', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ referralCode: refCode }),
+          })
+        } catch (refErr) {
+          console.error('Referral apply failed:', refErr)
+        }
+      }
     }
     setLoading(false)
     router.push('/' + lang + '/dresser')
