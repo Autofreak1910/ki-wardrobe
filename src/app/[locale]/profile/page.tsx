@@ -9,6 +9,66 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from '@/components/Navbar'
 type Profile = { id: string; username: string; is_premium: boolean; age?: string; country?: string; created_at: string; email?: string; gender?: string; style_preferences?: string[]; budget_range?: string; referral_code?: string }
 
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4)
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
+  const rawData = window.atob(base64)
+  const outputArray = new Uint8Array(rawData.length)
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i)
+  }
+  return outputArray
+}
+
+async function enablePush(): Promise<boolean> {
+  try {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false
+    const registration = await navigator.serviceWorker.register('/sw-push.js')
+    await navigator.serviceWorker.ready
+    const permission = await Notification.requestPermission()
+    if (permission !== 'granted') return false
+    let subscription = await registration.pushManager.getSubscription()
+    if (!subscription) {
+      const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+      if (!vapidKey) return false
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidKey),
+      })
+    }
+    const subJson = subscription.toJSON()
+    await fetch('/api/save-push-subscription', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ endpoint: subJson.endpoint, keys: subJson.keys }),
+    })
+    return true
+  } catch (err) {
+    console.error('Enable push failed:', err)
+    return false
+  }
+}
+
+async function disablePush(): Promise<boolean> {
+  try {
+    const registration = await navigator.serviceWorker.getRegistration('/sw-push.js')
+    const subscription = await registration?.pushManager.getSubscription()
+    if (subscription) {
+      const endpoint = subscription.endpoint
+      await subscription.unsubscribe()
+      await fetch('/api/delete-push-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ endpoint }),
+      })
+    }
+    return true
+  } catch (err) {
+    console.error('Disable push failed:', err)
+    return false
+  }
+}
+
 export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [itemCount, setItemCount] = useState(0)
@@ -39,6 +99,8 @@ const [savedAge, setSavedAge] = useState(false)
   const accent    = isDark ? '#4d7eff' : '#3b6bff'
   const accentDim = isDark ? 'rgba(77,126,255,0.1)' : 'rgba(59,107,255,0.08)'
 const [todayOutfits, setTodayOutfits] = useState(0)
+const [pushEnabled, setPushEnabled] = useState(false)
+const [pushLoading, setPushLoading] = useState(false)
 
   useEffect(() => { loadProfile() }, [])
   useEffect(() => {
@@ -57,7 +119,14 @@ const [todayOutfits, setTodayOutfits] = useState(0)
       supabase.from('outfits').select('id').eq('user_id', session.user.id),
       supabase.from('outfit_generations').select('id', { count: 'exact', head: true }).eq('user_id', session.user.id).gte('created_at', startOfDay.toISOString()),
     ])
-    setTodayOutfits(todayOutfitsRes.count ?? 0)
+  setTodayOutfits(todayOutfitsRes.count ?? 0)
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+      try {
+        const registration = await navigator.serviceWorker.getRegistration('/sw-push.js')
+        const subscription = await registration?.pushManager.getSubscription()
+        setPushEnabled(!!subscription)
+      } catch { setPushEnabled(false) }
+    }
     if (profileRes.data) { setProfile({ ...profileRes.data, email: session.user.email }); setEditUsername(profileRes.data.username ?? '') }
     setEditEmail(session.user.email ?? '')
 setEditAge(profileRes.data?.age ?? '')
@@ -335,6 +404,33 @@ onClick={isPremium ? generateStyleDna : () => setShowUpgrade(true)}
               <p style={{ fontSize: '14px', color: text, fontWeight: 500 }}>Dark Mode</p>
               <button onClick={toggle} style={{ width: '44px', height: '26px', borderRadius: '13px', border: 'none', background: isDark ? accent : border, cursor: 'pointer', position: 'relative' as const, transition: 'background 0.2s' }}>
                 <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#fff', position: 'absolute', top: '3px', transition: 'left 0.2s', left: isDark ? '21px' : '3px', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+              </button>
+            </div>
+            <div style={{ height: '1px', background: border, margin: '0 16px' }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px' }}>
+              <div>
+                <p style={{ fontSize: '14px', color: text, fontWeight: 500 }}>
+                  {locale === 'de' ? '☀️ Outfit-Erinnerung' : '☀️ Outfit reminder'}
+                </p>
+                <p style={{ fontSize: '11px', color: muted, marginTop: '2px' }}>
+                  {locale === 'de' ? 'Tägliche Push-Benachrichtigung' : 'Daily push notification'}
+                </p>
+              </div>
+              <button
+                disabled={pushLoading}
+                onClick={async () => {
+                  setPushLoading(true)
+                  if (pushEnabled) {
+                    const ok = await disablePush()
+                    if (ok) setPushEnabled(false)
+                  } else {
+                    const ok = await enablePush()
+                    if (ok) setPushEnabled(true)
+                  }
+                  setPushLoading(false)
+                }}
+                style={{ width: '44px', height: '26px', borderRadius: '13px', border: 'none', background: pushEnabled ? accent : border, cursor: pushLoading ? 'wait' : 'pointer', position: 'relative' as const, transition: 'background 0.2s', opacity: pushLoading ? 0.6 : 1, flexShrink: 0 }}>
+                <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#fff', position: 'absolute', top: '3px', transition: 'left 0.2s', left: pushEnabled ? '21px' : '3px', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
               </button>
             </div>
             <div style={{ height: '1px', background: border, margin: '0 16px' }} />
