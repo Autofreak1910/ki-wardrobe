@@ -35,8 +35,7 @@ async function enablePush(): Promise<boolean> {
     }
 
  const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
-    console.log('VAPID Key:', vapidKey, 'Length:', vapidKey?.length)
-    if (!vapidKey) { alert('VAPID Key fehlt!'); return false }
+    if (!vapidKey) return false
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(vapidKey),

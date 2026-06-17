@@ -228,7 +228,7 @@ const { count: todayCount, error: countError } = await supabase
     .select('*', { count: 'exact', head: true })
     .eq('user_id', session.user.id)
     .gte('created_at', startOfDay.toISOString())
-  if (countError) console.error('Count error:', JSON.stringify(countError))
+if (countError) console.error('Count error:', countError)
   console.log('Today count:', todayCount)
 
   const DAILY_LIMIT = isPremium ? 15 : 3
@@ -240,8 +240,8 @@ const { count: todayCount, error: countError } = await supabase
     return
   }
 
-  const { error: insertError } = await supabase.from('outfit_generations').insert({ user_id: session.user.id })
-if (insertError) console.error('Insert error:', JSON.stringify(insertError))
+const { error: insertError } = await supabase.from('outfit_generations').insert({ user_id: session.user.id })
+  if (insertError) console.error('Insert error:', insertError)
 
   setLoading(true); setSaved(false); setOutfit(null)
   const filteredItems = wardrobeItems.filter(i => activeCategories.includes(i.category))
