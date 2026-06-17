@@ -87,27 +87,37 @@ export default function WardrobePage() {
       setAnalyzeStep(locale === 'de' ? 'Hintergrund wird entfernt...' : 'Removing background...')
       setProgress(35)
       let publicUrl = originalUrl
-      try {
+ try {
         const bgRes = await fetch('/api/remove-background', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ imageUrl: originalUrl }),
         })
         const bgData = await bgRes.json()
+        console.log('BG removal response:', bgData)
         if (bgData.success && bgData.imageUrl) {
           const cleanImgRes = await fetch(bgData.imageUrl)
+          if (!cleanImgRes.ok) {
+            console.error('Failed to fetch clean image, status:', cleanImgRes.status)
+            throw new Error('fetch clean failed')
+          }
           const cleanBlob = await cleanImgRes.blob()
+          console.log('Clean blob size:', cleanBlob.size)
           const cleanFileName = `${user.id}/${Date.now()}-clean.png`
           const { error: cleanUploadErr } = await supabase.storage.from('clothing').upload(cleanFileName, cleanBlob, { contentType: 'image/png' })
-          if (!cleanUploadErr) {
+          if (cleanUploadErr) {
+            console.error('Clean upload error:', cleanUploadErr)
+          } else {
             const { data: { publicUrl: cleanUrl } } = supabase.storage.from('clothing').getPublicUrl(cleanFileName)
+            console.log('Clean URL saved:', cleanUrl)
             publicUrl = cleanUrl
           }
+        } else {
+          console.error('BG removal did not return success/imageUrl')
         }
       } catch (bgErr) {
         console.error('Background removal failed, using original:', bgErr)
       }
-
       setAnalyzeStep(locale === 'de' ? 'KI analysiert...' : 'AI analyzing...')
       setProgress(50)
       const base64 = await fileToBase64(convertedFile)
