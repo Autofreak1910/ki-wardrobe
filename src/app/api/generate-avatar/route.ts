@@ -13,8 +13,7 @@ export async function POST(req: Request) {
     const supabase = await createClient()
  const { data: { user }, error: userError } = await supabase.auth.getUser()
 if (!user || userError) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-    const { personImage, garmentImage, garmentDescription } = await req.json()
+const { personImage, garmentImage, garmentDescription, category } = await req.json()
 
     // Check limits
     const { data: profile } = await supabase.from('profiles').select('is_premium, avatar_tries_left').eq('id', user.id).single()
@@ -48,6 +47,9 @@ const buffer = Buffer.from(base64Data, 'base64')
 
     const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName)
 
+const categoryMap: Record<string, string> = { tops: 'upper_body', hosen: 'lower_body', jacken: 'upper_body', acc: 'upper_body' }
+    const garmentCategory = categoryMap[category] ?? 'upper_body'
+
     // Run Replicate
     const output = await replicate.run(
       'cuuupid/idm-vton:906425dbca90663ff5427624839572cc56ea7d380343d13e2a4c4b09d3f0c30f',
@@ -56,6 +58,7 @@ const buffer = Buffer.from(base64Data, 'base64')
           human_img: publicUrl,
           garm_img: garmentImage,
           garment_des: garmentDescription || 'clothing item',
+          category: garmentCategory,
           is_checked: true,
           is_checked_crop: false,
           denoise_steps: 30,

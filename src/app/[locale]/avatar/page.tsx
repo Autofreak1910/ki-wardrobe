@@ -9,6 +9,16 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from '@/components/Navbar'
 
 type ClothingItem = { id: string; image_url: string; category: string; color: string; name?: string; brand?: string }
+function getCategoryLabel(category: string): string {
+  const map: Record<string, string> = {
+    tops: 'shirt',
+    hosen: 'pants',
+    jacken: 'jacket',
+    schuhe: 'shoes',
+    acc: 'accessory',
+  }
+  return map[category] ?? category
+}
 
 export default function AvatarPage() {
   const [profile, setProfile] = useState<any>(null)
@@ -60,7 +70,7 @@ function handleSelfie(e: React.ChangeEvent<HTMLInputElement>) {
       canvas.height = img.naturalHeight
       const ctx = canvas.getContext('2d')!
       ctx.drawImage(img, 0, 0)
-      setSelfie(canvas.toDataURL('image/jpeg', 0.9))
+    setSelfie(canvas.toDataURL('image/jpeg', 0.9))
 setSelfie(canvas.toDataURL('image/jpeg', 0.9))
     }
     img.src = reader.result as string
@@ -77,11 +87,12 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
       const res = await fetch('/api/generate-avatar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          personImage: selfie,
-          garmentImage: selectedItem.image_url,
-          garmentDescription: `${selectedItem.color} ${selectedItem.name ?? selectedItem.category}`,
-        })
+  body: JSON.stringify({
+  personImage: selfie,
+  garmentImage: selectedItem.image_url,
+  garmentDescription: `${selectedItem.color} ${getCategoryLabel(selectedItem.category)}`,
+  category: selectedItem.category,
+})
       })
       const data = await res.json()
       if (data.error === 'limit_reached') {
