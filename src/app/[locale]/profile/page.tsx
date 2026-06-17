@@ -38,12 +38,7 @@ const [savedAge, setSavedAge] = useState(false)
   const muted     = isDark ? '#4d6080' : '#6b7fa8'
   const accent    = isDark ? '#4d7eff' : '#3b6bff'
   const accentDim = isDark ? 'rgba(77,126,255,0.1)' : 'rgba(59,107,255,0.08)'
-const todayOutfits = (() => {
-    if (typeof window === 'undefined') return 0
-    const today = new Date().toDateString()
-    const lastDate = localStorage.getItem('kw_outfit_date')
-    return lastDate === today ? parseInt(localStorage.getItem('kw_outfit_count') ?? '0') : 0
-  })()
+const [todayOutfits, setTodayOutfits] = useState(0)
 
   useEffect(() => { loadProfile() }, [])
   useEffect(() => {
@@ -54,11 +49,15 @@ const todayOutfits = (() => {
   async function loadProfile() {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
-    const [profileRes, itemsRes, outfitsRes] = await Promise.all([
+    const startOfDay = new Date()
+    startOfDay.setHours(0, 0, 0, 0)
+    const [profileRes, itemsRes, outfitsRes, todayOutfitsRes] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', session.user.id).single(),
       supabase.from('clothing_items').select('id').eq('user_id', session.user.id),
       supabase.from('outfits').select('id').eq('user_id', session.user.id),
+      supabase.from('outfit_generations').select('id', { count: 'exact', head: true }).eq('user_id', session.user.id).gte('created_at', startOfDay.toISOString()),
     ])
+    setTodayOutfits(todayOutfitsRes.count ?? 0)
     if (profileRes.data) { setProfile({ ...profileRes.data, email: session.user.email }); setEditUsername(profileRes.data.username ?? '') }
     setEditEmail(session.user.email ?? '')
 setEditAge(profileRes.data?.age ?? '')

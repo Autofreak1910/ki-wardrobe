@@ -217,21 +217,29 @@ useEffect(() => {
 
 async function generateOutfit() {
 if (wardrobeItems.length < 3) return
-  // Outfit Tageslimit check
-const today = new Date().toDateString()
-const lastDate = localStorage.getItem('kw_outfit_date')
-const todayCount = lastDate === today ? parseInt(localStorage.getItem('kw_outfit_count') ?? '0') : 0
-const DAILY_LIMIT = isPremium ? 15 : 3
-if (todayCount >= DAILY_LIMIT) {
-setLimitMsg(locale === 'de'
-  ? 'Tageslimit erreicht — 3/3 Outfits'
-  : 'Daily limit reached — 3/3 outfits')
-setTimeout(() => setLimitMsg(null), 4000)
-  return
-}
-// Count erhöhen
-localStorage.setItem('kw_outfit_date', today)
-localStorage.setItem('kw_outfit_count', String(todayCount + 1))
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) return
+
+  // Outfit Tageslimit check (DB-basiert, pro User)
+  const startOfDay = new Date()
+  startOfDay.setHours(0, 0, 0, 0)
+  const { count: todayCount } = await supabase
+    .from('outfit_generations')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', session.user.id)
+    .gte('created_at', startOfDay.toISOString()) as any
+
+  const DAILY_LIMIT = isPremium ? 15 : 3
+  if ((todayCount ?? 0) >= DAILY_LIMIT) {
+    setLimitMsg(locale === 'de'
+      ? `Tageslimit erreicht — ${DAILY_LIMIT}/${DAILY_LIMIT} Outfits`
+      : `Daily limit reached — ${DAILY_LIMIT}/${DAILY_LIMIT} outfits`)
+    setTimeout(() => setLimitMsg(null), 4000)
+    return
+  }
+
+  await supabase.from('outfit_generations').insert({ user_id: session.user.id })
+
   setLoading(true); setSaved(false); setOutfit(null)
   const filteredItems = wardrobeItems.filter(i => activeCategories.includes(i.category))
   const itemsToUse = filteredItems.length >= 2 ? filteredItems : wardrobeItems
