@@ -175,21 +175,32 @@ export default function WardrobePage() {
   }
 
   async function convertToJpeg(file: File): Promise<File> {
-    return new Promise((resolve) => {
-      const img = new Image()
-      const url = URL.createObjectURL(file)
-      img.onload = () => {
-        const canvas = document.createElement('canvas')
-        canvas.width = img.width; canvas.height = img.height
-        canvas.getContext('2d')!.drawImage(img, 0, 0)
-        canvas.toBlob((blob) => {
-          URL.revokeObjectURL(url)
-          resolve(new File([blob!], file.name.replace(/\.[^/.]+$/, '') + '.jpg', { type: 'image/jpeg' }))
-        }, 'image/jpeg', 0.92)
+  return new Promise((resolve) => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      const MAX_DIM = 1600
+      let { width, height } = img
+      if (width > MAX_DIM || height > MAX_DIM) {
+        if (width > height) {
+          height = Math.round((height / width) * MAX_DIM)
+          width = MAX_DIM
+        } else {
+          width = Math.round((width / height) * MAX_DIM)
+          height = MAX_DIM
+        }
       }
-      img.src = url
-    })
-  }
+      const canvas = document.createElement('canvas')
+      canvas.width = width; canvas.height = height
+      canvas.getContext('2d')!.drawImage(img, 0, 0, width, height)
+      canvas.toBlob((blob) => {
+        URL.revokeObjectURL(url)
+        resolve(new File([blob!], file.name.replace(/\.[^/.]+$/, '') + '.jpg', { type: 'image/jpeg' }))
+      }, 'image/jpeg', 0.85)
+    }
+    img.src = url
+  })
+}
 
   function fileToBase64(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
