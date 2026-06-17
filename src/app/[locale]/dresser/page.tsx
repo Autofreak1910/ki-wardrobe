@@ -173,8 +173,14 @@ useEffect(() => {
         setTimeout(() => reject(new Error('timeout')), 5000)
       )
     ])
+const { latitude: lat, longitude: lon } = pos.coords
 
-    const { latitude: lat, longitude: lon } = pos.coords
+    // Standort für Cron-Job speichern (für tägliches Auto-Outfit)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        supabase.from('profiles').update({ last_lat: lat, last_lon: lon }).eq('id', session.user.id)
+      }
+    })
 
     // Parallel fetchen
     const [weatherRes, geoRes] = await Promise.all([
