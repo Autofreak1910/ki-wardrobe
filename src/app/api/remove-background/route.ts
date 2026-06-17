@@ -10,8 +10,8 @@ export async function POST(req: Request) {
     const { imageUrl } = await req.json()
     if (!imageUrl) return NextResponse.json({ error: 'No image' }, { status: 400 })
 
- const output = await replicate.run(
-  "851-labs/background-remover:a029dff38972b5fda4ec5d75d7d1cd25aa1a999f0eb22f02e4c95fd3c98e7e3",
+const output = await replicate.run(
+  "lucataco/remove-bg:95fcc2a26d3899cd6c2691c900465aaeff466285a65c14638cc5f36f34befaf",
   { input: { image: imageUrl } }
 )
     const resultUrl = Array.isArray(output) ? output[0] : output
