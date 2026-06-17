@@ -223,11 +223,13 @@ if (wardrobeItems.length < 3) return
   // Outfit Tageslimit check (DB-basiert, pro User)
   const startOfDay = new Date()
   startOfDay.setHours(0, 0, 0, 0)
-  const { count: todayCount } = await supabase
+const { count: todayCount, error: countError } = await supabase
     .from('outfit_generations')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', session.user.id)
-    .gte('created_at', startOfDay.toISOString()) as any
+    .gte('created_at', startOfDay.toISOString())
+  if (countError) console.error('Count error:', countError)
+  console.log('Today count:', todayCount)
 
   const DAILY_LIMIT = isPremium ? 15 : 3
   if ((todayCount ?? 0) >= DAILY_LIMIT) {
@@ -238,7 +240,8 @@ if (wardrobeItems.length < 3) return
     return
   }
 
-  await supabase.from('outfit_generations').insert({ user_id: session.user.id })
+  const { error: insertError } = await supabase.from('outfit_generations').insert({ user_id: session.user.id })
+  if (insertError) console.error('Insert error:', insertError)
 
   setLoading(true); setSaved(false); setOutfit(null)
   const filteredItems = wardrobeItems.filter(i => activeCategories.includes(i.category))
