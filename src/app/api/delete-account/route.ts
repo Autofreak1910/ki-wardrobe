@@ -16,6 +16,19 @@ export async function POST(req: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
+  // Storage-Dateien löschen (clothing + avatars Buckets)
+    for (const bucket of ['clothing', 'avatars']) {
+      try {
+        const { data: files } = await adminClient.storage.from(bucket).list(userId)
+        if (files && files.length > 0) {
+          const paths = files.map(f => `${userId}/${f.name}`)
+          await adminClient.storage.from(bucket).remove(paths)
+        }
+      } catch (storageErr) {
+        console.error(`Storage cleanup failed for bucket ${bucket}:`, storageErr)
+      }
+    }
+
     // Alle zugehörigen Daten löschen (Reihenfolge wegen Foreign Keys beachten)
     await adminClient.from('push_subscriptions').delete().eq('user_id', userId)
     await adminClient.from('outfit_generations').delete().eq('user_id', userId)
