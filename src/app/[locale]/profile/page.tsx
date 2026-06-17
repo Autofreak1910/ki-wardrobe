@@ -7,8 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from '@/components/Navbar'
-
-type Profile = { id: string; username: string; is_premium: boolean; age?: string; country?: string; created_at: string; email?: string; gender?: string; style_preferences?: string[]; budget_range?: string }
+type Profile = { id: string; username: string; is_premium: boolean; age?: string; country?: string; created_at: string; email?: string; gender?: string; style_preferences?: string[]; budget_range?: string; referral_code?: string }
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -228,8 +227,41 @@ async function saveAge() {
     </div>
   </motion.div>
 )}
+{/* Invite Friends */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}
+          style={{ background: `linear-gradient(135deg, ${accent}, #6b9fff)`, borderRadius: '16px', padding: '18px', marginBottom: '12px', position: 'relative' as const, overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+            <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>🎁</div>
+            <div>
+              <p style={{ fontSize: '15px', fontWeight: 800, color: '#fff', marginBottom: '2px' }}>
+                {locale === 'de' ? 'Freunde einladen' : 'Invite friends'}
+              </p>
+              <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.85)', lineHeight: 1.4 }}>
+                {locale === 'de'
+                  ? 'Dein Freund bekommt 14 Tage Pro gratis, du 1 Woche pro Einladung!'
+                  : 'Your friend gets 14 days Pro free, you get 1 week per invite!'}
+              </p>
+            </div>
+          </div>
+          <motion.button whileTap={{ scale: 0.97 }}
+            onClick={async () => {
+              const inviteUrl = `https://kiwardrobe-app.vercel.app/${locale}/auth/register?ref=${profile?.referral_code ?? ''}`
+              const shareText = locale === 'de'
+                ? `Probier KiWardrobe aus — die KI zeigt dir was zu deinem Kleiderschrank passt, und du kannst Klamotten virtuell anprobieren! Mit meinem Link bekommst du 14 Tage Pro gratis: ${inviteUrl}`
+                : `Check out KiWardrobe — AI styles your wardrobe and you can try on clothes virtually! Use my link for 14 days Pro free: ${inviteUrl}`
+              if (navigator.share) {
+                try { await navigator.share({ title: 'KiWardrobe', text: shareText, url: inviteUrl }) } catch {}
+              } else {
+                await navigator.clipboard.writeText(shareText)
+                alert(locale === 'de' ? 'Link kopiert!' : 'Link copied!')
+              }
+            }}
+            style={{ width: '100%', background: '#fff', border: 'none', borderRadius: '12px', padding: '12px', fontSize: '14px', fontWeight: 700, color: accent, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
+            {locale === 'de' ? '📤 Einladungslink teilen' : '📤 Share invite link'}
+          </motion.button>
+        </motion.div>
 
-        {/* Style DNA Button */}
+       {/* Style DNA Button */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
 onClick={isPremium ? generateStyleDna : () => setShowUpgrade(true)}
           whileTap={{ scale: 0.98 }}
