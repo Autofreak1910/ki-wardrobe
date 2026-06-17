@@ -46,7 +46,10 @@ const buffer = Buffer.from(base64Data, 'base64')
     
     if (uploadError) throw uploadError
 
-    const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName)
+  const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName)
+
+    const categoryMap: Record<string, string> = { tops: 'upper_body', hosen: 'lower_body', jacken: 'upper_body', acc: 'upper_body' }
+    const garmentCategory = categoryMap[category] ?? 'upper_body'
 
     // Run Replicate
     const output = await replicate.run(
@@ -56,10 +59,10 @@ const buffer = Buffer.from(base64Data, 'base64')
           human_img: publicUrl,
           garm_img: garmentImage,
           garment_des: garmentDescription || 'clothing item',
-          
+          category: garmentCategory,
           is_checked: true,
           is_checked_crop: false,
-          denoise_steps: 30,
+          denoise_steps: 35,
           seed: 42,
         }
       }
