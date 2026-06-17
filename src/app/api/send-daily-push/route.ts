@@ -56,10 +56,12 @@ export async function GET(req: Request) {
   let outfitsGenerated = 0
   let outfitsFailed = 0
 
-  for (const userId of userIds) {
+for (const userId of userIds) {
     try {
-      const { data: items } = await supabase.from('clothing_items').select('*').eq('user_id', userId)
-      if (!items || items.length < 3) continue
+      const { data: items, error: itemsError } = await supabase.from('clothing_items').select('*').eq('user_id', userId)
+      if (itemsError) console.error('Items fetch error for', userId, itemsError)
+      console.log('Items for', userId, ':', items?.length ?? 0)
+      if (!items || items.length < 3) { console.log('Skipping - not enough items'); continue }
 
       const { data: profile } = await supabase.from('profiles').select('last_lat, last_lon').eq('id', userId).single()
 
@@ -81,24 +83,26 @@ export async function GET(req: Request) {
         ],
         response_format: { type: 'json_object' },
       })
-
-      const result = JSON.parse(completion.choices[0].message.content ?? '{}')
-      if (!result.items) continue
+const result = JSON.parse(completion.choices[0].message.content ?? '{}')
+      console.log('OpenAI result for', userId, ':', JSON.stringify(result))
+      if (!result.items) { console.log('Skipping - no items in result'); continue }
 
       const matchedItems = result.items.map((name: string) =>
         items.find((i: any) => (i.name ?? '').toLowerCase().includes(name.toLowerCase()) || name.toLowerCase().includes((i.name ?? '').toLowerCase()))
       ).filter(Boolean)
 
-      if (matchedItems.length === 0) continue
+  console.log('Matched items:', matchedItems.length)
+      if (matchedItems.length === 0) { console.log('Skipping - no matched items'); continue }
 
-      await supabase.from('daily_outfits').insert({
+      const { error: insertErr } = await supabase.from('daily_outfits').insert({
         user_id: userId,
         item_ids: matchedItems.map((i: any) => i.id),
         reasoning: result.reasoning ?? '',
         vibe: result.vibe ?? '',
-        occasion: 'casual',
+    occasion: 'casual',
       })
 
+      if (insertErr) { console.error('Daily outfit insert error:', insertErr); outfitsFailed++; continue }
       outfitsGenerated++
     } catch (err) {
       outfitsFailed++
