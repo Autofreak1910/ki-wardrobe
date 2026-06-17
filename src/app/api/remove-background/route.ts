@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     if (!imageUrl) return NextResponse.json({ error: 'No image' }, { status: 400 })
 
 const output = await replicate.run(
-  "lucataco/remove-bg:95fcc2a26d3899cd6c2691c900465aaeff466285a65c14638cc5f36f34befaf",
+  "smoretalk/rembg-enhance",
   { input: { image: imageUrl } }
 )
     const resultUrl = Array.isArray(output) ? output[0] : output
