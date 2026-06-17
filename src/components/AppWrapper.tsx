@@ -7,6 +7,52 @@ import SplashScreen from './SplashScreen'
 
 const TAB_ORDER = ['dresser', 'wardrobe', 'outfits', 'profile']
 
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4)
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
+  const rawData = window.atob(base64)
+  const outputArray = new Uint8Array(rawData.length)
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i)
+  }
+  return outputArray
+}
+
+async function setupPushNotifications() {
+  try {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return
+    if (Notification.permission === 'denied') return
+
+    const registration = await navigator.serviceWorker.register('/sw-push.js')
+    await navigator.serviceWorker.ready
+
+    let permission = Notification.permission
+    if (permission === 'default') {
+      permission = await Notification.requestPermission()
+    }
+    if (permission !== 'granted') return
+
+    let subscription = await registration.pushManager.getSubscription()
+    if (!subscription) {
+      const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+      if (!vapidKey) return
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidKey),
+      })
+    }
+
+    const subJson = subscription.toJSON()
+    await fetch('/api/save-push-subscription', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ endpoint: subJson.endpoint, keys: subJson.keys }),
+    })
+  } catch (err) {
+    console.error('Push setup failed:', err)
+  }
+}
+
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
   const [showSplash, setShowSplash] = useState(true)
   const pathname = usePathname()
@@ -26,7 +72,7 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
     })
   }, [])
 
-  async function preloadData() {
+async function preloadData() {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) return
     await Promise.all([
@@ -34,6 +80,7 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
       supabase.from('outfits').select('*').eq('user_id', session.user.id),
       supabase.from('profiles').select('*').eq('id', session.user.id).single(),
     ])
+    setupPushNotifications()
   }
 
   function handleSplashDone() {
