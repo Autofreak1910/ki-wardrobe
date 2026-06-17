@@ -20,6 +20,113 @@ function getCategoryLabel(category: string): string {
   return map[category] ?? category
 }
 
+async function createShareCard(selfieUrl: string, resultUrl: string, locale: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const selfieImg = new Image()
+    const resultImg = new Image()
+    selfieImg.crossOrigin = 'anonymous'
+    resultImg.crossOrigin = 'anonymous'
+
+    let loaded = 0
+    function onBothLoaded() {
+      loaded++
+      if (loaded < 2) return
+
+      const W = 1080
+      const H = 1350
+      const canvas = document.createElement('canvas')
+      canvas.width = W
+      canvas.height = H
+      const ctx = canvas.getContext('2d')!
+
+      // Background gradient
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, H)
+      bgGrad.addColorStop(0, '#0a1628')
+      bgGrad.addColorStop(1, '#1a2540')
+      ctx.fillStyle = bgGrad
+      ctx.fillRect(0, 0, W, H)
+
+      // Header
+      ctx.fillStyle = '#ffffff'
+      ctx.font = 'bold 52px sans-serif'
+      ctx.textAlign = 'center'
+      ctx.fillText('KiWardrobe', W / 2, 90)
+      ctx.font = '28px sans-serif'
+      ctx.fillStyle = '#4d7eff'
+      ctx.fillText(locale === 'de' ? '✦ Virtual Try-On' : '✦ Virtual Try-On', W / 2, 130)
+
+      // Image area
+      const imgTop = 170
+      const imgHeight = H - imgTop - 160
+      const gap = 16
+      const halfW = (W - gap - 80) / 2
+      const leftX = 40
+      const rightX = leftX + halfW + gap
+
+      function drawCover(img: HTMLImageElement, x: number, y: number, w: number, h: number) {
+        const imgRatio = img.width / img.height
+        const boxRatio = w / h
+        let sx = 0, sy = 0, sw = img.width, sh = img.height
+        if (imgRatio > boxRatio) {
+          sw = img.height * boxRatio
+          sx = (img.width - sw) / 2
+        } else {
+          sh = img.width / boxRatio
+          sy = (img.height - sh) / 2
+        }
+        ctx.save()
+        const radius = 24
+        ctx.beginPath()
+        ctx.moveTo(x + radius, y)
+        ctx.arcTo(x + w, y, x + w, y + h, radius)
+        ctx.arcTo(x + w, y + h, x, y + h, radius)
+        ctx.arcTo(x, y + h, x, y, radius)
+        ctx.arcTo(x, y, x + w, y, radius)
+        ctx.closePath()
+        ctx.clip()
+        ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h)
+        ctx.restore()
+      }
+
+      drawCover(selfieImg, leftX, imgTop, halfW, imgHeight)
+      drawCover(resultImg, rightX, imgTop, halfW, imgHeight)
+
+      // Labels
+      ctx.fillStyle = 'rgba(0,0,0,0.55)'
+      ctx.fillRect(leftX, imgTop + imgHeight - 50, halfW, 50)
+      ctx.fillRect(rightX, imgTop + imgHeight - 50, halfW, 50)
+      ctx.fillStyle = '#ffffff'
+      ctx.font = 'bold 24px sans-serif'
+      ctx.fillText(locale === 'de' ? 'VORHER' : 'BEFORE', leftX + halfW / 2, imgTop + imgHeight - 16)
+      ctx.fillText(locale === 'de' ? 'NACHHER' : 'AFTER', rightX + halfW / 2, imgTop + imgHeight - 16)
+
+      // Arrow between
+      ctx.fillStyle = '#4d7eff'
+      ctx.font = 'bold 40px sans-serif'
+      ctx.fillText('→', W / 2, imgTop + imgHeight / 2 + 14)
+
+      // Footer
+      ctx.fillStyle = '#8aa0d0'
+      ctx.font = '24px sans-serif'
+      ctx.fillText(
+        locale === 'de' ? 'Probier deine Klamotten virtuell an ✦' : 'Try on your clothes virtually ✦',
+        W / 2, H - 90
+      )
+      ctx.fillStyle = '#4d7eff'
+      ctx.font = 'bold 26px sans-serif'
+      ctx.fillText('kiwardrobe-app.vercel.app', W / 2, H - 50)
+
+      resolve(canvas.toDataURL('image/jpeg', 0.92))
+    }
+
+    selfieImg.onload = onBothLoaded
+    resultImg.onload = onBothLoaded
+    selfieImg.onerror = () => reject(new Error('selfie load failed'))
+    resultImg.onerror = () => reject(new Error('result load failed'))
+    selfieImg.src = selfieUrl
+    resultImg.src = resultUrl
+  })
+}
 export default function AvatarPage() {
   const [profile, setProfile] = useState<any>(null)
   const [items, setItems] = useState<ClothingItem[]>([])
@@ -28,7 +135,8 @@ export default function AvatarPage() {
   const [result, setResult] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [pageLoading, setPageLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+const [error, setError] = useState<string | null>(null)
+  const [sharing, setSharing] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const { theme } = useTheme()
   const locale = useLocale()
@@ -279,7 +387,7 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
         <p style={{ fontSize: '10px', fontWeight: 700, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
           ✦ {locale === 'de' ? 'Dein Avatar' : 'Your Avatar'}
         </p>
-        <button
+     <button
           onClick={async () => {
             try {
               const response = await fetch(result)
@@ -311,7 +419,45 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
           e.currentTarget.parentNode?.appendChild(div)
         }}
       />
-      <div style={{ padding: '12px 16px' }}>
+      <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column' as const, gap: '8px' }}>
+        <motion.button whileTap={{ scale: 0.97 }}
+          onClick={async () => {
+            if (!selfie || !result) return
+            setSharing(true)
+            try {
+              const cardDataUrl = await createShareCard(selfie, result, locale)
+              const blob = await (await fetch(cardDataUrl)).blob()
+              const file = new File([blob], 'kiwardrobe-vorher-nachher.jpg', { type: 'image/jpeg' })
+              if (navigator.share && navigator.canShare?.({ files: [file] })) {
+                await navigator.share({
+                  files: [file],
+                  title: 'KiWardrobe',
+                  text: locale === 'de' ? 'Schau wie ich in diesem Outfit aussehe! ✦ KiWardrobe' : 'Check out how I look in this outfit! ✦ KiWardrobe',
+                })
+              } else {
+                const url = URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = 'kiwardrobe-vorher-nachher.jpg'
+                a.click()
+                URL.revokeObjectURL(url)
+              }
+            } catch (err) {
+              console.error('Share card failed:', err)
+            }
+            setSharing(false)
+          }}
+          style={{ width: '100%', background: `linear-gradient(135deg, ${accent}, #6b9fff)`, border: 'none', borderRadius: '10px', padding: '12px', fontSize: '14px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          {sharing ? (
+            <>
+              <motion.span animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
+                style={{ display: 'block', width: '14px', height: '14px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff' }} />
+              {locale === 'de' ? 'Erstelle...' : 'Creating...'}
+            </>
+          ) : (
+            <>📤 {locale === 'de' ? 'Vorher/Nachher teilen' : 'Share before/after'}</>
+          )}
+        </motion.button>
         <button
           onClick={() => window.open(result, '_blank')}
           style={{ width: '100%', background: accentDim, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px', fontSize: '13px', fontWeight: 600, color: accent, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
