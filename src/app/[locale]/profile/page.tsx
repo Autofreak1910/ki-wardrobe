@@ -27,15 +27,20 @@ async function enablePush(): Promise<boolean> {
     await navigator.serviceWorker.ready
     const permission = await Notification.requestPermission()
     if (permission !== 'granted') return false
-    let subscription = await registration.pushManager.getSubscription()
-    if (!subscription) {
-      const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
-      if (!vapidKey) return false
-      subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidKey),
-      })
+
+    // Bestehende (eventuell kaputte/alte) Subscription erst entfernen
+    const existing = await registration.pushManager.getSubscription()
+    if (existing) {
+      await existing.unsubscribe()
     }
+
+    const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+    if (!vapidKey) return false
+    const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(vapidKey),
+    })
+
     const subJson = subscription.toJSON()
     await fetch('/api/save-push-subscription', {
       method: 'POST',
