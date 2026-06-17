@@ -79,10 +79,35 @@ export default function WardrobePage() {
       const user = session.user
       setAnalyzeStep(locale === 'de' ? 'Bild wird hochgeladen...' : 'Uploading image...')
       setProgress(20)
-      const fileName = `${user.id}/${Date.now()}-${convertedFile.name}`
+   const fileName = `${user.id}/${Date.now()}-${convertedFile.name}`
       const { error: uploadError } = await supabase.storage.from('clothing').upload(fileName, convertedFile)
       if (uploadError) throw uploadError
-      const { data: { publicUrl } } = supabase.storage.from('clothing').getPublicUrl(fileName)
+      const { data: { publicUrl: originalUrl } } = supabase.storage.from('clothing').getPublicUrl(fileName)
+
+      setAnalyzeStep(locale === 'de' ? 'Hintergrund wird entfernt...' : 'Removing background...')
+      setProgress(35)
+      let publicUrl = originalUrl
+      try {
+        const bgRes = await fetch('/api/remove-background', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageUrl: originalUrl }),
+        })
+        const bgData = await bgRes.json()
+        if (bgData.success && bgData.imageUrl) {
+          const cleanImgRes = await fetch(bgData.imageUrl)
+          const cleanBlob = await cleanImgRes.blob()
+          const cleanFileName = `${user.id}/${Date.now()}-clean.png`
+          const { error: cleanUploadErr } = await supabase.storage.from('clothing').upload(cleanFileName, cleanBlob, { contentType: 'image/png' })
+          if (!cleanUploadErr) {
+            const { data: { publicUrl: cleanUrl } } = supabase.storage.from('clothing').getPublicUrl(cleanFileName)
+            publicUrl = cleanUrl
+          }
+        }
+      } catch (bgErr) {
+        console.error('Background removal failed, using original:', bgErr)
+      }
+
       setAnalyzeStep(locale === 'de' ? 'KI analysiert...' : 'AI analyzing...')
       setProgress(50)
       const base64 = await fileToBase64(convertedFile)

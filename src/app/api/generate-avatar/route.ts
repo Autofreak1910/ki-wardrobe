@@ -50,13 +50,25 @@ const buffer = Buffer.from(base64Data, 'base64')
 const categoryMap: Record<string, string> = { tops: 'upper_body', hosen: 'lower_body', jacken: 'upper_body', acc: 'upper_body' }
     const garmentCategory = categoryMap[category] ?? 'upper_body'
 
+    // Background vom Kleidungsstück entfernen für besseres Ergebnis
+    let cleanGarmentImage = garmentImage
+    try {
+      const bgRemoved = await replicate.run(
+        "cjwbw/rembg:fb8af171cfa1616ddcf1242c093f9c46bcada5ad4cf6f2fbe8b81b330ec5c003",
+        { input: { image: garmentImage } }
+      )
+      cleanGarmentImage = (Array.isArray(bgRemoved) ? bgRemoved[0] : bgRemoved) as string
+    } catch (bgError) {
+      console.error('Background removal failed, using original:', bgError)
+    }
+
     // Run Replicate
     const output = await replicate.run(
       'cuuupid/idm-vton:906425dbca90663ff5427624839572cc56ea7d380343d13e2a4c4b09d3f0c30f',
       {
         input: {
           human_img: publicUrl,
-          garm_img: garmentImage,
+          garm_img: cleanGarmentImage,
           garment_des: garmentDescription || 'clothing item',
           category: garmentCategory,
           is_checked: true,
