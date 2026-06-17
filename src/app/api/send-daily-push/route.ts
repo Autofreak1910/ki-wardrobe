@@ -4,13 +4,12 @@ import webpush from 'web-push'
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
-webpush.setVapidDetails(
-  'mailto:business@kiwardrobe.com',
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-)
-
 export async function GET(req: Request) {
+  webpush.setVapidDetails(
+    'mailto:business@kiwardrobe.com',
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+    process.env.VAPID_PRIVATE_KEY!
+  )
   // Sicherheits-Check: nur Vercel Cron darf das aufrufen
   const authHeader = req.headers.get('authorization')
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
