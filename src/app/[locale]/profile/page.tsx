@@ -89,7 +89,10 @@ const [savedAge, setSavedAge] = useState(false)
   const [dna, setDna] = useState<any>(null)
   const [dnaLoading, setDnaLoading] = useState(false)
   const [showDna, setShowDna] = useState(false)
-  const [showUpgrade, setShowUpgrade] = useState(false)
+const [showUpgrade, setShowUpgrade] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const { theme, toggle } = useTheme()
   const locale = useLocale()
   const router = useRouter()
@@ -163,10 +166,27 @@ async function saveAge() {
   setSavedAge(true); setTimeout(() => setSavedAge(false), 2000)
   setSaving(false)
 }
-
-  async function handleLogout() {
+async function handleLogout() {
     await supabase.auth.signOut()
     router.push('/' + locale + '/auth/login')
+  }
+
+  async function handleDeleteAccount() {
+    setDeleting(true)
+    try {
+      const res = await fetch('/api/delete-account', { method: 'POST' })
+      const data = await res.json()
+      if (data.success) {
+        await supabase.auth.signOut()
+        router.push('/' + locale + '/auth/login')
+      } else {
+        alert(locale === 'de' ? 'Fehler beim Löschen: ' + data.error : 'Error deleting: ' + data.error)
+        setDeleting(false)
+      }
+    } catch (err) {
+      alert(locale === 'de' ? 'Fehler beim Löschen' : 'Error deleting')
+      setDeleting(false)
+    }
   }
 
   async function generateStyleDna() {
@@ -467,10 +487,17 @@ onClick={isPremium ? generateStyleDna : () => setShowUpgrade(true)}
           ))}
         </div>
 
-        {/* Sign out */}
-        <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden', marginBottom: '24px' }}>
+      {/* Sign out */}
+        <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden', marginBottom: '10px' }}>
           <button onClick={handleLogout} style={{ width: '100%', padding: '14px 16px', background: 'transparent', border: 'none', fontSize: '14px', color: '#ef4444', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", fontWeight: 600, textAlign: 'left' as const }}>
             {locale === 'de' ? 'Abmelden' : 'Sign out'}
+          </button>
+        </div>
+
+        {/* Delete account */}
+        <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden', marginBottom: '24px' }}>
+          <button onClick={() => setShowDeleteModal(true)} style={{ width: '100%', padding: '14px 16px', background: 'transparent', border: 'none', fontSize: '13px', color: muted, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", fontWeight: 500, textAlign: 'left' as const }}>
+            {locale === 'de' ? 'Account löschen' : 'Delete account'}
           </button>
         </div>
 
@@ -646,6 +673,59 @@ onClick={isPremium ? generateStyleDna : () => setShowUpgrade(true)}
         ) : (
           <p style={{ textAlign: 'center' as const, color: muted, fontSize: '14px', padding: '20px 0' }}>{locale === 'de' ? 'Fehler beim Laden' : 'Error loading'}</p>
         )}
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
+
+{/* Delete Account Modal */}
+<AnimatePresence>
+  {showDeleteModal && (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      onClick={() => { if (!deleting) { setShowDeleteModal(false); setDeleteConfirmText('') } }}
+      style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+        transition={{ type: 'spring', damping: 24, stiffness: 280 }}
+        onClick={e => e.stopPropagation()}
+        style={{ width: '100%', maxWidth: '400px', background: card, border: `1px solid ${border}`, borderRadius: '24px', padding: '28px 24px' }}>
+
+        <p style={{ fontSize: '36px', textAlign: 'center' as const, marginBottom: '12px' }}>⚠️</p>
+        <h2 style={{ fontSize: '19px', fontWeight: 800, color: text, textAlign: 'center' as const, marginBottom: '10px', letterSpacing: '-0.02em' }}>
+          {locale === 'de' ? 'Account wirklich löschen?' : 'Really delete account?'}
+        </h2>
+        <p style={{ fontSize: '13px', color: muted, lineHeight: 1.6, textAlign: 'center' as const, marginBottom: '20px' }}>
+          {locale === 'de'
+            ? 'Diese Aktion kann NICHT rückgängig gemacht werden. Alle deine Kleidung, Outfits, dein Avatar und dein Profil werden unwiderruflich gelöscht.'
+            : 'This action CANNOT be undone. All your clothing, outfits, your avatar, and your profile will be permanently deleted.'}
+        </p>
+
+        <p style={{ fontSize: '12px', color: muted, marginBottom: '8px', fontWeight: 600 }}>
+          {locale === 'de' ? `Tippe "LÖSCHEN" um zu bestätigen:` : `Type "DELETE" to confirm:`}
+        </p>
+        <input type="text" value={deleteConfirmText} onChange={e => setDeleteConfirmText(e.target.value)}
+          placeholder={locale === 'de' ? 'LÖSCHEN' : 'DELETE'}
+          style={{ width: '100%', border: `1.5px solid ${border}`, borderRadius: '10px', padding: '12px 14px', fontSize: '14px', color: text, outline: 'none', fontFamily: "'DM Sans', sans-serif", background: isDark ? '#080c18' : '#f8faff', marginBottom: '16px', boxSizing: 'border-box' as const }}
+        />
+
+        <motion.button whileTap={{ scale: 0.97 }}
+          disabled={deleteConfirmText !== (locale === 'de' ? 'LÖSCHEN' : 'DELETE') || deleting}
+          onClick={handleDeleteAccount}
+          style={{
+            width: '100%', padding: '13px',
+            background: deleteConfirmText === (locale === 'de' ? 'LÖSCHEN' : 'DELETE') && !deleting ? '#ef4444' : (isDark ? '#0d1225' : '#e8eeff'),
+            border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 700,
+            color: deleteConfirmText === (locale === 'de' ? 'LÖSCHEN' : 'DELETE') && !deleting ? '#fff' : muted,
+            cursor: deleteConfirmText === (locale === 'de' ? 'LÖSCHEN' : 'DELETE') && !deleting ? 'pointer' : 'not-allowed',
+            fontFamily: "'DM Sans', sans-serif", marginBottom: '8px',
+          }}>
+          {deleting ? (locale === 'de' ? 'Lösche...' : 'Deleting...') : (locale === 'de' ? '🗑️ Endgültig löschen' : '🗑️ Delete permanently')}
+        </motion.button>
+        <button
+          disabled={deleting}
+          onClick={() => { setShowDeleteModal(false); setDeleteConfirmText('') }}
+          style={{ width: '100%', padding: '11px', background: 'transparent', border: 'none', fontSize: '13px', color: muted, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
+          {locale === 'de' ? 'Abbrechen' : 'Cancel'}
+        </button>
       </motion.div>
     </motion.div>
   )}
