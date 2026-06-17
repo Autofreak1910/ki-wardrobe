@@ -53,7 +53,10 @@ export default function AvatarPage() {
       supabase.from('profiles').select('*').eq('id', session.user.id).single(),
       supabase.from('clothing_items').select('*').eq('user_id', session.user.id)
     ])
-    if (profileRes.data) setProfile(profileRes.data)
+  if (profileRes.data) {
+      const { data: stillPremium } = await supabase.rpc('check_and_expire_premium', { p_user_id: session.user.id })
+      setProfile({ ...profileRes.data, is_premium: stillPremium ?? false })
+    }
     if (itemsRes.data) setItems(itemsRes.data)
     setPageLoading(false)
   }

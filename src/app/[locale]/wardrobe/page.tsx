@@ -55,8 +55,8 @@ export default function WardrobePage() {
     if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
     const { data } = await supabase.from('clothing_items').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false })
     if (data) setItems(data)
-    const { data: profile } = await supabase.from('profiles').select('is_premium').eq('id', session.user.id).single()
-    setIsPremium(profile?.is_premium ?? false)
+const { data: stillPremium } = await supabase.rpc('check_and_expire_premium', { p_user_id: session.user.id })
+    setIsPremium(stillPremium ?? false)
   }
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
