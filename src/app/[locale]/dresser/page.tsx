@@ -146,7 +146,7 @@ useEffect(() => {
   }
 }, [outfit])
 
-  async function loadWardrobe() {
+async function loadWardrobe() {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
     const { data } = await supabase.from('clothing_items').select('*').eq('user_id', session.user.id)
@@ -155,6 +155,30 @@ useEffect(() => {
     if (profile?.username) setUsername(profile.username)
     const { data: stillPremium } = await supabase.rpc('check_and_expire_premium', { p_user_id: session.user.id })
     setIsPremium(stillPremium ?? false)
+
+    // Heutiges vorgeneriertes Outfit checken
+    const startOfDay = new Date()
+    startOfDay.setHours(0, 0, 0, 0)
+    const { data: dailyOutfit } = await supabase
+      .from('daily_outfits')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .gte('created_at', startOfDay.toISOString())
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (dailyOutfit && data) {
+      const itemObjects = dailyOutfit.item_ids
+        .map((id: string) => data.find(i => i.id === id))
+        .filter(Boolean)
+      if (itemObjects.length > 0) {
+        setOutfit({
+          outfits: [{ items: [], reasoning: dailyOutfit.reasoning ?? '', vibe: dailyOutfit.vibe ?? '', itemObjects }],
+          active: 0,
+        })
+      }
+    }
   }
 
   async function fetchWeather() {
