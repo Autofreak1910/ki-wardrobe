@@ -75,12 +75,11 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
 async function preloadData() {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) return
-    await Promise.all([
+ await Promise.all([
       supabase.from('clothing_items').select('*').eq('user_id', session.user.id),
       supabase.from('outfits').select('*').eq('user_id', session.user.id),
       supabase.from('profiles').select('*').eq('id', session.user.id).single(),
     ])
-    setupPushNotifications()
   }
 
   function handleSplashDone() {

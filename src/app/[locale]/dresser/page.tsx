@@ -8,6 +8,46 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from '@/components/Navbar'
 
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4)
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
+  const rawData = window.atob(base64)
+  const outputArray = new Uint8Array(rawData.length)
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i)
+  }
+  return outputArray
+}
+
+async function activatePushNotifications(): Promise<boolean> {
+  try {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false
+    const registration = await navigator.serviceWorker.register('/sw-push.js')
+    await navigator.serviceWorker.ready
+    const permission = await Notification.requestPermission()
+    if (permission !== 'granted') return false
+    let subscription = await registration.pushManager.getSubscription()
+    if (!subscription) {
+      const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+      if (!vapidKey) return false
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidKey),
+      })
+    }
+    const subJson = subscription.toJSON()
+    await fetch('/api/save-push-subscription', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ endpoint: subJson.endpoint, keys: subJson.keys }),
+    })
+    return true
+  } catch (err) {
+    console.error('Push activation failed:', err)
+    return false
+  }
+}
+
 
 function getGreeting(locale: string): string {
   const h = new Date().getHours()
@@ -81,6 +121,7 @@ const [username, setUsername] = useState<string>('')
 const categoryRef = useRef<HTMLDivElement>(null)
 const dressMeRef = useRef<HTMLButtonElement>(null)
 const [showUnlock, setShowUnlock] = useState(false)
+const [showPushPrompt, setShowPushPrompt] = useState(false)
   const days = locale === 'de'
     ? ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag']
     : ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
@@ -97,6 +138,13 @@ useEffect(() => {
     }
   }
 }, [wardrobeItems.length])
+
+useEffect(() => {
+  if (outfit && !localStorage.getItem('kw_push_prompt_seen')) {
+    const timer = setTimeout(() => setShowPushPrompt(true), 1200)
+    return () => clearTimeout(timer)
+  }
+}, [outfit])
 
   async function loadWardrobe() {
     const { data: { session } } = await supabase.auth.getSession()
@@ -285,6 +333,42 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
 </motion.div>
   )}
 </AnimatePresence>
+{/* Push Notification Prompt */}
+<AnimatePresence>
+  {showPushPrompt && (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      style={{ position: 'fixed', inset: 0, zIndex: 9996, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+        transition={{ type: 'spring', damping: 24, stiffness: 280 }}
+        style={{ background: card, border: `1px solid ${border}`, borderRadius: '24px', padding: '28px 24px', maxWidth: '360px', textAlign: 'center' as const }}>
+        <p style={{ fontSize: '40px', marginBottom: '12px' }}>☀️</p>
+        <h2 style={{ fontSize: '19px', fontWeight: 800, color: text, marginBottom: '8px', letterSpacing: '-0.02em' }}>
+          {locale === 'de' ? 'Outfit-Erinnerung aktivieren?' : 'Enable outfit reminders?'}
+        </h2>
+        <p style={{ fontSize: '13px', color: muted, lineHeight: 1.6, marginBottom: '20px' }}>
+          {locale === 'de'
+            ? 'Bekomm jeden Morgen dein passendes Outfit direkt vorgeschlagen — basierend auf dem Wetter. Kannst du jederzeit im Profil wieder ausschalten.'
+            : 'Get your perfect outfit suggested every morning — based on the weather. You can turn this off anytime in your profile.'}
+        </p>
+        <motion.button whileTap={{ scale: 0.97 }}
+          onClick={async () => {
+            localStorage.setItem('kw_push_prompt_seen', 'true')
+            await activatePushNotifications()
+            setShowPushPrompt(false)
+          }}
+          style={{ width: '100%', padding: '13px', background: `linear-gradient(135deg, ${accent}, #6b9fff)`, border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", marginBottom: '8px' }}>
+          {locale === 'de' ? '☀️ Ja, aktivieren' : '☀️ Yes, enable'}
+        </motion.button>
+        <button
+          onClick={() => { localStorage.setItem('kw_push_prompt_seen', 'true'); setShowPushPrompt(false) }}
+          style={{ width: '100%', padding: '11px', background: 'transparent', border: 'none', fontSize: '13px', color: muted, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
+          {locale === 'de' ? 'Vielleicht später' : 'Maybe later'}
+        </button>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
+
 {/* Unlock Animation */}
 <AnimatePresence>
   {showUnlock && (
