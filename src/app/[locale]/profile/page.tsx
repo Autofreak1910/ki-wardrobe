@@ -320,8 +320,9 @@ async function saveAge() {
             onClick={async () => {
               const inviteUrl = `https://kiwardrobe-app.vercel.app/${locale}/auth/register?ref=${profile?.referral_code ?? ''}`
               const shareText = locale === 'de'
-                ? `Probier KiWardrobe aus — die KI zeigt dir was zu deinem Kleiderschrank passt, und du kannst Klamotten virtuell anprobieren! Mit meinem Link bekommst du 14 Tage Pro gratis: ${inviteUrl}`
-                : `Check out KiWardrobe — AI styles your wardrobe and you can try on clothes virtually! Use my link for 14 days Pro free: ${inviteUrl}`
+              const shareText = locale === 'de'
+                ? `Ich hab gerade meinen eigenen Avatar erstellt und KI sagt mir jeden Morgen was ich anziehen soll 🤯 KiWardrobe ist echt krass — probier's aus, mit meinem Link bekommst du 14 Tage Pro komplett gratis: ${inviteUrl}`
+                : `I just made my own AI avatar and it tells me what to wear every morning 🤯 KiWardrobe is actually insane — try it, my link gets you 14 days Pro completely free: ${inviteUrl}`
               if (navigator.share) {
                 try { await navigator.share({ title: 'KiWardrobe', text: shareText, url: inviteUrl }) } catch {}
               } else {
