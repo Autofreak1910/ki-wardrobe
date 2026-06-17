@@ -127,10 +127,17 @@ export default function LoginPage() {
           />
         </div>
 
-        <motion.button whileTap={{ scale: 0.98 }} onClick={handleLogin} disabled={loading}
+       <motion.button whileTap={{ scale: 0.98 }} onClick={handleLogin} disabled={loading}
           style={{ width: '100%', background: loading ? (isDark ? '#0d1225' : '#e8eeff') : `linear-gradient(135deg, ${accent} 0%, #6b9fff 100%)`, border: loading ? `1px solid ${border}` : 'none', borderRadius: '14px', padding: '15px', fontSize: '15px', fontWeight: 700, color: loading ? muted : '#fff', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'all 0.2s', letterSpacing: '-0.01em', boxShadow: loading ? 'none' : `0 4px 20px ${accent}40` }}>
           {loading ? t('loading') : t('loginButton')}
         </motion.button>
+
+        <div style={{ textAlign: 'center' as const, marginTop: '12px' }}>
+          <Link href={'/' + locale + '/auth/forgot-password'} style={{ fontSize: '13px', color: muted, textDecoration: 'none' }}>
+            {locale === 'de' ? 'Passwort vergessen?' : 'Forgot password?'}
+          </Link>
+        </div>
+
 {/* Divider */}
 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '16px 0' }}>
   <div style={{ flex: 1, height: '1px', background: border }} />
