@@ -36,8 +36,9 @@ const [agbAccepted, setAgbAccepted] = useState(false)
   const [gender, setGender] = useState('')
   const [stylePrefs, setStylePrefs] = useState<string[]>([])
   const [budgetRange, setBudgetRange] = useState('')
-  const [error, setError] = useState('')
+const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [checkingEmail, setCheckingEmail] = useState(false)
 const router = useRouter()
   const supabase = createClient()
   const searchParams = useSearchParams()
@@ -189,23 +190,50 @@ localStorage.removeItem('kw_onboarding_seen')
               </p>
               {error && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#ef4444', fontSize: '13px', padding: '12px 16px', borderRadius: '10px', marginBottom: '16px' }}>{error}</div>}
 
-              {[
-                { label: locale === 'de' ? 'Benutzername' : 'Username', type: 'text', value: username, set: setUsername, placeholder: 'dein_name' },
-                { label: 'E-Mail', type: 'email', value: email, set: setEmail, placeholder: 'deine@email.com' },
-                { label: locale === 'de' ? 'Passwort' : 'Password', type: 'password', value: password, set: setPassword, placeholder: '••••••••' },
+        {[
+                { label: locale === 'de' ? 'Benutzername' : 'Username', type: 'text', value: username, set: setUsername, placeholder: 'dein_name', hint: '' },
+                { label: 'E-Mail', type: 'email', value: email, set: setEmail, placeholder: 'deine@email.com', hint: '' },
+                { label: locale === 'de' ? 'Passwort' : 'Password', type: 'password', value: password, set: setPassword, placeholder: '••••••••', hint: locale === 'de' ? 'Mind. 8 Zeichen, Buchstaben & Zahlen' : 'Min. 8 characters, letters & numbers' },
               ].map((field, i) => (
-                <div key={i} style={{ marginBottom: i < 2 ? '12px' : '24px' }}>
+                <div key={i} style={{ marginBottom: i < 2 ? '12px' : '8px' }}>
                   <label style={{ fontSize: '11px', fontWeight: 600, color: muted, display: 'block', marginBottom: '7px', letterSpacing: '0.05em', textTransform: 'uppercase' as const }}>{field.label}</label>
                   <input type={field.type} value={field.value} onChange={e => field.set(e.target.value)} placeholder={field.placeholder} style={inputStyle}
                     onFocus={e => e.target.style.borderColor = accent}
                     onBlur={e => e.target.style.borderColor = border} />
+                  {field.hint && <p style={{ fontSize: '11px', color: muted, marginTop: '5px' }}>{field.hint}</p>}
                 </div>
               ))}
+              <div style={{ marginBottom: '16px' }} />
 
-              <motion.button whileTap={{ scale: 0.97 }}
-                onClick={() => { if (username && email && password.length >= 8) { setError(''); setStep(2) } else setError(locale === 'de' ? 'Bitte alle Felder ausfüllen (mind. 8 Zeichen)' : 'Fill all fields (min. 8 chars)') }}
-                style={{ width: '100%', background: `linear-gradient(135deg, ${accent}, #6b9fff)`, border: 'none', borderRadius: '14px', padding: '15px', fontSize: '15px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em', boxShadow: `0 4px 20px ${accent}40` }}>
-                {locale === 'de' ? 'Weiter' : 'Next'} →
+           <motion.button whileTap={{ scale: 0.97 }} disabled={checkingEmail}
+                onClick={async () => {
+                  if (!username || !email || password.length < 8) {
+                    setError(locale === 'de' ? 'Bitte alle Felder ausfüllen (mind. 8 Zeichen)' : 'Fill all fields (min. 8 chars)')
+                    return
+                  }
+                  setCheckingEmail(true)
+                  setError('')
+                  try {
+                    const res = await fetch('/api/check-email', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ email }),
+                    })
+                    const data = await res.json()
+                    if (data.exists) {
+                      setError(locale === 'de' ? 'Diese E-Mail wird bereits verwendet. Bitte logge dich ein.' : 'This email is already in use. Please log in instead.')
+                      setCheckingEmail(false)
+                      return
+                    }
+                    setCheckingEmail(false)
+                    setStep(2)
+                  } catch {
+                    setCheckingEmail(false)
+                    setStep(2)
+                  }
+                }}
+                style={{ width: '100%', background: checkingEmail ? (isDark ? '#0d1225' : '#e8eeff') : `linear-gradient(135deg, ${accent}, #6b9fff)`, border: 'none', borderRadius: '14px', padding: '15px', fontSize: '15px', fontWeight: 700, color: checkingEmail ? muted : '#fff', cursor: checkingEmail ? 'wait' : 'pointer', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em', boxShadow: checkingEmail ? 'none' : `0 4px 20px ${accent}40` }}>
+                {checkingEmail ? (locale === 'de' ? 'Prüfe...' : 'Checking...') : (locale === 'de' ? 'Weiter' : 'Next') + ' →'}
               </motion.button>
             </motion.div>
           )}
