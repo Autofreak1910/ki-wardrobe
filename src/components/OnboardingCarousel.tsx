@@ -52,8 +52,13 @@ export default function OnboardingCarousel({ onDone }: { onDone: () => void }) {
   const locale = typeof navigator !== 'undefined' && navigator.language.startsWith('de') ? 'de' : 'en'
   const isLast = index === slides.length - 1
 
-  function next() {
-    if (isLast) { onDone(); return }
+ function next() {
+    console.log('Next clicked, isLast:', isLast, 'index:', index)
+    if (isLast) {
+      console.log('Calling onDone')
+      onDone()
+      return
+    }
     setIndex(i => i + 1)
   }
 
