@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import SplashScreen from './SplashScreen'
 import OnboardingCarousel from './OnboardingCarousel'
+import WelcomeAnimation from './WelcomeAnimation'
 
 const TAB_ORDER = ['dresser', 'wardrobe', 'outfits', 'profile']
 
@@ -57,6 +58,7 @@ async function setupPushNotifications() {
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
   const [showSplash, setShowSplash] = useState(true)
   const [showOnboarding, setShowOnboarding] = useState(false)
+  const [showWelcome, setShowWelcome] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
@@ -100,16 +102,21 @@ useEffect(() => {
       setShowOnboarding(true)
     }
   }
-
-  function handleOnboardingDone() {
+function handleOnboardingDone() {
     localStorage.setItem('kw_onboarding_seen', 'true')
     setShowOnboarding(false)
+    setShowWelcome(true)
+  }
+
+  function handleWelcomeDone() {
+    setShowWelcome(false)
   }
 
   return (
     <>
       {showSplash && <SplashScreen onDone={handleSplashDone} />}
       {showOnboarding && <OnboardingCarousel onDone={handleOnboardingDone} />}
+      {showWelcome && <WelcomeAnimation onDone={handleWelcomeDone} />}
       <div style={{
         opacity: showSplash ? 0 : 1,
         transition: 'opacity 0.3s ease',
