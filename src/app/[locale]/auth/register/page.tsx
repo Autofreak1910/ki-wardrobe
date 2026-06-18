@@ -97,13 +97,13 @@ await supabase.from('profiles').update({
         gender, style_preferences: stylePrefs, budget_range: budgetRange
       }).eq('id', data.user.id)
 
-      if (refCode) {
+  if (refCode && data.user) {
         try {
-          await fetch('/api/apply-referral', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ referralCode: refCode }),
+          const { error: referralError } = await supabase.rpc('apply_referral', {
+            p_new_user_id: data.user.id,
+            p_referral_code: refCode,
           })
+          if (referralError) console.error('Referral failed:', referralError)
         } catch (refErr) {
           console.error('Referral apply failed:', refErr)
         }
