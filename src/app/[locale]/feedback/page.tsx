@@ -5,7 +5,6 @@ import { useTheme } from '@/context/ThemeContext'
 import { useLocale } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import Navbar from '@/components/Navbar'
 
 export default function FeedbackPage() {
   const [type, setType] = useState('feedback')
@@ -38,10 +37,9 @@ export default function FeedbackPage() {
     { key: 'other', emoji: '📝', label: locale === 'de' ? 'Sonstiges' : 'Other' },
   ]
 
-  return (
+return (
     <div className="app-container" style={{ height: '100vh', display: 'flex', flexDirection: 'column' as const, background: 'var(--bg)', fontFamily: "'DM Sans', sans-serif", overflow: 'hidden' }}>
-      <Navbar activePage="profile" />
-      <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '600px', width: '100%', margin: '0 auto', padding: '80px 16px 100px 16px' }}>
+      <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '600px', width: '100%', margin: '0 auto', padding: '32px 16px 40px 16px' }}>
 
         {/* Header */}
         <div style={{ marginBottom: '28px' }}>

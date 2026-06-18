@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { useLocale } from 'next-intl'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTheme } from '@/context/ThemeContext'
-import Navbar from '@/components/Navbar'
 
 export default function LegalPage() {
 const searchParams = useSearchParams()
@@ -17,9 +16,8 @@ const searchParams = useSearchParams()
   const isDark = theme === 'dark'
 
   return (
-    <div className="app-container" style={{ height: '100vh', display: 'flex', flexDirection: 'column' as const, background: 'var(--bg)', fontFamily: "'DM Sans', sans-serif", overflow: 'hidden' }}>
-      <Navbar activePage="profile" />
-      <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '600px', width: '100%', margin: '0 auto', padding: '80px 16px 100px 16px' }}>
+  <div className="app-container" style={{ height: '100vh', display: 'flex', flexDirection: 'column' as const, background: 'var(--bg)', fontFamily: "'DM Sans', sans-serif", overflow: 'hidden' }}>
+      <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '600px', width: '100%', margin: '0 auto', padding: '32px 16px 40px 16px' }}>
 
         <button onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: 'var(--text-secondary)', fontFamily: "'DM Sans', sans-serif", padding: '0', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '6px' }}>
           ← {locale === 'de' ? 'Zurück' : 'Back'}
