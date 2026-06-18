@@ -27,8 +27,8 @@ export async function POST(request: NextRequest) {
               },
               {
                 type: 'text',
-     text: `You are a fashion expert. Analyze this clothing item and respond ONLY with a valid JSON object, no markdown, no backticks, no explanation:
-{"category":"schuhe","name":"Nike Air Max Plus","color":"Black","style_tags":["streetwear"],"season":["spring","autumn"],"brand":"Nike"}
+text: `You are a fashion expert. Analyze this clothing item and respond ONLY with a valid JSON object, no markdown, no backticks, no explanation:
+{"category":"schuhe","name":"Nike Air Max Plus","color":"Black","style_tags":["streetwear"],"season":["spring","autumn"],"brand":"Nike","layer_type":null}
 
 Rules:
 - category must be exactly one of: tops, hosen, jacken, schuhe, acc
@@ -37,6 +37,7 @@ Rules:
 - style_tags: array from: streetwear, casual, formal, vintage, sporty, minimalist, luxury
 - season: array from: spring, summer, autumn, winter
 - brand: brand name if logo visible, otherwise omit
+- layer_type: ONLY set this if category is "tops". Use "base" for thin items worn against the skin or alone (t-shirt, tank top, blouse, button-up shirt). Use "layer" for thicker items typically worn over a base layer (sweater, hoodie, sweatshirt, cardigan, knit). If category is not "tops", set layer_type to null.
 
 Respond with ONLY the JSON, no explanation, no markdown.`
               }

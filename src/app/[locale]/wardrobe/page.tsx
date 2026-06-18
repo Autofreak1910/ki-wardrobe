@@ -143,6 +143,7 @@ const { data: stillPremium } = await supabase.rpc('check_and_expire_premium', { 
         brand: analysis.brand ?? null,
         style_tags: analysis.style_tags ?? [],
         season: analysis.season ?? [],
+        layer_type: analysis.layer_type ?? null,
         ai_analysis: analysis,
       })
       if (dbError) throw dbError
