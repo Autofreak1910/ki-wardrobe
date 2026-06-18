@@ -90,6 +90,7 @@ const [savedAge, setSavedAge] = useState(false)
   const [dnaLoading, setDnaLoading] = useState(false)
   const [showDna, setShowDna] = useState(false)
 const [showUpgrade, setShowUpgrade] = useState(false)
+const [showAccountSettings, setShowAccountSettings] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
@@ -432,55 +433,15 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
         </motion.div>
 
 
-
- {/* Konto */}
-<div style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden', marginBottom: '10px' }}>
-  <div style={{ padding: '10px 16px', borderBottom: `1px solid ${border}`, background: accentDim }}>
-    <p style={{ fontSize: '10px', fontWeight: 700, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>{locale === 'de' ? 'Konto' : 'Account'}</p>
+{/* Konto - Button zum Öffnen */}
+<button onClick={() => setShowAccountSettings(true)}
+  style={{ width: '100%', background: card, border: `1px solid ${border}`, borderRadius: '16px', padding: '14px 16px', marginBottom: '10px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: "'DM Sans', sans-serif" }}>
+  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+    <span style={{ fontSize: '16px' }}>⚙️</span>
+    <p style={{ fontSize: '14px', fontWeight: 600, color: text }}>{locale === 'de' ? 'Kontoeinstellungen' : 'Account settings'}</p>
   </div>
-
-  {/* Username */}
-  <div style={{ padding: '14px 16px', borderBottom: `1px solid ${border}` }}>
-    <label style={{ fontSize: '11px', fontWeight: 600, color: muted, display: 'block', marginBottom: '8px', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>
-      {locale === 'de' ? 'Benutzername' : 'Username'}
-    </label>
-    <div style={{ display: 'flex', gap: '8px' }}>
-      <input type="text" value={editUsername} onChange={e => setEditUsername(e.target.value)}
-        style={{ flex: 1, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 12px', fontSize: '14px', color: text, outline: 'none', fontFamily: "'DM Sans', sans-serif", background: isDark ? '#080c18' : '#f8faff', minWidth: 0 }} />
-      <motion.button whileTap={{ scale: 0.95 }} onClick={saveUsername} disabled={saving}
-        style={{ background: saved ? accent : 'transparent', border: `1px solid ${saved ? accent : border}`, borderRadius: '10px', padding: '10px 16px', fontSize: '13px', fontWeight: 600, color: saved ? '#fff' : text, cursor: 'pointer', whiteSpace: 'nowrap' as const, transition: 'all 0.2s' }}>
-        {saved ? '✓' : saving ? '...' : locale === 'de' ? 'Speichern' : 'Save'}
-      </motion.button>
-    </div>
-  </div>
-
-  {/* Email */}
-  <div style={{ padding: '14px 16px', borderBottom: `1px solid ${border}` }}>
-    <label style={{ fontSize: '11px', fontWeight: 600, color: muted, display: 'block', marginBottom: '8px', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>Email</label>
-    <div style={{ display: 'flex', gap: '8px' }}>
-      <input type="email" value={editEmail} onChange={e => setEditEmail(e.target.value)}
-        style={{ flex: 1, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 12px', fontSize: '14px', color: text, outline: 'none', fontFamily: "'DM Sans', sans-serif", background: isDark ? '#080c18' : '#f8faff', minWidth: 0 }} />
-      <motion.button whileTap={{ scale: 0.95 }} onClick={saveEmail}
-        style={{ background: savedEmail ? accent : 'transparent', border: `1px solid ${savedEmail ? accent : border}`, borderRadius: '10px', padding: '10px 16px', fontSize: '13px', fontWeight: 600, color: savedEmail ? '#fff' : text, cursor: 'pointer', whiteSpace: 'nowrap' as const, transition: 'all 0.2s' }}>
-        {savedEmail ? '✓' : locale === 'de' ? 'Speichern' : 'Save'}
-      </motion.button>
-    </div>
-  </div>
-
-  {/* Alter */}
-  <div style={{ padding: '14px 16px' }}>
-    <label style={{ fontSize: '11px', fontWeight: 600, color: muted, display: 'block', marginBottom: '8px', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>{locale === 'de' ? 'Alter' : 'Age'}</label>
-    <div style={{ display: 'flex', gap: '8px' }}>
-      <input type="number" value={editAge} onChange={e => setEditAge(e.target.value)}
-        placeholder="25" min="13" max="99"
-        style={{ flex: 1, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 12px', fontSize: '14px', color: text, outline: 'none', fontFamily: "'DM Sans', sans-serif", background: isDark ? '#080c18' : '#f8faff', minWidth: 0 }} />
-      <motion.button whileTap={{ scale: 0.95 }} onClick={saveAge}
-        style={{ background: savedAge ? accent : 'transparent', border: `1px solid ${savedAge ? accent : border}`, borderRadius: '10px', padding: '10px 16px', fontSize: '13px', fontWeight: 600, color: savedAge ? '#fff' : text, cursor: 'pointer', whiteSpace: 'nowrap' as const, transition: 'all 0.2s' }}>
-        {savedAge ? '✓' : locale === 'de' ? 'Speichern' : 'Save'}
-      </motion.button>
-    </div>
-  </div>
-</div>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+</button>
 
         {/* Einstellungen */}
         <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden', marginBottom: '10px' }}>
@@ -735,6 +696,75 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
         ) : (
           <p style={{ textAlign: 'center' as const, color: muted, fontSize: '14px', padding: '20px 0' }}>{locale === 'de' ? 'Fehler beim Laden' : 'Error loading'}</p>
         )}
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
+
+{/* Account Settings Modal */}
+<AnimatePresence>
+  {showAccountSettings && (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      onClick={() => setShowAccountSettings(false)}
+      style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '16px' }}>
+      <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
+        transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+        onClick={e => e.stopPropagation()}
+        style={{ width: '100%', maxWidth: '480px', maxHeight: '85vh', overflowY: 'auto' as const, background: bg, border: `1px solid ${border}`, borderRadius: '28px 28px 0 0', padding: '24px 20px 32px' }}>
+
+        <div style={{ width: '36px', height: '4px', background: border, borderRadius: '2px', margin: '0 auto 20px' }} />
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '22px', fontWeight: 400, color: text }}>
+            {locale === 'de' ? 'Kontoeinstellungen' : 'Account settings'}
+          </h2>
+          <button onClick={() => setShowAccountSettings(false)} style={{ background: card, border: `1px solid ${border}`, borderRadius: '10px', width: '32px', height: '32px', cursor: 'pointer', fontSize: '14px', color: muted }}>✕</button>
+        </div>
+
+        <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden' }}>
+
+          {/* Username */}
+          <div style={{ padding: '14px 16px', borderBottom: `1px solid ${border}` }}>
+            <label style={{ fontSize: '11px', fontWeight: 600, color: muted, display: 'block', marginBottom: '8px', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>
+              {locale === 'de' ? 'Benutzername' : 'Username'}
+            </label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input type="text" value={editUsername} onChange={e => setEditUsername(e.target.value)}
+                style={{ flex: 1, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 12px', fontSize: '14px', color: text, outline: 'none', fontFamily: "'DM Sans', sans-serif", background: isDark ? '#080c18' : '#f8faff', minWidth: 0 }} />
+              <motion.button whileTap={{ scale: 0.95 }} onClick={saveUsername} disabled={saving}
+                style={{ background: saved ? accent : 'transparent', border: `1px solid ${saved ? accent : border}`, borderRadius: '10px', padding: '10px 16px', fontSize: '13px', fontWeight: 600, color: saved ? '#fff' : text, cursor: 'pointer', whiteSpace: 'nowrap' as const, transition: 'all 0.2s' }}>
+                {saved ? '✓' : saving ? '...' : locale === 'de' ? 'Speichern' : 'Save'}
+              </motion.button>
+            </div>
+          </div>
+
+          {/* Email */}
+          <div style={{ padding: '14px 16px', borderBottom: `1px solid ${border}` }}>
+            <label style={{ fontSize: '11px', fontWeight: 600, color: muted, display: 'block', marginBottom: '8px', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>Email</label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input type="email" value={editEmail} onChange={e => setEditEmail(e.target.value)}
+                style={{ flex: 1, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 12px', fontSize: '14px', color: text, outline: 'none', fontFamily: "'DM Sans', sans-serif", background: isDark ? '#080c18' : '#f8faff', minWidth: 0 }} />
+              <motion.button whileTap={{ scale: 0.95 }} onClick={saveEmail}
+                style={{ background: savedEmail ? accent : 'transparent', border: `1px solid ${savedEmail ? accent : border}`, borderRadius: '10px', padding: '10px 16px', fontSize: '13px', fontWeight: 600, color: savedEmail ? '#fff' : text, cursor: 'pointer', whiteSpace: 'nowrap' as const, transition: 'all 0.2s' }}>
+                {savedEmail ? '✓' : locale === 'de' ? 'Speichern' : 'Save'}
+              </motion.button>
+            </div>
+          </div>
+
+          {/* Alter */}
+          <div style={{ padding: '14px 16px' }}>
+            <label style={{ fontSize: '11px', fontWeight: 600, color: muted, display: 'block', marginBottom: '8px', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>{locale === 'de' ? 'Alter' : 'Age'}</label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input type="number" value={editAge} onChange={e => setEditAge(e.target.value)}
+                placeholder="25" min="13" max="99"
+                style={{ flex: 1, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 12px', fontSize: '14px', color: text, outline: 'none', fontFamily: "'DM Sans', sans-serif", background: isDark ? '#080c18' : '#f8faff', minWidth: 0 }} />
+             <motion.button whileTap={{ scale: 0.95 }} onClick={saveAge}
+                style={{ background: savedAge ? accent : 'transparent', border: `1px solid ${savedAge ? accent : border}`, borderRadius: '10px', padding: '10px 16px', fontSize: '13px', fontWeight: 600, color: savedAge ? '#fff' : text, cursor: 'pointer', whiteSpace: 'nowrap' as const, transition: 'all 0.2s' }}>
+                {savedAge ? '✓' : locale === 'de' ? 'Speichern' : 'Save'}
+              </motion.button>
+            </div>
+          </div>
+        </div>
       </motion.div>
     </motion.div>
   )}
