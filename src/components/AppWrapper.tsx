@@ -56,9 +56,10 @@ async function setupPushNotifications() {
 }
 
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
-  const [showSplash, setShowSplash] = useState(true)
+ const [showSplash, setShowSplash] = useState(true)
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [showWelcome, setShowWelcome] = useState(false)
+  const [isPremium, setIsPremium] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -92,14 +93,15 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
       }
     })
   }, [pathname])
-  async function preloadData() {
+ async function preloadData() {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) return
-    await Promise.all([
+    const [,, profileRes] = await Promise.all([
       supabase.from('clothing_items').select('*').eq('user_id', session.user.id),
       supabase.from('outfits').select('*').eq('user_id', session.user.id),
-      supabase.from('profiles').select('*').eq('id', session.user.id).single(),
+      supabase.from('profiles').select('is_premium').eq('id', session.user.id).single(),
     ])
+    if (profileRes.data?.is_premium) setIsPremium(true)
   }
 
   function handleSplashDone() {
@@ -122,7 +124,7 @@ function handleOnboardingDone() {
 
   return (
     <>
-      {showSplash && <SplashScreen onDone={handleSplashDone} />}
+     {showSplash && <SplashScreen onDone={handleSplashDone} isPremium={isPremium} />}
       {showOnboarding && <OnboardingCarousel onDone={handleOnboardingDone} />}
       {showWelcome && <WelcomeAnimation onDone={handleWelcomeDone} />}
       <div style={{
