@@ -39,8 +39,13 @@ await resend.emails.send({
               <p style="margin: 0 0 6px; color: #6b7fa8; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;">Nachricht</p>
               <p style="margin: 0; color: #0a1628; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">${message}</p>
             </div>
-            <div style="background: #f0f4ff; padding: 14px 24px; border-top: 1px solid #e2e8f0;">
-              <p style="margin: 0; color: #6b7fa8; font-size: 12px;">📩 Antworte direkt an ${email ?? 'den Nutzer'} — er erwartet eine Rückmeldung.</p>
+          <div style="background: ${email ? '#ecfdf5' : '#fef2f2'}; padding: 14px 24px; border-top: 1px solid #e2e8f0;">
+              <p style="margin: 0; color: ${email ? '#0ea472' : '#ef4444'}; font-size: 13px; font-weight: 700;">
+                ${email ? '✅ Antwort erwartet' : '❌ Keine Antwort erwartet'}
+              </p>
+              <p style="margin: 4px 0 0; color: #6b7fa8; font-size: 12px;">
+                ${email ? `Antworte an: ${email}` : 'Nutzer hat keine Email zur Rückmeldung angegeben.'}
+              </p>
             </div>
           </div>
         </div>
