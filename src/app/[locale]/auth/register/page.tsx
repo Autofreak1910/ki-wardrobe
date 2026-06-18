@@ -99,11 +99,14 @@ await supabase.from('profiles').update({
 
   if (refCode && data.user) {
         try {
-          const { error: referralError } = await supabase.rpc('apply_referral', {
+         const { error: referralError } = await supabase.rpc('apply_referral', {
             p_new_user_id: data.user.id,
             p_referral_code: refCode,
           })
-          if (referralError) console.error('Referral failed:', referralError)
+          if (!referralError) {
+            // Beim nächsten Dresser-Besuch zeigen, nicht direkt nach Onboarding
+            setTimeout(() => localStorage.setItem('kw_pro_welcome_pending', 'true'), 8000)
+          }
         } catch (refErr) {
           console.error('Referral apply failed:', refErr)
         }

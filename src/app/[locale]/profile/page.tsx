@@ -366,7 +366,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
               const res = await fetch('/api/create-checkout-session', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: session.user.id, userEmail: session.user.email }),
+        body: JSON.stringify({ userId: session.user.id, userEmail: session.user.email, locale }),
               })
               const data = await res.json()
               if (data.url) window.location.href = data.url
@@ -571,7 +571,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
               const res = await fetch('/api/create-checkout-session', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: session.user.id, userEmail: session.user.email }),
+            body: JSON.stringify({ userId: session.user.id, userEmail: session.user.email, locale }),
               })
               const data = await res.json()
               if (data.url) window.location.href = data.url
@@ -624,7 +624,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
             const res = await fetch('/api/create-checkout-session', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ userId: session.user.id, userEmail: session.user.email }),
+            body: JSON.stringify({ userId: session.user.id, userEmail: session.user.email, locale }),
             })
             const data = await res.json()
             if (data.url) window.location.href = data.url
