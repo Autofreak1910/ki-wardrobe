@@ -29,7 +29,8 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
-  const [age, setAge] = useState('')
+const [birthdate, setBirthdate] = useState('')
+  const [agbAccepted, setAgbAccepted] = useState(false)
   const [country, setCountry] = useState('')
   const [gender, setGender] = useState('')
   const [stylePrefs, setStylePrefs] = useState<string[]>([])
@@ -53,22 +54,31 @@ const router = useRouter()
   const secondary = isDark ? '#0d1225' : '#f0f4ff'
 
   const selectedCountry = countries.find(c => c.code === country)
+function calculateAge(birthdateStr: string): number {
+    const today = new Date()
+    const birth = new Date(birthdateStr)
+    let age = today.getFullYear() - birth.getFullYear()
+    const monthDiff = today.getMonth() - birth.getMonth()
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) age--
+    return age
+  }
 
   async function handleRegister() {
     setLoading(true)
     setError('')
     const lang = selectedCountry?.lang ?? 'de'
+    const computedAge = calculateAge(birthdate)
     const { data, error: signUpError } = await supabase.auth.signUp({
       email, password,
       options: {
-        data: { username, age: parseInt(age), country, language: lang },
+        data: { username, age: computedAge, birthdate, country, language: lang },
         emailRedirectTo: window.location.origin + '/' + lang + '/auth/callback?locale=' + lang,
       },
     })
     if (signUpError) { setError(signUpError.message); setLoading(false); return }
  if (data.user) {
       await supabase.from('profiles').update({
-        username, age: parseInt(age), country, language: lang,
+        username, age: computedAge, birthdate, country, language: lang,
         gender, style_preferences: stylePrefs, budget_range: budgetRange
       }).eq('id', data.user.id)
 
@@ -184,30 +194,37 @@ const router = useRouter()
             </motion.div>
           )}
 
-          {/* Step 2 */}
+ {/* Step 2 */}
           {step === 2 && (
             <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}>
               <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '26px', fontWeight: 400, color: text, marginBottom: '6px', letterSpacing: '-0.02em' }}>
-                {locale === 'de' ? 'Wie alt bist du?' : 'How old are you?'}
+                {locale === 'de' ? 'Wann hast du Geburtstag?' : 'When were you born?'}
               </h2>
               <p style={{ color: muted, fontSize: '14px', marginBottom: '24px' }}>
-                {locale === 'de' ? 'Für bessere Outfit-Vorschläge' : 'For better outfit suggestions'}
+                {locale === 'de' ? 'Du musst mindestens 16 Jahre alt sein' : 'You must be at least 16 years old'}
               </p>
               {error && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#ef4444', fontSize: '13px', padding: '12px 16px', borderRadius: '10px', marginBottom: '16px' }}>{error}</div>}
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '24px' }}>
-                {['13-15', '16-18', '19-22', '23-27', '28-35', '35+'].map(range => (
-                  <motion.button key={range} whileTap={{ scale: 0.95 }} onClick={() => { setAge(range); setError('') }}
-                    style={{ padding: '14px 8px', borderRadius: '12px', border: `1.5px solid ${age === range ? accent : border}`, background: age === range ? `rgba(${isDark ? '77,126,255' : '59,107,255'},0.1)` : secondary, color: age === range ? accent : text, fontSize: '14px', fontWeight: age === range ? 700 : 500, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'all 0.15s' }}>
-                    {range}
-                  </motion.button>
-                ))}
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: muted, display: 'block', marginBottom: '7px', letterSpacing: '0.05em', textTransform: 'uppercase' as const }}>
+                  {locale === 'de' ? 'Geburtsdatum' : 'Date of birth'}
+                </label>
+                <input type="date" value={birthdate} onChange={e => { setBirthdate(e.target.value); setError('') }}
+                  max={new Date().toISOString().split('T')[0]}
+                  style={inputStyle}
+                  onFocus={e => e.target.style.borderColor = accent}
+                  onBlur={e => e.target.style.borderColor = border} />
               </div>
 
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button onClick={() => setStep(1)} style={{ width: '48px', flexShrink: 0, padding: '14px', background: secondary, border: `1px solid ${border}`, borderRadius: '12px', fontSize: '16px', color: muted, cursor: 'pointer' }}>←</button>
                 <motion.button whileTap={{ scale: 0.97 }}
-                  onClick={() => { if (age) { setError(''); setStep(3) } else setError(locale === 'de' ? 'Bitte Alter wählen' : 'Please select age') }}
+                  onClick={() => {
+                    if (!birthdate) { setError(locale === 'de' ? 'Bitte Geburtsdatum eingeben' : 'Please enter your date of birth'); return }
+                    const computedAge = calculateAge(birthdate)
+                    if (computedAge < 16) { setError(locale === 'de' ? 'Du musst mindestens 16 Jahre alt sein, um KiWardrobe zu nutzen' : 'You must be at least 16 years old to use KiWardrobe'); return }
+                    setError(''); setStep(3)
+                  }}
                   style={{ flex: 1, background: `linear-gradient(135deg, ${accent}, #6b9fff)`, border: 'none', borderRadius: '12px', padding: '14px', fontSize: '15px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em', boxShadow: `0 4px 20px ${accent}40` }}>
                   {locale === 'de' ? 'Weiter' : 'Next'} →
                 </motion.button>
@@ -316,10 +333,33 @@ const router = useRouter()
                 ))}
               </div>
 
+         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '20px', cursor: 'pointer' }}
+                onClick={() => setAgbAccepted(!agbAccepted)}>
+                <div style={{
+                  width: '20px', height: '20px', borderRadius: '6px', flexShrink: 0, marginTop: '1px',
+                  border: `1.5px solid ${agbAccepted ? accent : border}`,
+                  background: agbAccepted ? accent : 'transparent',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'all 0.15s',
+                }}>
+                  {agbAccepted && <span style={{ color: '#fff', fontSize: '12px', fontWeight: 700 }}>✓</span>}
+                </div>
+                <p style={{ fontSize: '12px', color: muted, lineHeight: 1.5 }}>
+                  {locale === 'de' ? (
+                    <>Ich akzeptiere die <Link href={'/' + locale + '/legal?tab=agb'} onClick={e => e.stopPropagation()} style={{ color: accent, fontWeight: 600, textDecoration: 'none' }}>AGB</Link> und die <Link href={'/' + locale + '/legal?tab=datenschutz'} onClick={e => e.stopPropagation()} style={{ color: accent, fontWeight: 600, textDecoration: 'none' }}>Datenschutzerklärung</Link>.</>
+                  ) : (
+                    <>I accept the <Link href={'/' + locale + '/legal?tab=agb'} onClick={e => e.stopPropagation()} style={{ color: accent, fontWeight: 600, textDecoration: 'none' }}>Terms of Service</Link> and <Link href={'/' + locale + '/legal?tab=datenschutz'} onClick={e => e.stopPropagation()} style={{ color: accent, fontWeight: 600, textDecoration: 'none' }}>Privacy Policy</Link>.</>
+                  )}
+                </p>
+              </div>
+
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button onClick={() => setStep(3)} style={{ width: '48px', flexShrink: 0, padding: '14px', background: secondary, border: `1px solid ${border}`, borderRadius: '12px', fontSize: '16px', color: muted, cursor: 'pointer' }}>←</button>
                 <motion.button whileTap={{ scale: 0.97 }}
-                  onClick={handleRegister}
+                  onClick={() => {
+                    if (!agbAccepted) { setError(locale === 'de' ? 'Bitte AGB und Datenschutz akzeptieren' : 'Please accept the Terms and Privacy Policy'); return }
+                    handleRegister()
+                  }}
                   disabled={loading}
                   style={{ flex: 1, background: loading ? secondary : `linear-gradient(135deg, ${accent}, #6b9fff)`, border: loading ? `1px solid ${border}` : 'none', borderRadius: '12px', padding: '14px', fontSize: '15px', fontWeight: 700, color: loading ? muted : '#fff', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em', boxShadow: loading ? 'none' : `0 4px 20px ${accent}40` }}>
                   {loading ? '...' : locale === 'de' ? 'Konto erstellen 🎉' : 'Create account 🎉'}

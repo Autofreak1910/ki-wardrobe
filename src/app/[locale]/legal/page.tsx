@@ -2,12 +2,15 @@
 
 import { useState } from 'react'
 import { useLocale } from 'next-intl'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useTheme } from '@/context/ThemeContext'
 import Navbar from '@/components/Navbar'
 
 export default function LegalPage() {
-const [tab, setTab] = useState<'impressum' | 'datenschutz' | 'agb'>('impressum')
+const searchParams = useSearchParams()
+  const [tab, setTab] = useState<'impressum' | 'datenschutz' | 'agb'>(
+    (searchParams.get('tab') as 'impressum' | 'datenschutz' | 'agb') ?? 'impressum'
+  )
   const locale = useLocale()
   const router = useRouter()
   const { theme } = useTheme()
