@@ -61,12 +61,20 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
   const router = useRouter()
   const supabase = createClient()
 
-  useEffect(() => {
+useEffect(() => {
     const isAppPage = TAB_ORDER.some(t => pathname.includes(t))
     if (!isAppPage) { setShowSplash(false); return }
+
     const hasSeenSplash = sessionStorage.getItem('splashShown')
-    if (hasSeenSplash) { setShowSplash(false); return }
-    preloadData()
+    const hasSeenOnboarding = localStorage.getItem('kw_onboarding_seen')
+
+    if (hasSeenSplash) {
+      setShowSplash(false)
+      if (!hasSeenOnboarding) setShowOnboarding(true)
+    } else {
+      preloadData()
+    }
+
     supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') {
         router.push('/' + pathname.split('/')[1] + '/auth/login')
