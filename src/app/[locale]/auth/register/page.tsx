@@ -95,9 +95,9 @@ function calculateAge(birthdateStr: string): number {
         }
       }
     }
-   localStorage.removeItem('kw_onboarding_seen')
+localStorage.removeItem('kw_onboarding_seen')
     setLoading(false)
-    router.push('/' + lang + '/dresser')
+    router.push('/' + lang + '/dresser?onboarding=true')
   }
 
   const inputStyle = {

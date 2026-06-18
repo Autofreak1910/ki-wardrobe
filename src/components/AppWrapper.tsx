@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import SplashScreen from './SplashScreen'
 import OnboardingCarousel from './OnboardingCarousel'
@@ -61,20 +61,31 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
   const [showWelcome, setShowWelcome] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
+  const forceOnboarding = searchParams.get('onboarding') === 'true'
 
-useEffect(() => {
+  useEffect(() => {
     const isAppPage = TAB_ORDER.some(t => pathname.includes(t))
     if (!isAppPage) { setShowSplash(false); return }
 
-    const hasSeenSplash = sessionStorage.getItem('splashShown')
-    const hasSeenOnboarding = localStorage.getItem('kw_onboarding_seen')
-
-    if (hasSeenSplash) {
+    if (forceOnboarding) {
       setShowSplash(false)
-      if (!hasSeenOnboarding) setShowOnboarding(true)
-    } else {
+      setShowOnboarding(true)
       preloadData()
+      const url = new URL(window.location.href)
+      url.searchParams.delete('onboarding')
+      window.history.replaceState({}, '', url.toString())
+    } else {
+      const hasSeenSplash = sessionStorage.getItem('splashShown')
+      const hasSeenOnboarding = localStorage.getItem('kw_onboarding_seen')
+
+      if (hasSeenSplash) {
+        setShowSplash(false)
+        if (!hasSeenOnboarding) setShowOnboarding(true)
+      } else {
+        preloadData()
+      }
     }
 
     supabase.auth.onAuthStateChange((event) => {
@@ -83,7 +94,6 @@ useEffect(() => {
       }
     })
   }, [])
-
   async function preloadData() {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) return
