@@ -30,7 +30,8 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
 const [birthdate, setBirthdate] = useState('')
-  const [agbAccepted, setAgbAccepted] = useState(false)
+const [agbAccepted, setAgbAccepted] = useState(false)
+  const [showLegalModal, setShowLegalModal] = useState<'agb' | 'datenschutz' | null>(null)
   const [country, setCountry] = useState('')
   const [gender, setGender] = useState('')
   const [stylePrefs, setStylePrefs] = useState<string[]>([])
@@ -332,8 +333,7 @@ function calculateAge(birthdateStr: string): number {
                   </motion.button>
                 ))}
               </div>
-
-   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '20px' }}>
+<div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '20px' }}>
                 <div onClick={() => setAgbAccepted(!agbAccepted)} style={{ cursor: 'pointer', flexShrink: 0 }}>
                   <div style={{
                     width: '20px', height: '20px', borderRadius: '6px', marginTop: '1px',
@@ -349,19 +349,18 @@ function calculateAge(birthdateStr: string): number {
                   <span onClick={() => setAgbAccepted(!agbAccepted)} style={{ cursor: 'pointer' }}>
                     {locale === 'de' ? 'Ich akzeptiere die ' : 'I accept the '}
                   </span>
-                  <a href={'/' + locale + '/legal?tab=agb'} target="_blank" rel="noopener noreferrer" style={{ color: accent, fontWeight: 600, textDecoration: 'none' }}>
+                  <span onClick={() => setShowLegalModal('agb')} style={{ color: accent, fontWeight: 600, cursor: 'pointer' }}>
                     {locale === 'de' ? 'AGB' : 'Terms of Service'}
-                  </a>
+                  </span>
                   <span onClick={() => setAgbAccepted(!agbAccepted)} style={{ cursor: 'pointer' }}>
                     {locale === 'de' ? ' und die ' : ' and '}
                   </span>
-                  <a href={'/' + locale + '/legal?tab=datenschutz'} target="_blank" rel="noopener noreferrer" style={{ color: accent, fontWeight: 600, textDecoration: 'none' }}>
+                  <span onClick={() => setShowLegalModal('datenschutz')} style={{ color: accent, fontWeight: 600, cursor: 'pointer' }}>
                     {locale === 'de' ? 'Datenschutzerklärung' : 'Privacy Policy'}
-                  </a>
+                  </span>
                   <span onClick={() => setAgbAccepted(!agbAccepted)} style={{ cursor: 'pointer' }}>.</span>
                 </p>
               </div>
-
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button onClick={() => setStep(3)} style={{ width: '48px', flexShrink: 0, padding: '14px', background: secondary, border: `1px solid ${border}`, borderRadius: '12px', fontSize: '16px', color: muted, cursor: 'pointer' }}>←</button>
                 <motion.button whileTap={{ scale: 0.97 }}
@@ -380,9 +379,71 @@ function calculateAge(birthdateStr: string): number {
         </AnimatePresence>
       </motion.div>
 
-      <p style={{ marginTop: '20px', fontSize: '11px', color: muted, position: 'relative', zIndex: 1 }}>
+<p style={{ marginTop: '20px', fontSize: '11px', color: muted, position: 'relative', zIndex: 1 }}>
         KiWardrobe · Made with ♥
       </p>
+
+      {/* Legal Modal */}
+      <AnimatePresence>
+        {showLegalModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setShowLegalModal(null)}
+            style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '16px' }}>
+            <motion.div initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }} transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+              onClick={e => e.stopPropagation()}
+              style={{ width: '100%', maxWidth: '500px', maxHeight: '80vh', overflowY: 'auto' as const, background: bg, borderRadius: '24px 24px 0 0', padding: '24px 20px 32px', border: `1px solid ${border}`, borderBottom: 'none' }}>
+
+              <div style={{ width: '36px', height: '4px', background: border, borderRadius: '2px', margin: '0 auto 16px' }} />
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '22px', fontWeight: 400, color: text }}>
+                  {showLegalModal === 'agb' ? 'AGB' : (locale === 'de' ? 'Datenschutz' : 'Privacy Policy')}
+                </h2>
+                <button onClick={() => setShowLegalModal(null)} style={{ background: card, border: `1px solid ${border}`, borderRadius: '10px', width: '32px', height: '32px', cursor: 'pointer', fontSize: '14px', color: muted }}>✕</button>
+              </div>
+
+              {showLegalModal === 'agb' ? (
+                <>
+                  {[
+                    { title: '1. Geltungsbereich', content: 'Diese AGB gelten für die Nutzung der App KiWardrobe, betrieben von Luca Darvas, Bernd-Rosemeyer-Straße 14, 85551 Kirchheim bei München ("Anbieter"). Mit der Registrierung erkennst du diese AGB an.' },
+                    { title: '2. Leistungsbeschreibung', content: 'KiWardrobe bietet eine KI-gestützte Anwendung zur Verwaltung des persönlichen Kleiderschranks, zur Erstellung von Outfit-Vorschlägen sowie zur virtuellen Anprobe von Kleidung (Virtual Try-On). Ein Teil der Funktionen ist kostenlos nutzbar (KiWardrobe Free), erweiterte Funktionen sind im kostenpflichtigen Abonnement (KiWardrobe Pro) enthalten.' },
+                    { title: '3. Preise und Zahlung', content: 'Der aktuelle Preis für KiWardrobe Pro wird vor Vertragsschluss in der App angezeigt (Stand: €4,99/Monat). Die Zahlung erfolgt monatlich im Voraus über Stripe.' },
+                    { title: '4. Laufzeit und Kündigung', content: 'Das Pro-Abonnement verlängert sich automatisch um jeweils einen Monat, sofern es nicht rechtzeitig gekündigt wird. Kündigung jederzeit über die Profileinstellungen möglich.' },
+                    { title: '5. Widerrufsrecht', content: 'Bei digitalen Inhalten, die sofort bereitgestellt werden, erlischt das gesetzliche Widerrufsrecht vorzeitig, wenn du der sofortigen Ausführung ausdrücklich zustimmst.' },
+                    { title: 'Vollständige AGB', content: 'Die vollständigen AGB findest du jederzeit im Profil unter "Impressum & Datenschutz".' },
+                  ].map(section => (
+                    <div key={section.title} style={{ marginBottom: '16px' }}>
+                      <h3 style={{ fontSize: '12px', fontWeight: 700, color: accent, textTransform: 'uppercase' as const, letterSpacing: '0.06em', marginBottom: '6px' }}>{section.title}</h3>
+                      <p style={{ fontSize: '13px', color: text, lineHeight: 1.6 }}>{section.content}</p>
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <>
+                  {[
+                    { title: 'Verantwortlicher', content: 'Luca Darvas, Bernd-Rosemeyer-Straße 14, 85551 Kirchheim bei München. E-Mail: support.kiwardrobe@gmail.com' },
+                    { title: 'Welche Daten wir speichern', content: 'E-Mail, Benutzername, Geburtsdatum, hochgeladene Kleidungsbilder, Selfies für Virtual Try-On, Standortdaten für Wetter, Push-Anmeldedaten, Zahlungsdaten bei Pro-Abo.' },
+                    { title: 'Wofür wir Daten nutzen', content: 'Bereitstellung der App-Funktionen, KI-Outfit-Generierung, Virtual Try-On, wetterbasierte Vorschläge, Push-Benachrichtigungen.' },
+                    { title: 'Drittanbieter', content: 'Supabase (EU-Server Frankfurt), OpenAI, Replicate, Stripe, Vercel.' },
+                    { title: 'Deine Rechte', content: 'Auskunft, Berichtigung, Löschung, Datenportabilität. Account-Löschung jederzeit selbst über die App möglich.' },
+                    { title: 'Vollständige Datenschutzerklärung', content: 'Die vollständige Erklärung findest du jederzeit im Profil unter "Impressum & Datenschutz".' },
+                  ].map(section => (
+                    <div key={section.title} style={{ marginBottom: '16px' }}>
+                      <h3 style={{ fontSize: '12px', fontWeight: 700, color: accent, textTransform: 'uppercase' as const, letterSpacing: '0.06em', marginBottom: '6px' }}>{section.title}</h3>
+                      <p style={{ fontSize: '13px', color: text, lineHeight: 1.6 }}>{section.content}</p>
+                    </div>
+                  ))}
+                </>
+              )}
+
+              <button onClick={() => setShowLegalModal(null)}
+                style={{ width: '100%', padding: '14px', background: `linear-gradient(135deg, ${accent}, #6b9fff)`, border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", marginTop: '8px' }}>
+                {locale === 'de' ? 'Verstanden' : 'Got it'}
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
