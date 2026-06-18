@@ -7,9 +7,10 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
 export default function FeedbackPage() {
-  const [type, setType] = useState('feedback')
+const [type, setType] = useState('feedback')
   const [message, setMessage] = useState('')
   const [email, setEmail] = useState('')
+  const [wantsReply, setWantsReply] = useState(false)
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
   const { theme } = useTheme()
@@ -18,20 +19,20 @@ export default function FeedbackPage() {
   const supabase = createClient()
   const isDark = theme === 'dark'
 
-  async function handleSubmit() {
+async function handleSubmit() {
     if (!message.trim()) return
     setLoading(true)
     const { data: { session } } = await supabase.auth.getSession()
     const finalEmail = email || session?.user?.email
     await supabase.from('feedback').insert({
       user_id: session?.user?.id ?? null,
-      type, message, email: finalEmail,
+      type, message, email: finalEmail, wants_reply: wantsReply,
     })
     try {
       await fetch('/api/send-feedback-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, message, email: finalEmail }),
+        body: JSON.stringify({ type, message, email: finalEmail, wantsReply }),
       })
     } catch (err) {
       console.error('Email send failed, feedback still saved:', err)
@@ -107,20 +108,31 @@ return (
               />
             </div>
 
-            {/* Email optional */}
-            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '20px', marginBottom: '24px' }}>
+   {/* Antwort gewünscht? */}
+            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '20px', marginBottom: '16px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                <input type="checkbox" checked={wantsReply} onChange={e => setWantsReply(e.target.checked)}
+                  style={{ width: '20px', height: '20px', flexShrink: 0, accentColor: '#0ea472', cursor: 'pointer' }} />
+                <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)' }}>
+                  {locale === 'de' ? 'Ich möchte eine Antwort erhalten' : 'I would like to receive a reply'}
+                </span>
+              </label>
+            </div>
+
+            {/* Email — nur relevant wenn Antwort gewünscht */}
+            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '20px', marginBottom: '24px', opacity: wantsReply ? 1 : 0.5 }}>
               <label style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', display: 'block', marginBottom: '8px' }}>
-                {locale === 'de' ? 'Email für Antwort (optional)' : 'Email for reply (optional)'}
+                {locale === 'de' ? 'Email für Antwort' : 'Email for reply'} {wantsReply && '*'}
               </label>
               <input
                 type="email" value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="deine@email.com"
-                style={{ width: '100%', background: 'var(--bg-secondary)', border: '1.5px solid var(--border)', borderRadius: '10px', padding: '12px 14px', fontSize: '14px', color: 'var(--text)', outline: 'none', fontFamily: "'DM Sans', sans-serif", boxSizing: 'border-box' as const, transition: 'border-color 0.2s' }}
+                placeholder="deine@email.com" disabled={!wantsReply}
+                style={{ width: '100%', background: 'var(--bg-secondary)', border: '1.5px solid var(--border)', borderRadius: '10px', padding: '12px 14px', fontSize: '14px', color: 'var(--text)', outline: 'none', fontFamily: "'DM Sans', sans-serif", boxSizing: 'border-box' as const, transition: 'border-color 0.2s', cursor: wantsReply ? 'text' : 'not-allowed' }}
                 onFocus={e => e.target.style.borderColor = '#0ea472'}
                 onBlur={e => e.target.style.borderColor = 'var(--border)'}
               />
               <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '6px' }}>
-                {locale === 'de' ? 'Wir antworten an: support.kiwardrobe@gmail.com' : 'We reply from: support.kiwardrobe@gmail.com'}
+                {locale === 'de' ? 'Wir antworten von: support.kiwardrobe@gmail.com' : 'We reply from: support.kiwardrobe@gmail.com'}
               </p>
             </div>
 
