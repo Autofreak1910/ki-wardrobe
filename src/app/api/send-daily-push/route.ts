@@ -110,16 +110,40 @@ const result = JSON.parse(completion.choices[0].message.content ?? '{}')
     }
   }
 
+// Premium-Ablauf-Status pro User vorab laden
+  const { data: profilesData } = await supabase
+    .from('profiles')
+    .select('id, is_premium, premium_until')
+    .in('id', userIds)
+
+  const profileMap = new Map((profilesData ?? []).map(p => [p.id, p]))
+
   let sent = 0
   let failed = 0
 
   for (const sub of subscriptions) {
     try {
-      const payload = JSON.stringify({
-        title: '☀️ Dein Outfit ist bereit!',
-        body: 'Die KI hat heute schon ein gratis Outfit für dich vorbereitet. Schau es dir an!',
-        url: '/de/dresser',
-      })
+      const profile = profileMap.get(sub.user_id)
+      let payload
+
+      if (profile?.is_premium && profile.premium_until) {
+        const daysLeft = Math.ceil((new Date(profile.premium_until).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+        if (daysLeft >= 0 && daysLeft <= 2) {
+          payload = JSON.stringify({
+            title: daysLeft === 0 ? '⏳ Dein Pro läuft heute ab!' : `⏳ Dein Pro läuft in ${daysLeft} Tag${daysLeft > 1 ? 'en' : ''} ab`,
+            body: 'Lade Freunde ein für mehr Gratis-Zeit, oder upgrade jetzt um dranzubleiben.',
+            url: '/de/profile',
+          })
+        }
+      }
+
+      if (!payload) {
+        payload = JSON.stringify({
+          title: '☀️ Dein Outfit ist bereit!',
+          body: 'Die KI hat heute schon ein gratis Outfit für dich vorbereitet. Schau es dir an!',
+          url: '/de/dresser',
+        })
+      }
 
       await webpush.sendNotification({
         endpoint: sub.endpoint,
