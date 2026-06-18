@@ -4,11 +4,14 @@ import { createClient } from '@supabase/supabase-js'
 export async function POST(request: NextRequest) {
   try {
     const { userId, referralCode } = await request.json()
-    if (!userId || !referralCode) return NextResponse.json({ success: false })
+    if (!userId || !referralCode) {
+      return NextResponse.json({ success: false, error: 'missing params' })
+    }
 
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
     )
 
     const { data, error } = await supabase.rpc('apply_referral', {
@@ -16,10 +19,10 @@ export async function POST(request: NextRequest) {
       p_referral_code: referralCode,
     })
 
-    console.log('Server referral result:', data, error)
-    return NextResponse.json({ success: data?.success ?? false, error: error?.message })
+    console.log('apply_referral result:', data, 'error:', error)
+    return NextResponse.json({ success: data?.success ?? false, data, error: error?.message })
   } catch (err) {
-    console.error('Server referral error:', err)
-    return NextResponse.json({ success: false, error: String(err) })
+    console.error('apply_referral_server error:', err)
+    return NextResponse.json({ success: false, error: String(err) }, { status: 500 })
   }
 }

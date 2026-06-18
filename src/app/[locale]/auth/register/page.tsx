@@ -93,24 +93,25 @@ const { data, error: signUpError } = await supabase.auth.signUp({
 if (signUpError) { setError(signUpError.message); setLoading(false); return }
 
     if (data.user) {
-      // Direkt einloggen damit wir eine aktive Session haben
-      await supabase.auth.signInWithPassword({ email, password })
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // Warten bis Trigger das Profil erstellt hat
+      await new Promise(resolve => setTimeout(resolve, 1500))
 
-      // Profil updaten
+      // Profil updaten (eigene Session ist aktiv nach signUp)
       await supabase.from('profiles').update({
         gender, style_preferences: stylePrefs, budget_range: budgetRange
       }).eq('id', data.user.id)
 
-      // Referral anwenden mit aktiver Session
+      // Referral server-seitig anwenden
       if (refCode) {
         try {
-          const { data: rpcData, error: rpcError } = await supabase.rpc('apply_referral', {
-            p_new_user_id: data.user.id,
-            p_referral_code: refCode,
+          const res = await fetch('/api/apply-referral-server', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: data.user.id, referralCode: refCode }),
           })
-          console.log('Referral result:', rpcData, rpcError)
-          if (rpcData?.success) {
+          const result = await res.json()
+          console.log('Referral result:', result)
+          if (result.success) {
             localStorage.setItem('kw_pro_welcome_pending', 'true')
           }
         } catch (err) {
