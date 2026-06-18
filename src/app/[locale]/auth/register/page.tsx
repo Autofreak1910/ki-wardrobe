@@ -90,17 +90,32 @@ const { data, error: signUpError } = await supabase.auth.signUp({
         emailRedirectTo: window.location.origin + '/' + lang + '/auth/callback?locale=' + lang,
       },
     })
-    if (signUpError) { setError(signUpError.message); setLoading(false); return }
-if (data.user) {
-      // Profil wird automatisch vom Trigger erstellt
-      // Nur gender und style_preferences nachträglich updaten (eigene Session ist jetzt aktiv)
-      await new Promise(resolve => setTimeout(resolve, 500))
+if (signUpError) { setError(signUpError.message); setLoading(false); return }
+
+    if (data.user) {
+      // Direkt einloggen damit wir eine aktive Session haben
+      await supabase.auth.signInWithPassword({ email, password })
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      // Profil updaten
       await supabase.from('profiles').update({
         gender, style_preferences: stylePrefs, budget_range: budgetRange
       }).eq('id', data.user.id)
 
-if (refCode) {
-        localStorage.setItem('kw_pro_welcome_pending', 'true')
+      // Referral anwenden mit aktiver Session
+      if (refCode) {
+        try {
+          const { data: rpcData, error: rpcError } = await supabase.rpc('apply_referral', {
+            p_new_user_id: data.user.id,
+            p_referral_code: refCode,
+          })
+          console.log('Referral result:', rpcData, rpcError)
+          if (rpcData?.success) {
+            localStorage.setItem('kw_pro_welcome_pending', 'true')
+          }
+        } catch (err) {
+          console.error('Referral failed:', err)
+        }
       }
     }
 localStorage.removeItem('kw_onboarding_seen')
