@@ -91,12 +91,13 @@ function parseGermanDate(dateStr: string): Date | null {
       },
     })
     if (signUpError) { setError(signUpError.message); setLoading(false); return }
- if (data.user) {
-await supabase.from('profiles').upsert({
-        id: data.user.id,
-        username, age: computedAge, birthdate: isoBirthdate, country, language: lang,
+if (data.user) {
+      // Profil wird automatisch vom Trigger erstellt
+      // Nur gender und style_preferences nachträglich updaten (eigene Session ist jetzt aktiv)
+      await new Promise(resolve => setTimeout(resolve, 500))
+      await supabase.from('profiles').update({
         gender, style_preferences: stylePrefs, budget_range: budgetRange
-      }, { onConflict: 'id' })
+      }).eq('id', data.user.id)
 
 if (refCode && data.user) {
         try {
