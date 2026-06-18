@@ -99,6 +99,8 @@ await supabase.from('profiles').update({
 
 if (refCode && data.user) {
         try {
+          // Kurz warten damit der Profil-Trigger fertig ist
+          await new Promise(resolve => setTimeout(resolve, 1500))
           console.log('Applying referral:', refCode, 'for user:', data.user.id)
           const { data: rpcData, error: referralError } = await supabase.rpc('apply_referral', {
             p_new_user_id: data.user.id,
