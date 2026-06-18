@@ -431,20 +431,6 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
           </motion.button>
         </motion.div>
 
-       {/* Style DNA Button */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-onClick={isPremium ? generateStyleDna : () => setShowUpgrade(true)}
-          whileTap={{ scale: 0.98 }}
-          style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', padding: '16px 18px', marginBottom: '12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: `linear-gradient(135deg, ${accent}, #6b9fff)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>{isPremium ? '🧬' : '🔒'}</div>
-            <div>
-              <p style={{ fontSize: '14px', fontWeight: 700, color: text, marginBottom: '2px' }}>Style DNA</p>
-              <p style={{ fontSize: '12px', color: muted }}>{isPremium ? (locale === 'de' ? 'KI analysiert deinen Stil' : 'AI analyzes your style') : (locale === 'de' ? 'Nur für Pro · €4,99' : 'Pro only · €4.99')}</p>
-            </div>
-          </div>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
-        </motion.div>
 
 
  {/* Konto */}
