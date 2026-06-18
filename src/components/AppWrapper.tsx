@@ -63,21 +63,17 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
-  const forceOnboarding = searchParams.get('onboarding') === 'true'
-
  useEffect(() => {
-    console.log('AppWrapper mounted. pathname:', pathname, 'forceOnboarding:', forceOnboarding, 'search:', searchParams.toString())
     const isAppPage = TAB_ORDER.some(t => pathname.includes(t))
     if (!isAppPage) { setShowSplash(false); return }
 
+    const forceOnboarding = localStorage.getItem('kw_force_onboarding') === 'true'
+
     if (forceOnboarding) {
-      console.log('Forcing onboarding to show')
+      localStorage.removeItem('kw_force_onboarding')
       setShowSplash(false)
       setShowOnboarding(true)
       preloadData()
-      const url = new URL(window.location.href)
-      url.searchParams.delete('onboarding')
-      window.history.replaceState({}, '', url.toString())
     } else {
       const hasSeenSplash = sessionStorage.getItem('splashShown')
       const hasSeenOnboarding = localStorage.getItem('kw_onboarding_seen')
@@ -95,7 +91,7 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
         router.push('/' + pathname.split('/')[1] + '/auth/login')
       }
     })
-  }, [])
+  }, [pathname])
   async function preloadData() {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) return
