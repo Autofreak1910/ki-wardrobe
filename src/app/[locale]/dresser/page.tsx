@@ -528,7 +528,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
   transition={{ delay: 0.1, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
   onClick={fetchWeather}
   style={{ flexShrink: 0, width: '120px', background: card, border: `1px solid ${border}`, borderRadius: '20px', padding: '14px 12px', textAlign: 'center' as const, cursor: 'pointer', boxShadow: isDark ? 'none' : '0 2px 16px rgba(10,46,30,0.07)' }}>
-    {weatherLoading ? (
+{weatherLoading ? (
               <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.2, repeat: Infinity }}
                 style={{ width: '60px', height: '14px', borderRadius: '6px', background: border, margin: '0 auto 8px' }} />
             ) : (
