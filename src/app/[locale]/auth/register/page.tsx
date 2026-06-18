@@ -333,23 +333,32 @@ function calculateAge(birthdateStr: string): number {
                 ))}
               </div>
 
-         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '20px', cursor: 'pointer' }}
-                onClick={() => setAgbAccepted(!agbAccepted)}>
-                <div style={{
-                  width: '20px', height: '20px', borderRadius: '6px', flexShrink: 0, marginTop: '1px',
-                  border: `1.5px solid ${agbAccepted ? accent : border}`,
-                  background: agbAccepted ? accent : 'transparent',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  transition: 'all 0.15s',
-                }}>
-                  {agbAccepted && <span style={{ color: '#fff', fontSize: '12px', fontWeight: 700 }}>✓</span>}
+   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '20px' }}>
+                <div onClick={() => setAgbAccepted(!agbAccepted)} style={{ cursor: 'pointer', flexShrink: 0 }}>
+                  <div style={{
+                    width: '20px', height: '20px', borderRadius: '6px', marginTop: '1px',
+                    border: `1.5px solid ${agbAccepted ? accent : border}`,
+                    background: agbAccepted ? accent : 'transparent',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    transition: 'all 0.15s',
+                  }}>
+                    {agbAccepted && <span style={{ color: '#fff', fontSize: '12px', fontWeight: 700 }}>✓</span>}
+                  </div>
                 </div>
                 <p style={{ fontSize: '12px', color: muted, lineHeight: 1.5 }}>
-                  {locale === 'de' ? (
-                    <>Ich akzeptiere die <Link href={'/' + locale + '/legal?tab=agb'} onClick={e => e.stopPropagation()} style={{ color: accent, fontWeight: 600, textDecoration: 'none' }}>AGB</Link> und die <Link href={'/' + locale + '/legal?tab=datenschutz'} onClick={e => e.stopPropagation()} style={{ color: accent, fontWeight: 600, textDecoration: 'none' }}>Datenschutzerklärung</Link>.</>
-                  ) : (
-                    <>I accept the <Link href={'/' + locale + '/legal?tab=agb'} onClick={e => e.stopPropagation()} style={{ color: accent, fontWeight: 600, textDecoration: 'none' }}>Terms of Service</Link> and <Link href={'/' + locale + '/legal?tab=datenschutz'} onClick={e => e.stopPropagation()} style={{ color: accent, fontWeight: 600, textDecoration: 'none' }}>Privacy Policy</Link>.</>
-                  )}
+                  <span onClick={() => setAgbAccepted(!agbAccepted)} style={{ cursor: 'pointer' }}>
+                    {locale === 'de' ? 'Ich akzeptiere die ' : 'I accept the '}
+                  </span>
+                  <a href={'/' + locale + '/legal?tab=agb'} target="_blank" rel="noopener noreferrer" style={{ color: accent, fontWeight: 600, textDecoration: 'none' }}>
+                    {locale === 'de' ? 'AGB' : 'Terms of Service'}
+                  </a>
+                  <span onClick={() => setAgbAccepted(!agbAccepted)} style={{ cursor: 'pointer' }}>
+                    {locale === 'de' ? ' und die ' : ' and '}
+                  </span>
+                  <a href={'/' + locale + '/legal?tab=datenschutz'} target="_blank" rel="noopener noreferrer" style={{ color: accent, fontWeight: 600, textDecoration: 'none' }}>
+                    {locale === 'de' ? 'Datenschutzerklärung' : 'Privacy Policy'}
+                  </a>
+                  <span onClick={() => setAgbAccepted(!agbAccepted)} style={{ cursor: 'pointer' }}>.</span>
                 </p>
               </div>
 
