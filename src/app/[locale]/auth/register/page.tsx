@@ -402,35 +402,48 @@ function calculateAge(birthdateStr: string): number {
                 <button onClick={() => setShowLegalModal(null)} style={{ background: card, border: `1px solid ${border}`, borderRadius: '10px', width: '32px', height: '32px', cursor: 'pointer', fontSize: '14px', color: muted }}>✕</button>
               </div>
 
-              {showLegalModal === 'agb' ? (
+      {showLegalModal === 'agb' ? (
                 <>
                   {[
                     { title: '1. Geltungsbereich', content: 'Diese AGB gelten für die Nutzung der App KiWardrobe, betrieben von Luca Darvas, Bernd-Rosemeyer-Straße 14, 85551 Kirchheim bei München ("Anbieter"). Mit der Registrierung erkennst du diese AGB an.' },
                     { title: '2. Leistungsbeschreibung', content: 'KiWardrobe bietet eine KI-gestützte Anwendung zur Verwaltung des persönlichen Kleiderschranks, zur Erstellung von Outfit-Vorschlägen sowie zur virtuellen Anprobe von Kleidung (Virtual Try-On). Ein Teil der Funktionen ist kostenlos nutzbar (KiWardrobe Free), erweiterte Funktionen sind im kostenpflichtigen Abonnement (KiWardrobe Pro) enthalten.' },
-                    { title: '3. Preise und Zahlung', content: 'Der aktuelle Preis für KiWardrobe Pro wird vor Vertragsschluss in der App angezeigt (Stand: €4,99/Monat). Die Zahlung erfolgt monatlich im Voraus über Stripe.' },
-                    { title: '4. Laufzeit und Kündigung', content: 'Das Pro-Abonnement verlängert sich automatisch um jeweils einen Monat, sofern es nicht rechtzeitig gekündigt wird. Kündigung jederzeit über die Profileinstellungen möglich.' },
-                    { title: '5. Widerrufsrecht', content: 'Bei digitalen Inhalten, die sofort bereitgestellt werden, erlischt das gesetzliche Widerrufsrecht vorzeitig, wenn du der sofortigen Ausführung ausdrücklich zustimmst.' },
-                    { title: 'Vollständige AGB', content: 'Die vollständigen AGB findest du jederzeit im Profil unter "Impressum & Datenschutz".' },
+                    { title: '3. Vertragsschluss', content: 'Der Vertrag über die Free-Nutzung kommt durch erfolgreiche Registrierung zustande. Der Vertrag über ein Pro-Abonnement kommt durch Abschluss des Bezahlvorgangs über unseren Zahlungsdienstleister Stripe zustande.' },
+                    { title: '4. Preise und Zahlung', content: 'Der aktuelle Preis für KiWardrobe Pro wird vor Vertragsschluss in der App angezeigt (Stand: €4,99/Monat). Die Zahlung erfolgt monatlich im Voraus über Stripe. Preisänderungen werden mit angemessener Vorlaufzeit angekündigt.' },
+                    { title: '5. Laufzeit und Kündigung', content: 'Das Pro-Abonnement verlängert sich automatisch um jeweils einen Monat, sofern es nicht rechtzeitig vor Ablauf des laufenden Abrechnungszeitraums gekündigt wird. Die Kündigung ist jederzeit über die Profileinstellungen in der App oder per E-Mail an support.kiwardrobe@gmail.com möglich. Bereits bezahlte Zeiträume werden bei einer Kündigung nicht anteilig zurückerstattet; der Zugang zu Pro-Funktionen bleibt bis zum Ende des bezahlten Zeitraums bestehen.' },
+                    { title: '6. Widerrufsrecht', content: 'Verbrauchern steht grundsätzlich ein gesetzliches Widerrufsrecht von 14 Tagen nach Vertragsschluss zu. Da es sich bei KiWardrobe Pro um digitale Inhalte handelt, die sofort nach Zahlung bereitgestellt werden, erlischt das Widerrufsrecht vorzeitig, wenn du der sofortigen Ausführung ausdrücklich zustimmst und bestätigst, dass du dadurch dein Widerrufsrecht verlierst. Diese Zustimmung wird im Bestellprozess eingeholt.' },
+                    { title: '7. Nutzungsrechte und Pflichten', content: 'Du erhältst ein einfaches, nicht übertragbares Nutzungsrecht an der App für die Dauer deines Accounts. Du verpflichtest dich, keine missbräuchlichen, rechtswidrigen oder die Rechte Dritter verletzenden Inhalte (z. B. Bilder) hochzuladen. Bei Verstößen kann der Account gesperrt oder gelöscht werden.' },
+                    { title: '8. KI-generierte Inhalte', content: 'Outfit-Vorschläge und virtuelle Anprobe-Ergebnisse werden mithilfe von KI-Modellen Dritter (u. a. OpenAI, Replicate) erzeugt. Der Anbieter übernimmt keine Garantie für die optische Genauigkeit, Eignung oder Fehlerfreiheit der KI-generierten Ergebnisse.' },
+                    { title: '9. Referral-Programm', content: 'Im Rahmen des Einladungsprogramms können Nutzer durch das Einladen neuer Nutzer zeitlich begrenzte kostenlose Pro-Zeiträume erhalten. Der Anbieter behält sich vor, das Programm jederzeit anzupassen, einzuschränken oder zu beenden sowie Belohnungen bei Missbrauch (z. B. Fake-Accounts) zu widerrufen.' },
+                    { title: '10. Haftung', content: 'Der Anbieter haftet unbeschränkt bei Vorsatz und grober Fahrlässigkeit sowie nach den Vorschriften des Produkthaftungsgesetzes. Bei leicht fahrlässiger Verletzung wesentlicher Vertragspflichten ist die Haftung auf den vorhersehbaren, vertragstypischen Schaden begrenzt. Im Übrigen ist die Haftung ausgeschlossen, soweit gesetzlich zulässig.' },
+                    { title: '11. Verfügbarkeit', content: 'Der Anbieter bemüht sich um eine möglichst unterbrechungsfreie Verfügbarkeit der App, übernimmt jedoch keine Garantie für eine bestimmte Verfügbarkeit, insbesondere bei Wartungsarbeiten oder Ausfällen von Drittanbietern (Hosting, KI-Dienste).' },
+                    { title: '12. Änderung der AGB', content: 'Der Anbieter kann diese AGB mit Wirkung für die Zukunft ändern. Über wesentliche Änderungen wirst du rechtzeitig informiert. Widersprichst du nicht innerhalb von 30 Tagen, gelten die neuen AGB als akzeptiert.' },
+                    { title: '13. Schlussbestimmungen', content: 'Es gilt deutsches Recht. Sollte eine Bestimmung dieser AGB unwirksam sein, bleibt die Wirksamkeit der übrigen Bestimmungen unberührt.\n\nKontakt: support.kiwardrobe@gmail.com' },
                   ].map(section => (
                     <div key={section.title} style={{ marginBottom: '16px' }}>
                       <h3 style={{ fontSize: '12px', fontWeight: 700, color: accent, textTransform: 'uppercase' as const, letterSpacing: '0.06em', marginBottom: '6px' }}>{section.title}</h3>
-                      <p style={{ fontSize: '13px', color: text, lineHeight: 1.6 }}>{section.content}</p>
+                      <p style={{ fontSize: '13px', color: text, lineHeight: 1.6, whiteSpace: 'pre-line' as const }}>{section.content}</p>
                     </div>
                   ))}
                 </>
               ) : (
                 <>
                   {[
-                    { title: 'Verantwortlicher', content: 'Luca Darvas, Bernd-Rosemeyer-Straße 14, 85551 Kirchheim bei München. E-Mail: support.kiwardrobe@gmail.com' },
-                    { title: 'Welche Daten wir speichern', content: 'E-Mail, Benutzername, Geburtsdatum, hochgeladene Kleidungsbilder, Selfies für Virtual Try-On, Standortdaten für Wetter, Push-Anmeldedaten, Zahlungsdaten bei Pro-Abo.' },
-                    { title: 'Wofür wir Daten nutzen', content: 'Bereitstellung der App-Funktionen, KI-Outfit-Generierung, Virtual Try-On, wetterbasierte Vorschläge, Push-Benachrichtigungen.' },
-                    { title: 'Drittanbieter', content: 'Supabase (EU-Server Frankfurt), OpenAI, Replicate, Stripe, Vercel.' },
-                    { title: 'Deine Rechte', content: 'Auskunft, Berichtigung, Löschung, Datenportabilität. Account-Löschung jederzeit selbst über die App möglich.' },
-                    { title: 'Vollständige Datenschutzerklärung', content: 'Die vollständige Erklärung findest du jederzeit im Profil unter "Impressum & Datenschutz".' },
+                    { title: 'Verantwortlicher', content: 'Luca Darvas\nBernd-Rosemeyer-Straße 14\n85551 Kirchheim bei München\nE-Mail: support.kiwardrobe@gmail.com' },
+                    { title: 'Welche Daten wir speichern', content: '• E-Mail-Adresse und Passwort (verschlüsselt)\n• Benutzername, Geburtsdatum, Land\n• Hochgeladene Kleidungsbilder\n• Selfie-/Körperfotos für die Virtual-Try-On-Funktion\n• Generierte Outfits und Avatar-Bilder\n• Standortdaten für die Wetteranzeige und tägliche Outfit-Vorschläge\n• Push-Notification-Anmeldedaten (falls aktiviert)\n• Zahlungsbezogene Daten bei Abschluss eines Pro-Abonnements (über Stripe)\n• Referral-Code und Einladungsstatistiken\n• Nutzungsstatistiken der App' },
+                    { title: 'Wofür wir Daten nutzen', content: '• Bereitstellung der App-Funktionen\n• KI-basierte Outfit-Generierung und virtuelle Anprobe (Virtual Try-On)\n• Tagesaktuelle, wetterbasierte Outfit-Vorschläge\n• Versand von Push-Benachrichtigungen (nur mit deiner Zustimmung)\n• Abwicklung von Pro-Abonnements\n• Personalisierung der Nutzererfahrung\n• Verbesserung des Services' },
+                    { title: 'Standortdaten', content: 'Mit deiner Erlaubnis erfassen wir deinen ungefähren Standort (GPS-Koordinaten), um dir aktuelle Wetterdaten und passende Outfit-Vorschläge anzuzeigen. Du kannst die Standortfreigabe jederzeit über die Berechtigungen deines Geräts/Browsers widerrufen.' },
+                    { title: 'Push-Benachrichtigungen', content: 'Wenn du Push-Benachrichtigungen aktivierst, speichern wir ein technisches Abonnement deines Geräts, um dir tägliche Outfit-Erinnerungen zu schicken. Du kannst dies jederzeit in deinem Profil deaktivieren.' },
+                    { title: 'Zahlungen', content: 'Bei Abschluss eines KiWardrobe Pro-Abonnements werden Zahlungsdaten ausschließlich von unserem Zahlungsdienstleister Stripe verarbeitet. Wir selbst speichern keine vollständigen Kreditkartendaten.' },
+                    { title: 'Freunde einladen (Referral-Programm)', content: 'Wenn du Freunde über deinen persönlichen Einladungslink einlädst, wird gespeichert, welcher Account über welchen Code registriert wurde, um die vereinbarten Prämien zu vergeben.' },
+                    { title: 'Drittanbieter', content: '• Supabase (Datenspeicherung, EU-Server Frankfurt)\n• OpenAI (KI-Analyse für Outfit-Vorschläge und Stilanalyse)\n• Replicate (KI-Bildverarbeitung für Virtual Try-On/Avatar-Generierung und Hintergrundentfernung)\n• Stripe (Zahlungsabwicklung für Pro-Abonnements)\n• Vercel (Hosting, inkl. Server in den USA)\n• Open-Meteo / OpenStreetMap (Wetter- und Standortdaten)' },
+                    { title: 'Deine Rechte', content: '• Auskunft über gespeicherte Daten\n• Berichtigung falscher Daten\n• Löschung deiner Daten\n• Datenportabilität\n• Widerspruch gegen die Verarbeitung\n\nKontakt: support.kiwardrobe@gmail.com' },
+                    { title: 'Datenlöschung', content: 'Du kannst dein Konto inklusive aller gespeicherten Daten jederzeit selbst über die App löschen (Profil → Account löschen). Diese Löschung ist sofort wirksam und unwiderruflich.' },
+                    { title: 'Speicherdauer', content: 'Deine Daten werden gespeichert, solange dein Account aktiv ist. Nach Löschung werden alle personenbezogenen Daten unverzüglich entfernt, mit Ausnahme gesetzlich vorgeschriebener Aufbewahrungsfristen für Rechnungsdaten.' },
+                    { title: 'Cookies', content: 'Wir verwenden nur technisch notwendige Cookies für die Authentifizierung. Keine Werbe-Cookies, kein Tracking durch Dritte zu Werbezwecken.' },
                   ].map(section => (
                     <div key={section.title} style={{ marginBottom: '16px' }}>
                       <h3 style={{ fontSize: '12px', fontWeight: 700, color: accent, textTransform: 'uppercase' as const, letterSpacing: '0.06em', marginBottom: '6px' }}>{section.title}</h3>
-                      <p style={{ fontSize: '13px', color: text, lineHeight: 1.6 }}>{section.content}</p>
+                      <p style={{ fontSize: '13px', color: text, lineHeight: 1.6, whiteSpace: 'pre-line' as const }}>{section.content}</p>
                     </div>
                   ))}
                 </>
