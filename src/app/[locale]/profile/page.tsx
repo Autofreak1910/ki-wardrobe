@@ -280,7 +280,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
             {[
               { label: locale === 'de' ? 'Kleidung' : 'Items', value: itemCount, max: isPremium ? null : 20 },
-              { label: locale === 'de' ? 'Outfits heute' : 'Today', value: todayOutfits, max: isPremium ? null : 3 },
+       { label: locale === 'de' ? 'Outfits heute' : 'Today', value: todayOutfits, max: isPremium ? 15 : 3 },
               { label: locale === 'de' ? 'Gespeichert' : 'Saved', value: outfitCount, max: isPremium ? null : 5 },
             ].map(stat => (
               <div key={stat.label} style={{ background: card, border: `1px solid ${border}`, borderRadius: '14px', padding: '14px 12px', textAlign: 'center' as const }}>
