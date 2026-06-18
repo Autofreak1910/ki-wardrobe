@@ -113,9 +113,12 @@ const [pushEnabled, setPushEnabled] = useState(false)
 const [pushLoading, setPushLoading] = useState(false)
 
   useEffect(() => { loadProfile() }, [])
-  useEffect(() => {
+useEffect(() => {
   const params = new URLSearchParams(window.location.search)
   if (params.get('upgrade') === 'true') setShowUpgrade(true)
+  if (params.get('success') === 'true') {
+    localStorage.setItem('kw_pro_welcome_pending', 'true')
+  }
 }, [])
 
   async function loadProfile() {
