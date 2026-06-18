@@ -637,8 +637,8 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
               </div>
             </motion.div>
 
-            {/* ── Category Grid (große Kacheln wie Konkurrenz) ── */}
-           <motion.div ref={categoryRef} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18, duration: 0.4 }} style={{ marginBottom: '22px' }}>
+      {/* ── Category Chips (kompakt) ── */}
+           <motion.div ref={categoryRef} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18, duration: 0.4 }} style={{ marginBottom: '18px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                 <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: muted }}>
                   {t('dresser.whatForOutfit')}
@@ -650,13 +650,10 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
                 </motion.button>
               </div>
 
-              {/* 2×2 + 1 Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                {categoryConfig.map((cat, i) => {
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' as const }}>
+                {categoryConfig.map((cat) => {
                   const isOn = activeCategories.includes(cat.key)
                   const exists = wardrobeItems.some(item => item.category === cat.key)
-                  const isLast = i === categoryConfig.length - 1
-                  const isOdd = categoryConfig.length % 2 !== 0
 
                   return (
                     <motion.button
@@ -664,26 +661,22 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => toggleCategory(cat.key)}
                       style={{
-                        gridColumn: isLast && isOdd ? '1 / -1' : undefined,
-                        display: 'flex', flexDirection: 'column' as const,
-                        alignItems: 'center', justifyContent: 'center', gap: '10px',
-         padding: isLast && isOdd ? '10px' : '12px 16px',
-                        borderRadius: '18px',
-                        border: `1.5px solid ${isOn ? accent : border}`,
+                        display: 'flex', alignItems: 'center', gap: '6px',
+                        padding: '8px 14px',
+                        borderRadius: '100px',
+                        border: `1px solid ${isOn ? accent : border}`,
                         background: isOn ? accentDim : card,
                         color: isOn ? accent : exists ? text : muted,
-                        cursor: 'pointer', opacity: exists ? 1 : 0.35,
+                        cursor: 'pointer', opacity: exists ? 1 : 0.4,
                         transition: 'all 0.15s',
                         WebkitTapHighlightColor: 'transparent',
                         fontFamily: "'DM Sans', sans-serif",
-                        boxShadow: isOn ? `0 2px 16px rgba(14,164,114,0.2)` : isDark ? 'none' : '0 1px 4px rgba(10,46,30,0.05)',
+                        fontSize: '13px', fontWeight: isOn ? 600 : 400,
                       }}>
-                      <span style={{ color: isOn ? accent : muted, opacity: exists ? 1 : 0.5 }}>
+                      <span style={{ display: 'flex', color: isOn ? accent : muted, opacity: exists ? 1 : 0.5, transform: 'scale(0.7)' }}>
                         {cat.icon}
                       </span>
-                      <span style={{ fontSize: '14px', fontWeight: 600, letterSpacing: '-0.02em' }}>
-                        {locale === 'de' ? cat.labelDe : cat.labelEn}
-                      </span>
+                      {locale === 'de' ? cat.labelDe : cat.labelEn}
                     </motion.button>
                   )
                 })}
