@@ -92,32 +92,25 @@ function parseGermanDate(dateStr: string): Date | null {
     })
     if (signUpError) { setError(signUpError.message); setLoading(false); return }
  if (data.user) {
-await supabase.from('profiles').update({
+await supabase.from('profiles').upsert({
+        id: data.user.id,
         username, age: computedAge, birthdate: isoBirthdate, country, language: lang,
         gender, style_preferences: stylePrefs, budget_range: budgetRange
-      }).eq('id', data.user.id)
+      }, { onConflict: 'id' })
 
 if (refCode && data.user) {
-        const userId = data.user.id
-        const applyReferral = async (attempt: number) => {
-          try {
-            await new Promise(resolve => setTimeout(resolve, attempt * 1000))
-            const { data: rpcData, error: referralError } = await supabase.rpc('apply_referral', {
-              p_new_user_id: userId,
-              p_referral_code: refCode,
-            })
-            console.log(`Referral attempt ${attempt}:`, rpcData, referralError)
-            if (rpcData?.success) {
-              localStorage.setItem('kw_pro_welcome_pending', 'true')
-            } else if (attempt < 4) {
-              applyReferral(attempt + 1)
-            }
-          } catch (err) {
-            console.error('Referral failed:', err)
-            if (attempt < 4) applyReferral(attempt + 1)
+        try {
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          const { data: rpcData } = await supabase.rpc('apply_referral', {
+            p_new_user_id: data.user.id,
+            p_referral_code: refCode,
+          })
+          if (rpcData?.success) {
+            localStorage.setItem('kw_pro_welcome_pending', 'true')
           }
+        } catch (err) {
+          console.error('Referral failed:', err)
         }
-        applyReferral(1)
       }
     }
 localStorage.removeItem('kw_onboarding_seen')
