@@ -83,10 +83,10 @@ function parseGermanDate(dateStr: string): Date | null {
  const computedAge = calculateAge(birthdate)
     const parsedBirth = parseGermanDate(birthdate)
     const isoBirthdate = parsedBirth ? parsedBirth.toISOString().split('T')[0] : null
-    const { data, error: signUpError } = await supabase.auth.signUp({
+const { data, error: signUpError } = await supabase.auth.signUp({
       email, password,
       options: {
-        data: { username, age: computedAge, birthdate: isoBirthdate, country, language: lang },
+        data: { username, age: computedAge, birthdate: isoBirthdate, country, language: lang, ref_code: refCode ?? '' },
         emailRedirectTo: window.location.origin + '/' + lang + '/auth/callback?locale=' + lang,
       },
     })
@@ -99,22 +99,8 @@ if (data.user) {
         gender, style_preferences: stylePrefs, budget_range: budgetRange
       }).eq('id', data.user.id)
 
-if (refCode && data.user) {
-        try {
-          await new Promise(resolve => setTimeout(resolve, 800))
-          const res = await fetch('/api/apply-referral-server', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: data.user.id, referralCode: refCode }),
-          })
-          const result = await res.json()
-          console.log('Referral result:', result)
-          if (result.success) {
-            localStorage.setItem('kw_pro_welcome_pending', 'true')
-          }
-        } catch (err) {
-          console.error('Referral failed:', err)
-        }
+if (refCode) {
+        localStorage.setItem('kw_pro_welcome_pending', 'true')
       }
     }
 localStorage.removeItem('kw_onboarding_seen')
