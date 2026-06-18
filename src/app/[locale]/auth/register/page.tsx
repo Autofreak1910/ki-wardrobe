@@ -92,8 +92,10 @@ const { data, error: signUpError } = await supabase.auth.signUp({
     })
 if (signUpError) { setError(signUpError.message); setLoading(false); return }
 
+    console.log('SignUp data:', data.user?.id, 'refCode:', refCode)
+
     if (data.user) {
-      // Warten bis Trigger das Profil erstellt hat
+      console.log('User exists, waiting...')
       await new Promise(resolve => setTimeout(resolve, 1500))
 
       // Profil updaten (eigene Session ist aktiv nach signUp)
