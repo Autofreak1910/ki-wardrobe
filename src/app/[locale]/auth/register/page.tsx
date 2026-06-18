@@ -100,12 +100,15 @@ await supabase.from('profiles').upsert({
 
 if (refCode && data.user) {
         try {
-          await new Promise(resolve => setTimeout(resolve, 1000))
-          const { data: rpcData } = await supabase.rpc('apply_referral', {
-            p_new_user_id: data.user.id,
-            p_referral_code: refCode,
+          await new Promise(resolve => setTimeout(resolve, 800))
+          const res = await fetch('/api/apply-referral-server', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: data.user.id, referralCode: refCode }),
           })
-          if (rpcData?.success) {
+          const result = await res.json()
+          console.log('Referral result:', result)
+          if (result.success) {
             localStorage.setItem('kw_pro_welcome_pending', 'true')
           }
         } catch (err) {
