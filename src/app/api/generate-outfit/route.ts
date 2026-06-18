@@ -15,8 +15,8 @@ export async function POST(request: NextRequest) {
     const hasBasePieces = items.some((item: { layer_type?: string }) => item.layer_type === 'base')
     const layeringInstruction = hasLayerPieces && hasBasePieces
       ? (isEnglish
-          ? '\nLayering rule: Items marked [layer piece] (sweaters, hoodies, cardigans) look best worn OVER an item marked [base top] (t-shirts, shirts). When you pick a layer piece for an outfit, also include a matching base top underneath it as a separate item, unless weather/occasion clearly calls for the layer piece alone.'
-          : '\nLayering-Regel: Teile mit [layer piece] (Pullover, Hoodies, Strickjacken) sehen am besten ÜBER einem Teil mit [base top] (T-Shirts, Hemden) aus. Wenn du ein Layer-Piece für ein Outfit wählst, füge zusätzlich ein passendes Base-Top darunter als separates Item hinzu, außer Wetter/Anlass sprechen klar für das Layer-Piece allein.')
+          ? '\nLayering rule: Items marked [layer piece] (sweaters, hoodies, cardigans) CAN be worn over an item marked [base top] (t-shirts, shirts) — but ONLY when it is cold enough to need both (roughly below 16°C / 60°F). Above that temperature, wearing a base top AND a layer piece together is uncomfortable and wrong — pick just ONE top in that case (either the layer piece alone, or a base top alone), never both. Never combine a base top and a layer piece when the weather is warm.'
+          : '\nLayering-Regel: Teile mit [layer piece] (Pullover, Hoodies, Strickjacken) können ÜBER einem Teil mit [base top] (T-Shirts, Hemden) getragen werden — aber NUR wenn es kalt genug dafür ist (ungefähr unter 16°C). Bei wärmerem Wetter ist die Kombination aus Base-Top UND Layer-Piece unangenehm und falsch — wähl in diesem Fall nur EIN Oberteil (entweder nur das Layer-Piece oder nur ein Base-Top), niemals beides gleichzeitig. Kombiniere Base-Top und Layer-Piece niemals bei warmem Wetter.')
       : ''
 
     const outfitCount = items.length >= 6 ? 3 : items.length >= 4 ? 2 : 1
