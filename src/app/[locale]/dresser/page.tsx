@@ -340,6 +340,7 @@ return (
   categoryRef={categoryRef}
   dressMeRef={dressMeRef}
   itemCount={wardrobeItems.length}
+  delayMs={showUnlock ? 2900 : 0}
 />
 
 <AnimatePresence>

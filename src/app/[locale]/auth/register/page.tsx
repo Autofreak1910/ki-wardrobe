@@ -55,9 +55,20 @@ const router = useRouter()
   const secondary = isDark ? '#0d1225' : '#f0f4ff'
 
   const selectedCountry = countries.find(c => c.code === country)
-function calculateAge(birthdateStr: string): number {
+function parseGermanDate(dateStr: string): Date | null {
+    const parts = dateStr.split('.')
+    if (parts.length !== 3) return null
+    const [day, month, year] = parts.map(p => parseInt(p))
+    if (!day || !month || !year || year < 1900) return null
+    const date = new Date(year, month - 1, day)
+    if (date.getDate() !== day || date.getMonth() !== month - 1) return null
+    return date
+  }
+
+  function calculateAge(birthdateStr: string): number {
+    const birth = parseGermanDate(birthdateStr)
+    if (!birth) return 0
     const today = new Date()
-    const birth = new Date(birthdateStr)
     let age = today.getFullYear() - birth.getFullYear()
     const monthDiff = today.getMonth() - birth.getMonth()
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) age--
@@ -68,18 +79,20 @@ function calculateAge(birthdateStr: string): number {
     setLoading(true)
     setError('')
     const lang = selectedCountry?.lang ?? 'de'
-    const computedAge = calculateAge(birthdate)
+ const computedAge = calculateAge(birthdate)
+    const parsedBirth = parseGermanDate(birthdate)
+    const isoBirthdate = parsedBirth ? parsedBirth.toISOString().split('T')[0] : null
     const { data, error: signUpError } = await supabase.auth.signUp({
       email, password,
       options: {
-        data: { username, age: computedAge, birthdate, country, language: lang },
+        data: { username, age: computedAge, birthdate: isoBirthdate, country, language: lang },
         emailRedirectTo: window.location.origin + '/' + lang + '/auth/callback?locale=' + lang,
       },
     })
     if (signUpError) { setError(signUpError.message); setLoading(false); return }
  if (data.user) {
-      await supabase.from('profiles').update({
-        username, age: computedAge, birthdate, country, language: lang,
+await supabase.from('profiles').update({
+        username, age: computedAge, birthdate: isoBirthdate, country, language: lang,
         gender, style_preferences: stylePrefs, budget_range: budgetRange
       }).eq('id', data.user.id)
 
@@ -212,8 +225,19 @@ localStorage.removeItem('kw_onboarding_seen')
                 <label style={{ fontSize: '11px', fontWeight: 600, color: muted, display: 'block', marginBottom: '7px', letterSpacing: '0.05em', textTransform: 'uppercase' as const }}>
                   {locale === 'de' ? 'Geburtsdatum' : 'Date of birth'}
                 </label>
-                <input type="date" value={birthdate} onChange={e => { setBirthdate(e.target.value); setError('') }}
-                  max={new Date().toISOString().split('T')[0]}
+            <input type="text" inputMode="numeric" value={birthdate} placeholder="TT.MM.JJJJ"
+                  onChange={e => {
+                    let v = e.target.value.replace(/[^\d]/g, '')
+                    if (v.length > 2) v = v.slice(0, 2) + '.' + v.slice(2)
+                    if (v.length > 5) v = v.slice(0, 5) + '.' + v.slice(5)
+                    if (v.length > 10) v = v.slice(0, 10)
+                    const parts = v.split('.')
+                    if (parts[0] && parseInt(parts[0]) > 31) parts[0] = '31'
+                    if (parts[1] && parseInt(parts[1]) > 12) parts[1] = '12'
+                    v = parts.join('.')
+                    setBirthdate(v)
+                    setError('')
+                  }}
                   style={inputStyle}
                   onFocus={e => e.target.style.borderColor = accent}
                   onBlur={e => e.target.style.borderColor = border} />

@@ -39,9 +39,10 @@ interface Props {
   categoryRef: RefObject<HTMLDivElement>
   dressMeRef: RefObject<HTMLButtonElement>
   itemCount: number
+  delayMs?: number
 }
 
-export default function WelcomeOverlay({ weatherRef, categoryRef, dressMeRef, itemCount }: Props) {
+export default function WelcomeOverlay({ weatherRef, categoryRef, dressMeRef, itemCount, delayMs = 0 }: Props) {
   const [show, setShow] = useState(false)
   const [step, setStep] = useState(0)
   const [rect, setRect] = useState<Rect | null>(null)
@@ -57,11 +58,12 @@ export default function WelcomeOverlay({ weatherRef, categoryRef, dressMeRef, it
 
   const refs = { weatherRef, categoryRef, dressMeRef }
 
-  useEffect(() => {
+useEffect(() => {
   if (itemCount < 3) return
   const seen = localStorage.getItem('kw_welcome_seen')
   if (!seen) {
-    setShow(true)
+    const timer = setTimeout(() => setShow(true), delayMs)
+    return () => clearTimeout(timer)
   }
 }, [itemCount])
 
