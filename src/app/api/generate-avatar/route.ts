@@ -30,7 +30,7 @@ console.log('garmentImage type:', typeof garmentImage, 'value:', garmentImage)
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id)
         .gte('created_at', today + 'T00:00:00') as any
-      if ((count ?? 0) >= 1) {
+   if ((count ?? 0) >= 2) {
         return NextResponse.json({ error: 'daily_limit' }, { status: 403 })
       }
     }

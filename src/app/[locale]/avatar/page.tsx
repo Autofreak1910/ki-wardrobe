@@ -209,7 +209,7 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
       if (data.error === 'limit_reached') {
         setError(locale === 'de' ? 'Du hast deine 3 kostenlosen Versuche aufgebraucht. Upgrade auf Pro!' : 'You used your 3 free tries. Upgrade to Pro!')
       } else if (data.error === 'daily_limit') {
-        setError(locale === 'de' ? 'Du hast heute bereits einen Avatar erstellt. Morgen wieder!' : 'You already created an avatar today. Come back tomorrow!')
+        setError(locale === 'de' ? 'Du hast heute bereits 2 Avatare erstellt. Morgen wieder!' : 'You already created 2 avatars today. Come back tomorrow!')
       } else if (data.success) {
         setResult(data.imageUrl)
         await loadData()
@@ -259,8 +259,8 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
                 <p style={{ fontSize: '10px', color: muted }}>{locale === 'de' ? 'übrig' : 'left'}</p>
               </div>
             )}
-            {isPremium && (
-              <span style={{ fontSize: '10px', fontWeight: 700, color: '#fff', background: `linear-gradient(135deg, ${accent}, #6b9fff)`, borderRadius: '6px', padding: '4px 10px' }}>PRO ✦</span>
+          {isPremium && (
+              <span style={{ fontSize: '10px', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '6px', padding: '4px 10px', boxShadow: '0 2px 8px rgba(251,191,36,0.4)' }}>✦ PRO</span>
             )}
           </div>
         </motion.div>
@@ -275,7 +275,7 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
               {locale === 'de' ? 'Keine Versuche mehr' : 'No tries left'}
             </p>
             <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', marginBottom: '16px' }}>
-              {locale === 'de' ? 'Upgrade auf Pro für 1 Avatar täglich' : 'Upgrade to Pro for 1 avatar daily'}
+            {locale === 'de' ? 'Upgrade auf Pro für 2 Avatare täglich' : 'Upgrade to Pro for 2 avatars daily'}
             </p>
             <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '12px', padding: '12px' }}>
               <p style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>✦ Pro für €4,99/Mo →</p>
