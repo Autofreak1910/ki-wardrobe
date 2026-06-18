@@ -76,8 +76,6 @@ const categoryConfig = [
     icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 2l4 4-2 2 2 14H4L6 8 4 6l4-4"/><path d="M12 2v7"/><path d="M8 2c0 2.5 1.5 4 4 4s4-1.5 4-4"/></svg> },
   { key: 'schuhe', labelDe: 'Schuhe',   labelEn: 'Shoes',
     icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 18h20v2a1 1 0 01-1 1H3a1 1 0 01-1-1v-2z"/><path d="M2 18l4-9h3l2 4 3-7h4l2 12"/></svg> },
-  { key: 'acc',    labelDe: 'Accessoires', labelEn: 'Accessories',
-    icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="12" r="3"/><path d="M9 12h6"/></svg> },
 ]
 type ClothingItem = { id: string; image_url: string; category: string; color: string; name?: string; brand?: string }
 type OutfitSingle = { items: string[]; reasoning: string; vibe?: string; itemObjects: ClothingItem[] }
@@ -104,7 +102,7 @@ const [outfit, setOutfit] = useState<OutfitGroup | null>(null)
   const [saved, setSaved] = useState(false)
   const [wardrobeItems, setWardrobeItems] = useState<ClothingItem[]>([])
   const [hasItems, setHasItems] = useState(true)
-  const [activeCategories, setActiveCategories] = useState<string[]>(['tops', 'hosen', 'jacken', 'schuhe', 'acc'])
+ const [activeCategories, setActiveCategories] = useState<string[]>(['tops', 'hosen', 'jacken', 'schuhe'])
   const [weather, setWeather] = useState<Weather | null>(null)
   const [weatherLoading, setWeatherLoading] = useState(true)
 const [username, setUsername] = useState<string>('')
@@ -645,9 +643,9 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
                 <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: muted }}>
                   {t('dresser.whatForOutfit')}
                 </p>
-                <motion.button whileTap={{ scale: 0.92 }}
-                  onClick={() => { setActiveCategories(['tops','hosen','jacken','schuhe','acc']); setOutfit(null) }}
-                  style={{ fontSize: '11px', fontWeight: 600, padding: '4px 12px', borderRadius: '100px', border: `1px solid ${activeCategories.length === 5 ? accent : border}`, background: activeCategories.length === 5 ? accentDim : 'transparent', color: activeCategories.length === 5 ? accent : muted, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
+          <motion.button whileTap={{ scale: 0.92 }}
+                  onClick={() => { setActiveCategories(['tops','hosen','jacken','schuhe']); setOutfit(null) }}
+                  style={{ fontSize: '11px', fontWeight: 600, padding: '4px 12px', borderRadius: '100px', border: `1px solid ${activeCategories.length === 4 ? accent : border}`, background: activeCategories.length === 4 ? accentDim : 'transparent', color: activeCategories.length === 4 ? accent : muted, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
                   {locale === 'de' ? 'Alle' : 'All'}
                 </motion.button>
               </div>
