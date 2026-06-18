@@ -585,9 +585,14 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
 
           {/* Left: Greeting */}
           <div style={{ flex: 1 }}>
-            <p style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: accent, marginBottom: '6px', opacity: 0.75 }}>
-              {today} · {dateStr}
-            </p>
+           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+              <p style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: accent, opacity: 0.75 }}>
+                {today} · {dateStr}
+              </p>
+              {isPremium && (
+                <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '4px', padding: '2px 6px', letterSpacing: '0.04em', boxShadow: '0 2px 6px rgba(251,191,36,0.4)' }}>✦ PRO</span>
+              )}
+            </div>
             <h1 style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.04em', color: text, lineHeight: 1.15 }}>
               {getGreeting(locale)}{username ? ',' : ''}
             </h1>

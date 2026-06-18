@@ -265,14 +265,14 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
         {/* Avatar */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} style={{ marginBottom: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
-            <div style={{ width: '60px', height: '60px', borderRadius: '18px', background: `linear-gradient(135deg, ${accent}, #6b9fff)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 800, color: '#fff', flexShrink: 0, boxShadow: `0 4px 20px ${accent}50` }}>
+          <div style={{ width: '60px', height: '60px', borderRadius: '18px', background: isPremium ? 'linear-gradient(135deg, #fbbf24, #f59e0b)' : `linear-gradient(135deg, ${accent}, #6b9fff)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 800, color: '#fff', flexShrink: 0, boxShadow: isPremium ? '0 4px 20px rgba(251,191,36,0.6), 0 0 40px rgba(251,191,36,0.2)' : `0 4px 20px ${accent}50` }}>
               {initial}
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
                 <h1 style={{ fontSize: '20px', fontWeight: 800, color: text, letterSpacing: '-0.03em' }}>{profile?.username ?? 'User'}</h1>
-                {isPremium ? (
-                  <span style={{ fontSize: '10px', fontWeight: 700, color: '#fff', background: `linear-gradient(135deg, ${accent}, #6b9fff)`, borderRadius: '6px', padding: '3px 8px' }}>PRO ✦</span>
+             {isPremium ? (
+                  <span style={{ fontSize: '10px', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '6px', padding: '3px 8px', boxShadow: '0 2px 8px rgba(251,191,36,0.4)' }}>✦ PRO</span>
                 ) : (
                   <span style={{ fontSize: '10px', fontWeight: 700, color: muted, background: accentDim, border: `1px solid ${border}`, borderRadius: '6px', padding: '3px 8px' }}>FREE</span>
                 )}
@@ -313,8 +313,8 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
           {isPremium ? 'KiWardrobe Pro' : 'KiWardrobe Free'}
         </p>
       </div>
-      {isPremium ? (
-        <span style={{ fontSize: '10px', fontWeight: 700, color: '#fff', background: `linear-gradient(135deg, ${accent}, #6b9fff)`, borderRadius: '6px', padding: '3px 8px' }}>PRO ✦</span>
+   {isPremium ? (
+        <span style={{ fontSize: '10px', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '6px', padding: '3px 8px', boxShadow: '0 2px 8px rgba(251,191,36,0.4)' }}>✦ PRO</span>
       ) : (
         <span style={{ fontSize: '10px', fontWeight: 700, color: muted, background: accentDim, border: `1px solid ${border}`, borderRadius: '6px', padding: '3px 8px' }}>FREE</span>
       )}
