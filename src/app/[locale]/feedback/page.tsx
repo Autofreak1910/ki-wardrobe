@@ -22,10 +22,20 @@ export default function FeedbackPage() {
     if (!message.trim()) return
     setLoading(true)
     const { data: { session } } = await supabase.auth.getSession()
+    const finalEmail = email || session?.user?.email
     await supabase.from('feedback').insert({
       user_id: session?.user?.id ?? null,
-      type, message, email: email || session?.user?.email,
+      type, message, email: finalEmail,
     })
+    try {
+      await fetch('/api/send-feedback-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type, message, email: finalEmail }),
+      })
+    } catch (err) {
+      console.error('Email send failed, feedback still saved:', err)
+    }
     setSent(true)
     setLoading(false)
   }

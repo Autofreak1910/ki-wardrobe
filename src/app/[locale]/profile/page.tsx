@@ -91,6 +91,7 @@ const [savedAge, setSavedAge] = useState(false)
   const [showDna, setShowDna] = useState(false)
 const [showUpgrade, setShowUpgrade] = useState(false)
 const [showAccountSettings, setShowAccountSettings] = useState(false)
+const [withdrawalConsent, setWithdrawalConsent] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
@@ -604,8 +605,20 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
           </motion.div>
         </div>
 
-        <motion.button whileTap={{ scale: 0.97 }}
+<label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '14px', cursor: 'pointer' }}>
+          <input type="checkbox" checked={withdrawalConsent} onChange={e => setWithdrawalConsent(e.target.checked)}
+            style={{ width: '18px', height: '18px', marginTop: '1px', flexShrink: 0, accentColor: accent, cursor: 'pointer' }} />
+          <span style={{ fontSize: '12px', color: muted, lineHeight: 1.5 }}>
+            {locale === 'de'
+              ? 'Ich stimme zu, dass KiWardrobe Pro sofort nach Zahlung freigeschaltet wird, und bestätige, dass ich dadurch mein 14-tägiges Widerrufsrecht verliere.'
+              : 'I agree that KiWardrobe Pro will be activated immediately upon payment, and confirm that I thereby lose my 14-day right of withdrawal.'}
+          </span>
+        </label>
+
+        <motion.button whileTap={withdrawalConsent ? { scale: 0.97 } : {}}
+          disabled={!withdrawalConsent}
           onClick={async () => {
+            if (!withdrawalConsent) return
             const { data: { session } } = await supabase.auth.getSession()
             if (!session?.user) return
             const res = await fetch('/api/create-checkout-session', {
@@ -616,7 +629,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
             const data = await res.json()
             if (data.url) window.location.href = data.url
           }}
-          style={{ width: '100%', padding: '15px', background: `linear-gradient(135deg, ${accent}, #6b9fff)`, border: 'none', borderRadius: '14px', fontSize: '15px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: `0 4px 20px ${accent}40`, marginBottom: '10px' }}>
+          style={{ width: '100%', padding: '15px', background: withdrawalConsent ? `linear-gradient(135deg, ${accent}, #6b9fff)` : (isDark ? '#0d1225' : '#e8eeff'), border: 'none', borderRadius: '14px', fontSize: '15px', fontWeight: 700, color: withdrawalConsent ? '#fff' : muted, cursor: withdrawalConsent ? 'pointer' : 'not-allowed', fontFamily: "'DM Sans', sans-serif", boxShadow: withdrawalConsent ? `0 4px 20px ${accent}40` : 'none', marginBottom: '10px', transition: 'all 0.2s' }}>
           {locale === 'de' ? '✦ Für €4,99/Monat abonnieren' : '✦ Subscribe for €4.99/month'}
         </motion.button>
 
