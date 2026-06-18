@@ -65,11 +65,13 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
   const supabase = createClient()
   const forceOnboarding = searchParams.get('onboarding') === 'true'
 
-  useEffect(() => {
+ useEffect(() => {
+    console.log('AppWrapper mounted. pathname:', pathname, 'forceOnboarding:', forceOnboarding, 'search:', searchParams.toString())
     const isAppPage = TAB_ORDER.some(t => pathname.includes(t))
     if (!isAppPage) { setShowSplash(false); return }
 
     if (forceOnboarding) {
+      console.log('Forcing onboarding to show')
       setShowSplash(false)
       setShowOnboarding(true)
       preloadData()
