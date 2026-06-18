@@ -98,21 +98,26 @@ await supabase.from('profiles').update({
       }).eq('id', data.user.id)
 
 if (refCode && data.user) {
-        try {
-          // Kurz warten damit der Profil-Trigger fertig ist
-          await new Promise(resolve => setTimeout(resolve, 1500))
-          console.log('Applying referral:', refCode, 'for user:', data.user.id)
-          const { data: rpcData, error: referralError } = await supabase.rpc('apply_referral', {
-            p_new_user_id: data.user.id,
-            p_referral_code: refCode,
-          })
-          console.log('Referral result:', rpcData, 'Error:', referralError)
-          if (!referralError) {
-            setTimeout(() => localStorage.setItem('kw_pro_welcome_pending', 'true'), 8000)
+        const userId = data.user.id
+        const applyReferral = async (attempt: number) => {
+          try {
+            await new Promise(resolve => setTimeout(resolve, attempt * 1000))
+            const { data: rpcData, error: referralError } = await supabase.rpc('apply_referral', {
+              p_new_user_id: userId,
+              p_referral_code: refCode,
+            })
+            console.log(`Referral attempt ${attempt}:`, rpcData, referralError)
+            if (rpcData?.success) {
+              localStorage.setItem('kw_pro_welcome_pending', 'true')
+            } else if (attempt < 4) {
+              applyReferral(attempt + 1)
+            }
+          } catch (err) {
+            console.error('Referral failed:', err)
+            if (attempt < 4) applyReferral(attempt + 1)
           }
-        } catch (refErr) {
-          console.error('Referral apply failed:', refErr)
         }
+        applyReferral(1)
       }
     }
 localStorage.removeItem('kw_onboarding_seen')
