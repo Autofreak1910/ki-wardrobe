@@ -109,6 +109,7 @@ const [withdrawalConsent, setWithdrawalConsent] = useState(false)
   const accent    = isDark ? '#4d7eff' : '#3b6bff'
   const accentDim = isDark ? 'rgba(77,126,255,0.1)' : 'rgba(59,107,255,0.08)'
 const [todayOutfits, setTodayOutfits] = useState(0)
+const [tryOnToday, setTryOnToday] = useState(0)
 const [pushEnabled, setPushEnabled] = useState(false)
 const [pushLoading, setPushLoading] = useState(false)
 
@@ -126,13 +127,15 @@ useEffect(() => {
     if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
     const startOfDay = new Date()
     startOfDay.setHours(0, 0, 0, 0)
-    const [profileRes, itemsRes, outfitsRes, todayOutfitsRes] = await Promise.all([
+  const [profileRes, itemsRes, outfitsRes, todayOutfitsRes, tryOnRes] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', session.user.id).single(),
       supabase.from('clothing_items').select('id').eq('user_id', session.user.id),
       supabase.from('outfits').select('id').eq('user_id', session.user.id),
       supabase.from('outfit_generations').select('id', { count: 'exact', head: true }).eq('user_id', session.user.id).gte('created_at', startOfDay.toISOString()),
+      supabase.from('avatar_results').select('id', { count: 'exact', head: true }).eq('user_id', session.user.id).gte('created_at', startOfDay.toISOString()),
     ])
   setTodayOutfits(todayOutfitsRes.count ?? 0)
+  setTryOnToday(tryOnRes.count ?? 0)
     if ('serviceWorker' in navigator && 'PushManager' in window) {
       try {
         const registration = await navigator.serviceWorker.getRegistration('/sw-push.js')
@@ -282,11 +285,12 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
           </div>
 
           {/* Stats */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
             {[
               { label: locale === 'de' ? 'Kleidung' : 'Items', value: itemCount, max: isPremium ? null : 20 },
-       { label: locale === 'de' ? 'Outfits heute' : 'Today', value: todayOutfits, max: isPremium ? 15 : 3 },
+              { label: locale === 'de' ? 'Outfits' : 'Outfits', value: todayOutfits, max: isPremium ? 15 : 3 },
               { label: locale === 'de' ? 'Gespeichert' : 'Saved', value: outfitCount, max: isPremium ? null : 5 },
+              { label: 'Try-On', value: tryOnToday, max: isPremium ? 2 : 3 },
             ].map(stat => (
               <div key={stat.label} style={{ background: card, border: `1px solid ${border}`, borderRadius: '14px', padding: '14px 12px', textAlign: 'center' as const }}>
                 <p style={{ fontSize: '22px', fontWeight: 800, color: stat.max && stat.value >= stat.max ? '#ef4444' : text, letterSpacing: '-0.03em', marginBottom: '2px' }}>
