@@ -331,10 +331,11 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
     </p>
 
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginBottom: daysLeft !== null && daysLeft <= 3 ? '14px' : '0' }}>
-      {[
+     {[
         { label: locale === 'de' ? 'Outfits/Tag' : 'Outfits/day', value: isPremium ? '15' : '3' },
         { label: locale === 'de' ? 'Kleidung' : 'Items', value: isPremium ? '∞' : '20' },
         { label: locale === 'de' ? 'Speichern' : 'Saved', value: isPremium ? '∞' : '5' },
+        { label: locale === 'de' ? 'Try-On/Tag' : 'Try-On/day', value: isPremium ? '2' : '3✦' },
         { label: 'Style DNA', value: isPremium ? '✓' : '✗' },
       ].map((f, i) => (
         <div key={i} style={{ background: accentDim, borderRadius: '10px', padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -590,10 +591,11 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
            <p style={{ fontSize: '32px', fontWeight: 800, color: '#fff', letterSpacing: '-0.04em', marginBottom: '2px' }}>€4,99</p>
               <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', marginBottom: '12px' }}>{locale === 'de' ? 'pro Monat · kündbar' : 'per month'}</p>
               <div style={{ height: '1px', background: 'rgba(255,255,255,0.2)', marginBottom: '12px' }} />
-              {[
+            {[
                 { title: '15 Outfits', sub: locale === 'de' ? 'pro Tag · 5× mehr' : 'per day · 5× more' },
                 { title: locale === 'de' ? 'Unbegrenzt Kleidung' : 'Unlimited items', sub: '' },
                 { title: locale === 'de' ? 'Unbegrenzt speichern' : 'Unlimited saved', sub: '' },
+                { title: locale === 'de' ? '2× Virtual Try-On' : '2× Virtual Try-On', sub: locale === 'de' ? 'pro Tag' : 'per day' },
                 { title: 'Style DNA', sub: locale === 'de' ? 'KI Stil-Analyse' : 'AI style analysis' },
               ].map((f, i) => (
                 <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
