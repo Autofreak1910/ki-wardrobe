@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from '@/components/Navbar'
-type Profile = { id: string; username: string; is_premium: boolean; age?: string; country?: string; created_at: string; email?: string; gender?: string; style_preferences?: string[]; budget_range?: string; referral_code?: string }
+type Profile = { id: string; username: string; is_premium: boolean; age?: string; country?: string; created_at: string; email?: string; gender?: string; style_preferences?: string[]; budget_range?: string; referral_code?: string; premium_until?: string }
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4)
@@ -209,10 +209,11 @@ async function handleLogout() {
   const memberSince = profile ? new Date(profile.created_at).toLocaleDateString(
     locale === 'de' ? 'de-DE' : 'en-US', { month: 'long', year: 'numeric' }
   ) : ''
-
-  const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
+const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
   const isPremium = profile?.is_premium ?? false
-
+  const daysLeft = profile?.premium_until
+    ? Math.ceil((new Date(profile.premium_until).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    : null
   const genderLabel = (g?: string) => {
     if (!g) return '—'
     if (g === 'male') return locale === 'de' ? 'Mann' : 'Male'
@@ -291,6 +292,92 @@ async function handleLogout() {
             ))}
           </div>
         </motion.div>
+{/* Mein Plan */}
+<motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+  style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden', marginBottom: '12px' }}>
+  <div style={{ padding: '10px 16px', borderBottom: `1px solid ${border}`, background: accentDim }}>
+    <p style={{ fontSize: '10px', fontWeight: 700, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
+      {locale === 'de' ? 'Mein Plan' : 'My Plan'}
+    </p>
+  </div>
+  <div style={{ padding: '16px' }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <span style={{ fontSize: '18px' }}>{isPremium ? '✦' : '○'}</span>
+        <p style={{ fontSize: '16px', fontWeight: 800, color: text }}>
+          {isPremium ? 'KiWardrobe Pro' : 'KiWardrobe Free'}
+        </p>
+      </div>
+      {isPremium ? (
+        <span style={{ fontSize: '10px', fontWeight: 700, color: '#fff', background: `linear-gradient(135deg, ${accent}, #6b9fff)`, borderRadius: '6px', padding: '3px 8px' }}>PRO ✦</span>
+      ) : (
+        <span style={{ fontSize: '10px', fontWeight: 700, color: muted, background: accentDim, border: `1px solid ${border}`, borderRadius: '6px', padding: '3px 8px' }}>FREE</span>
+      )}
+    </div>
+
+    <p style={{ fontSize: '12px', color: muted, marginBottom: '14px' }}>
+      {isPremium
+        ? (profile?.premium_until
+            ? (locale === 'de'
+                ? `Aktiv bis ${new Date(profile.premium_until).toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' })}`
+                : `Active until ${new Date(profile.premium_until).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}`)
+            : (locale === 'de' ? 'Unbegrenzt aktiv' : 'Active, no end date'))
+        : (locale === 'de' ? 'Kostenlos für immer' : 'Free forever')}
+    </p>
+
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginBottom: daysLeft !== null && daysLeft <= 3 ? '14px' : '0' }}>
+      {[
+        { label: locale === 'de' ? 'Outfits/Tag' : 'Outfits/day', value: isPremium ? '15' : '3' },
+        { label: locale === 'de' ? 'Kleidung' : 'Items', value: isPremium ? '∞' : '20' },
+        { label: locale === 'de' ? 'Speichern' : 'Saved', value: isPremium ? '∞' : '5' },
+        { label: 'Style DNA', value: isPremium ? '✓' : '✗' },
+      ].map((f, i) => (
+        <div key={i} style={{ background: accentDim, borderRadius: '10px', padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <p style={{ fontSize: '11px', color: muted }}>{f.label}</p>
+          <p style={{ fontSize: '12px', fontWeight: 700, color: text }}>{f.value}</p>
+        </div>
+      ))}
+    </div>
+
+    {isPremium && daysLeft !== null && daysLeft <= 3 && (
+      <div style={{ background: isDark ? 'rgba(239,68,68,0.1)' : '#fef2f2', border: `1px solid ${isDark ? 'rgba(239,68,68,0.2)' : '#fecaca'}`, borderRadius: '12px', padding: '12px 14px' }}>
+        <p style={{ fontSize: '12px', fontWeight: 700, color: '#ef4444', marginBottom: '8px' }}>
+          ⏳ {locale === 'de'
+            ? daysLeft <= 0 ? 'Läuft heute ab!' : `Läuft in ${daysLeft} Tag${daysLeft > 1 ? 'en' : ''} ab`
+            : daysLeft <= 0 ? 'Expires today!' : `Expires in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`}
+        </p>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button onClick={async () => {
+              const inviteUrl = `https://kiwardrobe-app.vercel.app/${locale}/auth/register?ref=${profile?.referral_code ?? ''}`
+              const shareText = locale === 'de'
+                ? `Ich hab gerade meinen eigenen Avatar erstellt und KI sagt mir jeden Morgen was ich anziehen soll 🤯 KiWardrobe ist echt krass — probier's aus, mit meinem Link bekommst du 14 Tage Pro komplett gratis: ${inviteUrl}`
+                : `I just made my own AI avatar and it tells me what to wear every morning 🤯 KiWardrobe is actually insane — try it, my link gets you 14 days Pro completely free: ${inviteUrl}`
+              if (navigator.share) { try { await navigator.share({ title: 'KiWardrobe', text: shareText, url: inviteUrl }) } catch {} }
+              else { await navigator.clipboard.writeText(shareText); alert(locale === 'de' ? 'Link kopiert!' : 'Link copied!') }
+            }}
+            style={{ flex: 1, background: card, border: `1px solid ${border}`, borderRadius: '8px', padding: '9px', fontSize: '11px', fontWeight: 700, color: accent, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
+            🎁 {locale === 'de' ? 'Freunde einladen' : 'Invite friends'}
+          </button>
+          <button onClick={async () => {
+              const { data: { session } } = await supabase.auth.getSession()
+              if (!session?.user) return
+              const res = await fetch('/api/create-checkout-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: session.user.id, userEmail: session.user.email }),
+              })
+              const data = await res.json()
+              if (data.url) window.location.href = data.url
+            }}
+            style={{ flex: 1, background: `linear-gradient(135deg, ${accent}, #6b9fff)`, border: 'none', borderRadius: '8px', padding: '9px', fontSize: '11px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
+            ✦ {locale === 'de' ? 'Jetzt zahlen' : 'Pay now'}
+          </button>
+        </div>
+      </div>
+    )}
+  </div>
+</motion.div>
+
 {/* Upgrade Banner */}
 {!isPremium && (
   <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
@@ -309,17 +396,7 @@ async function handleLogout() {
     </div>
   </motion.div>
 )}
-{/* Premium Badge */}
-{isPremium && (
-  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-    style={{ background: accentDim, border: `1px solid ${border}`, borderRadius: '16px', padding: '14px 18px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: `linear-gradient(135deg, ${accent}, #6b9fff)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', flexShrink: 0 }}>✦</div>
-    <div>
-      <p style={{ fontSize: '14px', fontWeight: 700, color: text, marginBottom: '2px' }}>KiWardrobe Pro</p>
-      <p style={{ fontSize: '12px', color: muted }}>{locale === 'de' ? 'Aktiv · 15 Outfits täglich · Unbegrenzt' : 'Active · 15 outfits daily · Unlimited'}</p>
-    </div>
-  </motion.div>
-)}
+
 {/* Invite Friends */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}
           style={{ background: `linear-gradient(135deg, ${accent}, #6b9fff)`, borderRadius: '16px', padding: '18px', marginBottom: '12px', position: 'relative' as const, overflow: 'hidden' }}>
