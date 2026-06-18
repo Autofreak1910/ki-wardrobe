@@ -76,11 +76,12 @@ const resultFileName = `results/${user.id}/${Date.now()}.jpg`
 await supabase.storage.from('avatars').upload(resultFileName, Buffer.from(imgBuffer), { contentType: 'image/jpeg', upsert: true })
 const { data: { publicUrl: savedUrl } } = supabase.storage.from('avatars').getPublicUrl(resultFileName)
 
-    // Save result
-    await supabase.from('avatar_results').insert({
+ // Save result
+    const { error: insertError } = await supabase.from('avatar_results').insert({
       user_id: user.id,
       image_url: savedUrl,
     })
+    console.log('avatar_results insert error:', insertError)
 
     // Decrement free tries
     if (!profile.is_premium) {

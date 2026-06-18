@@ -300,8 +300,8 @@ const { data: stillPremium } = await supabase.rpc('check_and_expire_premium', { 
             <h1 style={{ fontSize: '28px', fontWeight: 800, color: text, letterSpacing: '-0.04em', marginBottom: '2px' }}>
               {t('wardrobe.title')}
             </h1>
-            <p style={{ fontSize: '13px', color: muted }}>
-              {items.length} / 20 {t('wardrobe.pieces')}{totalValue > 0 && ` · ~€${totalValue.toFixed(0)}`}
+          <p style={{ fontSize: '13px', color: muted }}>
+              {items.length}{!isPremium ? ' / 20' : ''} {t('wardrobe.pieces')}{totalValue > 0 && ` · ~€${totalValue.toFixed(0)}`}
             </p>
           </div>
           <select value={sort} onChange={e => setSort(e.target.value)}
