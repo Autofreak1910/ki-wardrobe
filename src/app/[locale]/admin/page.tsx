@@ -193,14 +193,14 @@ export default function AdminPage() {
                   <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 18px', borderBottom: i < stats.recentUsers.length - 1 ? `1px solid ${border}` : 'none' }}>
                     <p style={{ fontSize: '14px', color: text, fontWeight: 600 }}>{u.username}</p>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                 {isPayingCustomer && (
-                        <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: `linear-gradient(135deg, ${green}, #0891b2)`, borderRadius: '4px', padding: '2px 6px' }}>💰 ZAHLT</span>
+             {isPayingCustomer && (
+                        <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: `linear-gradient(135deg, ${green}, #0891b2)`, borderRadius: '4px', padding: '2px 6px' }}>✦ PRO · 💰</span>
                       )}
                       {isReferralPremium && (
-                        <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: `linear-gradient(135deg, ${gold}, #f59e0b)`, borderRadius: '4px', padding: '2px 6px' }}>🎁 REFERRAL</span>
+                        <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: `linear-gradient(135deg, ${gold}, #f59e0b)`, borderRadius: '4px', padding: '2px 6px' }}>✦ PRO · 🎁</span>
                       )}
                       {isManualPremium && (
-                        <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: muted, borderRadius: '4px', padding: '2px 6px' }}>🔧 MANUELL</span>
+                        <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: muted, borderRadius: '4px', padding: '2px 6px' }}>✦ PRO · 🔧</span>
                       )}
                       {!u.is_premium && (
                         <span style={{ fontSize: '9px', fontWeight: 600, color: muted, background: 'transparent', border: `1px solid ${border}`, borderRadius: '4px', padding: '2px 6px' }}>FREE</span>
