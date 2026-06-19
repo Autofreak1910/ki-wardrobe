@@ -72,7 +72,7 @@ export default function VerifyPage() {
         )}
 
         <input
-         type="number"
+         type="number" 
 placeholder="000000"
 value={otp}
 onChange={e => setOtp(e.target.value.slice(0, 6))}

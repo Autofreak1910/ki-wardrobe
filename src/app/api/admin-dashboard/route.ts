@@ -1,0 +1,74 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
+const ADMIN_EMAIL = 'kiwardrobebusiness@gmail.com'
+const ADMIN_PASSWORD = process.env.ADMIN_DASHBOARD_PASSWORD
+
+export async function POST(request: NextRequest) {
+  try {
+    const { password, userEmail } = await request.json()
+
+    if (userEmail !== ADMIN_EMAIL) {
+      return NextResponse.json({ error: 'unauthorized' }, { status: 403 })
+    }
+    if (password !== ADMIN_PASSWORD) {
+      return NextResponse.json({ error: 'wrong_password' }, { status: 403 })
+    }
+
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    const now = new Date()
+    const startOfToday = new Date(now)
+    startOfToday.setHours(0, 0, 0, 0)
+    const startOfWeek = new Date(now)
+    startOfWeek.setDate(now.getDate() - 7)
+
+    const [
+      totalUsersRes,
+      premiumUsersRes,
+      newTodayRes,
+      newWeekRes,
+      outfitsTodayRes,
+      outfitsWeekRes,
+      avatarsTodayRes,
+      totalItemsRes,
+      recentUsersRes,
+    ] = await Promise.all([
+      supabase.from('profiles').select('id', { count: 'exact', head: true }),
+      supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('is_premium', true),
+      supabase.from('profiles').select('id', { count: 'exact', head: true }).gte('created_at', startOfToday.toISOString()),
+      supabase.from('profiles').select('id', { count: 'exact', head: true }).gte('created_at', startOfWeek.toISOString()),
+      supabase.from('outfit_generations').select('id', { count: 'exact', head: true }).gte('created_at', startOfToday.toISOString()),
+      supabase.from('outfit_generations').select('id', { count: 'exact', head: true }).gte('created_at', startOfWeek.toISOString()),
+      supabase.from('avatar_results').select('id', { count: 'exact', head: true }).gte('created_at', startOfToday.toISOString()),
+      supabase.from('clothing_items').select('id', { count: 'exact', head: true }),
+      supabase.from('profiles').select('username, created_at, is_premium').order('created_at', { ascending: false }).limit(8),
+    ])
+
+    const totalUsers = totalUsersRes.count ?? 0
+    const premiumUsers = premiumUsersRes.count ?? 0
+    const mrr = premiumUsers * 4.99
+
+    return NextResponse.json({
+      success: true,
+      stats: {
+        totalUsers,
+        premiumUsers,
+        freeUsers: totalUsers - premiumUsers,
+        newToday: newTodayRes.count ?? 0,
+        newWeek: newWeekRes.count ?? 0,
+        outfitsToday: outfitsTodayRes.count ?? 0,
+        outfitsWeek: outfitsWeekRes.count ?? 0,
+        avatarsToday: avatarsTodayRes.count ?? 0,
+        totalItems: totalItemsRes.count ?? 0,
+        mrr: mrr.toFixed(2),
+        recentUsers: recentUsersRes.data ?? [],
+      },
+    })
+  } catch (err) {
+    console.error('Admin dashboard error:', err)
+    return NextResponse.json({ error: String(err) }, { status: 500 })
+  }
+}
