@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTheme } from '@/context/ThemeContext'
+import { useLocale } from 'next-intl'
 
 export default function OnboardingCarousel({ onDone }: { onDone: () => void }) {
   const [index, setIndex] = useState(0)
@@ -17,7 +18,7 @@ export default function OnboardingCarousel({ onDone }: { onDone: () => void }) {
   const accent = isDark ? '#4d7eff' : '#3b6bff'
   const accentDim = isDark ? 'rgba(77,126,255,0.1)' : 'rgba(59,107,255,0.08)'
 
-  const locale = typeof navigator !== 'undefined' && navigator.language.startsWith('de') ? 'de' : 'en'
+ const locale = useLocale()
   const totalSlides = 5
   const isLast = index === totalSlides - 1
 

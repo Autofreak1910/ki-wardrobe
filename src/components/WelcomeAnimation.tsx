@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTheme } from '@/context/ThemeContext'
+import { useLocale } from 'next-intl'
 
 export default function WelcomeAnimation({ username, onDone }: { username?: string; onDone: () => void }) {
   const [visible, setVisible] = useState(true)
@@ -14,7 +15,7 @@ export default function WelcomeAnimation({ username, onDone }: { username?: stri
   const muted  = isDark ? '#4d6080' : '#6b7fa8'
   const accent = isDark ? '#4d7eff' : '#3b6bff'
 
-  const locale = typeof navigator !== 'undefined' && navigator.language.startsWith('de') ? 'de' : 'en'
+const locale = useLocale()
 
   useEffect(() => {
     const timer = setTimeout(() => {
