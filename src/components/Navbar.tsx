@@ -6,6 +6,8 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useRef, useEffect, useState } from 'react'
 import { motion, useMotionValue, animate } from 'framer-motion'
 
+const ADMIN_EMAIL = 'kiwardrobebusiness@gmail.com'
+
 export default function Navbar({ activePage }: { activePage: string }) {
   const { theme, toggle } = useTheme()
   const locale = useLocale()
@@ -19,6 +21,7 @@ export default function Navbar({ activePage }: { activePage: string }) {
   const currentActiveIndex = useRef(0)
   const dragIndexRef = useRef(-1)
   const initializedRef = useRef(false)
+  const [isAdmin, setIsAdmin] = useState(false)
 
 const tabs = [
     {
@@ -108,8 +111,16 @@ const tabs = [
     window.location.replace(s.join('/'))
   }
 
-  useEffect(() => { setMounted(true) }, [])
+useEffect(() => { setMounted(true) }, [])
   useEffect(() => { tabs.forEach(t => router.prefetch('/' + locale + '/' + t.page)) }, [locale])
+useEffect(() => {
+    import('@/lib/supabase/client').then(({ createClient }) => {
+      const supabase = createClient()
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user?.email === ADMIN_EMAIL) setIsAdmin(true)
+      })
+    })
+  }, [])
 
   useEffect(() => {
     if (!mounted || !navRef.current || initializedRef.current) return
@@ -198,7 +209,13 @@ const navBorder = isDark ? '#1a2540' : '#dde3f5'
             </button>
           ))}
         </div>
-        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+          {isAdmin && (
+            <button onClick={() => router.push('/' + locale + '/admin')}
+              style={{ background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', border: 'none', borderRadius: '6px', padding: '5px 10px', cursor: 'pointer', fontSize: '12px', fontWeight: 700, color: '#fff', fontFamily: "'DM Sans', sans-serif" }}>
+              ⚡ Admin
+            </button>
+          )}
           <button onClick={switchLanguage} style={{ background: 'transparent', border: `1px solid ${navBorder}`, borderRadius: '6px', padding: '5px 10px', cursor: 'pointer', fontSize: '12px', color: isDark ? '#4d7a62' : '#6b9e87', fontFamily: "'DM Sans', sans-serif" }}>
             {locale === 'de' ? 'EN' : 'DE'}
           </button>
@@ -257,6 +274,20 @@ boxShadow: isDark
 pointerEvents: 'none',
           }}
         />
+
+{isAdmin && (
+          <motion.button
+            onClick={() => router.push('/' + locale + '/admin')}
+            style={{
+              position: 'absolute', top: '8px', right: '8px',
+              background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+              border: 'none', borderRadius: '8px', padding: '4px 8px',
+              fontSize: '10px', fontWeight: 700, color: '#fff',
+              cursor: 'pointer', zIndex: 2,
+            }}>
+            ⚡
+          </motion.button>
+        )}
 
         {tabs.map((item) => {
           const isActive = activePage === item.page
