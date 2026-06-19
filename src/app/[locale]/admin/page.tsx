@@ -185,18 +185,22 @@ export default function AdminPage() {
               <div style={{ padding: '14px 18px', borderBottom: `1px solid ${border}` }}>
                 <p style={{ fontSize: '11px', fontWeight: 700, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>Neueste User</p>
               </div>
-        {stats.recentUsers.map((u, i) => {
-                const isPayingCustomer = u.is_premium && !u.referred_by
-                const isReferralPremium = u.is_premium && u.referred_by
+    {stats.recentUsers.map((u, i) => {
+                const isPayingCustomer = u.is_premium && u.premium_source === 'stripe'
+                const isReferralPremium = u.is_premium && u.premium_source === 'referral'
+                const isManualPremium = u.is_premium && u.premium_source === 'manual'
                 return (
                   <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 18px', borderBottom: i < stats.recentUsers.length - 1 ? `1px solid ${border}` : 'none' }}>
                     <p style={{ fontSize: '14px', color: text, fontWeight: 600 }}>{u.username}</p>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      {isPayingCustomer && (
+                 {isPayingCustomer && (
                         <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: `linear-gradient(135deg, ${green}, #0891b2)`, borderRadius: '4px', padding: '2px 6px' }}>💰 ZAHLT</span>
                       )}
                       {isReferralPremium && (
                         <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: `linear-gradient(135deg, ${gold}, #f59e0b)`, borderRadius: '4px', padding: '2px 6px' }}>🎁 REFERRAL</span>
+                      )}
+                      {isManualPremium && (
+                        <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: muted, borderRadius: '4px', padding: '2px 6px' }}>🔧 MANUELL</span>
                       )}
                       {!u.is_premium && (
                         <span style={{ fontSize: '9px', fontWeight: 600, color: muted, background: 'transparent', border: `1px solid ${border}`, borderRadius: '4px', padding: '2px 6px' }}>FREE</span>

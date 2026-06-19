@@ -26,9 +26,10 @@ export async function POST(request: NextRequest) {
     if (userId) {
       const premiumUntil = new Date()
       premiumUntil.setMonth(premiumUntil.getMonth() + 1)
-      await supabase.from('profiles').update({
+     await supabase.from('profiles').update({
         is_premium: true,
         premium_until: premiumUntil.toISOString(),
+        premium_source: 'stripe',
       }).eq('id', userId)
     }
   }
