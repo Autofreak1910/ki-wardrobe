@@ -39,6 +39,7 @@ const [agbAccepted, setAgbAccepted] = useState(false)
 const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [checkingEmail, setCheckingEmail] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 const router = useRouter()
   const supabase = createClient()
   const searchParams = useSearchParams()
@@ -202,16 +203,35 @@ localStorage.removeItem('kw_onboarding_seen')
               </p>
               {error && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#ef4444', fontSize: '13px', padding: '12px 16px', borderRadius: '10px', marginBottom: '16px' }}>{error}</div>}
 
-        {[
-                { label: locale === 'de' ? 'Benutzername' : 'Username', type: 'text', value: username, set: setUsername, placeholder: 'dein_name', hint: '' },
-                { label: 'E-Mail', type: 'email', value: email, set: setEmail, placeholder: 'deine@email.com', hint: '' },
-                { label: locale === 'de' ? 'Passwort' : 'Password', type: 'password', value: password, set: setPassword, placeholder: '••••••••', hint: locale === 'de' ? 'Mind. 8 Zeichen, Buchstaben & Zahlen' : 'Min. 8 characters, letters & numbers' },
+     {[
+                { label: locale === 'de' ? 'Benutzername' : 'Username', type: 'text', value: username, set: setUsername, placeholder: 'dein_name', hint: '', isPassword: false },
+                { label: 'E-Mail', type: 'email', value: email, set: setEmail, placeholder: 'deine@email.com', hint: '', isPassword: false },
+                { label: locale === 'de' ? 'Passwort' : 'Password', type: showPassword ? 'text' : 'password', value: password, set: setPassword, placeholder: '••••••••', hint: locale === 'de' ? 'Mind. 8 Zeichen, Buchstaben & Zahlen' : 'Min. 8 characters, letters & numbers', isPassword: true },
               ].map((field, i) => (
                 <div key={i} style={{ marginBottom: i < 2 ? '12px' : '8px' }}>
                   <label style={{ fontSize: '11px', fontWeight: 600, color: muted, display: 'block', marginBottom: '7px', letterSpacing: '0.05em', textTransform: 'uppercase' as const }}>{field.label}</label>
-                  <input type={field.type} value={field.value} onChange={e => field.set(e.target.value)} placeholder={field.placeholder} style={inputStyle}
-                    onFocus={e => e.target.style.borderColor = accent}
-                    onBlur={e => e.target.style.borderColor = border} />
+                  <div style={{ position: 'relative' as const }}>
+                    <input type={field.type} value={field.value} onChange={e => field.set(e.target.value)} placeholder={field.placeholder}
+                      style={field.isPassword ? { ...inputStyle, paddingRight: '44px' } : inputStyle}
+                      onFocus={e => e.target.style.borderColor = accent}
+                      onBlur={e => e.target.style.borderColor = border} />
+                    {field.isPassword && (
+                      <button type="button" onClick={() => setShowPassword(!showPassword)}
+                        style={{ position: 'absolute' as const, right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', color: muted }}>
+                    {showPassword ? (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+                            <line x1="1" y1="1" x2="23" y2="23"/>
+                          </svg>
+                        ) : (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                          </svg>
+                        )}
+                      </button>
+                    )}
+                  </div>
                   {field.hint && <p style={{ fontSize: '11px', color: muted, marginTop: '5px' }}>{field.hint}</p>}
                 </div>
               ))}
