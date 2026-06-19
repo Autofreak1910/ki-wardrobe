@@ -46,8 +46,7 @@ supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('is_pr
       supabase.from('outfit_generations').select('id', { count: 'exact', head: true }).gte('created_at', startOfWeek.toISOString()),
       supabase.from('avatar_results').select('id', { count: 'exact', head: true }).gte('created_at', startOfToday.toISOString()),
       supabase.from('clothing_items').select('id', { count: 'exact', head: true }),
-      supabase.from('profiles').select('username, created_at, is_premium').order('created_at', { ascending: false }).limit(8),
-    ])
+      supabase.from('profiles').select('username, created_at, is_premium').order('created_at', { ascending: false }).limit(8),supabase.from('profiles').select('username, created_at, is_premium, referred_by').order('created_at', { ascending: false }).limit(8),    ])
 
 const totalUsers = totalUsersRes.count ?? 0
     const premiumUsers = premiumUsersRes.count ?? 0
