@@ -23,7 +23,10 @@ type Stats = {
   aiCostToday: string
   aiCostAllTime: string
   costPerUser: string
-  recentUsers: { username: string; created_at: string; is_premium: boolean; referred_by: string | null; premium_source: string | null }[]
+recentUsers: { username: string; created_at: string; is_premium: boolean; referred_by: string | null; premium_source: string | null }[]
+  conversionRate: string
+  arpu: string
+  growthDays: { date: string; count: number }[]
 }
 
 export default function AdminPage() {
@@ -57,6 +60,7 @@ export default function AdminPage() {
     setAuthorized(true)
     setAuthChecking(false)
   }
+
 
   async function unlock() {
     setLoading(true)
@@ -232,6 +236,37 @@ export default function AdminPage() {
                   </div>
                 )
               })}
+            </div>
+
+        {/* Growth Chart */}
+            <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '20px', padding: '18px', marginBottom: '16px' }}>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '16px' }}>Wachstum · letzte 7 Tage</p>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px', height: '100px' }}>
+                {stats.growthDays.map((d, i) => {
+                  const maxCount = Math.max(...stats.growthDays.map(g => g.count), 1)
+                  const heightPct = (d.count / maxCount) * 100
+                  return (
+                    <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: '6px', height: '100%', justifyContent: 'flex-end' }}>
+                      <p style={{ fontSize: '11px', fontWeight: 700, color: text }}>{d.count}</p>
+                      <motion.div initial={{ height: 0 }} animate={{ height: `${Math.max(heightPct, 4)}%` }} transition={{ delay: i * 0.05, duration: 0.4 }}
+                        style={{ width: '100%', background: `linear-gradient(180deg, ${accent}, #6b9fff)`, borderRadius: '6px 6px 0 0', minHeight: '4px' }} />
+                      <p style={{ fontSize: '10px', color: muted }}>{d.date}</p>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Conversion & ARPU */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
+              <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', padding: '16px 14px' }}>
+                <p style={{ fontSize: '11px', color: muted, marginBottom: '6px' }}>Conversion-Rate (Free → Pro)</p>
+                <p style={{ fontSize: '24px', fontWeight: 800, color: green, letterSpacing: '-0.03em' }}>{stats.conversionRate}%</p>
+              </div>
+              <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', padding: '16px 14px' }}>
+                <p style={{ fontSize: '11px', color: muted, marginBottom: '6px' }}>⌀ Umsatz pro User (ARPU)</p>
+                <p style={{ fontSize: '24px', fontWeight: 800, color: text, letterSpacing: '-0.03em' }}>€{stats.arpu}</p>
+              </div>
             </div>
 
             <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', padding: '16px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

@@ -68,7 +68,26 @@ export async function POST(request: NextRequest) {
     const outfitsAllTime = outfitsAllTimeRes.count ?? 0
     const avatarsAllTime = avatarsAllTimeRes.count ?? 0
     const aiCostAllTime = (outfitsAllTime * COST_PER_OUTFIT) + (avatarsAllTime * COST_PER_AVATAR)
-    const costPerUser = totalUsers > 0 ? aiCostAllTime / totalUsers : 0
+const costPerUser = totalUsers > 0 ? aiCostAllTime / totalUsers : 0
+    const conversionRate = totalUsers > 0 ? (payingUsers / totalUsers) * 100 : 0
+    const arpu = totalUsers > 0 ? mrr / totalUsers : 0
+
+    // Letzte 7 Tage Wachstum
+    const growthDays: { date: string; count: number }[] = []
+    for (let i = 6; i >= 0; i--) {
+      const dayStart = new Date(now)
+      dayStart.setDate(now.getDate() - i)
+      dayStart.setHours(0, 0, 0, 0)
+      const dayEnd = new Date(dayStart)
+      dayEnd.setHours(23, 59, 59, 999)
+      const { count } = await supabase.from('profiles').select('id', { count: 'exact', head: true })
+        .gte('created_at', dayStart.toISOString())
+        .lte('created_at', dayEnd.toISOString())
+      growthDays.push({
+        date: dayStart.toLocaleDateString('de-DE', { weekday: 'short' }),
+        count: count ?? 0,
+      })
+    }
 
     return NextResponse.json({
       success: true,
@@ -89,6 +108,9 @@ export async function POST(request: NextRequest) {
         aiCostAllTime: aiCostAllTime.toFixed(2),
         costPerUser: costPerUser.toFixed(3),
         recentUsers: recentUsersRes.data ?? [],
+        conversionRate: conversionRate.toFixed(1),
+        arpu: arpu.toFixed(2),
+        growthDays,
       },
     })
   } catch (err) {
