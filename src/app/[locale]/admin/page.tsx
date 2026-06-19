@@ -17,10 +17,13 @@ type Stats = {
   outfitsWeek: number
   avatarsToday: number
   totalItems: number
-mrr: string
+  mrr: string
   payingUsers: number
   referralPremium: number
-recentUsers: { username: string; created_at: string; is_premium: boolean; referred_by: string | null }[]
+  aiCostToday: string
+  aiCostAllTime: string
+  costPerUser: string
+  recentUsers: { username: string; created_at: string; is_premium: boolean; referred_by: string | null; premium_source: string | null }[]
 }
 
 export default function AdminPage() {
@@ -147,11 +150,30 @@ export default function AdminPage() {
               <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: '52px', fontWeight: 400, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1 }}>
                 €{stats.mrr}
               </p>
-       <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', marginTop: '8px' }}>
+<p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', marginTop: '8px' }}>
                 {stats.payingUsers} zahlende Mitglieder × €4,99
                 {stats.referralPremium > 0 && ` · +${stats.referralPremium} via Referral (kostenlos)`}
               </p>
             </motion.div>
+
+            {/* AI Costs */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', padding: '18px' }}>
+                <p style={{ fontSize: '11px', fontWeight: 700, color: muted, letterSpacing: '0.06em', textTransform: 'uppercase' as const, marginBottom: '8px' }}>KI-Kosten heute (geschätzt)</p>
+                <p style={{ fontSize: '28px', fontWeight: 800, color: '#ef4444', letterSpacing: '-0.03em' }}>€{stats.aiCostToday}</p>
+              </motion.div>
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+                style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', padding: '18px' }}>
+                <p style={{ fontSize: '11px', fontWeight: 700, color: muted, letterSpacing: '0.06em', textTransform: 'uppercase' as const, marginBottom: '8px' }}>Kosten pro User (gesamt)</p>
+                <p style={{ fontSize: '28px', fontWeight: 800, color: text, letterSpacing: '-0.03em' }}>€{stats.costPerUser}</p>
+              </motion.div>
+            </div>
+
+            <div style={{ background: 'rgba(77,126,255,0.1)', border: `1px solid ${border}`, borderRadius: '14px', padding: '12px 16px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <p style={{ fontSize: '12px', color: muted }}>KI-Kosten seit Start (geschätzt)</p>
+              <p style={{ fontSize: '14px', fontWeight: 700, color: text }}>€{stats.aiCostAllTime}</p>
+            </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '16px' }}>
               {[
