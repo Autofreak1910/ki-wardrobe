@@ -17,7 +17,9 @@ type Stats = {
   outfitsWeek: number
   avatarsToday: number
   totalItems: number
-  mrr: string
+mrr: string
+  payingUsers: number
+  referralPremium: number
   recentUsers: { username: string; created_at: string; is_premium: boolean }[]
 }
 
@@ -145,8 +147,9 @@ export default function AdminPage() {
               <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: '52px', fontWeight: 400, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1 }}>
                 €{stats.mrr}
               </p>
-              <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', marginTop: '8px' }}>
-                {stats.premiumUsers} aktive Pro-Mitglieder × €4,99
+       <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', marginTop: '8px' }}>
+                {stats.payingUsers} zahlende Mitglieder × €4,99
+                {stats.referralPremium > 0 && ` · +${stats.referralPremium} via Referral (kostenlos)`}
               </p>
             </motion.div>
 

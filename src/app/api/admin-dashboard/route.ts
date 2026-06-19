@@ -25,9 +25,10 @@ export async function POST(request: NextRequest) {
     const startOfWeek = new Date(now)
     startOfWeek.setDate(now.getDate() - 7)
 
-    const [
+const [
       totalUsersRes,
       premiumUsersRes,
+      payingUsersRes,
       newTodayRes,
       newWeekRes,
       outfitsTodayRes,
@@ -37,7 +38,8 @@ export async function POST(request: NextRequest) {
       recentUsersRes,
     ] = await Promise.all([
       supabase.from('profiles').select('id', { count: 'exact', head: true }),
-      supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('is_premium', true),
+supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('is_premium', true),
+      supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('is_premium', true).is('referred_by', null),
       supabase.from('profiles').select('id', { count: 'exact', head: true }).gte('created_at', startOfToday.toISOString()),
       supabase.from('profiles').select('id', { count: 'exact', head: true }).gte('created_at', startOfWeek.toISOString()),
       supabase.from('outfit_generations').select('id', { count: 'exact', head: true }).gte('created_at', startOfToday.toISOString()),
@@ -47,9 +49,11 @@ export async function POST(request: NextRequest) {
       supabase.from('profiles').select('username, created_at, is_premium').order('created_at', { ascending: false }).limit(8),
     ])
 
-    const totalUsers = totalUsersRes.count ?? 0
+const totalUsers = totalUsersRes.count ?? 0
     const premiumUsers = premiumUsersRes.count ?? 0
-    const mrr = premiumUsers * 4.99
+    const payingUsers = payingUsersRes.count ?? 0
+    const referralPremium = premiumUsers - payingUsers
+    const mrr = payingUsers * 4.99
 
     return NextResponse.json({
       success: true,
@@ -63,7 +67,9 @@ export async function POST(request: NextRequest) {
         outfitsWeek: outfitsWeekRes.count ?? 0,
         avatarsToday: avatarsTodayRes.count ?? 0,
         totalItems: totalItemsRes.count ?? 0,
-        mrr: mrr.toFixed(2),
+   mrr: mrr.toFixed(2),
+        payingUsers,
+        referralPremium,
         recentUsers: recentUsersRes.data ?? [],
       },
     })
