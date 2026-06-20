@@ -9,8 +9,8 @@ async function callOpenAI(prompt: string) {
     },
     body: JSON.stringify({
       model: 'gpt-4o-mini',
-      max_tokens: 1000,
-      temperature: 0.9,
+      max_tokens: 200,
+      temperature: 0.8,
       messages: [{ role: 'user', content: prompt }]
     })
   })
@@ -39,121 +39,103 @@ function uniqueId(item: any): string {
   return normalize(item.name ?? item.category) + '|' + normalize(item.color)
 }
 
+// Waehlt das am wenigsten benutzte Item, mit kleiner Zufallskomponente unter den am wenigsten benutzten,
+// damit es nicht IMMER exakt dasselbe ist wenn mehrere gleich selten benutzt wurden.
+function pickLeastUsed(pool: any[], usage: Record<string, number>, excludeIds: Set<string>): any | null {
+  const candidates = pool.filter((p: any) => !excludeIds.has(uniqueId(p)))
+  const finalPool = candidates.length > 0 ? candidates : pool
+  if (finalPool.length === 0) return null
+  const minUsage = Math.min(...finalPool.map((p: any) => usage[uniqueId(p)] ?? 0))
+  const leastUsedGroup = finalPool.filter((p: any) => (usage[uniqueId(p)] ?? 0) === minUsage)
+  return leastUsedGroup[Math.floor(Math.random() * leastUsedGroup.length)]
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { items, occasion, weather, blockedNames, usageCounts } = await request.json()
     const locale = request.headers.get('x-locale') || 'de'
     const isEnglish = locale === 'en'
     const usage: Record<string, number> = usageCounts && typeof usageCounts === 'object' ? usageCounts : {}
-
-    const blockedSet = new Set((Array.isArray(blockedNames) ? blockedNames : []).map(normalize))
+    const blocked = new Set((Array.isArray(blockedNames) ? blockedNames : []).map(normalize))
 
     const grouped = groupByCategory(items)
     const tops = grouped['tops'] ?? []
     const hosen = grouped['hosen'] ?? []
     const schuhe = grouped['schuhe'] ?? []
     const jacken = grouped['jacken'] ?? []
-    const acc = grouped['acc'] ?? []
-
-    function filterBlocked(pool: any[]) {
-      const filtered = pool.filter((p: any) => !blockedSet.has(uniqueId(p)))
-      if (filtered.length > 0) return filtered
-      return pool.length > 0 ? [pool[Math.floor(Math.random() * pool.length)]] : pool
-    }
-
-    function sortByLeastUsed(pool: any[]) {
-      return [...pool].sort((a, b) => (usage[uniqueId(a)] ?? 0) - (usage[uniqueId(b)] ?? 0))
-    }
-
-    const availableTops = sortByLeastUsed(filterBlocked(tops))
-    const availableHosen = sortByLeastUsed(filterBlocked(hosen))
-    const availableSchuhe = sortByLeastUsed(filterBlocked(schuhe))
-    const availableJacken = sortByLeastUsed(filterBlocked(jacken))
-    const availableAcc = sortByLeastUsed(filterBlocked(acc))
-
-    const usableItems = [...availableTops, ...availableHosen, ...availableSchuhe, ...availableJacken, ...availableAcc]
-
-    const itemList = usableItems.map((item: { name?: string; category: string; color: string; brand?: string; layer_type?: string }) => {
-      const layerNote = item.layer_type === 'layer' ? ' [layer piece, worn over a base top]' : item.layer_type === 'base' ? ' [base top, worn alone or under a layer piece]' : ''
-      const usageCount = usage[uniqueId(item)] ?? 0
-      const usageNote = usageCount === 0 ? ' [rarely/never used - prefer this]' : usageCount <= 2 ? '' : ' [used often]'
-      return '- ' + (item.name ?? item.category) + ' (' + item.category + ', ' + item.color + (item.brand ? ', ' + item.brand : '') + ')' + layerNote + usageNote
-    }).join('\n')
 
     const tempMatch = String(weather).match(/(-?\d+)/)
     const tempValue = tempMatch ? parseInt(tempMatch[1]) : 18
-    const isHot = tempValue >= 24
+    const isCold = tempValue < 16
 
-    const hasLayerPieces = usableItems.some((item: any) => item.layer_type === 'layer')
-    const hasBasePieces = usableItems.some((item: any) => item.layer_type === 'base')
-
-    let layeringInstruction = ''
-    if (hasLayerPieces && hasBasePieces) {
-      layeringInstruction = isEnglish
-        ? '\nLayering rule: Items marked [layer piece] CAN be worn over an item marked [base top] - but ONLY when it is cold enough (roughly below 16C). Above that, pick just ONE top, never both.'
-        : '\nLayering-Regel: Teile mit [layer piece] koennen UEBER einem Teil mit [base top] getragen werden - aber NUR wenn es kalt genug ist (unter 16C). Bei waermerem Wetter waehl nur EIN Oberteil, niemals beides.'
-    }
-    if (isHot && hasLayerPieces && !hasBasePieces) {
-      layeringInstruction += isEnglish
-        ? '\nIMPORTANT: It is hot (' + tempValue + 'C) and only heavy tops [layer piece] are available. Pick one anyway, but honestly mention in your reasoning that it is warmer than ideal for this weather.'
-        : '\nWICHTIG: Es ist heiss (' + tempValue + 'C) und nur schwere Oberteile [layer piece] sind verfuegbar. Waehl trotzdem eins, aber erwaehne in der Begruendung ehrlich dass es waermer als ideal fuer dieses Wetter ist.'
-    }
-
-    const outfitCount = usableItems.length >= 6 ? 3 : usableItems.length >= 4 ? 2 : 1
+    const outfitCount = items.length >= 6 ? 3 : items.length >= 4 ? 2 : 1
     const vibes = ['Casual Cool', 'Minimal Chic', 'Bold Statement']
+    const outfits: { items: string[]; reasoning: string; vibe: string }[] = []
 
-    const outfitTemplate = (count: number) => {
-      const lines: string[] = []
-      for (let i = 0; i < count; i++) {
-        lines.push('    {\n      "items": ["exact name from list", "exact name from list"],\n      "reasoning": "short reasoning, mention the temperature",\n      "vibe": "' + vibes[i] + '"\n    }')
+    const sessionUsedTops = new Set<string>(blocked)
+    const sessionUsedHosen = new Set<string>(blocked)
+    const sessionUsedSchuhe = new Set<string>(blocked)
+
+    for (let i = 0; i < outfitCount; i++) {
+      let pickedTop: any = null
+      let pickedBaseTop: any = null
+
+      if (isCold) {
+        const layerPieces = tops.filter((t: any) => t.layer_type === 'layer')
+        const basePieces = tops.filter((t: any) => t.layer_type === 'base')
+        if (layerPieces.length > 0 && basePieces.length > 0 && Math.random() > 0.4) {
+          pickedTop = pickLeastUsed(layerPieces, usage, sessionUsedTops)
+          if (pickedTop) sessionUsedTops.add(uniqueId(pickedTop))
+          pickedBaseTop = pickLeastUsed(basePieces, usage, sessionUsedTops)
+        } else {
+          pickedTop = pickLeastUsed(tops, usage, sessionUsedTops)
+        }
+      } else {
+        pickedTop = pickLeastUsed(tops, usage, sessionUsedTops)
       }
-      return lines.join(',\n')
+
+      const pickedHose = pickLeastUsed(hosen, usage, sessionUsedHosen)
+      const pickedSchuh = pickLeastUsed(schuhe, usage, sessionUsedSchuhe)
+      const pickedJacke = jacken.length > 0 && Math.random() > 0.45
+        ? pickLeastUsed(jacken, usage, new Set())
+        : null
+
+      if (pickedTop) sessionUsedTops.add(uniqueId(pickedTop))
+      if (pickedBaseTop) sessionUsedTops.add(uniqueId(pickedBaseTop))
+      if (pickedHose) sessionUsedHosen.add(uniqueId(pickedHose))
+      if (pickedSchuh) sessionUsedSchuhe.add(uniqueId(pickedSchuh))
+
+      const chosenItems = [pickedTop, pickedBaseTop, pickedHose, pickedSchuh, pickedJacke].filter(Boolean)
+      const chosenNames = chosenItems.map((item: any) => item.name ?? item.category)
+      const chosenDescriptions = chosenItems.map((item: any) =>
+        (item.name ?? item.category) + ' (' + item.color + (item.brand ? ', ' + item.brand : '') + ')'
+      ).join(', ')
+
+      let prompt = ''
+      if (isEnglish) {
+        prompt = 'You are a fashion stylist. The user will wear exactly these items for "' + occasion + '" with vibe "' + vibes[i] + '": ' + chosenDescriptions + '. Weather: ' + weather + '. '
+        prompt += 'Write a short, natural one-sentence reasoning (max 25 words) why this combination works together (colors, style, weather), naturally mentioning the temperature. Respond ONLY with JSON: {"reasoning": "your text here"}'
+      } else {
+        prompt = 'Du bist ein Fashion-Stylist. Der Nutzer traegt genau diese Teile fuer "' + occasion + '" mit Vibe "' + vibes[i] + '": ' + chosenDescriptions + '. Wetter: ' + weather + '. '
+        prompt += 'Schreib eine kurze, natuerliche ein-Satz-Begruendung (max 25 Woerter) warum diese Kombination zusammenpasst (Farben, Stil, Wetter), erwaehne dabei natuerlich die Temperatur. Antworte NUR mit JSON: {"reasoning": "dein Text hier"}'
+      }
+
+      try {
+        const result = await callOpenAI(prompt)
+        outfits.push({ items: chosenNames, reasoning: result.reasoning ?? '', vibe: vibes[i] })
+      } catch (err) {
+        console.error('Outfit ' + i + ' reasoning generation failed:', err)
+        outfits.push({ items: chosenNames, reasoning: '', vibe: vibes[i] })
+      }
     }
 
-    const distinctNote = outfitCount > 1
-      ? (isEnglish
-          ? '\nCRITICAL: The ' + outfitCount + ' outfits must each use a DIFFERENT top and DIFFERENT pants from each other.'
-          : '\nWICHTIG: Die ' + outfitCount + ' Outfits muessen jeweils ein ANDERES Oberteil und eine ANDERE Hose verwenden.')
-      : ''
-
-    const mandatoryNote = isEnglish
-      ? '\nMANDATORY: Every single outfit MUST include exactly one top, exactly one pants/bottom, AND exactly one pair of shoes from the list (if shoes are available in the list) - an outfit without shoes is incomplete and not acceptable. A jacket is optional.'
-      : '\nPFLICHT: Jedes einzelne Outfit MUSS genau ein Oberteil, genau eine Hose UND genau ein Paar Schuhe aus der Liste enthalten (falls Schuhe in der Liste verfuegbar sind) - ein Outfit ohne Schuhe ist unvollstaendig und nicht akzeptabel. Eine Jacke ist optional.'
-
-    const rotationNote = isEnglish
-      ? '\nROTATION PRIORITY: Items marked [rarely/never used - prefer this] should be actively prioritized when choosing items, as long as the result still looks good and matches the weather/occasion. Items marked [used often] should be avoided unless there is no good alternative.'
-      : '\nROTATIONS-PRIORITAET: Teile mit [rarely/never used - prefer this] sollen aktiv bevorzugt werden bei der Auswahl, solange das Ergebnis trotzdem gut aussieht und zu Wetter/Anlass passt. Teile mit [used often] sollen vermieden werden, ausser es gibt keine gute Alternative.'
-
-    const colorMatchingNote = isEnglish
-      ? '\nColor matching guidance: Aim for a cohesive color story - either a clear monochrome/tonal look (multiple shades of the same color family, e.g. all blue or all black/grey), or a deliberate contrast (e.g. neutral bottom with a colorful top, or vice versa). Avoid combining 3+ unrelated bright colors. In your reasoning, briefly justify the color choice.'
-      : '\nFarbabstimmungs-Hinweis: Strebe eine stimmige Farbgeschichte an - entweder einen klaren monochromen/tonalen Look (mehrere Schattierungen derselben Farbfamilie, z.B. alles blau oder alles schwarz/grau), oder einen bewussten Kontrast (z.B. neutrale Hose mit farbigem Top, oder umgekehrt). Vermeide die Kombination von 3+ unzusammenhaengenden grellen Farben. Begruende kurz die Farbwahl.'
-
-    let prompt = ''
-    if (isEnglish) {
-      prompt = 'You are a fashion stylist with a great eye for color matching. Create ' + outfitCount + ' outfit suggestion' + (outfitCount > 1 ? 's' : '') + ' for "' + occasion + '" using ONLY items from this list (this list already excludes recently used items):\n\n'
-      prompt += itemList + '\n\n'
-      prompt += 'Weather: ' + weather + '\n'
-      prompt += layeringInstruction + distinctNote + mandatoryNote + rotationNote + colorMatchingNote + '\n\n'
-      prompt += 'Mention the exact temperature naturally in your reasoning.\n\n'
-      prompt += 'Respond ONLY with JSON:\n{\n  "outfits": [\n' + outfitTemplate(outfitCount) + '\n  ]\n}\n\n'
-      prompt += 'Only use exact names from the list above!'
-    } else {
-      prompt = 'Du bist ein Fashion-Stylist mit einem guten Gefuehl fuer Farbabstimmung. Erstelle ' + outfitCount + ' Outfit-Vorschlag' + (outfitCount > 1 ? 'schlaege' : '') + ' fuer "' + occasion + '" NUR mit Items aus dieser Liste (kuerzlich verwendete Items sind hier bereits ausgeschlossen):\n\n'
-      prompt += itemList + '\n\n'
-      prompt += 'Wetter: ' + weather + '\n'
-      prompt += layeringInstruction + distinctNote + mandatoryNote + rotationNote + colorMatchingNote + '\n\n'
-      prompt += 'Erwaehne die konkrete Temperatur natuerlich in der Begruendung.\n\n'
-      prompt += 'Antworte NUR mit JSON:\n{\n  "outfits": [\n' + outfitTemplate(outfitCount) + '\n  ]\n}\n\n'
-      prompt += 'Nur exakte Namen aus der obigen Liste!'
-    }
-
-    const result = await callOpenAI(prompt)
+    if (outfits.length === 0) throw new Error('No outfits generated')
 
     return NextResponse.json({
       success: true,
-      outfits: result.outfits,
-      items: result.outfits?.[0]?.items ?? [],
-      reasoning: result.outfits?.[0]?.reasoning ?? '',
+      outfits,
+      items: outfits[0]?.items ?? [],
+      reasoning: outfits[0]?.reasoning ?? '',
     })
 
   } catch (error) {
