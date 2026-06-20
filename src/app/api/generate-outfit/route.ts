@@ -48,8 +48,12 @@ export async function POST(request: NextRequest) {
     const acc = grouped['acc'] ?? []
 
     // Für jede Kategorie: falls genug unblockierte Items übrig sind, nutze nur die. Sonst (zu wenig Auswahl) gib alle frei, damit ueberhaupt ein Outfit entstehen kann.
+  function uniqueId(item: any): string {
+      return (item.name ?? item.category) + '|' + item.color
+    }
+
     function unlockIfNeeded(pool: any[], minNeeded: number) {
-      const unblocked = pool.filter((p: any) => !blocked.includes(p.name ?? p.category))
+      const unblocked = pool.filter((p: any) => !blocked.includes(uniqueId(p)))
       return unblocked.length >= minNeeded ? unblocked : pool
     }
 

@@ -275,7 +275,7 @@ function pushToBlockedHistory(names: string[]) {
     const stored = localStorage.getItem('kw_recent_outfit_items')
     const history: string[][] = stored ? JSON.parse(stored) : []
     history.push(names)
-    const trimmed = history.slice(-5)
+    const trimmed = history.slice(-2)
     localStorage.setItem('kw_recent_outfit_items', JSON.stringify(trimmed))
   } catch {}
 }
@@ -334,8 +334,8 @@ const blockedNames = getBlockedNames()
         return { items: o.items, reasoning: o.reasoning, vibe: o.vibe, itemObjects: matchedItems }
       })
    setOutfit({ outfits: mappedOutfits, active: 0 })
-      const allUsedNames = mappedOutfits.flatMap((o: any) => o.items)
-      pushToBlockedHistory(allUsedNames)
+const allUsedIds = mappedOutfits.flatMap((o: any) => o.itemObjects.map((item: ClothingItem) => (item.name ?? item.category) + '|' + item.color))
+      pushToBlockedHistory(allUsedIds)
       setTimeout(() => mainRef.current?.scrollTo({ top: mainRef.current.scrollHeight, behavior: 'smooth' }), 200)
     }
   } catch (err) { console.error(err) }
