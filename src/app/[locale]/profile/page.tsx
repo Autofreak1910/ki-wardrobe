@@ -6,6 +6,7 @@ import { useLocale } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
+import Navbar from '@/components/Navbar'
 type Profile = { id: string; username: string; is_premium: boolean; age?: string; country?: string; created_at: string; email?: string; gender?: string; style_preferences?: string[]; budget_range?: string; referral_code?: string; premium_until?: string; invites_this_month?: number; bonus_month_claimed_this_period?: boolean }
 
 function urlBase64ToUint8Array(base64String: string) {
