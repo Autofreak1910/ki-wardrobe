@@ -59,7 +59,10 @@ export async function POST(request: NextRequest) {
     const availableJacken = unlockIfNeeded(jacken, 1)
     const availableAcc = unlockIfNeeded(acc, 1)
 
-    const usableItems = [...availableTops, ...availableHosen, ...availableSchuhe, ...availableJacken, ...availableAcc]
+   const usableItems = [...availableTops, ...availableHosen, ...availableSchuhe, ...availableJacken, ...availableAcc]
+    console.log('Blocked names:', blocked)
+    console.log('Available tops:', availableTops.map((t: any) => t.name))
+    console.log('Available hosen:', availableHosen.map((h: any) => h.name))
 
     const itemList = usableItems.map((item: { name?: string; category: string; color: string; brand?: string; layer_type?: string }) => {
       const layerNote = item.layer_type === 'layer' ? ' [layer piece, worn over a base top]' : item.layer_type === 'base' ? ' [base top, worn alone or under a layer piece]' : ''
@@ -68,11 +71,21 @@ export async function POST(request: NextRequest) {
 
     const hasLayerPieces = usableItems.some((item: any) => item.layer_type === 'layer')
     const hasBasePieces = usableItems.some((item: any) => item.layer_type === 'base')
-    const layeringInstruction = hasLayerPieces && hasBasePieces
-      ? (isEnglish
-          ? '\nLayering rule: Items marked [layer piece] (sweaters, hoodies, cardigans) CAN be worn over an item marked [base top] (t-shirts, shirts) - but ONLY when it is cold enough to need both (roughly below 16C / 60F). Above that temperature, pick just ONE top, never both.'
-          : '\nLayering-Regel: Teile mit [layer piece] (Pullover, Hoodies, Strickjacken) koennen UEBER einem Teil mit [base top] getragen werden - aber NUR wenn es kalt genug ist (unter 16C). Bei waermerem Wetter waehl nur EIN Oberteil, niemals beides.')
-      : ''
+   const tempMatch = String(weather).match(/(-?\d+)/)
+    const tempValue = tempMatch ? parseInt(tempMatch[1]) : 18
+    const isHot = tempValue >= 24
+
+    let layeringInstruction = ''
+    if (hasLayerPieces && hasBasePieces) {
+      layeringInstruction = isEnglish
+        ? '\nLayering rule: Items marked [layer piece] (sweaters, hoodies, cardigans) CAN be worn over an item marked [base top] (t-shirts, shirts) - but ONLY when it is cold enough to need both (roughly below 16C / 60F). Above that temperature, pick just ONE top, never both.'
+        : '\nLayering-Regel: Teile mit [layer piece] (Pullover, Hoodies, Strickjacken) koennen UEBER einem Teil mit [base top] getragen werden - aber NUR wenn es kalt genug ist (unter 16C). Bei waermerem Wetter waehl nur EIN Oberteil, niemals beides.'
+    }
+    if (isHot && hasLayerPieces && !hasBasePieces) {
+      layeringInstruction += isEnglish
+        ? '\nIMPORTANT: It is hot (' + tempValue + 'C). The only available tops are heavy items like sweaters/hoodies marked [layer piece] - these are NOT ideal for this heat, but you must still pick one since no lighter top is available. In your reasoning, honestly mention that this top is warmer than ideal for the weather, and the user might want to add a lighter t-shirt to their wardrobe.'
+        : '\nWICHTIG: Es ist heiss (' + tempValue + 'C). Die einzig verfuegbaren Oberteile sind schwere Teile wie Pullover/Hoodies mit [layer piece] - diese sind NICHT ideal fuer diese Hitze, aber du musst trotzdem eines waehlen da kein leichteres Top verfuegbar ist. Erwaehne in der Begruendung ehrlich, dass dieses Top waermer als ideal fuer das Wetter ist, und der Nutzer sich evtl. ein leichteres T-Shirt zulegen sollte.'
+    }
 
     const outfitCount = usableItems.length >= 6 ? 3 : usableItems.length >= 4 ? 2 : 1
     const vibes = ['Casual Cool', 'Minimal Chic', 'Bold Statement']
