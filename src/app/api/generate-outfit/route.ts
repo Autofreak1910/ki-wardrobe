@@ -114,18 +114,22 @@ function filterBlocked(pool: any[]) {
       return lines.join(',\n')
     }
 
-    const distinctNote = outfitCount > 1
+   const distinctNote = outfitCount > 1
       ? (isEnglish
           ? '\nCRITICAL: The ' + outfitCount + ' outfits must each use a DIFFERENT top and DIFFERENT pants from each other.'
           : '\nWICHTIG: Die ' + outfitCount + ' Outfits muessen jeweils ein ANDERES Oberteil und eine ANDERE Hose verwenden.')
       : ''
+
+    const mandatoryNote = isEnglish
+      ? '\nMANDATORY: Every single outfit MUST include exactly one top, exactly one pants/bottom, AND exactly one pair of shoes from the list (if shoes are available in the list) - an outfit without shoes is incomplete and not acceptable. A jacket is optional.'
+      : '\nPFLICHT: Jedes einzelne Outfit MUSS genau ein Oberteil, genau eine Hose UND genau ein Paar Schuhe aus der Liste enthalten (falls Schuhe in der Liste verfuegbar sind) - ein Outfit ohne Schuhe ist unvollstaendig und nicht akzeptabel. Eine Jacke ist optional.'
 
     let prompt = ''
     if (isEnglish) {
       prompt = 'You are a fashion stylist with a great eye for color matching. Create ' + outfitCount + ' outfit suggestion' + (outfitCount > 1 ? 's' : '') + ' for "' + occasion + '" using ONLY items from this list (this list already excludes recently used items):\n\n'
       prompt += itemList + '\n\n'
       prompt += 'Weather: ' + weather + '\n'
-      prompt += layeringInstruction + distinctNote + '\n\n'
+     prompt += layeringInstruction + distinctNote + mandatoryNote + '\n\n'
       prompt += 'Mention the exact temperature naturally in your reasoning.\n\n'
       prompt += 'Respond ONLY with JSON:\n{\n  "outfits": [\n' + outfitTemplate(outfitCount) + '\n  ]\n}\n\n'
       prompt += 'Only use exact names from the list above!'
@@ -133,7 +137,7 @@ function filterBlocked(pool: any[]) {
       prompt = 'Du bist ein Fashion-Stylist mit einem guten Gefuehl fuer Farbabstimmung. Erstelle ' + outfitCount + ' Outfit-Vorschlag' + (outfitCount > 1 ? 'schlaege' : '') + ' fuer "' + occasion + '" NUR mit Items aus dieser Liste (kuerzlich verwendete Items sind hier bereits ausgeschlossen):\n\n'
       prompt += itemList + '\n\n'
       prompt += 'Wetter: ' + weather + '\n'
-      prompt += layeringInstruction + distinctNote + '\n\n'
+  prompt += layeringInstruction + distinctNote + mandatoryNote + '\n\n'
       prompt += 'Erwaehne die konkrete Temperatur natuerlich in der Begruendung.\n\n'
       prompt += 'Antworte NUR mit JSON:\n{\n  "outfits": [\n' + outfitTemplate(outfitCount) + '\n  ]\n}\n\n'
       prompt += 'Nur exakte Namen aus der obigen Liste!'
