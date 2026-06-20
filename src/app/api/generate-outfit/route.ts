@@ -41,13 +41,28 @@ function uniqueId(item: any): string {
 
 // Waehlt das am wenigsten benutzte Item, mit kleiner Zufallskomponente unter den am wenigsten benutzten,
 // damit es nicht IMMER exakt dasselbe ist wenn mehrere gleich selten benutzt wurden.
-function pickLeastUsed(pool: any[], usage: Record<string, number>, excludeIds: Set<string>): any | null {
+type UsageInfo = { count: number; lastUsed: number }
+
+function getUsageInfo(usage: Record<string, UsageInfo>, id: string): UsageInfo {
+  return usage[id] ?? { count: 0, lastUsed: 0 }
+}
+
+// Waehlt deterministisch: zuerst niedrigste count, bei Gleichstand das mit dem aeltesten lastUsed (am laengsten nicht benutzt). Kein Zufall mehr.
+function pickLeastUsed(pool: any[], usage: Record<string, UsageInfo>, excludeIds: Set<string>): any | null {
   const candidates = pool.filter((p: any) => !excludeIds.has(uniqueId(p)))
   const finalPool = candidates.length > 0 ? candidates : pool
   if (finalPool.length === 0) return null
-  const minUsage = Math.min(...finalPool.map((p: any) => usage[uniqueId(p)] ?? 0))
-  const leastUsedGroup = finalPool.filter((p: any) => (usage[uniqueId(p)] ?? 0) === minUsage)
-  return leastUsedGroup[Math.floor(Math.random() * leastUsedGroup.length)]
+
+  let best = finalPool[0]
+  let bestInfo = getUsageInfo(usage, uniqueId(best))
+  for (const item of finalPool) {
+    const info = getUsageInfo(usage, uniqueId(item))
+    if (info.count < bestInfo.count || (info.count === bestInfo.count && info.lastUsed < bestInfo.lastUsed)) {
+      best = item
+      bestInfo = info
+    }
+  }
+  return best
 }
 
 export async function POST(request: NextRequest) {
@@ -55,7 +70,7 @@ export async function POST(request: NextRequest) {
     const { items, occasion, weather, blockedNames, usageCounts } = await request.json()
     const locale = request.headers.get('x-locale') || 'de'
     const isEnglish = locale === 'en'
-    const usage: Record<string, number> = usageCounts && typeof usageCounts === 'object' ? usageCounts : {}
+ const usage: Record<string, UsageInfo> = usageCounts && typeof usageCounts === 'object' ? usageCounts : {}
     const blocked = new Set((Array.isArray(blockedNames) ? blockedNames : []).map(normalize))
 
     const grouped = groupByCategory(items)

@@ -262,7 +262,7 @@ const { latitude: lat, longitude: lon } = pos.coords
     setOutfit(null)
   }
 
-function getUsageCounts(): Record<string, number> {
+function getUsageCounts(): Record<string, { count: number; lastUsed: number }> {
   try {
     const stored = localStorage.getItem('kw_item_usage_counts')
     return stored ? JSON.parse(stored) : {}
@@ -286,7 +286,11 @@ function pushToBlockedHistory(ids: string[]) {
     localStorage.setItem('kw_recent_outfit_history', JSON.stringify(trimmed))
 
     const usage = getUsageCounts()
-    for (const id of ids) usage[id] = (usage[id] ?? 0) + 1
+    const now = Date.now()
+    for (const id of ids) {
+      const prev = usage[id] ?? { count: 0, lastUsed: 0 }
+      usage[id] = { count: prev.count + 1, lastUsed: now }
+    }
     localStorage.setItem('kw_item_usage_counts', JSON.stringify(usage))
   } catch {}
 }
