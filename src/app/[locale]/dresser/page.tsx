@@ -263,19 +263,17 @@ const { latitude: lat, longitude: lon } = pos.coords
   }
 function getUsageCounts(): Record<string, { count: number; lastUsed: number }> {
   try {
-    const stored = localStorage.getItem('kw_item_usage_counts')
-    const raw = stored ? JSON.parse(stored) : {}
-    // Alte/kaputte Eintraege (reine Zahlen statt {count, lastUsed}) bereinigen
-    const cleaned: Record<string, { count: number; lastUsed: number }> = {}
-    for (const key of Object.keys(raw)) {
-      const val = raw[key]
-      if (typeof val === 'number') {
-        cleaned[key] = { count: val, lastUsed: 0 }
-      } else if (val && typeof val === 'object') {
-        cleaned[key] = { count: Number(val.count) || 0, lastUsed: Number(val.lastUsed) || 0 }
+    // Counts werden aus dem rollenden Fenster der letzten 12 Generierungen berechnet
+    const stored = localStorage.getItem('kw_usage_window')
+    const window: string[][] = stored ? JSON.parse(stored) : []
+    const counts: Record<string, { count: number; lastUsed: number }> = {}
+    window.forEach((gen, genIndex) => {
+      for (const id of gen) {
+        const prev = counts[id] ?? { count: 0, lastUsed: 0 }
+        counts[id] = { count: prev.count + 1, lastUsed: genIndex }
       }
-    }
-    return cleaned
+    })
+    return counts
   } catch { return {} }
 }
 
@@ -289,19 +287,15 @@ function getBlockedNames(): string[] {
 
 function pushToBlockedHistory(ids: string[]) {
   try {
-    const stored = localStorage.getItem('kw_recent_outfit_history')
-    const history: string[][] = stored ? JSON.parse(stored) : []
-    history.push(ids)
-    const trimmed = history.slice(-2)
-    localStorage.setItem('kw_recent_outfit_history', JSON.stringify(trimmed))
+    // Rollendes Fenster: speichere die letzten 12 Generierungen als Listen von Item-IDs
+    const stored = localStorage.getItem('kw_usage_window')
+    const window: string[][] = stored ? JSON.parse(stored) : []
+    window.push(ids)
+    const trimmed = window.slice(-12)
+    localStorage.setItem('kw_usage_window', JSON.stringify(trimmed))
 
-    const usage = getUsageCounts()
-    const now = Date.now()
-    for (const id of ids) {
-      const prev = usage[id] ?? { count: 0, lastUsed: 0 }
-      usage[id] = { count: prev.count + 1, lastUsed: now }
-    }
-    localStorage.setItem('kw_item_usage_counts', JSON.stringify(usage))
+    // Auch die letzten 2 fuer die harte Blockierung
+    localStorage.setItem('kw_recent_outfit_history', JSON.stringify(trimmed.slice(-2)))
   } catch {}
 }
 
