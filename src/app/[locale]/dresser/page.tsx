@@ -253,6 +253,24 @@ const { latitude: lat, longitude: lon } = pos.coords
     setOutfit(null)
   }
 
+function getBlockedNames(): string[] {
+  try {
+    const stored = localStorage.getItem('kw_recent_outfit_items')
+    const history: string[][] = stored ? JSON.parse(stored) : []
+    return Array.from(new Set(history.flat()))
+  } catch { return [] }
+}
+
+function pushToBlockedHistory(names: string[]) {
+  try {
+    const stored = localStorage.getItem('kw_recent_outfit_items')
+    const history: string[][] = stored ? JSON.parse(stored) : []
+    history.push(names)
+    const trimmed = history.slice(-5)
+    localStorage.setItem('kw_recent_outfit_items', JSON.stringify(trimmed))
+  } catch {}
+}
+
 async function generateOutfit() {
 if (wardrobeItems.length < 3) return
   const { data: { session } } = await supabase.auth.getSession()
@@ -281,7 +299,7 @@ if (countError) console.error('Count error:', countError)
 const { error: insertError } = await supabase.from('outfit_generations').insert({ user_id: session.user.id })
   if (insertError) console.error('Insert error:', insertError)
 
- const recentItemNames = outfit?.outfits.map(o => o.items.join(', ')) ?? []
+const blockedNames = getBlockedNames()
   setLoading(true); setSaved(false); setOutfit(null)
   const filteredItems = wardrobeItems.filter(i => activeCategories.includes(i.category))
   const itemsToUse = filteredItems.length >= 2 ? filteredItems : wardrobeItems
@@ -290,7 +308,7 @@ const { error: insertError } = await supabase.from('outfit_generations').insert(
     const res = await fetch('/api/generate-outfit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-locale': locale },
-      body: JSON.stringify({ items: itemsToUse, occasion: selected, weather: weatherStr, categories: activeCategories, recentItemNames }),
+      body: JSON.stringify({ items: itemsToUse, occasion: selected, weather: weatherStr, blockedNames }),
     })
     const data = await res.json()
     if (data.success && data.outfits) {
@@ -306,7 +324,9 @@ const { error: insertError } = await supabase.from('outfit_generations').insert(
         ).filter(Boolean)
         return { items: o.items, reasoning: o.reasoning, vibe: o.vibe, itemObjects: matchedItems }
       })
-      setOutfit({ outfits: mappedOutfits, active: 0 })
+   setOutfit({ outfits: mappedOutfits, active: 0 })
+      const allUsedNames = mappedOutfits.flatMap((o: any) => o.items)
+      pushToBlockedHistory(allUsedNames)
       setTimeout(() => mainRef.current?.scrollTo({ top: mainRef.current.scrollHeight, behavior: 'smooth' }), 200)
     }
   } catch (err) { console.error(err) }
