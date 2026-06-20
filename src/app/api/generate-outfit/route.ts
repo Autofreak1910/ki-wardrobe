@@ -56,9 +56,12 @@ export async function POST(request: NextRequest) {
 
     // HARTE Entfernung: blockierte Items werden komplett aus dem Pool entfernt, bevor die KI sie ueberhaupt sieht.
     // Nur falls eine Kategorie dadurch komplett leer wuerde, wird sie wieder freigegeben (sonst kein Outfit moeglich).
-    function filterBlocked(pool: any[]) {
+function filterBlocked(pool: any[]) {
+      // Mindestens 1 Item muss immer uebrig bleiben, aber wir entfernen so viele blockierte wie moeglich
       const filtered = pool.filter((p: any) => !blockedSet.has(uniqueId(p)))
-      return filtered.length > 0 ? filtered : pool
+      if (filtered.length > 0) return filtered
+      // Falls alle blockiert sind: gib nur das zuletzt NICHT verwendete (am laengsten her benutzte) frei, nicht den ganzen Pool
+      return pool.length > 0 ? [pool[Math.floor(Math.random() * pool.length)]] : pool
     }
 
     const availableTops = filterBlocked(tops)

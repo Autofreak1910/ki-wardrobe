@@ -270,13 +270,12 @@ function getBlockedNames(): string[] {
   } catch { return [] }
 }
 
-function pushToBlockedHistory(ids: string[], wardrobeSize: number) {
+function pushToBlockedHistory(ids: string[]) {
   try {
-    const lockDepth = Math.max(1, Math.min(3, Math.round(wardrobeSize * 0.1)))
     const stored = localStorage.getItem('kw_recent_outfit_history')
     const history: string[][] = stored ? JSON.parse(stored) : []
     history.push(ids)
-    const trimmed = history.slice(-lockDepth)
+    const trimmed = history.slice(-2)
     localStorage.setItem('kw_recent_outfit_history', JSON.stringify(trimmed))
   } catch {}
 }
@@ -345,7 +344,7 @@ const blockedNames = getBlockedNames()
       })
    setOutfit({ outfits: mappedOutfits, active: 0 })
 const allUsedIds = (mappedOutfits[0]?.itemObjects ?? []).map((item: ClothingItem) => (item.name ?? item.category) + '|' + item.color)
-      pushToBlockedHistory(allUsedIds, wardrobeItems.length)
+      pushToBlockedHistory(allUsedIds)
       setTimeout(() => mainRef.current?.scrollTo({ top: mainRef.current.scrollHeight, behavior: 'smooth' }), 200)
     }
   } catch (err) { console.error(err) }
