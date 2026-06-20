@@ -111,6 +111,7 @@ const [withdrawalConsent, setWithdrawalConsent] = useState(false)
 const [todayOutfits, setTodayOutfits] = useState(0)
 const [tryOnToday, setTryOnToday] = useState(0)
 const [totalInvitesSuccessful, setTotalInvitesSuccessful] = useState(0)
+const [showInviteStats, setShowInviteStats] = useState(false)
 const [pushEnabled, setPushEnabled] = useState(false)
 const [pushLoading, setPushLoading] = useState(false)
 
@@ -419,24 +420,55 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
 {/* Invite Friends */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}
           style={{ background: `linear-gradient(135deg, ${accent}, #6b9fff)`, borderRadius: '16px', padding: '18px', marginBottom: '12px', position: 'relative' as const, overflow: 'hidden' }}>
-{totalInvitesSuccessful > 0 && (
-            <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '12px', padding: '12px 14px', marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+<motion.div whileTap={{ scale: 0.99 }} onClick={() => setShowInviteStats(!showInviteStats)}
+            style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '12px', padding: '12px 14px', marginBottom: '12px', cursor: 'pointer' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
                 <p style={{ fontSize: '20px', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>{totalInvitesSuccessful}</p>
                 <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.8)' }}>
                   {locale === 'de' ? 'erfolgreiche Einladungen' : 'successful invites'}
                 </p>
               </div>
-              <div style={{ textAlign: 'right' as const }}>
-                <p style={{ fontSize: '20px', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>
-                  +{Math.min(totalInvitesSuccessful, 4) * 7}{(profile?.bonus_month_claimed_this_period) ? ' +30' : ''}
-                </p>
-                <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.8)' }}>
-                  {locale === 'de' ? 'Bonus-Tage gesamt' : 'total bonus days'}
-                </p>
+              <div style={{ textAlign: 'right' as const, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div>
+                  <p style={{ fontSize: '20px', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>
+                    +{Math.min(totalInvitesSuccessful, 4) * 7}{(profile?.bonus_month_claimed_this_period) ? ' +30' : ''}
+                  </p>
+                  <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.8)' }}>
+                    {locale === 'de' ? 'Bonus-Tage gesamt' : 'total bonus days'}
+                  </p>
+                </div>
+                <motion.span animate={{ rotate: showInviteStats ? 180 : 0 }} style={{ color: '#fff', fontSize: '14px' }}>▾</motion.span>
               </div>
             </div>
-          )}
+
+            <AnimatePresence>
+              {showInviteStats && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+                  style={{ overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
+                  <div style={{ height: '1px', background: 'rgba(255,255,255,0.2)', margin: '12px 0' }} />
+                  <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.85)' }}>{locale === 'de' ? 'Diesen Monat eingeladen' : 'Invited this month'}</p>
+                      <p style={{ fontSize: '12px', fontWeight: 700, color: '#fff' }}>{profile?.invites_this_month ?? 0}</p>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.85)' }}>{locale === 'de' ? 'Pro Einladung' : 'Per invite'}</p>
+                      <p style={{ fontSize: '12px', fontWeight: 700, color: '#fff' }}>+7 {locale === 'de' ? 'Tage' : 'days'}</p>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.85)' }}>{locale === 'de' ? 'Max. pro Monat (normal)' : 'Max per month (normal)'}</p>
+                      <p style={{ fontSize: '12px', fontWeight: 700, color: '#fff' }}>+28 {locale === 'de' ? 'Tage' : 'days'}</p>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.85)' }}>{locale === 'de' ? 'Bonus bei 15 Einladungen' : 'Bonus at 15 invites'}</p>
+                      <p style={{ fontSize: '12px', fontWeight: 700, color: '#fff' }}>+30 {locale === 'de' ? 'Tage' : 'days'}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
 
           {!(profile?.bonus_month_claimed_this_period) && (profile?.invites_this_month ?? 0) > 0 && (
             <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '12px', padding: '10px 14px', marginBottom: '14px' }}>
