@@ -53,15 +53,21 @@ export async function GET(req: Request) {
   // Pro User nur 1x verarbeiten (falls mehrere Geräte abonniert sind)
   const userIds = [...new Set(subscriptions.map(s => s.user_id))]
 
-  let outfitsGenerated = 0
+let outfitsGenerated = 0
   let outfitsFailed = 0
+  const userOutfitSuccess = new Map<string, boolean>()
+  const userLanguage = new Map<string, string>()
 
 for (const userId of userIds) {
     try {
       const { data: items, error: itemsError } = await supabase.from('clothing_items').select('*').eq('user_id', userId)
       if (itemsError) console.error('Items fetch error for', userId, itemsError)
       console.log('Items for', userId, ':', items?.length ?? 0)
-      if (!items || items.length < 3) { console.log('Skipping - not enough items'); continue }
+      if (!items || items.length < 3) {
+        console.log('Skipping - not enough items')
+        userOutfitSuccess.set(userId, false)
+        continue
+      }
 
       const { data: profile } = await supabase.from('profiles').select('last_lat, last_lon').eq('id', userId).single()
 
@@ -102,18 +108,20 @@ const result = JSON.parse(completion.choices[0].message.content ?? '{}')
     occasion: 'casual',
       })
 
-      if (insertErr) { console.error('Daily outfit insert error:', insertErr); outfitsFailed++; continue }
+if (insertErr) { console.error('Daily outfit insert error:', insertErr); outfitsFailed++; userOutfitSuccess.set(userId, false); continue }
       outfitsGenerated++
+      userOutfitSuccess.set(userId, true)
     } catch (err) {
       outfitsFailed++
+      userOutfitSuccess.set(userId, false)
       console.error('Outfit generation failed for user', userId, err)
     }
   }
 
-// Premium-Ablauf-Status pro User vorab laden
+// Premium-Ablauf-Status und Sprache pro User vorab laden
   const { data: profilesData } = await supabase
     .from('profiles')
-    .select('id, is_premium, premium_until')
+    .select('id, is_premium, premium_until, language')
     .in('id', userIds)
 
   const profileMap = new Map((profilesData ?? []).map(p => [p.id, p]))
@@ -121,28 +129,46 @@ const result = JSON.parse(completion.choices[0].message.content ?? '{}')
   let sent = 0
   let failed = 0
 
-  for (const sub of subscriptions) {
+for (const sub of subscriptions) {
     try {
       const profile = profileMap.get(sub.user_id)
+      const lang = profile?.language === 'en' ? 'en' : 'de'
+      const hadSuccess = userOutfitSuccess.get(sub.user_id)
       let payload
 
       if (profile?.is_premium && profile.premium_until) {
         const daysLeft = Math.ceil((new Date(profile.premium_until).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
         if (daysLeft >= 0 && daysLeft <= 2) {
           payload = JSON.stringify({
-            title: daysLeft === 0 ? '⏳ Dein Pro läuft heute ab!' : `⏳ Dein Pro läuft in ${daysLeft} Tag${daysLeft > 1 ? 'en' : ''} ab`,
-            body: 'Lade Freunde ein für mehr Gratis-Zeit, oder upgrade jetzt um dranzubleiben.',
-            url: '/de/profile',
+            title: lang === 'en'
+              ? (daysLeft === 0 ? '⏳ Your Pro expires today!' : `⏳ Your Pro expires in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`)
+              : (daysLeft === 0 ? '⏳ Dein Pro läuft heute ab!' : `⏳ Dein Pro läuft in ${daysLeft} Tag${daysLeft > 1 ? 'en' : ''} ab`),
+            body: lang === 'en'
+              ? 'Invite friends for more free time, or upgrade now to keep going.'
+              : 'Lade Freunde ein für mehr Gratis-Zeit, oder upgrade jetzt um dranzubleiben.',
+            url: '/' + lang + '/profile',
           })
         }
       }
 
       if (!payload) {
-        payload = JSON.stringify({
-          title: '☀️ Dein Outfit ist bereit!',
-          body: 'Die KI hat heute schon ein gratis Outfit für dich vorbereitet. Schau es dir an!',
-          url: '/de/dresser',
-        })
+        if (hadSuccess) {
+          payload = JSON.stringify({
+            title: lang === 'en' ? '☀️ Your outfit is ready!' : '☀️ Dein Outfit ist bereit!',
+            body: lang === 'en'
+              ? 'The AI already prepared a free outfit for you today. Take a look!'
+              : 'Die KI hat heute schon ein gratis Outfit für dich vorbereitet. Schau es dir an!',
+            url: '/' + lang + '/dresser',
+          })
+        } else {
+          payload = JSON.stringify({
+            title: lang === 'en' ? '👕 Upload your clothes!' : '👕 Lade deine Kleidung hoch!',
+            body: lang === 'en'
+              ? 'Upload at least 3 items to get a free daily outfit suggestion from the AI.'
+              : 'Lade mindestens 3 Kleidungsstücke hoch, um täglich ein kostenloses Outfit von der KI zu bekommen.',
+            url: '/' + lang + '/wardrobe',
+          })
+        }
       }
 
       await webpush.sendNotification({
