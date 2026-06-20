@@ -34,8 +34,9 @@ const [agbAccepted, setAgbAccepted] = useState(false)
   const [showLegalModal, setShowLegalModal] = useState<'agb' | 'datenschutz' | null>(null)
   const [country, setCountry] = useState('')
   const [gender, setGender] = useState('')
-  const [stylePrefs, setStylePrefs] = useState<string[]>([])
+const [stylePrefs, setStylePrefs] = useState<string[]>([])
   const [budgetRange, setBudgetRange] = useState('')
+  const [favoriteShops, setFavoriteShops] = useState<string[]>([])
 const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [checkingEmail, setCheckingEmail] = useState(false)
@@ -100,8 +101,8 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
       await new Promise(resolve => setTimeout(resolve, 1500))
 
       // Profil updaten (eigene Session ist aktiv nach signUp)
-      await supabase.from('profiles').update({
-        gender, style_preferences: stylePrefs, budget_range: budgetRange
+  await supabase.from('profiles').update({
+        gender, style_preferences: stylePrefs, budget_range: budgetRange, favorite_shops: favoriteShops
       }).eq('id', data.user.id)
 
       // Referral server-seitig anwenden
@@ -407,7 +408,7 @@ localStorage.removeItem('kw_onboarding_seen')
               <p style={{ fontSize: '11px', fontWeight: 600, color: muted, letterSpacing: '0.05em', textTransform: 'uppercase' as const, marginBottom: '8px' }}>
                 {locale === 'de' ? 'Budget pro Kauf' : 'Budget per purchase'}
               </p>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '24px' }}>
+         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '16px' }}>
                 {[
                   { value: 'low', label: '< €50' },
                   { value: 'mid', label: '€50–200' },
@@ -418,6 +419,30 @@ localStorage.removeItem('kw_onboarding_seen')
                     {b.label}
                   </motion.button>
                 ))}
+              </div>
+
+              {/* Lieblings-Shops */}
+              <p style={{ fontSize: '11px', fontWeight: 600, color: muted, letterSpacing: '0.05em', textTransform: 'uppercase' as const, marginBottom: '8px' }}>
+                {locale === 'de' ? 'Wo kaufst du meistens? (optional)' : 'Where do you usually shop? (optional)'}
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '24px' }}>
+                {[
+                  { value: 'zara', label: 'Zara' },
+                  { value: 'hm', label: 'H&M' },
+                  { value: 'shein', label: 'Shein' },
+                  { value: 'nike', label: 'Nike' },
+                  { value: 'zalando', label: 'Zalando' },
+                  { value: 'vinted', label: 'Vinted' },
+                ].map(s => {
+                  const isOn = favoriteShops.includes(s.value)
+                  return (
+                    <motion.button key={s.value} whileTap={{ scale: 0.95 }}
+                      onClick={() => setFavoriteShops(prev => isOn ? prev.filter(x => x !== s.value) : [...prev, s.value])}
+                      style={{ padding: '10px 8px', borderRadius: '12px', border: `1.5px solid ${isOn ? accent : border}`, background: isOn ? `rgba(${isDark ? '77,126,255' : '59,107,255'},0.1)` : secondary, color: isOn ? accent : text, fontSize: '12px', fontWeight: isOn ? 700 : 500, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'all 0.15s' }}>
+                      {s.label}
+                    </motion.button>
+                  )
+                })}
               </div>
 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '20px' }}>
                 <div onClick={() => setAgbAccepted(!agbAccepted)} style={{ cursor: 'pointer', flexShrink: 0 }}>
@@ -515,7 +540,7 @@ localStorage.removeItem('kw_onboarding_seen')
                 <>
                   {[
                     { title: 'Verantwortlicher', content: 'Luca Darvas\nBernd-Rosemeyer-Straße 14\n85551 Kirchheim bei München\nE-Mail: support.kiwardrobe@gmail.com' },
-                    { title: 'Welche Daten wir speichern', content: '• E-Mail-Adresse und Passwort (verschlüsselt)\n• Benutzername, Geburtsdatum, Land\n• Hochgeladene Kleidungsbilder\n• Selfie-/Körperfotos für die Virtual-Try-On-Funktion\n• Generierte Outfits und Avatar-Bilder\n• Standortdaten für die Wetteranzeige und tägliche Outfit-Vorschläge\n• Push-Notification-Anmeldedaten (falls aktiviert)\n• Zahlungsbezogene Daten bei Abschluss eines Pro-Abonnements (über Stripe)\n• Referral-Code und Einladungsstatistiken\n• Nutzungsstatistiken der App' },
+                 { title: 'Welche Daten wir speichern', content: '• E-Mail-Adresse und Passwort (verschlüsselt)\n• Benutzername, Geburtsdatum, Land\n• Hochgeladene Kleidungsbilder\n• Selfie-/Körperfotos für die Virtual-Try-On-Funktion\n• Generierte Outfits und Avatar-Bilder\n• Standortdaten für die Wetteranzeige und tägliche Outfit-Vorschläge\n• Push-Notification-Anmeldedaten (falls aktiviert)\n• Zahlungsbezogene Daten bei Abschluss eines Pro-Abonnements (über Stripe)\n• Referral-Code und Einladungsstatistiken\n• Bevorzugte Einkaufs-Shops (optional, für personalisierte Empfehlungen)\n• Nutzungsstatistiken der App' },
                     { title: 'Wofür wir Daten nutzen', content: '• Bereitstellung der App-Funktionen\n• KI-basierte Outfit-Generierung und virtuelle Anprobe (Virtual Try-On)\n• Tagesaktuelle, wetterbasierte Outfit-Vorschläge\n• Versand von Push-Benachrichtigungen (nur mit deiner Zustimmung)\n• Abwicklung von Pro-Abonnements\n• Personalisierung der Nutzererfahrung\n• Verbesserung des Services' },
                     { title: 'Standortdaten', content: 'Mit deiner Erlaubnis erfassen wir deinen ungefähren Standort (GPS-Koordinaten), um dir aktuelle Wetterdaten und passende Outfit-Vorschläge anzuzeigen. Du kannst die Standortfreigabe jederzeit über die Berechtigungen deines Geräts/Browsers widerrufen.' },
                     { title: 'Push-Benachrichtigungen', content: 'Wenn du Push-Benachrichtigungen aktivierst, speichern wir ein technisches Abonnement deines Geräts, um dir tägliche Outfit-Erinnerungen zu schicken. Du kannst dies jederzeit in deinem Profil deaktivieren.' },
