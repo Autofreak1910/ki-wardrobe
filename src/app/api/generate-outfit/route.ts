@@ -41,9 +41,10 @@ function uniqueId(item: any): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const { items, occasion, weather, blockedNames } = await request.json()
+    const { items, occasion, weather, blockedNames, usageCounts } = await request.json()
     const locale = request.headers.get('x-locale') || 'de'
     const isEnglish = locale === 'en'
+    const usage: Record<string, number> = usageCounts && typeof usageCounts === 'object' ? usageCounts : {}
 
     const blockedSet = new Set((Array.isArray(blockedNames) ? blockedNames : []).map(normalize))
 
@@ -54,34 +55,29 @@ export async function POST(request: NextRequest) {
     const jacken = grouped['jacken'] ?? []
     const acc = grouped['acc'] ?? []
 
-    // HARTE Entfernung: blockierte Items werden komplett aus dem Pool entfernt, bevor die KI sie ueberhaupt sieht.
-    // Nur falls eine Kategorie dadurch komplett leer wuerde, wird sie wieder freigegeben (sonst kein Outfit moeglich).
-function filterBlocked(pool: any[]) {
-      // Mindestens 1 Item muss immer uebrig bleiben, aber wir entfernen so viele blockierte wie moeglich
+    function filterBlocked(pool: any[]) {
       const filtered = pool.filter((p: any) => !blockedSet.has(uniqueId(p)))
       if (filtered.length > 0) return filtered
-      // Falls alle blockiert sind: gib nur das zuletzt NICHT verwendete (am laengsten her benutzte) frei, nicht den ganzen Pool
       return pool.length > 0 ? [pool[Math.floor(Math.random() * pool.length)]] : pool
     }
 
-    const availableTops = filterBlocked(tops)
-    const availableHosen = filterBlocked(hosen)
-    const availableSchuhe = filterBlocked(schuhe)
-    const availableJacken = filterBlocked(jacken)
-    const availableAcc = filterBlocked(acc)
+    function sortByLeastUsed(pool: any[]) {
+      return [...pool].sort((a, b) => (usage[uniqueId(a)] ?? 0) - (usage[uniqueId(b)] ?? 0))
+    }
+
+    const availableTops = sortByLeastUsed(filterBlocked(tops))
+    const availableHosen = sortByLeastUsed(filterBlocked(hosen))
+    const availableSchuhe = sortByLeastUsed(filterBlocked(schuhe))
+    const availableJacken = sortByLeastUsed(filterBlocked(jacken))
+    const availableAcc = sortByLeastUsed(filterBlocked(acc))
 
     const usableItems = [...availableTops, ...availableHosen, ...availableSchuhe, ...availableJacken, ...availableAcc]
 
-    console.log('--- Outfit generation debug ---')
-    console.log('Blocked set:', Array.from(blockedSet))
-    console.log('All tops:', tops.map((t: any) => uniqueId(t)))
-    console.log('Available tops after filter:', availableTops.map((t: any) => uniqueId(t)))
-    console.log('All hosen:', hosen.map((h: any) => uniqueId(h)))
-    console.log('Available hosen after filter:', availableHosen.map((h: any) => uniqueId(h)))
-
     const itemList = usableItems.map((item: { name?: string; category: string; color: string; brand?: string; layer_type?: string }) => {
       const layerNote = item.layer_type === 'layer' ? ' [layer piece, worn over a base top]' : item.layer_type === 'base' ? ' [base top, worn alone or under a layer piece]' : ''
-      return '- ' + (item.name ?? item.category) + ' (' + item.category + ', ' + item.color + (item.brand ? ', ' + item.brand : '') + ')' + layerNote
+      const usageCount = usage[uniqueId(item)] ?? 0
+      const usageNote = usageCount === 0 ? ' [rarely/never used - prefer this]' : usageCount <= 2 ? '' : ' [used often]'
+      return '- ' + (item.name ?? item.category) + ' (' + item.category + ', ' + item.color + (item.brand ? ', ' + item.brand : '') + ')' + layerNote + usageNote
     }).join('\n')
 
     const tempMatch = String(weather).match(/(-?\d+)/)
@@ -114,26 +110,30 @@ function filterBlocked(pool: any[]) {
       return lines.join(',\n')
     }
 
-   const distinctNote = outfitCount > 1
+    const distinctNote = outfitCount > 1
       ? (isEnglish
           ? '\nCRITICAL: The ' + outfitCount + ' outfits must each use a DIFFERENT top and DIFFERENT pants from each other.'
           : '\nWICHTIG: Die ' + outfitCount + ' Outfits muessen jeweils ein ANDERES Oberteil und eine ANDERE Hose verwenden.')
       : ''
 
- const mandatoryNote = isEnglish
+    const mandatoryNote = isEnglish
       ? '\nMANDATORY: Every single outfit MUST include exactly one top, exactly one pants/bottom, AND exactly one pair of shoes from the list (if shoes are available in the list) - an outfit without shoes is incomplete and not acceptable. A jacket is optional.'
       : '\nPFLICHT: Jedes einzelne Outfit MUSS genau ein Oberteil, genau eine Hose UND genau ein Paar Schuhe aus der Liste enthalten (falls Schuhe in der Liste verfuegbar sind) - ein Outfit ohne Schuhe ist unvollstaendig und nicht akzeptabel. Eine Jacke ist optional.'
 
+    const rotationNote = isEnglish
+      ? '\nROTATION PRIORITY: Items marked [rarely/never used - prefer this] should be actively prioritized when choosing items, as long as the result still looks good and matches the weather/occasion. Items marked [used often] should be avoided unless there is no good alternative.'
+      : '\nROTATIONS-PRIORITAET: Teile mit [rarely/never used - prefer this] sollen aktiv bevorzugt werden bei der Auswahl, solange das Ergebnis trotzdem gut aussieht und zu Wetter/Anlass passt. Teile mit [used often] sollen vermieden werden, ausser es gibt keine gute Alternative.'
+
     const colorMatchingNote = isEnglish
-      ? '\nColor matching guidance: Aim for a cohesive color story - either a clear monochrome/tonal look (multiple shades of the same color family, e.g. all blue or all black/grey), or a deliberate contrast (e.g. neutral bottom with a colorful top, or vice versa). Avoid combining 3+ unrelated bright colors. In your reasoning, briefly justify the color choice (e.g. "tonal blue look" or "neutral base lets the graphic top stand out").'
-      : '\nFarbabstimmungs-Hinweis: Strebe eine stimmige Farbgeschichte an - entweder einen klaren monochromen/tonalen Look (mehrere Schattierungen derselben Farbfamilie, z.B. alles blau oder alles schwarz/grau), oder einen bewussten Kontrast (z.B. neutrale Hose mit farbigem Top, oder umgekehrt). Vermeide die Kombination von 3+ unzusammenhaengenden grellen Farben. Begruende kurz die Farbwahl in deiner Begruendung (z.B. "toniger Blau-Look" oder "neutrale Basis laesst das Graphic-Top hervorstechen").'
+      ? '\nColor matching guidance: Aim for a cohesive color story - either a clear monochrome/tonal look (multiple shades of the same color family, e.g. all blue or all black/grey), or a deliberate contrast (e.g. neutral bottom with a colorful top, or vice versa). Avoid combining 3+ unrelated bright colors. In your reasoning, briefly justify the color choice.'
+      : '\nFarbabstimmungs-Hinweis: Strebe eine stimmige Farbgeschichte an - entweder einen klaren monochromen/tonalen Look (mehrere Schattierungen derselben Farbfamilie, z.B. alles blau oder alles schwarz/grau), oder einen bewussten Kontrast (z.B. neutrale Hose mit farbigem Top, oder umgekehrt). Vermeide die Kombination von 3+ unzusammenhaengenden grellen Farben. Begruende kurz die Farbwahl.'
 
     let prompt = ''
     if (isEnglish) {
       prompt = 'You are a fashion stylist with a great eye for color matching. Create ' + outfitCount + ' outfit suggestion' + (outfitCount > 1 ? 's' : '') + ' for "' + occasion + '" using ONLY items from this list (this list already excludes recently used items):\n\n'
       prompt += itemList + '\n\n'
       prompt += 'Weather: ' + weather + '\n'
-     prompt += layeringInstruction + distinctNote + mandatoryNote + '\n\n'
+      prompt += layeringInstruction + distinctNote + mandatoryNote + rotationNote + colorMatchingNote + '\n\n'
       prompt += 'Mention the exact temperature naturally in your reasoning.\n\n'
       prompt += 'Respond ONLY with JSON:\n{\n  "outfits": [\n' + outfitTemplate(outfitCount) + '\n  ]\n}\n\n'
       prompt += 'Only use exact names from the list above!'
@@ -141,7 +141,7 @@ function filterBlocked(pool: any[]) {
       prompt = 'Du bist ein Fashion-Stylist mit einem guten Gefuehl fuer Farbabstimmung. Erstelle ' + outfitCount + ' Outfit-Vorschlag' + (outfitCount > 1 ? 'schlaege' : '') + ' fuer "' + occasion + '" NUR mit Items aus dieser Liste (kuerzlich verwendete Items sind hier bereits ausgeschlossen):\n\n'
       prompt += itemList + '\n\n'
       prompt += 'Wetter: ' + weather + '\n'
-  prompt += layeringInstruction + distinctNote + mandatoryNote + '\n\n'
+      prompt += layeringInstruction + distinctNote + mandatoryNote + rotationNote + colorMatchingNote + '\n\n'
       prompt += 'Erwaehne die konkrete Temperatur natuerlich in der Begruendung.\n\n'
       prompt += 'Antworte NUR mit JSON:\n{\n  "outfits": [\n' + outfitTemplate(outfitCount) + '\n  ]\n}\n\n'
       prompt += 'Nur exakte Namen aus der obigen Liste!'

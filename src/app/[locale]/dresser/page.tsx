@@ -262,6 +262,13 @@ const { latitude: lat, longitude: lon } = pos.coords
     setOutfit(null)
   }
 
+function getUsageCounts(): Record<string, number> {
+  try {
+    const stored = localStorage.getItem('kw_item_usage_counts')
+    return stored ? JSON.parse(stored) : {}
+  } catch { return {} }
+}
+
 function getBlockedNames(): string[] {
   try {
     const stored = localStorage.getItem('kw_recent_outfit_history')
@@ -277,6 +284,10 @@ function pushToBlockedHistory(ids: string[]) {
     history.push(ids)
     const trimmed = history.slice(-2)
     localStorage.setItem('kw_recent_outfit_history', JSON.stringify(trimmed))
+
+    const usage = getUsageCounts()
+    for (const id of ids) usage[id] = (usage[id] ?? 0) + 1
+    localStorage.setItem('kw_item_usage_counts', JSON.stringify(usage))
   } catch {}
 }
 
@@ -309,6 +320,7 @@ const { error: insertError } = await supabase.from('outfit_generations').insert(
   if (insertError) console.error('Insert error:', insertError)
 
 const blockedNames = getBlockedNames()
+  const usageCounts = getUsageCounts()
   setLoading(true); setSaved(false); setOutfit(null)
   const filteredItems = wardrobeItems.filter(i => activeCategories.includes(i.category))
   const itemsToUse = filteredItems.length >= 2 ? filteredItems : wardrobeItems
@@ -317,7 +329,7 @@ const blockedNames = getBlockedNames()
     const res = await fetch('/api/generate-outfit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-locale': locale },
-      body: JSON.stringify({ items: itemsToUse, occasion: selected, weather: weatherStr, blockedNames }),
+      body: JSON.stringify({ items: itemsToUse, occasion: selected, weather: weatherStr, blockedNames, usageCounts }),
     })
     const data = await res.json()
     if (data.success && data.outfits) {
