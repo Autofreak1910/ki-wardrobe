@@ -89,9 +89,8 @@ const usage: Record<string, UsageInfo> = usageCounts && typeof usageCounts === '
     const hosen = grouped['hosen'] ?? []
     const schuhe = grouped['schuhe'] ?? []
     const jacken = grouped['jacken'] ?? []
-
-    console.log('All schuhe with usage:', schuhe.map((s: any) => uniqueId(s) + ' -> ' + JSON.stringify(usage[uniqueId(s)] ?? 'none')))
-    console.log('All jacken with usage:', jacken.map((j: any) => uniqueId(j) + ' -> ' + JSON.stringify(usage[uniqueId(j)] ?? 'none')))
+console.log('All schuhe with usage:', schuhe.map((s: any) => uniqueId(s) + ' -> ' + JSON.stringify(getUsageInfo(usage, uniqueId(s)))))
+    console.log('All hosen with usage:', hosen.map((h: any) => uniqueId(h) + ' -> ' + JSON.stringify(getUsageInfo(usage, uniqueId(h)))))
 
     const tempMatch = String(weather).match(/(-?\d+)/)
     const tempValue = tempMatch ? parseInt(tempMatch[1]) : 18
@@ -124,8 +123,9 @@ const sessionUsedTops = new Set<string>(blocked)
         pickedTop = pickLeastUsed(tops, usage, sessionUsedTops)
       }
 
-      const pickedHose = pickLeastUsed(hosen, usage, sessionUsedHosen)
+     const pickedHose = pickLeastUsed(hosen, usage, sessionUsedHosen)
       const pickedSchuh = pickLeastUsed(schuhe, usage, sessionUsedSchuhe)
+      console.log('PICKED hose:', pickedHose ? uniqueId(pickedHose) : 'none', '| PICKED schuh:', pickedSchuh ? uniqueId(pickedSchuh) : 'none')
       const pickedJacke = jacken.length > 0 && Math.random() > 0.45
         ? pickLeastUsed(jacken, usage, new Set())
         : null
