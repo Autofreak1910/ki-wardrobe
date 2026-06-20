@@ -110,6 +110,7 @@ const [withdrawalConsent, setWithdrawalConsent] = useState(false)
   const accentDim = isDark ? 'rgba(77,126,255,0.1)' : 'rgba(59,107,255,0.08)'
 const [todayOutfits, setTodayOutfits] = useState(0)
 const [tryOnToday, setTryOnToday] = useState(0)
+const [totalInvitesSuccessful, setTotalInvitesSuccessful] = useState(0)
 const [pushEnabled, setPushEnabled] = useState(false)
 const [pushLoading, setPushLoading] = useState(false)
 
@@ -122,7 +123,7 @@ useEffect(() => {
   }
 }, [])
 
-  async function loadProfile() {
+async function loadProfile() {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
     const startOfDay = new Date()
@@ -136,6 +137,14 @@ useEffect(() => {
     ])
   setTodayOutfits(todayOutfitsRes.count ?? 0)
   setTryOnToday(tryOnRes.count ?? 0)
+
+  if (profileRes.data?.referral_code) {
+    const { count: totalReferred } = await supabase
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .eq('referred_by', profileRes.data.referral_code)
+    setTotalInvitesSuccessful(totalReferred ?? 0)
+  }
     if ('serviceWorker' in navigator && 'PushManager' in window) {
       try {
         const registration = await navigator.serviceWorker.getRegistration('/sw-push.js')
@@ -410,6 +419,24 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
 {/* Invite Friends */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}
           style={{ background: `linear-gradient(135deg, ${accent}, #6b9fff)`, borderRadius: '16px', padding: '18px', marginBottom: '12px', position: 'relative' as const, overflow: 'hidden' }}>
+{totalInvitesSuccessful > 0 && (
+            <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '12px', padding: '12px 14px', marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <p style={{ fontSize: '20px', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>{totalInvitesSuccessful}</p>
+                <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.8)' }}>
+                  {locale === 'de' ? 'erfolgreiche Einladungen' : 'successful invites'}
+                </p>
+              </div>
+              <div style={{ textAlign: 'right' as const }}>
+                <p style={{ fontSize: '20px', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>
+                  +{Math.min(totalInvitesSuccessful, 4) * 7}{(profile?.bonus_month_claimed_this_period) ? ' +30' : ''}
+                </p>
+                <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.8)' }}>
+                  {locale === 'de' ? 'Bonus-Tage gesamt' : 'total bonus days'}
+                </p>
+              </div>
+            </div>
+          )}
 
           {!(profile?.bonus_month_claimed_this_period) && (profile?.invites_this_month ?? 0) > 0 && (
             <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '12px', padding: '10px 14px', marginBottom: '14px' }}>
