@@ -316,16 +316,25 @@ const blockedNames = getBlockedNames()
     })
     const data = await res.json()
     if (data.success && data.outfits) {
-      const mappedOutfits = data.outfits.map((o: { items: string[]; reasoning: string; vibe?: string }) => {
-        const matchedItems = o.items.map((name: string) =>
-          wardrobeItems.find(i => {
+  const mappedOutfits = data.outfits.map((o: { items: string[]; reasoning: string; vibe?: string }) => {
+        const usedIds = new Set<string>()
+        const matchedItems = o.items.map((name: string) => {
+          const exactMatch = wardrobeItems.find(i => {
             const a = (i.name ?? '').toLowerCase().trim()
             const b = name.toLowerCase().trim()
-            return a === b || a.includes(b) || b.includes(a) ||
-              a.split(' ').some(w => w.length > 3 && b.includes(w)) ||
-              b.split(' ').some(w => w.length > 3 && a.includes(w))
+            return a === b && !usedIds.has(i.id)
           })
-        ).filter(Boolean)
+          if (exactMatch) { usedIds.add(exactMatch.id); return exactMatch }
+          // Fallback nur falls kein exaktes Match - dann nimm das beste Teil-Match das noch nicht verwendet wurde
+          const fuzzyMatch = wardrobeItems.find(i => {
+            if (usedIds.has(i.id)) return false
+            const a = (i.name ?? '').toLowerCase().trim()
+            const b = name.toLowerCase().trim()
+            return a.includes(b) || b.includes(a)
+          })
+          if (fuzzyMatch) usedIds.add(fuzzyMatch.id)
+          return fuzzyMatch
+        }).filter(Boolean)
         return { items: o.items, reasoning: o.reasoning, vibe: o.vibe, itemObjects: matchedItems }
       })
    setOutfit({ outfits: mappedOutfits, active: 0 })
