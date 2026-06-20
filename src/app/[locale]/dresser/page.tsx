@@ -281,12 +281,12 @@ if (countError) console.error('Count error:', countError)
 const { error: insertError } = await supabase.from('outfit_generations').insert({ user_id: session.user.id })
   if (insertError) console.error('Insert error:', insertError)
 
+ const recentItemNames = outfit?.outfits.map(o => o.items.join(', ')) ?? []
   setLoading(true); setSaved(false); setOutfit(null)
   const filteredItems = wardrobeItems.filter(i => activeCategories.includes(i.category))
   const itemsToUse = filteredItems.length >= 2 ? filteredItems : wardrobeItems
   const weatherStr = weather ? `${weather.temp}°C, ${weather.condition}` : '18°C'
   try {
-  const recentItemNames = outfit?.outfits.map(o => o.items.join(', ')) ?? []
     const res = await fetch('/api/generate-outfit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-locale': locale },

@@ -30,12 +30,18 @@ const hasLayerPieces = items.some((item: { layer_type?: string }) => item.layer_
       ? ['Casual Cool', 'Minimal Chic', 'Bold Statement']
       : ['Casual Cool', 'Minimal Chic', 'Bold Statement']
 
-    const outfitTemplate = (count: number) =>
+  const outfitTemplate = (count: number) =>
       Array.from({ length: count }, (_, i) => `    {
       "items": ["exakter Name aus Liste", "exakter Name aus Liste"],
-      "reasoning": "kurze Begründung warum das passt",
+      "reasoning": "kurze Begründung warum das passt, erwähne die konkrete Temperatur",
       "vibe": "${vibes[i]}"
     }`).join(',\n')
+
+    const distinctOutfitsInstruction = outfitCount > 1
+      ? (isEnglish
+          ? `\nIMPORTANT: The ${outfitCount} outfits must be genuinely different from each other — use different combinations of items where possible (not the same items reused for every outfit), so each outfit feels like a distinct styling option.`
+          : `\nWICHTIG: Die ${outfitCount} Outfits müssen sich wirklich voneinander unterscheiden — nutze wo möglich unterschiedliche Kombinationen von Teilen (nicht dieselben Teile für jedes Outfit), damit jedes Outfit wie eine eigene Styling-Option wirkt.`)
+      : ''
 
 const prompt = isEnglish
       ? `You are a fashion stylist. Create ${outfitCount} outfit suggestion${outfitCount > 1 ? 's' : ''} for "${occasion}":
@@ -45,6 +51,9 @@ ${itemList}
 Weather: ${weather}
 ${layeringInstruction}
 ${varietyInstruction}
+${distinctOutfitsInstruction}
+
+Mention the exact temperature (${weather}) naturally in your reasoning text for at least one outfit.
 
 Respond ONLY with JSON:
 {
@@ -61,6 +70,9 @@ ${itemList}
 Wetter: ${weather}
 ${layeringInstruction}
 ${varietyInstruction}
+${distinctOutfitsInstruction}
+
+Erwähne die konkrete Temperatur (${weather}) natürlich im Begründungstext mindestens eines Outfits.
 
 Antworte NUR mit JSON:
 {
