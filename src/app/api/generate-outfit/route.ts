@@ -29,9 +29,9 @@ function buildExcludeNote(usedItemsPerOutfit: string[][], isEnglish: boolean): s
   }
   const joined = parts.join(' | ')
   if (isEnglish) {
-    return '\n\nALREADY USED in previous outfits (you MUST pick at least one different item, ideally different top, pants or shoes than these): ' + joined
+    return '\n\nSTRICT RULE - ALREADY USED in previous outfits: ' + joined + '. You MUST use a DIFFERENT top AND a DIFFERENT pants/bottom than ALL of the above outfits (not just shoes). Pick a top you have not used yet, and pants you have not used yet, from the wardrobe list. Only repeat an item if there is truly no alternative available in that category.'
   }
-  return '\n\nBEREITS VERWENDET in vorherigen Outfits (du MUSST mindestens ein anderes Teil waehlen, idealerweise anderes Oberteil, andere Hose oder andere Schuhe als diese): ' + joined
+  return '\n\nSTRENGE REGEL - BEREITS VERWENDET in vorherigen Outfits: ' + joined + '. Du MUSST ein ANDERES Oberteil UND eine ANDERE Hose als ALLE oben genannten Outfits waehlen (nicht nur Schuhe). Waehl ein Oberteil das noch nicht verwendet wurde, und eine Hose die noch nicht verwendet wurde, aus der Kleiderschrank-Liste. Wiederhol ein Teil nur, wenn es in dieser Kategorie wirklich keine Alternative gibt.'
 }
 
 function buildRecentNote(recentItemNames: string[], isEnglish: boolean): string {
