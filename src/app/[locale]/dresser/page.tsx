@@ -266,17 +266,13 @@ function getBlockedNames(): string[] {
   try {
     const stored = localStorage.getItem('kw_recent_outfit_items')
     const history: string[][] = stored ? JSON.parse(stored) : []
-    return Array.from(new Set(history.flat()))
+    return history.flat()
   } catch { return [] }
 }
 
 function pushToBlockedHistory(names: string[]) {
   try {
-    const stored = localStorage.getItem('kw_recent_outfit_items')
-    const history: string[][] = stored ? JSON.parse(stored) : []
-    history.push(names)
-    const trimmed = history.slice(-2)
-    localStorage.setItem('kw_recent_outfit_items', JSON.stringify(trimmed))
+    localStorage.setItem('kw_recent_outfit_items', JSON.stringify([names]))
   } catch {}
 }
 
