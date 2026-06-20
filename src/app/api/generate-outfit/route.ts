@@ -37,10 +37,10 @@ const hasLayerPieces = items.some((item: { layer_type?: string }) => item.layer_
       "vibe": "${vibes[i]}"
     }`).join(',\n')
 
-    const distinctOutfitsInstruction = outfitCount > 1
+   const distinctOutfitsInstruction = outfitCount > 1
       ? (isEnglish
-          ? `\nIMPORTANT: The ${outfitCount} outfits must be genuinely different from each other — use different combinations of items where possible (not the same items reused for every outfit), so each outfit feels like a distinct styling option.`
-          : `\nWICHTIG: Die ${outfitCount} Outfits müssen sich wirklich voneinander unterscheiden — nutze wo möglich unterschiedliche Kombinationen von Teilen (nicht dieselben Teile für jedes Outfit), damit jedes Outfit wie eine eigene Styling-Option wirkt.`)
+          ? `\nCRITICAL RULE: Each of the ${outfitCount} outfits MUST differ from the others in at least one item (e.g. different top, different shoes, or different jacket). Do NOT output the exact same set of items twice. If the wardrobe is limited, vary which specific piece you pick within a category (e.g. a different shirt, or skip the jacket in one outfit) rather than repeating an identical combination. Check your output before responding: if two outfits would be identical, change at least one item in one of them.`
+          : `\nKRITISCHE REGEL: Jedes der ${outfitCount} Outfits MUSS sich von den anderen in mindestens einem Teil unterscheiden (z.B. anderes Oberteil, andere Schuhe, oder andere Jacke). Gib NIEMALS die exakt gleiche Teile-Kombination zweimal aus. Falls der Kleiderschrank begrenzt ist, variiere welches konkrete Teil du innerhalb einer Kategorie wählst (z.B. ein anderes Shirt, oder lass die Jacke in einem Outfit weg), statt eine identische Kombination zu wiederholen. Prüf deine Ausgabe bevor du antwortest: falls zwei Outfits identisch wären, ändere mindestens ein Teil in einem davon.`)
       : ''
 
 const prompt = isEnglish
