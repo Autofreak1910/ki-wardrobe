@@ -65,39 +65,56 @@ export async function POST(request: NextRequest) {
     const outfitCount = items.length >= 6 ? 3 : items.length >= 4 ? 2 : 1
     const vibes = ['Casual Cool', 'Minimal Chic', 'Bold Statement']
 
-    const usedItemsPerOutfit: string[][] = []
+  const usedItemNamesFlat: string[] = []
     const outfits: { items: string[]; reasoning: string; vibe: string }[] = []
 
     for (let i = 0; i < outfitCount; i++) {
-      const excludeNote = buildExcludeNote(usedItemsPerOutfit, isEnglish)
+      // Entferne Top und Hose, die schon in einem vorherigen Outfit verwendet wurden — KI kann sie gar nicht mehr wählen
+      const availableItems = items.filter((item: { name?: string; category: string }) => {
+        const itemName = item.name ?? item.category
+        if (i === 0) return true
+        if (item.category === 'tops' || item.category === 'hosen') {
+          return !usedItemNamesFlat.includes(itemName)
+        }
+        return true
+      })
+      const itemsForThisCall = availableItems.length >= 2 ? availableItems : items
+
+      const itemListForCall = itemsForThisCall.map((item: { name?: string; category: string; color: string; brand?: string; layer_type?: string }) => {
+        const layerNote = item.layer_type === 'layer' ? ' [layer piece, worn over a base top]' : item.layer_type === 'base' ? ' [base top, worn alone or under a layer piece]' : ''
+        return '- ' + (item.name ?? item.category) + ' (' + item.category + ', ' + item.color + (item.brand ? ', ' + item.brand : '') + ')' + layerNote
+      }).join('\n')
+
       const recentNote = buildRecentNote(recentItemNames, isEnglish)
 
-      let prompt = ''
+   let prompt = ''
       if (isEnglish) {
         prompt = 'You are a fashion stylist. Create ONE outfit suggestion with vibe "' + vibes[i] + '" for "' + occasion + '":\n\n'
-        prompt += itemList + '\n\n'
+        prompt += itemListForCall + '\n\n'
         prompt += 'Weather: ' + weather + '\n'
-        prompt += layeringInstruction + excludeNote + recentNote + '\n\n'
+        prompt += layeringInstruction + recentNote + '\n\n'
         prompt += 'Mention the exact temperature (' + weather + ') naturally in your reasoning.\n\n'
         prompt += 'Respond ONLY with JSON:\n'
         prompt += '{\n  "items": ["exact name from list", "exact name from list"],\n  "reasoning": "short reasoning why this fits"\n}\n\n'
-        prompt += 'Only use exact names from the list! Include 2-4 items depending on what makes sense (top, bottom, shoes, optionally jacket).'
+        prompt += 'Only use exact names from the list above! Include 2-4 items depending on what makes sense (top, bottom, shoes, optionally jacket).'
       } else {
         prompt = 'Du bist ein Fashion-Stylist. Erstelle EIN Outfit mit Vibe "' + vibes[i] + '" fuer "' + occasion + '":\n\n'
-        prompt += itemList + '\n\n'
+        prompt += itemListForCall + '\n\n'
         prompt += 'Wetter: ' + weather + '\n'
-        prompt += layeringInstruction + excludeNote + recentNote + '\n\n'
+        prompt += layeringInstruction + recentNote + '\n\n'
         prompt += 'Erwaehne die konkrete Temperatur (' + weather + ') natuerlich in der Begruendung.\n\n'
         prompt += 'Antworte NUR mit JSON:\n'
         prompt += '{\n  "items": ["exakter Name aus Liste", "exakter Name aus Liste"],\n  "reasoning": "kurze Begruendung warum das passt"\n}\n\n'
-        prompt += 'Nur exakte Namen aus der Liste! 2-4 Items je nachdem was sinnvoll ist (Oberteil, Hose, Schuhe, optional Jacke).'
+        prompt += 'Nur exakte Namen aus der obigen Liste! 2-4 Items je nachdem was sinnvoll ist (Oberteil, Hose, Schuhe, optional Jacke).'
       }
 
       try {
         const result = await callOpenAI(prompt)
         const outfitItems = result.items ?? []
         outfits.push({ items: outfitItems, reasoning: result.reasoning ?? '', vibe: vibes[i] })
-        usedItemsPerOutfit.push(outfitItems)
+        outfitItems.forEach((name: string) => {
+          if (!usedItemNamesFlat.includes(name)) usedItemNamesFlat.push(name)
+        })
       } catch (err) {
         console.error('Outfit ' + i + ' generation failed:', err)
       }
