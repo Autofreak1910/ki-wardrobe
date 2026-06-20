@@ -325,6 +325,12 @@ const { error: insertError } = await supabase.from('outfit_generations').insert(
 
 const blockedNames = getBlockedNames()
   const usageCounts = getUsageCounts()
+  const recentCombos = (() => {
+    try {
+      const stored = localStorage.getItem('kw_recent_combo_keys')
+      return stored ? JSON.parse(stored) : []
+    } catch { return [] }
+  })()
   setLoading(true); setSaved(false); setOutfit(null)
   const filteredItems = wardrobeItems.filter(i => activeCategories.includes(i.category))
   const itemsToUse = filteredItems.length >= 2 ? filteredItems : wardrobeItems
@@ -333,7 +339,7 @@ const blockedNames = getBlockedNames()
     const res = await fetch('/api/generate-outfit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-locale': locale },
-      body: JSON.stringify({ items: itemsToUse, occasion: selected, weather: weatherStr, blockedNames, usageCounts }),
+      body: JSON.stringify({ items: itemsToUse, occasion: selected, weather: weatherStr, blockedNames, usageCounts, recentCombos }),
     })
     const data = await res.json()
     if (data.success && data.outfits) {
@@ -361,6 +367,12 @@ const blockedNames = getBlockedNames()
    setOutfit({ outfits: mappedOutfits, active: 0 })
 const allUsedIds = (mappedOutfits[0]?.itemObjects ?? []).map((item: ClothingItem) => (item.name ?? item.category) + '|' + item.color)
       pushToBlockedHistory(allUsedIds)
+      try {
+        const stored = localStorage.getItem('kw_recent_combo_keys')
+        const prev: string[] = stored ? JSON.parse(stored) : []
+        const newCombos = [...prev, ...(data.comboKeys ?? [])].slice(-10)
+        localStorage.setItem('kw_recent_combo_keys', JSON.stringify(newCombos))
+      } catch {}
       setTimeout(() => mainRef.current?.scrollTo({ top: mainRef.current.scrollHeight, behavior: 'smooth' }), 200)
     }
   } catch (err) { console.error(err) }

@@ -67,7 +67,8 @@ function pickLeastUsed(pool: any[], usage: Record<string, UsageInfo>, excludeIds
 
 export async function POST(request: NextRequest) {
   try {
-    const { items, occasion, weather, blockedNames, usageCounts } = await request.json()
+    const { items, occasion, weather, blockedNames, usageCounts, recentCombos } = await request.json()
+    const recentComboSet = new Set(Array.isArray(recentCombos) ? recentCombos : [])
     const locale = request.headers.get('x-locale') || 'de'
     const isEnglish = locale === 'en'
  const usage: Record<string, UsageInfo> = usageCounts && typeof usageCounts === 'object' ? usageCounts : {}
@@ -87,9 +88,10 @@ export async function POST(request: NextRequest) {
     const vibes = ['Casual Cool', 'Minimal Chic', 'Bold Statement']
     const outfits: { items: string[]; reasoning: string; vibe: string }[] = []
 
-    const sessionUsedTops = new Set<string>(blocked)
+const sessionUsedTops = new Set<string>(blocked)
     const sessionUsedHosen = new Set<string>(blocked)
     const sessionUsedSchuhe = new Set<string>(blocked)
+    const generatedComboKeys: string[] = []
 
     for (let i = 0; i < outfitCount; i++) {
       let pickedTop: any = null
@@ -120,7 +122,20 @@ export async function POST(request: NextRequest) {
       if (pickedHose) sessionUsedHosen.add(uniqueId(pickedHose))
       if (pickedSchuh) sessionUsedSchuhe.add(uniqueId(pickedSchuh))
 
-      const chosenItems = [pickedTop, pickedBaseTop, pickedHose, pickedSchuh, pickedJacke].filter(Boolean)
+let chosenItems = [pickedTop, pickedBaseTop, pickedHose, pickedSchuh, pickedJacke].filter(Boolean)
+      let comboKey = chosenItems.map((it: any) => uniqueId(it)).sort().join('+')
+
+      // Falls diese exakte Kombination kuerzlich schon vorkam: tausche das Top gegen die naechstbeste Alternative
+      if (recentComboSet.has(comboKey)) {
+        const altTop = pickLeastUsed(tops.filter((t: any) => uniqueId(t) !== uniqueId(pickedTop)), usage, sessionUsedTops)
+        if (altTop) {
+          pickedTop = altTop
+          sessionUsedTops.add(uniqueId(pickedTop))
+          chosenItems = [pickedTop, pickedBaseTop, pickedHose, pickedSchuh, pickedJacke].filter(Boolean)
+          comboKey = chosenItems.map((it: any) => uniqueId(it)).sort().join('+')
+        }
+      }
+
       const chosenNames = chosenItems.map((item: any) => item.name ?? item.category)
       const chosenDescriptions = chosenItems.map((item: any) =>
         (item.name ?? item.category) + ' (' + item.color + (item.brand ? ', ' + item.brand : '') + ')'
@@ -135,13 +150,14 @@ export async function POST(request: NextRequest) {
         prompt += 'Schreib eine kurze, natuerliche ein-Satz-Begruendung (max 25 Woerter) warum diese Kombination zusammenpasst (Farben, Stil, Wetter), erwaehne dabei natuerlich die Temperatur. Antworte NUR mit JSON: {"reasoning": "dein Text hier"}'
       }
 
-      try {
+try {
         const result = await callOpenAI(prompt)
         outfits.push({ items: chosenNames, reasoning: result.reasoning ?? '', vibe: vibes[i] })
       } catch (err) {
         console.error('Outfit ' + i + ' reasoning generation failed:', err)
         outfits.push({ items: chosenNames, reasoning: '', vibe: vibes[i] })
       }
+      generatedComboKeys.push(comboKey)
     }
 
     if (outfits.length === 0) throw new Error('No outfits generated')
@@ -151,6 +167,7 @@ export async function POST(request: NextRequest) {
       outfits,
       items: outfits[0]?.items ?? [],
       reasoning: outfits[0]?.reasoning ?? '',
+      comboKeys: generatedComboKeys,
     })
 
   } catch (error) {
