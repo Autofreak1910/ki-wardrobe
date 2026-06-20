@@ -265,14 +265,13 @@ const { latitude: lat, longitude: lon } = pos.coords
 function getBlockedNames(): string[] {
   try {
     const stored = localStorage.getItem('kw_recent_outfit_items')
-    const history: string[][] = stored ? JSON.parse(stored) : []
-    return history.flat()
+    return stored ? JSON.parse(stored) : []
   } catch { return [] }
 }
 
-function pushToBlockedHistory(names: string[]) {
+function pushToBlockedHistory(ids: string[]) {
   try {
-    localStorage.setItem('kw_recent_outfit_items', JSON.stringify([names]))
+    localStorage.setItem('kw_recent_outfit_items', JSON.stringify(ids))
   } catch {}
 }
 

@@ -31,14 +31,21 @@ function groupByCategory(list: any[]) {
   return groups
 }
 
+function normalize(s: string): string {
+  return String(s).toLowerCase().trim().replace(/\s+/g, ' ')
+}
+
+function uniqueId(item: any): string {
+  return normalize(item.name ?? item.category) + '|' + normalize(item.color)
+}
+
 export async function POST(request: NextRequest) {
   try {
-    // blockedNames = Namen von Items, die in den letzten 5 Generierungen schon verwendet wurden — diese werden HART aus der Auswahl entfernt
     const { items, occasion, weather, blockedNames } = await request.json()
     const locale = request.headers.get('x-locale') || 'de'
     const isEnglish = locale === 'en'
 
-    const blocked: string[] = Array.isArray(blockedNames) ? blockedNames : []
+    const blockedSet = new Set((Array.isArray(blockedNames) ? blockedNames : []).map(normalize))
 
     const grouped = groupByCategory(items)
     const tops = grouped['tops'] ?? []
@@ -47,48 +54,50 @@ export async function POST(request: NextRequest) {
     const jacken = grouped['jacken'] ?? []
     const acc = grouped['acc'] ?? []
 
-    // Für jede Kategorie: falls genug unblockierte Items übrig sind, nutze nur die. Sonst (zu wenig Auswahl) gib alle frei, damit ueberhaupt ein Outfit entstehen kann.
-  function uniqueId(item: any): string {
-      return (item.name ?? item.category) + '|' + item.color
+    // HARTE Entfernung: blockierte Items werden komplett aus dem Pool entfernt, bevor die KI sie ueberhaupt sieht.
+    // Nur falls eine Kategorie dadurch komplett leer wuerde, wird sie wieder freigegeben (sonst kein Outfit moeglich).
+    function filterBlocked(pool: any[]) {
+      const filtered = pool.filter((p: any) => !blockedSet.has(uniqueId(p)))
+      return filtered.length > 0 ? filtered : pool
     }
 
-    function unlockIfNeeded(pool: any[], minNeeded: number) {
-      const unblocked = pool.filter((p: any) => !blocked.includes(uniqueId(p)))
-      return unblocked.length >= minNeeded ? unblocked : pool
-    }
+    const availableTops = filterBlocked(tops)
+    const availableHosen = filterBlocked(hosen)
+    const availableSchuhe = filterBlocked(schuhe)
+    const availableJacken = filterBlocked(jacken)
+    const availableAcc = filterBlocked(acc)
 
-    const availableTops = unlockIfNeeded(tops, 1)
-    const availableHosen = unlockIfNeeded(hosen, 1)
-    const availableSchuhe = unlockIfNeeded(schuhe, 1)
-    const availableJacken = unlockIfNeeded(jacken, 1)
-    const availableAcc = unlockIfNeeded(acc, 1)
+    const usableItems = [...availableTops, ...availableHosen, ...availableSchuhe, ...availableJacken, ...availableAcc]
 
-   const usableItems = [...availableTops, ...availableHosen, ...availableSchuhe, ...availableJacken, ...availableAcc]
-    console.log('Blocked names:', blocked)
-    console.log('Available tops:', availableTops.map((t: any) => t.name))
-    console.log('Available hosen:', availableHosen.map((h: any) => h.name))
+    console.log('--- Outfit generation debug ---')
+    console.log('Blocked set:', Array.from(blockedSet))
+    console.log('All tops:', tops.map((t: any) => uniqueId(t)))
+    console.log('Available tops after filter:', availableTops.map((t: any) => uniqueId(t)))
+    console.log('All hosen:', hosen.map((h: any) => uniqueId(h)))
+    console.log('Available hosen after filter:', availableHosen.map((h: any) => uniqueId(h)))
 
     const itemList = usableItems.map((item: { name?: string; category: string; color: string; brand?: string; layer_type?: string }) => {
       const layerNote = item.layer_type === 'layer' ? ' [layer piece, worn over a base top]' : item.layer_type === 'base' ? ' [base top, worn alone or under a layer piece]' : ''
       return '- ' + (item.name ?? item.category) + ' (' + item.category + ', ' + item.color + (item.brand ? ', ' + item.brand : '') + ')' + layerNote
     }).join('\n')
 
-    const hasLayerPieces = usableItems.some((item: any) => item.layer_type === 'layer')
-    const hasBasePieces = usableItems.some((item: any) => item.layer_type === 'base')
-   const tempMatch = String(weather).match(/(-?\d+)/)
+    const tempMatch = String(weather).match(/(-?\d+)/)
     const tempValue = tempMatch ? parseInt(tempMatch[1]) : 18
     const isHot = tempValue >= 24
+
+    const hasLayerPieces = usableItems.some((item: any) => item.layer_type === 'layer')
+    const hasBasePieces = usableItems.some((item: any) => item.layer_type === 'base')
 
     let layeringInstruction = ''
     if (hasLayerPieces && hasBasePieces) {
       layeringInstruction = isEnglish
-        ? '\nLayering rule: Items marked [layer piece] (sweaters, hoodies, cardigans) CAN be worn over an item marked [base top] (t-shirts, shirts) - but ONLY when it is cold enough to need both (roughly below 16C / 60F). Above that temperature, pick just ONE top, never both.'
-        : '\nLayering-Regel: Teile mit [layer piece] (Pullover, Hoodies, Strickjacken) koennen UEBER einem Teil mit [base top] getragen werden - aber NUR wenn es kalt genug ist (unter 16C). Bei waermerem Wetter waehl nur EIN Oberteil, niemals beides.'
+        ? '\nLayering rule: Items marked [layer piece] CAN be worn over an item marked [base top] - but ONLY when it is cold enough (roughly below 16C). Above that, pick just ONE top, never both.'
+        : '\nLayering-Regel: Teile mit [layer piece] koennen UEBER einem Teil mit [base top] getragen werden - aber NUR wenn es kalt genug ist (unter 16C). Bei waermerem Wetter waehl nur EIN Oberteil, niemals beides.'
     }
     if (isHot && hasLayerPieces && !hasBasePieces) {
       layeringInstruction += isEnglish
-        ? '\nIMPORTANT: It is hot (' + tempValue + 'C). The only available tops are heavy items like sweaters/hoodies marked [layer piece] - these are NOT ideal for this heat, but you must still pick one since no lighter top is available. In your reasoning, honestly mention that this top is warmer than ideal for the weather, and the user might want to add a lighter t-shirt to their wardrobe.'
-        : '\nWICHTIG: Es ist heiss (' + tempValue + 'C). Die einzig verfuegbaren Oberteile sind schwere Teile wie Pullover/Hoodies mit [layer piece] - diese sind NICHT ideal fuer diese Hitze, aber du musst trotzdem eines waehlen da kein leichteres Top verfuegbar ist. Erwaehne in der Begruendung ehrlich, dass dieses Top waermer als ideal fuer das Wetter ist, und der Nutzer sich evtl. ein leichteres T-Shirt zulegen sollte.'
+        ? '\nIMPORTANT: It is hot (' + tempValue + 'C) and only heavy tops [layer piece] are available. Pick one anyway, but honestly mention in your reasoning that it is warmer than ideal for this weather.'
+        : '\nWICHTIG: Es ist heiss (' + tempValue + 'C) und nur schwere Oberteile [layer piece] sind verfuegbar. Waehl trotzdem eins, aber erwaehne in der Begruendung ehrlich dass es waermer als ideal fuer dieses Wetter ist.'
     }
 
     const outfitCount = usableItems.length >= 6 ? 3 : usableItems.length >= 4 ? 2 : 1
@@ -104,27 +113,27 @@ export async function POST(request: NextRequest) {
 
     const distinctNote = outfitCount > 1
       ? (isEnglish
-          ? '\nCRITICAL: The ' + outfitCount + ' outfits must each use a DIFFERENT top and DIFFERENT pants from each other - do not repeat the same top or pants across outfits. Vary the color combinations sensibly.'
-          : '\nWICHTIG: Die ' + outfitCount + ' Outfits muessen jeweils ein ANDERES Oberteil und eine ANDERE Hose verwenden - wiederhol nicht das gleiche Oberteil oder die gleiche Hose ueber die Outfits hinweg. Variiere die Farbkombinationen sinnvoll.')
+          ? '\nCRITICAL: The ' + outfitCount + ' outfits must each use a DIFFERENT top and DIFFERENT pants from each other.'
+          : '\nWICHTIG: Die ' + outfitCount + ' Outfits muessen jeweils ein ANDERES Oberteil und eine ANDERE Hose verwenden.')
       : ''
 
     let prompt = ''
     if (isEnglish) {
-      prompt = 'You are a fashion stylist with a great eye for color matching. Create ' + outfitCount + ' outfit suggestion' + (outfitCount > 1 ? 's' : '') + ' for "' + occasion + '":\n\n'
+      prompt = 'You are a fashion stylist with a great eye for color matching. Create ' + outfitCount + ' outfit suggestion' + (outfitCount > 1 ? 's' : '') + ' for "' + occasion + '" using ONLY items from this list (this list already excludes recently used items):\n\n'
       prompt += itemList + '\n\n'
       prompt += 'Weather: ' + weather + '\n'
       prompt += layeringInstruction + distinctNote + '\n\n'
       prompt += 'Mention the exact temperature naturally in your reasoning.\n\n'
       prompt += 'Respond ONLY with JSON:\n{\n  "outfits": [\n' + outfitTemplate(outfitCount) + '\n  ]\n}\n\n'
-      prompt += 'Only use exact names from the list! An outfit can include more than 2 items if layering makes sense.'
+      prompt += 'Only use exact names from the list above!'
     } else {
-      prompt = 'Du bist ein Fashion-Stylist mit einem guten Gefuehl fuer Farbabstimmung. Erstelle ' + outfitCount + ' Outfit-Vorschlag' + (outfitCount > 1 ? 'schlaege' : '') + ' fuer "' + occasion + '":\n\n'
+      prompt = 'Du bist ein Fashion-Stylist mit einem guten Gefuehl fuer Farbabstimmung. Erstelle ' + outfitCount + ' Outfit-Vorschlag' + (outfitCount > 1 ? 'schlaege' : '') + ' fuer "' + occasion + '" NUR mit Items aus dieser Liste (kuerzlich verwendete Items sind hier bereits ausgeschlossen):\n\n'
       prompt += itemList + '\n\n'
       prompt += 'Wetter: ' + weather + '\n'
       prompt += layeringInstruction + distinctNote + '\n\n'
       prompt += 'Erwaehne die konkrete Temperatur natuerlich in der Begruendung.\n\n'
       prompt += 'Antworte NUR mit JSON:\n{\n  "outfits": [\n' + outfitTemplate(outfitCount) + '\n  ]\n}\n\n'
-      prompt += 'Nur exakte Namen aus der Liste! Ein Outfit kann mehr als 2 Items enthalten, wenn Layering Sinn macht.'
+      prompt += 'Nur exakte Namen aus der obigen Liste!'
     }
 
     const result = await callOpenAI(prompt)
