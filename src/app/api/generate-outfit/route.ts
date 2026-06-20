@@ -120,9 +120,13 @@ function filterBlocked(pool: any[]) {
           : '\nWICHTIG: Die ' + outfitCount + ' Outfits muessen jeweils ein ANDERES Oberteil und eine ANDERE Hose verwenden.')
       : ''
 
-    const mandatoryNote = isEnglish
+ const mandatoryNote = isEnglish
       ? '\nMANDATORY: Every single outfit MUST include exactly one top, exactly one pants/bottom, AND exactly one pair of shoes from the list (if shoes are available in the list) - an outfit without shoes is incomplete and not acceptable. A jacket is optional.'
       : '\nPFLICHT: Jedes einzelne Outfit MUSS genau ein Oberteil, genau eine Hose UND genau ein Paar Schuhe aus der Liste enthalten (falls Schuhe in der Liste verfuegbar sind) - ein Outfit ohne Schuhe ist unvollstaendig und nicht akzeptabel. Eine Jacke ist optional.'
+
+    const colorMatchingNote = isEnglish
+      ? '\nColor matching guidance: Aim for a cohesive color story - either a clear monochrome/tonal look (multiple shades of the same color family, e.g. all blue or all black/grey), or a deliberate contrast (e.g. neutral bottom with a colorful top, or vice versa). Avoid combining 3+ unrelated bright colors. In your reasoning, briefly justify the color choice (e.g. "tonal blue look" or "neutral base lets the graphic top stand out").'
+      : '\nFarbabstimmungs-Hinweis: Strebe eine stimmige Farbgeschichte an - entweder einen klaren monochromen/tonalen Look (mehrere Schattierungen derselben Farbfamilie, z.B. alles blau oder alles schwarz/grau), oder einen bewussten Kontrast (z.B. neutrale Hose mit farbigem Top, oder umgekehrt). Vermeide die Kombination von 3+ unzusammenhaengenden grellen Farben. Begruende kurz die Farbwahl in deiner Begruendung (z.B. "toniger Blau-Look" oder "neutrale Basis laesst das Graphic-Top hervorstechen").'
 
     let prompt = ''
     if (isEnglish) {
