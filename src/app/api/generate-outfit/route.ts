@@ -71,7 +71,9 @@ export async function POST(request: NextRequest) {
     const recentComboSet = new Set(Array.isArray(recentCombos) ? recentCombos : [])
     const locale = request.headers.get('x-locale') || 'de'
     const isEnglish = locale === 'en'
- const usage: Record<string, UsageInfo> = usageCounts && typeof usageCounts === 'object' ? usageCounts : {}
+const usage: Record<string, UsageInfo> = usageCounts && typeof usageCounts === 'object' ? usageCounts : {}
+    console.log('=== USAGE DEBUG ===')
+    console.log('Received usage object:', JSON.stringify(usage))
     const blocked = new Set((Array.isArray(blockedNames) ? blockedNames : []).map(normalize))
 
     const grouped = groupByCategory(items)
@@ -79,6 +81,9 @@ export async function POST(request: NextRequest) {
     const hosen = grouped['hosen'] ?? []
     const schuhe = grouped['schuhe'] ?? []
     const jacken = grouped['jacken'] ?? []
+
+    console.log('All schuhe with usage:', schuhe.map((s: any) => uniqueId(s) + ' -> ' + JSON.stringify(usage[uniqueId(s)] ?? 'none')))
+    console.log('All jacken with usage:', jacken.map((j: any) => uniqueId(j) + ' -> ' + JSON.stringify(usage[uniqueId(j)] ?? 'none')))
 
     const tempMatch = String(weather).match(/(-?\d+)/)
     const tempValue = tempMatch ? parseInt(tempMatch[1]) : 18
