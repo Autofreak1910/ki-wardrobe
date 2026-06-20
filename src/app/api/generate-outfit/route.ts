@@ -1,114 +1,115 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+async function callOpenAI(prompt: string) {
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      max_tokens: 400,
+      temperature: 1.0,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  })
+  const data = await response.json()
+  const text = data.choices?.[0]?.message?.content ?? ''
+  const jsonMatch = text.match(/\{[\s\S]*\}/)
+  if (!jsonMatch) throw new Error('No JSON')
+  return JSON.parse(jsonMatch[0])
+}
+
+function buildExcludeNote(usedItemsPerOutfit: string[][], isEnglish: boolean): string {
+  if (usedItemsPerOutfit.length === 0) return ''
+  const parts: string[] = []
+  for (let idx = 0; idx < usedItemsPerOutfit.length; idx++) {
+    parts.push('Outfit ' + (idx + 1) + ': ' + usedItemsPerOutfit[idx].join(', '))
+  }
+  const joined = parts.join(' | ')
+  if (isEnglish) {
+    return '\n\nALREADY USED in previous outfits (you MUST pick at least one different item, ideally different top, pants or shoes than these): ' + joined
+  }
+  return '\n\nBEREITS VERWENDET in vorherigen Outfits (du MUSST mindestens ein anderes Teil waehlen, idealerweise anderes Oberteil, andere Hose oder andere Schuhe als diese): ' + joined
+}
+
+function buildRecentNote(recentItemNames: string[], isEnglish: boolean): string {
+  if (!recentItemNames || recentItemNames.length === 0) return ''
+  const joined = recentItemNames.join(' | ')
+  if (isEnglish) {
+    return '\nThe user recently saw these combinations, avoid repeating them: ' + joined
+  }
+  return '\nDer Nutzer hat zuletzt diese Kombinationen gesehen, vermeide Wiederholungen: ' + joined
+}
+
 export async function POST(request: NextRequest) {
   try {
- const { items, occasion, weather, categories, recentItemNames } = await request.json()
+    const { items, occasion, weather, categories, recentItemNames } = await request.json()
     const locale = request.headers.get('x-locale') || 'de'
     const isEnglish = locale === 'en'
 
     const itemList = items.map((item: { name?: string; category: string; color: string; brand?: string; layer_type?: string }) => {
       const layerNote = item.layer_type === 'layer' ? ' [layer piece, worn over a base top]' : item.layer_type === 'base' ? ' [base top, worn alone or under a layer piece]' : ''
-      return `- ${item.name ?? item.category} (${item.category}, ${item.color}${item.brand ? ', ' + item.brand : ''})${layerNote}`
+      return '- ' + (item.name ?? item.category) + ' (' + item.category + ', ' + item.color + (item.brand ? ', ' + item.brand : '') + ')' + layerNote
     }).join('\n')
-const hasLayerPieces = items.some((item: { layer_type?: string }) => item.layer_type === 'layer')
-    const hasBasePieces = items.some((item: { layer_type?: string }) => item.layer_type === 'base')
 
-    const varietyInstruction = recentItemNames && recentItemNames.length > 0
-      ? (isEnglish
-          ? `\nVariety rule: The user was recently suggested these exact item combinations: ${recentItemNames.join(' | ')}. Try to create different combinations this time using other items from the wardrobe where reasonably possible, instead of repeating the exact same picks.`
-          : `\nAbwechslungs-Regel: Dem Nutzer wurden zuletzt diese exakten Kombinationen vorgeschlagen: ${recentItemNames.join(' | ')}. Versuch dieses Mal andere Kombinationen mit anderen Teilen aus dem Kleiderschrank zu erstellen, wo es sinnvoll möglich ist, statt die exakt gleichen Teile erneut zu wählen.`)
-      : ''
+    const hasLayerPieces = items.some((item: { layer_type?: string }) => item.layer_type === 'layer')
+    const hasBasePieces = items.some((item: { layer_type?: string }) => item.layer_type === 'base')
     const layeringInstruction = hasLayerPieces && hasBasePieces
       ? (isEnglish
-          ? '\nLayering rule: Items marked [layer piece] (sweaters, hoodies, cardigans) CAN be worn over an item marked [base top] (t-shirts, shirts) — but ONLY when it is cold enough to need both (roughly below 16°C / 60°F). Above that temperature, wearing a base top AND a layer piece together is uncomfortable and wrong — pick just ONE top in that case (either the layer piece alone, or a base top alone), never both. Never combine a base top and a layer piece when the weather is warm.'
-          : '\nLayering-Regel: Teile mit [layer piece] (Pullover, Hoodies, Strickjacken) können ÜBER einem Teil mit [base top] (T-Shirts, Hemden) getragen werden — aber NUR wenn es kalt genug dafür ist (ungefähr unter 16°C). Bei wärmerem Wetter ist die Kombination aus Base-Top UND Layer-Piece unangenehm und falsch — wähl in diesem Fall nur EIN Oberteil (entweder nur das Layer-Piece oder nur ein Base-Top), niemals beides gleichzeitig. Kombiniere Base-Top und Layer-Piece niemals bei warmem Wetter.')
+          ? '\nLayering rule: Items marked [layer piece] (sweaters, hoodies, cardigans) CAN be worn over an item marked [base top] (t-shirts, shirts) - but ONLY when it is cold enough to need both (roughly below 16C / 60F). Above that temperature, pick just ONE top, never both.'
+          : '\nLayering-Regel: Teile mit [layer piece] (Pullover, Hoodies, Strickjacken) koennen UEBER einem Teil mit [base top] getragen werden - aber NUR wenn es kalt genug ist (unter 16C). Bei waermerem Wetter waehl nur EIN Oberteil, niemals beides.')
       : ''
 
     const outfitCount = items.length >= 6 ? 3 : items.length >= 4 ? 2 : 1
+    const vibes = ['Casual Cool', 'Minimal Chic', 'Bold Statement']
 
-    const vibes = isEnglish
-      ? ['Casual Cool', 'Minimal Chic', 'Bold Statement']
-      : ['Casual Cool', 'Minimal Chic', 'Bold Statement']
+    const usedItemsPerOutfit: string[][] = []
+    const outfits: { items: string[]; reasoning: string; vibe: string }[] = []
 
-  const outfitTemplate = (count: number) =>
-      Array.from({ length: count }, (_, i) => `    {
-      "items": ["exakter Name aus Liste", "exakter Name aus Liste"],
-      "reasoning": "kurze Begründung warum das passt, erwähne die konkrete Temperatur",
-      "vibe": "${vibes[i]}"
-    }`).join(',\n')
+    for (let i = 0; i < outfitCount; i++) {
+      const excludeNote = buildExcludeNote(usedItemsPerOutfit, isEnglish)
+      const recentNote = buildRecentNote(recentItemNames, isEnglish)
 
-   const distinctOutfitsInstruction = outfitCount > 1
-      ? (isEnglish
-          ? `\nCRITICAL RULE: Each of the ${outfitCount} outfits MUST differ from the others in at least one item (e.g. different top, different shoes, or different jacket). Do NOT output the exact same set of items twice. If the wardrobe is limited, vary which specific piece you pick within a category (e.g. a different shirt, or skip the jacket in one outfit) rather than repeating an identical combination. Check your output before responding: if two outfits would be identical, change at least one item in one of them.`
-          : `\nKRITISCHE REGEL: Jedes der ${outfitCount} Outfits MUSS sich von den anderen in mindestens einem Teil unterscheiden (z.B. anderes Oberteil, andere Schuhe, oder andere Jacke). Gib NIEMALS die exakt gleiche Teile-Kombination zweimal aus. Falls der Kleiderschrank begrenzt ist, variiere welches konkrete Teil du innerhalb einer Kategorie wählst (z.B. ein anderes Shirt, oder lass die Jacke in einem Outfit weg), statt eine identische Kombination zu wiederholen. Prüf deine Ausgabe bevor du antwortest: falls zwei Outfits identisch wären, ändere mindestens ein Teil in einem davon.`)
-      : ''
+      let prompt = ''
+      if (isEnglish) {
+        prompt = 'You are a fashion stylist. Create ONE outfit suggestion with vibe "' + vibes[i] + '" for "' + occasion + '":\n\n'
+        prompt += itemList + '\n\n'
+        prompt += 'Weather: ' + weather + '\n'
+        prompt += layeringInstruction + excludeNote + recentNote + '\n\n'
+        prompt += 'Mention the exact temperature (' + weather + ') naturally in your reasoning.\n\n'
+        prompt += 'Respond ONLY with JSON:\n'
+        prompt += '{\n  "items": ["exact name from list", "exact name from list"],\n  "reasoning": "short reasoning why this fits"\n}\n\n'
+        prompt += 'Only use exact names from the list! Include 2-4 items depending on what makes sense (top, bottom, shoes, optionally jacket).'
+      } else {
+        prompt = 'Du bist ein Fashion-Stylist. Erstelle EIN Outfit mit Vibe "' + vibes[i] + '" fuer "' + occasion + '":\n\n'
+        prompt += itemList + '\n\n'
+        prompt += 'Wetter: ' + weather + '\n'
+        prompt += layeringInstruction + excludeNote + recentNote + '\n\n'
+        prompt += 'Erwaehne die konkrete Temperatur (' + weather + ') natuerlich in der Begruendung.\n\n'
+        prompt += 'Antworte NUR mit JSON:\n'
+        prompt += '{\n  "items": ["exakter Name aus Liste", "exakter Name aus Liste"],\n  "reasoning": "kurze Begruendung warum das passt"\n}\n\n'
+        prompt += 'Nur exakte Namen aus der Liste! 2-4 Items je nachdem was sinnvoll ist (Oberteil, Hose, Schuhe, optional Jacke).'
+      }
 
-const prompt = isEnglish
-      ? `You are a fashion stylist. Create ${outfitCount} outfit suggestion${outfitCount > 1 ? 's' : ''} for "${occasion}":
+      try {
+        const result = await callOpenAI(prompt)
+        const outfitItems = result.items ?? []
+        outfits.push({ items: outfitItems, reasoning: result.reasoning ?? '', vibe: vibes[i] })
+        usedItemsPerOutfit.push(outfitItems)
+      } catch (err) {
+        console.error('Outfit ' + i + ' generation failed:', err)
+      }
+    }
 
-${itemList}
+    if (outfits.length === 0) throw new Error('No outfits generated')
 
-Weather: ${weather}
-${layeringInstruction}
-${varietyInstruction}
-${distinctOutfitsInstruction}
-
-Mention the exact temperature (${weather}) naturally in your reasoning text for at least one outfit.
-
-Respond ONLY with JSON:
-{
-  "outfits": [
-${outfitTemplate(outfitCount)}
-  ]
-}
-
-Only use exact names from the list! An outfit can include more than 2 items if layering makes sense.`
-      : `Du bist ein Fashion-Stylist. Erstelle ${outfitCount} Outfit-Vorschlag${outfitCount > 1 ? 'schläge' : ''} für "${occasion}":
-
-${itemList}
-
-Wetter: ${weather}
-${layeringInstruction}
-${varietyInstruction}
-${distinctOutfitsInstruction}
-
-Erwähne die konkrete Temperatur (${weather}) natürlich im Begründungstext mindestens eines Outfits.
-
-Antworte NUR mit JSON:
-{
-  "outfits": [
-${outfitTemplate(outfitCount)}
-  ]
-}
-
-Nur exakte Namen aus der Liste! Ein Outfit kann mehr als 2 Items enthalten, wenn Layering Sinn macht.`
-
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
-     body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        max_tokens: 1000,
-        temperature: 0.9,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    })
-
-    const data = await response.json()
-    const text = data.choices?.[0]?.message?.content ?? ''
-    const jsonMatch = text.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) throw new Error('No JSON')
-    const result = JSON.parse(jsonMatch[0])
-
-    const first = result.outfits?.[0]
     return NextResponse.json({
       success: true,
-      outfits: result.outfits,
-      items: first?.items ?? [],
-      reasoning: first?.reasoning ?? '',
+      outfits,
+      items: outfits[0]?.items ?? [],
+      reasoning: outfits[0]?.reasoning ?? '',
     })
 
   } catch (error) {
