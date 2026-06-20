@@ -138,13 +138,22 @@ useEffect(() => {
   }
 }, [wardrobeItems.length])
 
-useEffect(() => {
+function checkProWelcomePending() {
   const pending = localStorage.getItem('kw_pro_welcome_pending')
   if (pending === 'true') {
     localStorage.removeItem('kw_pro_welcome_pending')
     setTimeout(() => setShowProWelcome(true), 600)
-    setTimeout(() => setShowProWelcome(false), 4000)
+    setTimeout(() => setShowProWelcome(false), 5500)
   }
+}
+
+useEffect(() => {
+  checkProWelcomePending()
+  function onVisibilityChange() {
+    if (document.visibilityState === 'visible') checkProWelcomePending()
+  }
+  document.addEventListener('visibilitychange', onVisibilityChange)
+  return () => document.removeEventListener('visibilitychange', onVisibilityChange)
 }, [])
 
 useEffect(() => {
@@ -430,7 +439,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
           style={{ width: '100%', padding: '13px', background: `linear-gradient(135deg, ${accent}, #6b9fff)`, border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", marginBottom: '8px' }}>
           {locale === 'de' ? '☀️ Ja, aktivieren' : '☀️ Yes, enable'}
         </motion.button>
-        <button
+<button
           onClick={() => { localStorage.setItem('kw_push_prompt_seen', 'true'); setShowPushPrompt(false) }}
           style={{ width: '100%', padding: '11px', background: 'transparent', border: 'none', fontSize: '13px', color: muted, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
           {locale === 'de' ? 'Vielleicht später' : 'Maybe later'}
@@ -453,56 +462,89 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
         alignItems: 'center', justifyContent: 'center',
         background: isDark ? 'rgba(8,12,24,0.97)' : 'rgba(240,244,255,0.97)',
         backdropFilter: 'blur(20px)',
+        overflow: 'hidden',
       }}>
 
-      {/* Sterne-Konfetti */}
-      {[...Array(16)].map((_, i) => (
+      {/* Animierter Farbverlauf-Glow im Hintergrund */}
+      <motion.div
+        animate={{ scale: [1, 1.3, 1], opacity: [0.4, 0.7, 0.4] }}
+        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        style={{
+          position: 'absolute', width: '500px', height: '500px', borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(251,191,36,0.3), rgba(168,85,247,0.15), transparent 70%)',
+          filter: 'blur(60px)',
+        }}
+      />
+
+      {/* Sterne-Konfetti, mehr und länger */}
+      {[...Array(24)].map((_, i) => (
         <motion.div key={i}
           initial={{ opacity: 0, x: 0, y: 0, scale: 0 }}
-          animate={{ opacity: [0, 1, 1, 0], x: Math.cos(i * 22.5 * Math.PI / 180) * 140, y: Math.sin(i * 22.5 * Math.PI / 180) * 140, scale: [0, 1.3, 1, 0] }}
-          transition={{ delay: 0.3 + i * 0.03, duration: 1.2 }}
-          style={{ position: 'absolute', width: '8px', height: '8px', borderRadius: '50%', background: i % 4 === 0 ? '#fbbf24' : i % 4 === 1 ? accent : i % 4 === 2 ? '#a855f7' : '#6b9fff' }}
+          animate={{ opacity: [0, 1, 1, 0], x: Math.cos(i * 15 * Math.PI / 180) * (160 + (i % 3) * 30), y: Math.sin(i * 15 * Math.PI / 180) * (160 + (i % 3) * 30), scale: [0, 1.4, 1, 0], rotate: [0, 180] }}
+          transition={{ delay: 0.3 + i * 0.025, duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
+          style={{ position: 'absolute', width: i % 3 === 0 ? '10px' : '7px', height: i % 3 === 0 ? '10px' : '7px', borderRadius: i % 2 === 0 ? '50%' : '3px', background: i % 4 === 0 ? '#fbbf24' : i % 4 === 1 ? accent : i % 4 === 2 ? '#a855f7' : '#6b9fff' }}
         />
       ))}
 
-      {/* PRO Badge */}
-      <motion.div
-        initial={{ scale: 0, rotate: -15 }}
-        animate={{ scale: 1, rotate: 0 }}
-        transition={{ type: 'spring', damping: 12, stiffness: 200, delay: 0.2 }}
-        style={{
-          width: '120px', height: '120px', borderRadius: '36px',
-          background: `linear-gradient(135deg, #fbbf24, #f59e0b)`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '56px',
-          boxShadow: '0 0 80px rgba(251,191,36,0.6), 0 0 40px rgba(251,191,36,0.3)',
-          marginBottom: '24px',
-        }}>
-        ✦
+      {/* PRO Badge mit Puls-Glow */}
+      <motion.div style={{ position: 'relative' as const, marginBottom: '28px' }}>
+        <motion.div
+          animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0.8, 0.5] }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+          style={{
+            position: 'absolute', inset: '-20px', borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(251,191,36,0.5), transparent 70%)',
+            filter: 'blur(20px)',
+          }}
+        />
+        <motion.div
+          initial={{ scale: 0, rotate: -25 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: 'spring', damping: 10, stiffness: 180, delay: 0.2 }}
+          style={{
+            width: '128px', height: '128px', borderRadius: '38px',
+            background: 'linear-gradient(135deg, #fbbf24, #f59e0b, #ec4899)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '60px', position: 'relative' as const,
+            boxShadow: '0 0 100px rgba(251,191,36,0.7), 0 20px 60px rgba(0,0,0,0.3)',
+          }}>
+          <motion.span
+            animate={{ rotate: [0, 15, -15, 0] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+          >✦</motion.span>
+        </motion.div>
       </motion.div>
 
       <motion.p
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5, duration: 0.4 }}
-        style={{ fontSize: '13px', fontWeight: 700, color: '#fbbf24', letterSpacing: '0.12em', textTransform: 'uppercase' as const, marginBottom: '10px', fontFamily: "'DM Sans', sans-serif" }}>
-        {locale === 'de' ? 'Willkommen im Club' : 'Welcome to the club'}
+        transition={{ delay: 0.55, duration: 0.4 }}
+        style={{ fontSize: '13px', fontWeight: 700, color: '#fbbf24', letterSpacing: '0.14em', textTransform: 'uppercase' as const, marginBottom: '12px', fontFamily: "'DM Sans', sans-serif" }}>
+        {locale === 'de' ? '✦ Willkommen im Club ✦' : '✦ Welcome to the club ✦'}
       </motion.p>
 
       <motion.p
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6, duration: 0.4 }}
-        style={{ fontSize: '32px', fontWeight: 800, color: text, letterSpacing: '-0.04em', fontFamily: "'DM Sans', sans-serif", marginBottom: '8px' }}>
-        KiWardrobe <span style={{ background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Pro</span>
+        initial={{ opacity: 0, y: 20, scale: 0.9 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ delay: 0.68, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        style={{ fontSize: '15px', fontWeight: 600, color: muted, letterSpacing: '-0.01em', fontFamily: "'DM Sans', sans-serif", marginBottom: '4px' }}>
+        {locale === 'de' ? 'Du bist jetzt' : "You're now a"}
+      </motion.p>
+
+      <motion.p
+        initial={{ opacity: 0, y: 16, scale: 0.92 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ delay: 0.78, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        style={{ fontSize: '38px', fontWeight: 800, color: text, letterSpacing: '-0.04em', fontFamily: "'DM Sans', sans-serif", marginBottom: '14px' }}>
+        KiWardrobe <span style={{ background: 'linear-gradient(135deg, #fbbf24, #f59e0b, #ec4899)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Pro</span>{locale === 'de' ? '' : ' User'}
       </motion.p>
 
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.8 }}
-        style={{ fontSize: '15px', color: muted, fontFamily: "'DM Sans', sans-serif", textAlign: 'center' as const, maxWidth: '260px', lineHeight: 1.5 }}>
-        {locale === 'de' ? '10 Outfits täglich · Unbegrenzt · Style DNA 🚀' : '10 outfits daily · Unlimited · Style DNA 🚀'}
+        transition={{ delay: 1.0 }}
+        style={{ fontSize: '15px', color: muted, fontFamily: "'DM Sans', sans-serif", textAlign: 'center' as const, maxWidth: '280px', lineHeight: 1.6 }}>
+        {locale === 'de' ? '10 Outfits täglich · Unbegrenzt Kleidung · Style DNA 🚀' : '10 outfits daily · Unlimited items · Style DNA 🚀'}
       </motion.p>
     </motion.div>
   )}
