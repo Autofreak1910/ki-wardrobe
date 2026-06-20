@@ -272,8 +272,7 @@ function getBlockedNames(): string[] {
 
 function pushToBlockedHistory(ids: string[], wardrobeSize: number) {
   try {
-    // Sperrdauer proportional zur Schrankgroesse: ca. 60% der Items werden zeitweise gesperrt, mind. 1, max. 6 Generierungen
-    const lockDepth = Math.max(1, Math.min(6, Math.round(wardrobeSize * 0.15)))
+    const lockDepth = Math.max(1, Math.min(3, Math.round(wardrobeSize * 0.1)))
     const stored = localStorage.getItem('kw_recent_outfit_history')
     const history: string[][] = stored ? JSON.parse(stored) : []
     history.push(ids)
@@ -345,7 +344,7 @@ const blockedNames = getBlockedNames()
         return { items: o.items, reasoning: o.reasoning, vibe: o.vibe, itemObjects: matchedItems }
       })
    setOutfit({ outfits: mappedOutfits, active: 0 })
-const allUsedIds = mappedOutfits.flatMap((o: any) => o.itemObjects.map((item: ClothingItem) => (item.name ?? item.category) + '|' + item.color))
+const allUsedIds = (mappedOutfits[0]?.itemObjects ?? []).map((item: ClothingItem) => (item.name ?? item.category) + '|' + item.color)
       pushToBlockedHistory(allUsedIds, wardrobeItems.length)
       setTimeout(() => mainRef.current?.scrollTo({ top: mainRef.current.scrollHeight, behavior: 'smooth' }), 200)
     }
