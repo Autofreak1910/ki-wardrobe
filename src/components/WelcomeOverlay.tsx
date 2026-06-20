@@ -35,9 +35,9 @@ const STEPS = [
 ]
 
 interface Props {
-  weatherRef: RefObject<HTMLDivElement>
-  categoryRef: RefObject<HTMLDivElement>
-  dressMeRef: RefObject<HTMLButtonElement>
+  weatherRef: RefObject<HTMLDivElement | null>
+  categoryRef: RefObject<HTMLDivElement | null>
+  dressMeRef: RefObject<HTMLButtonElement | null>
   itemCount: number
   delayMs?: number
 }

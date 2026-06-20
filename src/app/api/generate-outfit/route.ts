@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
   try {
-  const { items, occasion, weather, categories } = await request.json()
+ const { items, occasion, weather, categories, recentItemNames } = await request.json()
     const locale = request.headers.get('x-locale') || 'de'
     const isEnglish = locale === 'en'
 
@@ -10,9 +10,14 @@ export async function POST(request: NextRequest) {
       const layerNote = item.layer_type === 'layer' ? ' [layer piece, worn over a base top]' : item.layer_type === 'base' ? ' [base top, worn alone or under a layer piece]' : ''
       return `- ${item.name ?? item.category} (${item.category}, ${item.color}${item.brand ? ', ' + item.brand : ''})${layerNote}`
     }).join('\n')
-
-    const hasLayerPieces = items.some((item: { layer_type?: string }) => item.layer_type === 'layer')
+const hasLayerPieces = items.some((item: { layer_type?: string }) => item.layer_type === 'layer')
     const hasBasePieces = items.some((item: { layer_type?: string }) => item.layer_type === 'base')
+
+    const varietyInstruction = recentItemNames && recentItemNames.length > 0
+      ? (isEnglish
+          ? `\nVariety rule: The user was recently suggested these exact item combinations: ${recentItemNames.join(' | ')}. Try to create different combinations this time using other items from the wardrobe where reasonably possible, instead of repeating the exact same picks.`
+          : `\nAbwechslungs-Regel: Dem Nutzer wurden zuletzt diese exakten Kombinationen vorgeschlagen: ${recentItemNames.join(' | ')}. Versuch dieses Mal andere Kombinationen mit anderen Teilen aus dem Kleiderschrank zu erstellen, wo es sinnvoll möglich ist, statt die exakt gleichen Teile erneut zu wählen.`)
+      : ''
     const layeringInstruction = hasLayerPieces && hasBasePieces
       ? (isEnglish
           ? '\nLayering rule: Items marked [layer piece] (sweaters, hoodies, cardigans) CAN be worn over an item marked [base top] (t-shirts, shirts) — but ONLY when it is cold enough to need both (roughly below 16°C / 60°F). Above that temperature, wearing a base top AND a layer piece together is uncomfortable and wrong — pick just ONE top in that case (either the layer piece alone, or a base top alone), never both. Never combine a base top and a layer piece when the weather is warm.'
@@ -39,6 +44,7 @@ ${itemList}
 
 Weather: ${weather}
 ${layeringInstruction}
+${varietyInstruction}
 
 Respond ONLY with JSON:
 {
@@ -54,6 +60,7 @@ ${itemList}
 
 Wetter: ${weather}
 ${layeringInstruction}
+${varietyInstruction}
 
 Antworte NUR mit JSON:
 {
@@ -70,9 +77,10 @@ Nur exakte Namen aus der Liste! Ein Outfit kann mehr als 2 Items enthalten, wenn
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
       },
-      body: JSON.stringify({
+     body: JSON.stringify({
         model: 'gpt-4o-mini',
         max_tokens: 1000,
+        temperature: 0.9,
         messages: [{ role: 'user', content: prompt }]
       })
     })

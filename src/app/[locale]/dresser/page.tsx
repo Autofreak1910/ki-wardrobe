@@ -286,10 +286,11 @@ const { error: insertError } = await supabase.from('outfit_generations').insert(
   const itemsToUse = filteredItems.length >= 2 ? filteredItems : wardrobeItems
   const weatherStr = weather ? `${weather.temp}°C, ${weather.condition}` : '18°C'
   try {
+  const recentItemNames = outfit?.outfits.map(o => o.items.join(', ')) ?? []
     const res = await fetch('/api/generate-outfit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-locale': locale },
-      body: JSON.stringify({ items: itemsToUse, occasion: selected, weather: weatherStr, categories: activeCategories }),
+      body: JSON.stringify({ items: itemsToUse, occasion: selected, weather: weatherStr, categories: activeCategories, recentItemNames }),
     })
     const data = await res.json()
     if (data.success && data.outfits) {
