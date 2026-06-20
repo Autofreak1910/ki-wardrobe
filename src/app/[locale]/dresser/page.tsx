@@ -261,11 +261,21 @@ const { latitude: lat, longitude: lon } = pos.coords
     setActiveCategories(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat])
     setOutfit(null)
   }
-
 function getUsageCounts(): Record<string, { count: number; lastUsed: number }> {
   try {
     const stored = localStorage.getItem('kw_item_usage_counts')
-    return stored ? JSON.parse(stored) : {}
+    const raw = stored ? JSON.parse(stored) : {}
+    // Alte/kaputte Eintraege (reine Zahlen statt {count, lastUsed}) bereinigen
+    const cleaned: Record<string, { count: number; lastUsed: number }> = {}
+    for (const key of Object.keys(raw)) {
+      const val = raw[key]
+      if (typeof val === 'number') {
+        cleaned[key] = { count: val, lastUsed: 0 }
+      } else if (val && typeof val === 'object') {
+        cleaned[key] = { count: Number(val.count) || 0, lastUsed: Number(val.lastUsed) || 0 }
+      }
+    }
+    return cleaned
   } catch { return {} }
 }
 

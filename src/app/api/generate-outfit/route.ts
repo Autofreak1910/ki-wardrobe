@@ -43,10 +43,18 @@ function uniqueId(item: any): string {
 // damit es nicht IMMER exakt dasselbe ist wenn mehrere gleich selten benutzt wurden.
 type UsageInfo = { count: number; lastUsed: number }
 
-function getUsageInfo(usage: Record<string, UsageInfo>, id: string): UsageInfo {
-  return usage[id] ?? { count: 0, lastUsed: 0 }
+function getUsageInfo(usage: Record<string, any>, id: string): UsageInfo {
+  // id ist bereits normalisiert (lowercase). usage-Keys koennen Original-Schreibweise haben, also case-insensitive suchen.
+  const normalizedId = normalize(id)
+  for (const key of Object.keys(usage)) {
+    if (normalize(key) === normalizedId) {
+      const val = usage[key]
+      if (typeof val === 'number') return { count: val, lastUsed: 0 }
+      if (val && typeof val === 'object') return { count: Number(val.count) || 0, lastUsed: Number(val.lastUsed) || 0 }
+    }
+  }
+  return { count: 0, lastUsed: 0 }
 }
-
 // Waehlt deterministisch: zuerst niedrigste count, bei Gleichstand das mit dem aeltesten lastUsed (am laengsten nicht benutzt). Kein Zufall mehr.
 function pickLeastUsed(pool: any[], usage: Record<string, UsageInfo>, excludeIds: Set<string>): any | null {
   const candidates = pool.filter((p: any) => !excludeIds.has(uniqueId(p)))
