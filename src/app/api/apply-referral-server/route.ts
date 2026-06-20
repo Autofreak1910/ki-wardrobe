@@ -36,12 +36,21 @@ export async function POST(request: NextRequest) {
           await fetch(baseUrl + '/api/send-push-to-user', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+      body: JSON.stringify({
               userId: referrerProfile.id,
               title: lang === 'en' ? '🎉 New friend joined!' : '🎉 Neuer Freund ist dabei!',
-              body: lang === 'en'
-                ? 'Someone joined via your invite link — you got +7 days Pro! Check it out.'
-                : 'Jemand hat sich über deinen Einladungslink registriert — du hast +7 Tage Pro bekommen! Schau rein.',
+              body: (() => {
+                const invitesCount = data?.invites_this_month ?? 0
+                const bonusClaimed = data?.bonus_claimed ?? false
+                if (lang === 'en') {
+                  if (bonusClaimed) return 'Someone joined via your link — and you just hit 15 invites this month, +30 BONUS days Pro! Check your profile.'
+                 if (invitesCount <= 4) return 'Someone joined via your invite link — you got +7 days Pro! ' + Math.max(0, 15 - invitesCount) + ' more invites until your bonus month.'
+                  return 'Someone joined via your invite link! Only ' + Math.max(0, 15 - invitesCount) + ' more invites this month until your bonus month.'
+                }
+                if (bonusClaimed) return 'Jemand hat sich über deinen Link registriert — und du hast diesen Monat 15 Einladungen erreicht: +30 BONUS-Tage Pro! Schau in dein Profil.'
+                if (invitesCount <= 4) return 'Jemand hat sich über deinen Einladungslink registriert — du hast +7 Tage Pro bekommen! Noch ' + Math.max(0, 15 - invitesCount) + ' Einladungen bis zum Bonus-Monat.'
+                return 'Jemand hat sich über deinen Einladungslink registriert! Nur noch ' + Math.max(0, 15 - invitesCount) + ' Einladungen diesen Monat bis zum Bonus-Monat.'
+              })(),
               url: '/' + lang + '/profile',
             }),
           })

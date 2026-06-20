@@ -6,8 +6,7 @@ import { useLocale } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import Navbar from '@/components/Navbar'
-type Profile = { id: string; username: string; is_premium: boolean; age?: string; country?: string; created_at: string; email?: string; gender?: string; style_preferences?: string[]; budget_range?: string; referral_code?: string; premium_until?: string }
+type Profile = { id: string; username: string; is_premium: boolean; age?: string; country?: string; created_at: string; email?: string; gender?: string; style_preferences?: string[]; budget_range?: string; referral_code?: string; premium_until?: string; invites_this_month?: number; bonus_month_claimed_this_period?: boolean }
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4)
@@ -410,6 +409,29 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
 {/* Invite Friends */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}
           style={{ background: `linear-gradient(135deg, ${accent}, #6b9fff)`, borderRadius: '16px', padding: '18px', marginBottom: '12px', position: 'relative' as const, overflow: 'hidden' }}>
+
+          {!(profile?.bonus_month_claimed_this_period) && (profile?.invites_this_month ?? 0) > 0 && (
+            <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '12px', padding: '10px 14px', marginBottom: '14px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <p style={{ fontSize: '11px', fontWeight: 700, color: '#fff' }}>
+                  {locale === 'de' ? '🎁 Bonus-Monat' : '🎁 Bonus month'}
+                </p>
+                <p style={{ fontSize: '11px', fontWeight: 700, color: '#fff' }}>
+                  {profile?.invites_this_month ?? 0}/15
+                </p>
+              </div>
+              <div style={{ height: '6px', background: 'rgba(255,255,255,0.25)', borderRadius: '3px', overflow: 'hidden' }}>
+                <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, ((profile?.invites_this_month ?? 0) / 15) * 100)}%` }} transition={{ duration: 0.6 }}
+                  style={{ height: '100%', background: '#fff', borderRadius: '3px' }} />
+              </div>
+              <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.85)', marginTop: '6px' }}>
+                {locale === 'de'
+                  ? `Noch ${Math.max(0, 15 - (profile?.invites_this_month ?? 0))} Einladungen bis zu +30 Tagen Bonus`
+                  : `${Math.max(0, 15 - (profile?.invites_this_month ?? 0))} more invites until +30 bonus days`}
+              </p>
+            </div>
+          )}
+
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
             <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>🎁</div>
             <div>
