@@ -23,7 +23,11 @@ export default function OnboardingCarousel({ onDone }: { onDone: () => void }) {
   const isLast = index === totalSlides - 1
 
   function next() {
-    if (isLast) { onDone(); return }
+    if (isLast) {
+      try { localStorage.setItem('kw_onboarding_just_finished', 'true') } catch {}
+      onDone()
+      return
+    }
     setIndex(i => i + 1)
   }
   function back() {

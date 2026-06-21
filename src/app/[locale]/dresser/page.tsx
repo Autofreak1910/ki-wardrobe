@@ -176,16 +176,20 @@ async function loadWardrobe() {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
 
-    // Pruefe ob eingeladener User zum ersten Mal hier ist
-    if (!localStorage.getItem('kw_invited_welcome_seen')) {
-      const { data: refName } = await supabase.rpc('get_referrer_username', { p_user_id: session.user.id })
-      if (refName) {
-        localStorage.setItem('kw_invited_welcome_seen', 'true')
-        setReferrerName(refName)
-        setTimeout(() => setShowWelcomeInvited(true), 800)
-        setTimeout(() => setShowWelcomeInvited(false), 6000)
-      } else {
-        localStorage.setItem('kw_invited_welcome_seen', 'true')
+// Pruefe ob eingeladener User gerade das Onboarding beendet hat
+    const justFinishedOnboarding = localStorage.getItem('kw_onboarding_just_finished') === 'true'
+    if (justFinishedOnboarding && !localStorage.getItem('kw_invited_welcome_seen')) {
+      localStorage.removeItem('kw_onboarding_just_finished')
+      localStorage.setItem('kw_invited_welcome_seen', 'true')
+      try {
+        const { data: refName } = await supabase.rpc('get_referrer_username', { p_user_id: session.user.id })
+        if (refName) {
+          setReferrerName(refName)
+          setTimeout(() => setShowWelcomeInvited(true), 500)
+          setTimeout(() => setShowWelcomeInvited(false), 6000)
+        }
+      } catch (err) {
+        console.error('Referrer lookup failed:', err)
       }
     }
 
