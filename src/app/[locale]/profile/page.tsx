@@ -139,12 +139,9 @@ async function loadProfile() {
   setTodayOutfits(todayOutfitsRes.count ?? 0)
   setTryOnToday(tryOnRes.count ?? 0)
 
-  if (profileRes.data?.referral_code) {
-    const { count: totalReferred } = await supabase
-      .from('profiles')
-      .select('id', { count: 'exact', head: true })
-      .eq('referred_by', profileRes.data.referral_code)
-    setTotalInvitesSuccessful(totalReferred ?? 0)
+if (profileRes.data?.referral_code) {
+    const { data: refCount } = await supabase.rpc('count_successful_referrals', { p_referral_code: profileRes.data.referral_code })
+    setTotalInvitesSuccessful(refCount ?? 0)
   }
     if ('serviceWorker' in navigator && 'PushManager' in window) {
       try {
