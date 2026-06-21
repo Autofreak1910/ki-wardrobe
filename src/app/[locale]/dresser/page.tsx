@@ -177,9 +177,11 @@ async function loadWardrobe() {
     if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
 
 // Pruefe ob eingeladener User die Begruessung noch nicht gesehen hat
+    console.log('Welcome check - seen flag:', localStorage.getItem('kw_invited_welcome_seen'))
     if (!localStorage.getItem('kw_invited_welcome_seen')) {
       try {
-        const { data: refName } = await supabase.rpc('get_referrer_username', { p_user_id: session.user.id })
+        const { data: refName, error: refErr } = await supabase.rpc('get_referrer_username', { p_user_id: session.user.id })
+        console.log('Referrer lookup result:', refName, 'error:', refErr)
         if (refName) {
           // Nur eingeladene User (mit Referrer) bekommen die Animation
           localStorage.setItem('kw_invited_welcome_seen', 'true')
