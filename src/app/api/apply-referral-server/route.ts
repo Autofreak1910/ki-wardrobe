@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
                 if (invitesCount <= 4) return 'Jemand hat sich über deinen Einladungslink registriert — du hast +7 Tage Pro bekommen! Noch ' + Math.max(0, 15 - invitesCount) + ' Einladungen bis zum Bonus-Monat.'
                 return 'Jemand hat sich über deinen Einladungslink registriert! Nur noch ' + Math.max(0, 15 - invitesCount) + ' Einladungen diesen Monat bis zum Bonus-Monat.'
               })(),
-              url: '/' + lang + '/profile',
+          url: '/' + lang + '/dresser?referral_reward=true',
             }),
           })
         }

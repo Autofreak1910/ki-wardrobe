@@ -121,6 +121,7 @@ const dressMeRef = useRef<HTMLButtonElement>(null)
 const [showUnlock, setShowUnlock] = useState(false)
 const [showPushPrompt, setShowPushPrompt] = useState(false)
 const [showProWelcome, setShowProWelcome] = useState(false)
+const [showReferralReward, setShowReferralReward] = useState(false)
   const days = locale === 'de'
     ? ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag']
     : ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
@@ -144,6 +145,12 @@ function checkProWelcomePending() {
     localStorage.removeItem('kw_pro_welcome_pending')
     setTimeout(() => setShowProWelcome(true), 600)
     setTimeout(() => setShowProWelcome(false), 5500)
+  }
+  const params = new URLSearchParams(window.location.search)
+  if (params.get('referral_reward') === 'true') {
+    window.history.replaceState({}, '', window.location.pathname)
+    setTimeout(() => setShowReferralReward(true), 600)
+    setTimeout(() => setShowReferralReward(false), 5500)
   }
 }
 
@@ -489,6 +496,79 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
     </motion.div>
   )}
 </AnimatePresence>
+{/* Referral Reward Animation */}
+<AnimatePresence>
+  {showReferralReward && (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.4 }}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        display: 'flex', flexDirection: 'column' as const,
+        alignItems: 'center', justifyContent: 'center',
+        background: isDark ? 'rgba(8,12,24,0.97)' : 'rgba(240,244,255,0.97)',
+        backdropFilter: 'blur(20px)', overflow: 'hidden',
+      }}>
+
+      <motion.div
+        animate={{ scale: [1, 1.3, 1], opacity: [0.4, 0.7, 0.4] }}
+        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        style={{ position: 'absolute', width: '500px', height: '500px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(16,185,129,0.3), rgba(59,107,255,0.15), transparent 70%)', filter: 'blur(60px)' }}
+      />
+
+      {[...Array(24)].map((_, i) => (
+        <motion.div key={i}
+          initial={{ opacity: 0, x: 0, y: 0, scale: 0 }}
+          animate={{ opacity: [0, 1, 1, 0], x: Math.cos(i * 15 * Math.PI / 180) * (160 + (i % 3) * 30), y: Math.sin(i * 15 * Math.PI / 180) * (160 + (i % 3) * 30), scale: [0, 1.4, 1, 0], rotate: [0, 180] }}
+          transition={{ delay: 0.3 + i * 0.025, duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
+          style={{ position: 'absolute', width: i % 3 === 0 ? '10px' : '7px', height: i % 3 === 0 ? '10px' : '7px', borderRadius: i % 2 === 0 ? '50%' : '3px', background: i % 4 === 0 ? '#10b981' : i % 4 === 1 ? accent : i % 4 === 2 ? '#fbbf24' : '#6b9fff' }}
+        />
+      ))}
+
+      <motion.div style={{ position: 'relative' as const, marginBottom: '28px' }}>
+        <motion.div
+          animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0.8, 0.5] }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+          style={{ position: 'absolute', inset: '-20px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(16,185,129,0.5), transparent 70%)', filter: 'blur(20px)' }}
+        />
+        <motion.div
+          initial={{ scale: 0, rotate: -25 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: 'spring', damping: 10, stiffness: 180, delay: 0.2 }}
+          style={{ width: '128px', height: '128px', borderRadius: '38px', background: 'linear-gradient(135deg, #10b981, #0891b2, #3b6bff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '60px', position: 'relative' as const, boxShadow: '0 0 100px rgba(16,185,129,0.7), 0 20px 60px rgba(0,0,0,0.3)' }}>
+          🎁
+        </motion.div>
+      </motion.div>
+
+      <motion.p
+        initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55, duration: 0.4 }}
+        style={{ fontSize: '13px', fontWeight: 700, color: '#10b981', letterSpacing: '0.14em', textTransform: 'uppercase' as const, marginBottom: '12px', fontFamily: "'DM Sans', sans-serif" }}>
+        {locale === 'de' ? '✦ Einladung erfolgreich ✦' : '✦ Invite successful ✦'}
+      </motion.p>
+
+      <motion.p
+        initial={{ opacity: 0, y: 20, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ delay: 0.68, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        style={{ fontSize: '15px', fontWeight: 600, color: muted, fontFamily: "'DM Sans', sans-serif", marginBottom: '4px' }}>
+        {locale === 'de' ? 'Du hast' : 'You got'}
+      </motion.p>
+
+      <motion.p
+        initial={{ opacity: 0, y: 16, scale: 0.92 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ delay: 0.78, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        style={{ fontSize: '40px', fontWeight: 800, color: text, letterSpacing: '-0.04em', fontFamily: "'DM Sans', sans-serif", marginBottom: '14px' }}>
+        +7 <span style={{ background: 'linear-gradient(135deg, #10b981, #0891b2)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{locale === 'de' ? 'Tage Pro' : 'days Pro'}</span>
+      </motion.p>
+
+      <motion.p
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.0 }}
+        style={{ fontSize: '15px', color: muted, fontFamily: "'DM Sans', sans-serif", textAlign: 'center' as const, maxWidth: '280px', lineHeight: 1.6 }}>
+        {locale === 'de' ? 'Danke fürs Einladen! Lad weitere Freunde ein für noch mehr Gratis-Zeit 🚀' : 'Thanks for inviting! Invite more friends for even more free time 🚀'}
+      </motion.p>
+    </motion.div>
+  )}
+</AnimatePresence>
+
 {/* Pro Welcome Animation */}
 <AnimatePresence>
   {showProWelcome && (
