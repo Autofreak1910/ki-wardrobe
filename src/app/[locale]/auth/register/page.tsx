@@ -125,7 +125,16 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
         }
       }
     }
-localStorage.removeItem('kw_onboarding_seen')
+// Willkommens-Email verschicken (non-blocking)
+    if (data.user) {
+      fetch('/api/send-welcome-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, username, language: lang }),
+      }).catch(err => console.error('Welcome email failed:', err))
+    }
+
+    localStorage.removeItem('kw_onboarding_seen')
     localStorage.setItem('kw_force_onboarding', 'true')
     setLoading(false)
     router.push('/' + lang + '/dresser')
