@@ -20,6 +20,7 @@ const locale = useLocale()
   useEffect(() => {
     const timer = setTimeout(() => {
       setVisible(false)
+      try { localStorage.setItem('kw_onboarding_just_finished', 'true') } catch {}
       setTimeout(onDone, 500)
     }, 2600)
     return () => clearTimeout(timer)
@@ -40,7 +41,7 @@ const locale = useLocale()
             fontFamily: "'DM Sans', sans-serif",
             overflow: 'hidden',
           }}
-          onClick={() => { setVisible(false); setTimeout(onDone, 500) }}
+onClick={() => { setVisible(false); setTimeout(onDone, 500) }}
         >
           {/* Glow background */}
           <motion.div
