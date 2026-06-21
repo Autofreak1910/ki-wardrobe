@@ -176,17 +176,23 @@ async function loadWardrobe() {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
 
-// Pruefe ob eingeladener User gerade das Onboarding beendet hat
-    const justFinishedOnboarding = localStorage.getItem('kw_onboarding_just_finished') === 'true'
-    if (justFinishedOnboarding && !localStorage.getItem('kw_invited_welcome_seen')) {
-      localStorage.removeItem('kw_onboarding_just_finished')
-      localStorage.setItem('kw_invited_welcome_seen', 'true')
+// Pruefe ob eingeladener User die Begruessung noch nicht gesehen hat
+    if (!localStorage.getItem('kw_invited_welcome_seen')) {
       try {
         const { data: refName } = await supabase.rpc('get_referrer_username', { p_user_id: session.user.id })
         if (refName) {
+          // Nur eingeladene User (mit Referrer) bekommen die Animation
+          localStorage.setItem('kw_invited_welcome_seen', 'true')
           setReferrerName(refName)
-          setTimeout(() => setShowWelcomeInvited(true), 500)
-          setTimeout(() => setShowWelcomeInvited(false), 6000)
+          // Warte bis WelcomeAnimation/Onboarding durch ist (falls noch laufend)
+          const justFinished = localStorage.getItem('kw_onboarding_just_finished') === 'true'
+          const delay = justFinished ? 500 : 1500
+          if (justFinished) localStorage.removeItem('kw_onboarding_just_finished')
+          setTimeout(() => setShowWelcomeInvited(true), delay)
+          setTimeout(() => setShowWelcomeInvited(false), delay + 5500)
+        } else {
+          // Kein Referrer = normaler User, Flag setzen damit nicht jedes Mal geprueft wird
+          localStorage.setItem('kw_invited_welcome_seen', 'true')
         }
       } catch (err) {
         console.error('Referrer lookup failed:', err)
