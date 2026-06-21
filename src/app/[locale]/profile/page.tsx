@@ -186,14 +186,24 @@ async function handleLogout() {
     router.push('/' + locale + '/auth/login')
   }
 
-  async function handleDeleteAccount() {
+ async function handleDeleteAccount() {
     setDeleting(true)
     try {
       const res = await fetch('/api/delete-account', { method: 'POST' })
       const data = await res.json()
       if (data.success) {
-        await supabase.auth.signOut()
-        router.push('/' + locale + '/auth/login')
+        // Gruendliche Abmeldung: globaler signOut + lokale Storage-Bereinigung
+        try { await supabase.auth.signOut({ scope: 'global' }) } catch {}
+        try {
+          // Alle Supabase Auth-Tokens aus localStorage entfernen
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('sb-') || key.includes('supabase') || key.startsWith('kw_')) {
+              localStorage.removeItem(key)
+            }
+          })
+        } catch {}
+        // Harte Weiterleitung (kein router.push) — laedt die Seite komplett neu, kein Session-Cache
+        window.location.href = '/' + locale + '/auth/login'
       } else {
         alert(locale === 'de' ? 'Fehler beim Löschen: ' + data.error : 'Error deleting: ' + data.error)
         setDeleting(false)
