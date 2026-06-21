@@ -67,7 +67,9 @@ function parseGermanDate(dateStr: string): Date | null {
     if (date.getDate() !== day || date.getMonth() !== month - 1) return null
     return date
   }
-
+function isValidEmail(e: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)
+  }
   function calculateAge(birthdateStr: string): number {
     const birth = parseGermanDate(birthdateStr)
     if (!birth) return 0
@@ -233,15 +235,29 @@ localStorage.removeItem('kw_onboarding_seen')
                       </button>
                     )}
                   </div>
-                  {field.hint && <p style={{ fontSize: '11px', color: muted, marginTop: '5px' }}>{field.hint}</p>}
+             {field.hint && <p style={{ fontSize: '11px', color: muted, marginTop: '5px' }}>{field.hint}</p>}
+                  {field.type === 'email' && email.length > 0 && !isValidEmail(email) && (
+                    <p style={{ fontSize: '11px', color: '#ef4444', marginTop: '5px', fontWeight: 500 }}>
+                      {locale === 'de' ? '⚠ Bitte gültige E-Mail eingeben' : '⚠ Please enter a valid email'}
+                    </p>
+                  )}
+                  {field.type === 'email' && email.length > 0 && isValidEmail(email) && (
+                    <p style={{ fontSize: '11px', color: '#10b981', marginTop: '5px', fontWeight: 500 }}>
+                      {locale === 'de' ? '✓ E-Mail sieht gut aus' : '✓ Email looks good'}
+                    </p>
+                  )}
                 </div>
               ))}
               <div style={{ marginBottom: '16px' }} />
 
            <motion.button whileTap={{ scale: 0.97 }} disabled={checkingEmail}
-                onClick={async () => {
+             onClick={async () => {
                   if (!username || !email || password.length < 8) {
                     setError(locale === 'de' ? 'Bitte alle Felder ausfüllen (mind. 8 Zeichen)' : 'Fill all fields (min. 8 chars)')
+                    return
+                  }
+                  if (!isValidEmail(email)) {
+                    setError(locale === 'de' ? 'Bitte eine gültige E-Mail-Adresse eingeben' : 'Please enter a valid email address')
                     return
                   }
                   setCheckingEmail(true)
@@ -474,13 +490,13 @@ localStorage.removeItem('kw_onboarding_seen')
               </div>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button onClick={() => setStep(3)} style={{ width: '48px', flexShrink: 0, padding: '14px', background: secondary, border: `1px solid ${border}`, borderRadius: '12px', fontSize: '16px', color: muted, cursor: 'pointer' }}>←</button>
-                <motion.button whileTap={{ scale: 0.97 }}
+             <motion.button whileTap={agbAccepted && !loading ? { scale: 0.97 } : {}}
                   onClick={() => {
                     if (!agbAccepted) { setError(locale === 'de' ? 'Bitte AGB und Datenschutz akzeptieren' : 'Please accept the Terms and Privacy Policy'); return }
                     handleRegister()
                   }}
-                  disabled={loading}
-                  style={{ flex: 1, background: loading ? secondary : `linear-gradient(135deg, ${accent}, #6b9fff)`, border: loading ? `1px solid ${border}` : 'none', borderRadius: '12px', padding: '14px', fontSize: '15px', fontWeight: 700, color: loading ? muted : '#fff', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em', boxShadow: loading ? 'none' : `0 4px 20px ${accent}40` }}>
+                  disabled={loading || !agbAccepted}
+                  style={{ flex: 1, background: (loading || !agbAccepted) ? secondary : `linear-gradient(135deg, ${accent}, #6b9fff)`, border: (loading || !agbAccepted) ? `1px solid ${border}` : 'none', borderRadius: '12px', padding: '14px', fontSize: '15px', fontWeight: 700, color: (loading || !agbAccepted) ? muted : '#fff', cursor: (loading || !agbAccepted) ? 'not-allowed' : 'pointer', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em', boxShadow: (loading || !agbAccepted) ? 'none' : `0 4px 20px ${accent}40`, transition: 'all 0.2s' }}>
                   {loading ? '...' : locale === 'de' ? 'Konto erstellen 🎉' : 'Create account 🎉'}
                 </motion.button>
               </div>
