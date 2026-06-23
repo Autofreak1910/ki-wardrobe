@@ -207,7 +207,30 @@ async function loadWardrobe() {
       .limit(1)
       .maybeSingle()
 
- if (dailyOutfit && data) {
+// PRIORITAET 1: zuletzt generiertes Outfit aus localStorage (nur von heute)
+    let restored = false
+    try {
+      const stored = localStorage.getItem('kw_current_outfit')
+      if (stored && data) {
+        const parsed = JSON.parse(stored)
+        if (parsed.date === new Date().toDateString() && parsed.outfits?.length > 0) {
+          const rebuiltOutfits = parsed.outfits.map((o: any) => ({
+            ...o,
+            itemObjects: (o.itemObjects ?? [])
+              .map((saved: any) => data.find(i => i.id === saved.id) ?? saved)
+              .filter(Boolean),
+          }))
+          setOutfit({ outfits: rebuiltOutfits, active: parsed.active ?? 0 })
+          if (parsed.occasion) setSelected(parsed.occasion)
+          restored = true
+        } else {
+          localStorage.removeItem('kw_current_outfit')
+        }
+      }
+    } catch {}
+
+    // PRIORITAET 2: heutiges daily_outfit (nur falls kein gespeichertes da war)
+    if (!restored && dailyOutfit && data) {
       const itemObjects = dailyOutfit.item_ids
         .map((id: string) => data.find(i => i.id === id))
         .filter(Boolean)
@@ -217,20 +240,6 @@ async function loadWardrobe() {
           active: 0,
         })
       }
-    } else {
-      // Frisch generiertes Outfit aus localStorage wiederherstellen (nur von heute)
-      try {
-        const stored = localStorage.getItem('kw_current_outfit')
-        if (stored) {
-          const parsed = JSON.parse(stored)
-          if (parsed.date === new Date().toDateString() && parsed.outfits?.length > 0) {
-            setOutfit({ outfits: parsed.outfits, active: parsed.active ?? 0 })
-            if (parsed.occasion) setSelected(parsed.occasion)
-          } else {
-            localStorage.removeItem('kw_current_outfit')
-          }
-        }
-      } catch {}
     }
   }
 
@@ -907,8 +916,8 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
                 <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '4px', padding: '2px 6px', letterSpacing: '0.04em', boxShadow: '0 2px 6px rgba(251,191,36,0.4)' }}>✦ PRO</span>
               )}
             </div>
-          <h1 style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.04em', color: text, lineHeight: 1.15 }}>
-              {greeting}{username ? ',' : ''}
+       <h1 style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.04em', color: text, lineHeight: 1.15 }}>
+              {getGreeting(locale)}{username ? ',' : ''}
             </h1>
             {username && (
               <motion.p initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}
