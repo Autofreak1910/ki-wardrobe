@@ -120,16 +120,8 @@ const [referrerName, setReferrerName] = useState('')
     : ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
  const today = days[new Date().getDay()]
   const dateStr = new Date().toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-GB', { day: 'numeric', month: 'long' })
-  const [greeting, setGreeting] = useState(() => getGreeting(locale))
+const [greeting] = useState(() => getGreeting(locale))
 useEffect(() => { loadWardrobe(); fetchWeather() }, [])
-
-useEffect(() => {
-  function refreshGreeting() {
-    if (document.visibilityState === 'visible') setGreeting(getGreeting(locale))
-  }
-  document.addEventListener('visibilitychange', refreshGreeting)
-  return () => document.removeEventListener('visibilitychange', refreshGreeting)
-}, [locale])
 
 useEffect(() => {
   if (wardrobeItems.length >= 3) {
@@ -916,7 +908,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
               )}
             </div>
           <h1 style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.04em', color: text, lineHeight: 1.15 }}>
-              {getGreeting(locale)}{username ? ',' : ''}
+              {greeting}{username ? ',' : ''}
             </h1>
             {username && (
               <motion.p initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}
