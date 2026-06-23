@@ -127,6 +127,32 @@ useEffect(() => {
   setGreeting(getGreeting(locale))
 }, [locale])
 useEffect(() => { loadWardrobe(); fetchWeather() }, [])
+// Solange App aktiv: lastActive-Zeitstempel des Outfits laufend aktualisieren
+useEffect(() => {
+  function touchOutfit() {
+    try {
+      const stored = localStorage.getItem('kw_current_outfit')
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        parsed.lastActive = Date.now()
+        localStorage.setItem('kw_current_outfit', JSON.stringify(parsed))
+      }
+    } catch {}
+  }
+  // Alle 60 Sek aktualisieren solange Tab sichtbar
+  const interval = setInterval(() => {
+    if (document.visibilityState === 'visible') touchOutfit()
+  }, 60 * 1000)
+  // Auch bei Sichtbarwerden sofort aktualisieren
+  function onVisible() {
+    if (document.visibilityState === 'visible') touchOutfit()
+  }
+  document.addEventListener('visibilitychange', onVisible)
+  return () => {
+    clearInterval(interval)
+    document.removeEventListener('visibilitychange', onVisible)
+  }
+}, [])
 
 useEffect(() => {
   if (wardrobeItems.length >= 3) {
@@ -212,13 +238,15 @@ async function loadWardrobe() {
       .limit(1)
       .maybeSingle()
 
-// PRIORITAET 1: zuletzt generiertes Outfit aus localStorage (nur von heute)
+// PRIORITAET 1: zuletzt generiertes Outfit aus localStorage (nur wenn vor <5 Min zuletzt aktiv)
     let restored = false
     try {
       const stored = localStorage.getItem('kw_current_outfit')
       if (stored && data) {
         const parsed = JSON.parse(stored)
-        if (parsed.date === new Date().toDateString() && parsed.outfits?.length > 0) {
+        const fiveMin = 5 * 60 * 1000
+        const stillFresh = parsed.lastActive && (Date.now() - parsed.lastActive) < fiveMin
+        if (parsed.date === new Date().toDateString() && parsed.outfits?.length > 0 && stillFresh) {
           const rebuiltOutfits = parsed.outfits.map((o: any) => ({
             ...o,
             itemObjects: (o.itemObjects ?? [])
@@ -422,7 +450,7 @@ setLoading(true); setSaved(false); setOutfit(null)
         return { items: o.items, reasoning: o.reasoning, vibe: o.vibe, itemObjects: matchedItems }
       })
 setOutfit({ outfits: mappedOutfits, active: 0 })
-   try { localStorage.setItem('kw_current_outfit', JSON.stringify({ outfits: mappedOutfits, active: 0, occasion: selected, date: new Date().toDateString() })) } catch {}
+   try { localStorage.setItem('kw_current_outfit', JSON.stringify({ outfits: mappedOutfits, active: 0, occasion: selected, date: new Date().toDateString(), lastActive: Date.now() })) } catch {}
    // Falls Tab nicht aktiv: lokale Benachrichtigung dass Outfit fertig ist
    try {
      if (document.visibilityState === 'hidden' && 'Notification' in window && Notification.permission === 'granted') {
