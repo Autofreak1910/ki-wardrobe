@@ -913,7 +913,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
       <main ref={mainRef} style={{ flex: 1, overflowY: 'auto' as const, overflowX: 'hidden', maxWidth: '540px', width: '100%', margin: '0 auto', padding: '68px 18px 112px', position: 'relative', zIndex: 1 }}>
 
         {/* ── Hero Header: Greeting + Weather Card side by side ── */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        <div
           style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '28px' }}>
 
           {/* Left: Greeting */}
@@ -929,11 +929,10 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
        <h1 style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.04em', color: text, lineHeight: 1.15 }}>
               {getGreeting(locale)}{username ? ',' : ''}
             </h1>
-            {username && (
-              <motion.p initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}
-                style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1.15, background: `linear-gradient(135deg, ${accent}, #0891b2)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          {username && (
+              <p style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1.15, background: `linear-gradient(135deg, ${accent}, #0891b2)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                 {username}.
-              </motion.p>
+              </p>
             )}
             {wardrobeItems.length > 0 && (
               <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}
@@ -977,8 +976,8 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
                 )}
               </>
             )}
-          </motion.div>
-        </motion.div>
+    </motion.div>
+        </div>
 
 {!hasItems ? (
   <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
