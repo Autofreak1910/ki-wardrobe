@@ -243,9 +243,11 @@ async function loadWardrobe() {
     try {
       const stored = localStorage.getItem('kw_current_outfit')
       if (stored && data) {
-        const parsed = JSON.parse(stored)
+     const parsed = JSON.parse(stored)
         const fiveMin = 5 * 60 * 1000
-        const stillFresh = parsed.lastActive && (Date.now() - parsed.lastActive) < fiveMin
+        const ageMs = parsed.lastActive ? Date.now() - parsed.lastActive : 999999999
+        const stillFresh = parsed.lastActive && ageMs < fiveMin
+        console.log('Outfit restore check — age (sec):', Math.round(ageMs / 1000), 'stillFresh:', stillFresh, 'lastActive:', parsed.lastActive)
         if (parsed.date === new Date().toDateString() && parsed.outfits?.length > 0 && stillFresh) {
           const rebuiltOutfits = parsed.outfits.map((o: any) => ({
             ...o,
