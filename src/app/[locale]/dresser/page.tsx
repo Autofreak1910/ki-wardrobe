@@ -122,23 +122,13 @@ const [referrerName, setReferrerName] = useState('')
   const dateStr = new Date().toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-GB', { day: 'numeric', month: 'long' })
 const [greeting] = useState(() => {
   try {
-    const stored = localStorage.getItem('kw_greeting')
-    if (stored) {
-      const parsed = JSON.parse(stored)
-      // Gleiche Begruessung behalten, solange dieselbe Browser-Session laeuft
-      if (parsed.session === sessionStorage.getItem('kw_session_id') && parsed.locale === locale) {
-        return parsed.text
-      }
-    }
+    // sessionStorage ueberlebt Seitenwechsel/Reload, wird aber beim App-Schliessen geleert
+    const stored = sessionStorage.getItem('kw_greeting_' + locale)
+    if (stored) return stored
   } catch {}
-  // Neue Begruessung wuerfeln + Session-ID setzen
-  let sessionId = sessionStorage.getItem('kw_session_id')
-  if (!sessionId) {
-    sessionId = Date.now().toString()
-    try { sessionStorage.setItem('kw_session_id', sessionId) } catch {}
-  }
+  // Neue Begruessung beim ersten Oeffnen dieser Session
   const text = getGreeting(locale)
-  try { localStorage.setItem('kw_greeting', JSON.stringify({ text, session: sessionId, locale })) } catch {}
+  try { sessionStorage.setItem('kw_greeting_' + locale, text) } catch {}
   return text
 })
 useEffect(() => { loadWardrobe(); fetchWeather() }, [])
