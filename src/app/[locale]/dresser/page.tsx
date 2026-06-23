@@ -120,7 +120,27 @@ const [referrerName, setReferrerName] = useState('')
     : ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
  const today = days[new Date().getDay()]
   const dateStr = new Date().toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-GB', { day: 'numeric', month: 'long' })
-const [greeting] = useState(() => getGreeting(locale))
+const [greeting] = useState(() => {
+  try {
+    const stored = localStorage.getItem('kw_greeting')
+    if (stored) {
+      const parsed = JSON.parse(stored)
+      // Gleiche Begruessung behalten, solange dieselbe Browser-Session laeuft
+      if (parsed.session === sessionStorage.getItem('kw_session_id') && parsed.locale === locale) {
+        return parsed.text
+      }
+    }
+  } catch {}
+  // Neue Begruessung wuerfeln + Session-ID setzen
+  let sessionId = sessionStorage.getItem('kw_session_id')
+  if (!sessionId) {
+    sessionId = Date.now().toString()
+    try { sessionStorage.setItem('kw_session_id', sessionId) } catch {}
+  }
+  const text = getGreeting(locale)
+  try { localStorage.setItem('kw_greeting', JSON.stringify({ text, session: sessionId, locale })) } catch {}
+  return text
+})
 useEffect(() => { loadWardrobe(); fetchWeather() }, [])
 
 useEffect(() => {
