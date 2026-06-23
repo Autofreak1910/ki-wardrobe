@@ -143,14 +143,31 @@ useEffect(() => {
   const interval = setInterval(() => {
     if (document.visibilityState === 'visible') touchOutfit()
   }, 60 * 1000)
-  // Auch bei Sichtbarwerden sofort aktualisieren
+// Auch bei Sichtbarwerden sofort aktualisieren
   function onVisible() {
     if (document.visibilityState === 'visible') touchOutfit()
   }
+  // Beim Schliessen/Verbergen: Zeitstempel auf "alt" setzen, damit Outfit beim naechsten Oeffnen weg ist
+  function onHide() {
+    if (document.visibilityState === 'hidden') {
+      try {
+        const stored = localStorage.getItem('kw_current_outfit')
+        if (stored) {
+          const parsed = JSON.parse(stored)
+          parsed.hiddenAt = Date.now()
+          localStorage.setItem('kw_current_outfit', JSON.stringify(parsed))
+        }
+      } catch {}
+    }
+  }
   document.addEventListener('visibilitychange', onVisible)
+  document.addEventListener('visibilitychange', onHide)
+  window.addEventListener('pagehide', onHide)
   return () => {
     clearInterval(interval)
     document.removeEventListener('visibilitychange', onVisible)
+    document.removeEventListener('visibilitychange', onHide)
+    window.removeEventListener('pagehide', onHide)
   }
 }, [])
 
@@ -243,11 +260,12 @@ async function loadWardrobe() {
     try {
       const stored = localStorage.getItem('kw_current_outfit')
       if (stored && data) {
-     const parsed = JSON.parse(stored)
+    const parsed = JSON.parse(stored)
         const fiveMin = 5 * 60 * 1000
-        const ageMs = parsed.lastActive ? Date.now() - parsed.lastActive : 999999999
-        const stillFresh = parsed.lastActive && ageMs < fiveMin
-        console.log('Outfit restore check — age (sec):', Math.round(ageMs / 1000), 'stillFresh:', stillFresh, 'lastActive:', parsed.lastActive)
+        // Wenn App verborgen/geschlossen war: pruefe wie lange seit dem Verbergen
+        const hiddenAgo = parsed.hiddenAt ? Date.now() - parsed.hiddenAt : 0
+        const stillFresh = hiddenAgo < fiveMin
+        console.log('Outfit restore check — hidden ago (sec):', Math.round(hiddenAgo / 1000), 'stillFresh:', stillFresh)
         if (parsed.date === new Date().toDateString() && parsed.outfits?.length > 0 && stillFresh) {
           const rebuiltOutfits = parsed.outfits.map((o: any) => ({
             ...o,
