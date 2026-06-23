@@ -127,47 +127,22 @@ useEffect(() => {
   setGreeting(getGreeting(locale))
 }, [locale])
 useEffect(() => { loadWardrobe(); fetchWeather() }, [])
-// Solange App aktiv: lastActive-Zeitstempel des Outfits laufend aktualisieren
+// Heartbeat: solange App offen ist, laufend "lastSeen" schreiben (alle 10 Sek)
 useEffect(() => {
-  function touchOutfit() {
-    try {
-      const stored = localStorage.getItem('kw_current_outfit')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        parsed.lastActive = Date.now()
-        localStorage.setItem('kw_current_outfit', JSON.stringify(parsed))
-      }
-    } catch {}
+  function heartbeat() {
+    try { localStorage.setItem('kw_app_last_seen', String(Date.now())) } catch {}
   }
-  // Alle 60 Sek aktualisieren solange Tab sichtbar
+  heartbeat()
   const interval = setInterval(() => {
-    if (document.visibilityState === 'visible') touchOutfit()
-  }, 60 * 1000)
-// Auch bei Sichtbarwerden sofort aktualisieren
+    if (document.visibilityState === 'visible') heartbeat()
+  }, 10 * 1000)
   function onVisible() {
-    if (document.visibilityState === 'visible') touchOutfit()
-  }
-  // Beim Schliessen/Verbergen: Zeitstempel auf "alt" setzen, damit Outfit beim naechsten Oeffnen weg ist
-  function onHide() {
-    if (document.visibilityState === 'hidden') {
-      try {
-        const stored = localStorage.getItem('kw_current_outfit')
-        if (stored) {
-          const parsed = JSON.parse(stored)
-          parsed.hiddenAt = Date.now()
-          localStorage.setItem('kw_current_outfit', JSON.stringify(parsed))
-        }
-      } catch {}
-    }
+    if (document.visibilityState === 'visible') heartbeat()
   }
   document.addEventListener('visibilitychange', onVisible)
-  document.addEventListener('visibilitychange', onHide)
-  window.addEventListener('pagehide', onHide)
   return () => {
     clearInterval(interval)
     document.removeEventListener('visibilitychange', onVisible)
-    document.removeEventListener('visibilitychange', onHide)
-    window.removeEventListener('pagehide', onHide)
   }
 }, [])
 
@@ -262,10 +237,14 @@ async function loadWardrobe() {
       if (stored && data) {
     const parsed = JSON.parse(stored)
         const fiveMin = 5 * 60 * 1000
-        // Wenn App verborgen/geschlossen war: pruefe wie lange seit dem Verbergen
-        const hiddenAgo = parsed.hiddenAt ? Date.now() - parsed.hiddenAt : 0
-        const stillFresh = hiddenAgo < fiveMin
-        console.log('Outfit restore check — hidden ago (sec):', Math.round(hiddenAgo / 1000), 'stillFresh:', stillFresh)
+        // Wie lange ist der letzte Heartbeat (App offen) her? Wenn >5 Min war App zu/inaktiv.
+        let lastSeenAgo = 999999999
+        try {
+          const ls = localStorage.getItem('kw_app_last_seen')
+          if (ls) lastSeenAgo = Date.now() - parseInt(ls)
+        } catch {}
+        const stillFresh = lastSeenAgo < fiveMin
+        console.log('Outfit restore check — last seen ago (sec):', Math.round(lastSeenAgo / 1000), 'stillFresh:', stillFresh)
         if (parsed.date === new Date().toDateString() && parsed.outfits?.length > 0 && stillFresh) {
           const rebuiltOutfits = parsed.outfits.map((o: any) => ({
             ...o,
@@ -470,7 +449,7 @@ setLoading(true); setSaved(false); setOutfit(null)
         return { items: o.items, reasoning: o.reasoning, vibe: o.vibe, itemObjects: matchedItems }
       })
 setOutfit({ outfits: mappedOutfits, active: 0 })
-   try { localStorage.setItem('kw_current_outfit', JSON.stringify({ outfits: mappedOutfits, active: 0, occasion: selected, date: new Date().toDateString(), lastActive: Date.now() })) } catch {}
+   try { localStorage.setItem('kw_current_outfit', JSON.stringify({ outfits: mappedOutfits, active: 0, occasion: selected, date: new Date().toDateString() })) } catch {}
    // Falls Tab nicht aktiv: lokale Benachrichtigung dass Outfit fertig ist
    try {
      if (document.visibilityState === 'hidden' && 'Notification' in window && Notification.permission === 'granted') {
@@ -970,7 +949,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
               )}
             </div>
        <h1 style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.04em', color: text, lineHeight: 1.15 }}>
-              {getGreeting(locale)}{username ? ',' : ''}
+              {greeting}{username ? ',' : ''}
             </h1>
           {username && (
               <p style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1.15, background: `linear-gradient(135deg, ${accent}, #0891b2)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
