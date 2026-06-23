@@ -132,15 +132,17 @@ useEffect(() => {
   function heartbeat() {
     try { localStorage.setItem('kw_app_last_seen', String(Date.now())) } catch {}
   }
-  heartbeat()
+  // NICHT sofort schreiben — erst nach 2 Sek, damit loadWardrobe den alten Wert noch lesen kann
+  const startTimer = setTimeout(heartbeat, 2000)
   const interval = setInterval(() => {
     if (document.visibilityState === 'visible') heartbeat()
   }, 10 * 1000)
   function onVisible() {
     if (document.visibilityState === 'visible') heartbeat()
   }
-  document.addEventListener('visibilitychange', onVisible)
+document.addEventListener('visibilitychange', onVisible)
   return () => {
+    clearTimeout(startTimer)
     clearInterval(interval)
     document.removeEventListener('visibilitychange', onVisible)
   }
@@ -188,6 +190,13 @@ useEffect(() => {
 }, [outfit])
 
 async function loadWardrobe() {
+    // GANZ ZUERST auslesen, bevor der Heartbeat den Wert ueberschreibt
+    let lastSeenAgoAtLoad = 999999999
+    try {
+      const ls = localStorage.getItem('kw_app_last_seen')
+      if (ls) lastSeenAgoAtLoad = Date.now() - parseInt(ls)
+    } catch {}
+
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
 // Pruefe ob eingeladener User die Begruessung noch nicht gesehen hat (pro User-ID, nicht pro Browser)
@@ -235,16 +244,11 @@ async function loadWardrobe() {
     try {
       const stored = localStorage.getItem('kw_current_outfit')
       if (stored && data) {
-    const parsed = JSON.parse(stored)
+  const parsed = JSON.parse(stored)
         const fiveMin = 5 * 60 * 1000
-        // Wie lange ist der letzte Heartbeat (App offen) her? Wenn >5 Min war App zu/inaktiv.
-        let lastSeenAgo = 999999999
-        try {
-          const ls = localStorage.getItem('kw_app_last_seen')
-          if (ls) lastSeenAgo = Date.now() - parseInt(ls)
-        } catch {}
-        const stillFresh = lastSeenAgo < fiveMin
-        console.log('Outfit restore check — last seen ago (sec):', Math.round(lastSeenAgo / 1000), 'stillFresh:', stillFresh)
+        // Wert von GANZ OBEN nutzen (vor Heartbeat-Ueberschreibung gelesen)
+        const stillFresh = lastSeenAgoAtLoad < fiveMin
+        console.log('Outfit restore check — last seen ago (sec):', Math.round(lastSeenAgoAtLoad / 1000), 'stillFresh:', stillFresh)
         if (parsed.date === new Date().toDateString() && parsed.outfits?.length > 0 && stillFresh) {
           const rebuiltOutfits = parsed.outfits.map((o: any) => ({
             ...o,
