@@ -405,6 +405,20 @@ const blockedNames = getBlockedNames()
       })
 setOutfit({ outfits: mappedOutfits, active: 0 })
    try { localStorage.setItem('kw_current_outfit', JSON.stringify({ outfits: mappedOutfits, active: 0, occasion: selected, date: new Date().toDateString() })) } catch {}
+   // Falls Tab nicht aktiv: lokale Benachrichtigung dass Outfit fertig ist
+   try {
+     if (document.visibilityState === 'hidden' && 'Notification' in window && Notification.permission === 'granted') {
+       const reg = await navigator.serviceWorker.getRegistration('/sw-push.js')
+       if (reg) {
+         reg.showNotification(locale === 'de' ? '✨ Dein Outfit ist bereit!' : '✨ Your outfit is ready!', {
+           body: locale === 'de' ? 'Tipp hier, um dein neues Outfit zu sehen.' : 'Tap here to see your new outfit.',
+           icon: '/icon-512.png',
+           badge: '/icon-512.png',
+           tag: 'outfit-ready',
+         })
+       }
+     }
+   } catch {}
 const allUsedIds = (mappedOutfits[0]?.itemObjects ?? []).map((item: ClothingItem) => (item.name ?? item.category) + '|' + item.color)
       pushToBlockedHistory(allUsedIds)
       try {
