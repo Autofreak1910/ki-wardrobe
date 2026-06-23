@@ -124,12 +124,22 @@ useEffect(() => {
 
   useEffect(() => {
     if (!mounted || !navRef.current || initializedRef.current) return
-    initializedRef.current = true
-    // Set position instantly without animation on first mount
-    const x = getPillX(activeIndex)
-    bubbleX.set(x)
-    bubbleOpacity.set(1)
-    currentActiveIndex.current = activeIndex
+
+    function positionBubble() {
+      if (!navRef.current) return
+      // Warte bis die Navbar wirklich eine Breite hat (Layout fertig)
+      if (navRef.current.offsetWidth === 0) {
+        requestAnimationFrame(positionBubble)
+        return
+      }
+      const x = getPillX(activeIndex)
+      bubbleX.set(x)
+      bubbleOpacity.set(1)
+      currentActiveIndex.current = activeIndex
+      initializedRef.current = true
+    }
+
+    requestAnimationFrame(positionBubble)
   }, [mounted])
 
   // Only animate when tab actually changes (not on mount)
@@ -138,6 +148,21 @@ useEffect(() => {
     currentActiveIndex.current = activeIndex
     snap(activeIndex)
   }, [activeIndex])
+
+  // Bubble-Position bei Resize/Orientierungswechsel korrigieren
+  useEffect(() => {
+    if (!mounted) return
+    function handleResize() {
+      if (!navRef.current || isDragging) return
+      bubbleX.set(getPillX(currentActiveIndex.current))
+    }
+    window.addEventListener('resize', handleResize)
+    window.addEventListener('orientationchange', handleResize)
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      window.removeEventListener('orientationchange', handleResize)
+    }
+  }, [mounted, isDragging])
 
   function onDragStart(e: React.TouchEvent | React.MouseEvent) {
     if (!navRef.current) return
