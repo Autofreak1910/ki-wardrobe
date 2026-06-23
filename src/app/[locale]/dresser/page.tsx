@@ -206,7 +206,7 @@ async function loadWardrobe() {
       .limit(1)
       .maybeSingle()
 
-    if (dailyOutfit && data) {
+ if (dailyOutfit && data) {
       const itemObjects = dailyOutfit.item_ids
         .map((id: string) => data.find(i => i.id === id))
         .filter(Boolean)
@@ -216,6 +216,20 @@ async function loadWardrobe() {
           active: 0,
         })
       }
+    } else {
+      // Frisch generiertes Outfit aus localStorage wiederherstellen (nur von heute)
+      try {
+        const stored = localStorage.getItem('kw_current_outfit')
+        if (stored) {
+          const parsed = JSON.parse(stored)
+          if (parsed.date === new Date().toDateString() && parsed.outfits?.length > 0) {
+            setOutfit({ outfits: parsed.outfits, active: parsed.active ?? 0 })
+            if (parsed.occasion) setSelected(parsed.occasion)
+          } else {
+            localStorage.removeItem('kw_current_outfit')
+          }
+        }
+      } catch {}
     }
   }
 
@@ -389,7 +403,8 @@ const blockedNames = getBlockedNames()
         }).filter(Boolean)
         return { items: o.items, reasoning: o.reasoning, vibe: o.vibe, itemObjects: matchedItems }
       })
-   setOutfit({ outfits: mappedOutfits, active: 0 })
+setOutfit({ outfits: mappedOutfits, active: 0 })
+   try { localStorage.setItem('kw_current_outfit', JSON.stringify({ outfits: mappedOutfits, active: 0, occasion: selected, date: new Date().toDateString() })) } catch {}
 const allUsedIds = (mappedOutfits[0]?.itemObjects ?? []).map((item: ClothingItem) => (item.name ?? item.category) + '|' + item.color)
       pushToBlockedHistory(allUsedIds)
       try {
@@ -1059,7 +1074,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2zm6 10l.75 2.25L21 15l-2.25.75L18 18l-.75-2.25L15 15l2.25-.75L18 12z"/>
                     </svg>
-             {t('dresser.button')} ✦
+            {outfit ? '↻ ' + t('dresser.newOutfit') : t('dresser.button') + ' ✦'}
                   </>
                 )}
               </motion.button>
@@ -1098,7 +1113,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
       <div style={{ display: 'flex', gap: '6px' }}>
         {outfit.outfits.map((o, i) => (
           <motion.button key={i} whileTap={{ scale: 0.95 }}
-            onClick={() => { setOutfit({ ...outfit, active: i }); setSaved(false) }}
+   onClick={() => { const updated = { ...outfit, active: i }; setOutfit(updated); setSaved(false); try { localStorage.setItem('kw_current_outfit', JSON.stringify({ ...updated, occasion: selected, date: new Date().toDateString() })) } catch {} }}
             style={{
               flex: 1, padding: '8px 4px', borderRadius: '10px',
               border: `1px solid ${outfit.active === i ? accent : border}`,
@@ -1167,12 +1182,6 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
     </p>
   </motion.div>
 )}
-    <div style={{ padding: '0 18px 18px' }}>
-      <motion.button whileTap={{ scale: 0.97 }} onClick={generateOutfit}
-        style={{ width: '100%', padding: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: accentDim, border: `1px solid ${border}`, borderRadius: '10px', fontSize: '12px', fontWeight: 600, color: accent, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer', WebkitTapHighlightColor: 'transparent' }}>
-        ↻ {t('dresser.newOutfit')}
-      </motion.button>
-    </div>
 </motion.div>
 )}
             </AnimatePresence>
