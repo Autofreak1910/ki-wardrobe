@@ -53,7 +53,9 @@ function getGreeting(locale: string): string {
   const greetingsDe = ['Hey', 'Hi', 'Servus', 'Hallo', 'Na', 'Yo', 'Moin', 'Hey du', 'Was geht', 'Schön dich zu sehen', 'Da bist du ja', 'Let\'s go']
   const greetingsEn = ['Hey', 'Hi', 'Yo', 'Hello', 'Sup', 'What\'s up', 'Hey you', 'Good to see you', 'There you are', 'Let\'s go', 'Hiya', 'Welcome back']
   const pool = locale === 'de' ? greetingsDe : greetingsEn
-  return pool[Math.floor(Math.random() * pool.length)]
+  // Deterministisch: gleiche Stunde (seit Epoch) = gleiche Begruessung, kein Zufall
+  const hoursSinceEpoch = Math.floor(Date.now() / (1000 * 60 * 60))
+  return pool[hoursSinceEpoch % pool.length]
 }
 
 const occasions = ['casual', 'uni', 'work', 'date', 'sport', 'party', 'festival'] as const
@@ -122,16 +124,7 @@ const [referrerName, setReferrerName] = useState('')
   const dateStr = new Date().toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-GB', { day: 'numeric', month: 'long' })
 const [greeting, setGreeting] = useState('')
 useEffect(() => {
-  let text = ''
-  try {
-    const stored = sessionStorage.getItem('kw_greeting_' + locale)
-    if (stored) text = stored
-  } catch {}
-  if (!text) {
-    text = getGreeting(locale)
-    try { sessionStorage.setItem('kw_greeting_' + locale, text) } catch {}
-  }
-  setGreeting(text)
+  setGreeting(getGreeting(locale))
 }, [locale])
 useEffect(() => { loadWardrobe(); fetchWeather() }, [])
 
