@@ -120,17 +120,19 @@ const [referrerName, setReferrerName] = useState('')
     : ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
  const today = days[new Date().getDay()]
   const dateStr = new Date().toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-GB', { day: 'numeric', month: 'long' })
-const [greeting] = useState(() => {
+const [greeting, setGreeting] = useState('')
+useEffect(() => {
+  let text = ''
   try {
-    // sessionStorage ueberlebt Seitenwechsel/Reload, wird aber beim App-Schliessen geleert
     const stored = sessionStorage.getItem('kw_greeting_' + locale)
-    if (stored) return stored
+    if (stored) text = stored
   } catch {}
-  // Neue Begruessung beim ersten Oeffnen dieser Session
-  const text = getGreeting(locale)
-  try { sessionStorage.setItem('kw_greeting_' + locale, text) } catch {}
-  return text
-})
+  if (!text) {
+    text = getGreeting(locale)
+    try { sessionStorage.setItem('kw_greeting_' + locale, text) } catch {}
+  }
+  setGreeting(text)
+}, [locale])
 useEffect(() => { loadWardrobe(); fetchWeather() }, [])
 
 useEffect(() => {
