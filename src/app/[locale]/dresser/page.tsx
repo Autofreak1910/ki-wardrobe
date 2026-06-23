@@ -118,9 +118,18 @@ const [referrerName, setReferrerName] = useState('')
   const days = locale === 'de'
     ? ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag']
     : ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
-  const today = days[new Date().getDay()]
+ const today = days[new Date().getDay()]
   const dateStr = new Date().toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-GB', { day: 'numeric', month: 'long' })
+  const [greeting, setGreeting] = useState(() => getGreeting(locale))
 useEffect(() => { loadWardrobe(); fetchWeather() }, [])
+
+useEffect(() => {
+  function refreshGreeting() {
+    if (document.visibilityState === 'visible') setGreeting(getGreeting(locale))
+  }
+  document.addEventListener('visibilitychange', refreshGreeting)
+  return () => document.removeEventListener('visibilitychange', refreshGreeting)
+}, [locale])
 
 useEffect(() => {
   if (wardrobeItems.length >= 3) {
@@ -370,15 +379,18 @@ const blockedNames = getBlockedNames()
       return stored ? JSON.parse(stored) : []
     } catch { return [] }
   })()
-  setLoading(true); setSaved(false); setOutfit(null)
+setLoading(true); setSaved(false); setOutfit(null)
+  try { localStorage.setItem('kw_outfit_generating', JSON.stringify({ occasion: selected, date: new Date().toDateString() })) } catch {}
   const filteredItems = wardrobeItems.filter(i => activeCategories.includes(i.category))
   const itemsToUse = filteredItems.length >= 2 ? filteredItems : wardrobeItems
   const weatherStr = weather ? `${weather.temp}°C, ${weather.condition}` : '18°C'
   try {
+    // keepalive sorgt dafuer dass der Request auch bei Tab-Wechsel/Backgrounding weiterlaeuft
     const res = await fetch('/api/generate-outfit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-locale': locale },
       body: JSON.stringify({ items: itemsToUse, occasion: selected, weather: weatherStr, blockedNames, usageCounts, recentCombos }),
+      keepalive: true,
     })
     const data = await res.json()
     if (data.success && data.outfits) {
@@ -429,8 +441,11 @@ const allUsedIds = (mappedOutfits[0]?.itemObjects ?? []).map((item: ClothingItem
       } catch {}
       setTimeout(() => mainRef.current?.scrollTo({ top: mainRef.current.scrollHeight, behavior: 'smooth' }), 200)
     }
-  } catch (err) { console.error(err) }
-  finally { setLoading(false) }
+} catch (err) { console.error(err) }
+  finally {
+    setLoading(false)
+    try { localStorage.removeItem('kw_outfit_generating') } catch {}
+  }
 }
 
 async function saveOutfit() {
@@ -900,7 +915,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
                 <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '4px', padding: '2px 6px', letterSpacing: '0.04em', boxShadow: '0 2px 6px rgba(251,191,36,0.4)' }}>✦ PRO</span>
               )}
             </div>
-            <h1 style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.04em', color: text, lineHeight: 1.15 }}>
+          <h1 style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.04em', color: text, lineHeight: 1.15 }}>
               {getGreeting(locale)}{username ? ',' : ''}
             </h1>
             {username && (
