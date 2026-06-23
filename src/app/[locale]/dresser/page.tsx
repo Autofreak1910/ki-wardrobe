@@ -50,19 +50,10 @@ async function activatePushNotifications(): Promise<boolean> {
 
 
 function getGreeting(locale: string): string {
-  const h = new Date().getHours()
-  if (locale === 'de') {
-    if (h < 5)  return 'Gute Nacht'
-    if (h < 12) return 'Guten Morgen'
-    if (h < 17) return 'Guten Tag'
-    if (h < 22) return 'Guten Abend'
-    return 'Gute Nacht'
-  }
-  if (h < 5)  return 'Good night'
-  if (h < 12) return 'Good morning'
-  if (h < 17) return 'Good afternoon'
-  if (h < 22) return 'Good evening'
-  return 'Good night'
+  const greetingsDe = ['Hey', 'Hi', 'Servus', 'Hallo', 'Na', 'Yo', 'Moin', 'Hey du', 'Was geht', 'Schön dich zu sehen', 'Da bist du ja', 'Let\'s go']
+  const greetingsEn = ['Hey', 'Hi', 'Yo', 'Hello', 'Sup', 'What\'s up', 'Hey you', 'Good to see you', 'There you are', 'Let\'s go', 'Hiya', 'Welcome back']
+  const pool = locale === 'de' ? greetingsDe : greetingsEn
+  return pool[Math.floor(Math.random() * pool.length)]
 }
 
 const occasions = ['casual', 'uni', 'work', 'date', 'sport', 'party', 'festival'] as const
