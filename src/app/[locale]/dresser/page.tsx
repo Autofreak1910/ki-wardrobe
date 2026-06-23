@@ -952,7 +952,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
                 <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '4px', padding: '2px 6px', letterSpacing: '0.04em', boxShadow: '0 2px 6px rgba(251,191,36,0.4)' }}>✦ PRO</span>
               )}
             </div>
-       <h1 style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.04em', color: text, lineHeight: 1.15 }}>
+      <h1 style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.04em', color: text, lineHeight: 1.15 }}>
               {greeting}{username ? ',' : ''}
             </h1>
           {username && (
