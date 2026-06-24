@@ -11,23 +11,24 @@ export default function SplashScreen({ onDone, isPremium = false }: { onDone: ()
   useEffect(() => {
     setIsDark(window.matchMedia('(prefers-color-scheme: dark)').matches)
 
-    const interval = setInterval(() => {
+const interval = setInterval(() => {
       setProgress(prev => {
         if (prev >= 100) {
           clearInterval(interval)
-          setTimeout(() => { setDone(true); setTimeout(onDone, 400) }, 150)
+          setTimeout(() => { setDone(true); setTimeout(onDone, 400) }, 400)
           return 100
         }
-        return prev + Math.random() * 18 + 8
+        return prev + Math.random() * 11 + 5
       })
     }, 100)
     return () => clearInterval(interval)
   }, [])
 
-  const bg = isDark ? '#0a0a0a' : '#fafafa'
-  const fg = isDark ? '#fafafa' : '#09090b'
-  const sub = isDark ? '#71717a' : '#71717a'
-  const bar = isDark ? '#27272a' : '#e4e4e7'
+  // An die echten App-Hintergrundfarben angleichen (kein weisser Bruch zum iOS-Splash)
+  const bg = isDark ? '#080c18' : '#f0f4ff'
+  const fg = isDark ? '#e8eeff' : '#0a1628'
+  const sub = isDark ? '#4d6080' : '#6b7fa8'
+  const bar = isDark ? '#1a2540' : '#dde3f5'
 
   return (
     <AnimatePresence>
