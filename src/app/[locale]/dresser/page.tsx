@@ -393,7 +393,6 @@ const blockedNames = getBlockedNames()
     } catch { return [] }
   })()
 setLoading(true); setSaved(false); setOutfit(null)
-  try { localStorage.setItem('kw_outfit_generating', JSON.stringify({ occasion: selected, date: new Date().toDateString() })) } catch {}
   const filteredItems = wardrobeItems.filter(i => activeCategories.includes(i.category))
   const itemsToUse = filteredItems.length >= 2 ? filteredItems : wardrobeItems
   const weatherStr = weather ? `${weather.temp}°C, ${weather.condition}` : '18°C'
