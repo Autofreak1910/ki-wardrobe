@@ -128,13 +128,23 @@ const sessionUsedTops = new Set<string>(blocked)
      const pickedHose = pickLeastUsed(hosen, usage, sessionUsedHosen)
       const pickedSchuh = pickLeastUsed(schuhe, usage, sessionUsedSchuhe)
       console.log('PICKED hose:', pickedHose ? uniqueId(pickedHose) : 'none', '| PICKED schuh:', pickedSchuh ? uniqueId(pickedSchuh) : 'none')
-     // Jacke: Wenn User die Jacken-Kategorie ausgewaehlt hat, kommt IMMER eine rein.
-      // Nur wenn Wetter-Modus aktiv UND sehr warm (>24°C), darf sie weggelassen werden.
+  // Jacke: Wenn User die Jacken-Kategorie ausgewaehlt hat, kommt eine rein.
+      // Bei aktivem Wetter-Modus haengt es von der Temperatur ab.
       let pickedJacke: any = null
       if (jacken.length > 0 && wantsJacket) {
-        if (useWeather && tempValue > 24) {
-          pickedJacke = Math.random() > 0.6 ? pickLeastUsed(jacken, usage, new Set()) : null
+        if (useWeather) {
+          if (tempValue >= 25) {
+            // Heiss: gar keine Jacke
+            pickedJacke = null
+          } else if (tempValue >= 20) {
+            // Mild: Jacke nur selten (leichte Jacke denkbar)
+            pickedJacke = Math.random() > 0.7 ? pickLeastUsed(jacken, usage, new Set()) : null
+          } else {
+            // Kuehl/kalt: Jacke immer
+            pickedJacke = pickLeastUsed(jacken, usage, new Set())
+          }
         } else {
+          // Wetter-Modus aus: Jacke immer wenn ausgewaehlt
           pickedJacke = pickLeastUsed(jacken, usage, new Set())
         }
       }
