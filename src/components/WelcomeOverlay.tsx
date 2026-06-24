@@ -16,12 +16,20 @@ const STEPS = [
     descEn: 'Your location, real temperature — AI picks weather-appropriate outfits automatically.',
     tooltipPos: 'below' as const,
   },
-  {
+{
     refKey: 'categoryRef' as const,
     titleDe: '👕 Kategorien wählen',
     titleEn: '👕 Choose Categories',
     descDe: 'Tippe an was du anziehen willst — Outfit wird genau daran angepasst.',
     descEn: 'Tap what you want to wear — outfit gets customized to your choice.',
+    tooltipPos: 'below' as const,
+  },
+  {
+    refKey: 'weatherToggleRef' as const,
+    titleDe: '🌤 Wetter an oder aus?',
+    titleEn: '🌤 Weather on or off?',
+    descDe: 'Mit Wetter AN stylt die KI passend zur Temperatur — keine Jacke bei 30°, warm bei Kälte. AUS heißt: Die KI nimmt genau das, was du auswählst.',
+    descEn: 'With weather ON the AI styles for the temperature — no jacket at 30°, warm when cold. OFF means the AI uses exactly what you select.',
     tooltipPos: 'below' as const,
   },
   {
@@ -37,12 +45,13 @@ const STEPS = [
 interface Props {
   weatherRef: RefObject<HTMLDivElement | null>
   categoryRef: RefObject<HTMLDivElement | null>
+  weatherToggleRef: RefObject<HTMLDivElement | null>
   dressMeRef: RefObject<HTMLButtonElement | null>
   itemCount: number
   delayMs?: number
 }
 
-export default function WelcomeOverlay({ weatherRef, categoryRef, dressMeRef, itemCount, delayMs = 0 }: Props) {
+export default function WelcomeOverlay({ weatherRef, categoryRef, weatherToggleRef, dressMeRef, itemCount, delayMs = 0 }: Props) {
   const [show, setShow] = useState(false)
   const [step, setStep] = useState(0)
   const [rect, setRect] = useState<Rect | null>(null)

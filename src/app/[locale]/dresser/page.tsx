@@ -111,6 +111,7 @@ const [username, setUsername] = useState<string>('')
   const mainRef = useRef<HTMLElement>(null)
   const weatherRef = useRef<HTMLDivElement>(null)
 const categoryRef = useRef<HTMLDivElement>(null)
+const weatherToggleRef = useRef<HTMLDivElement>(null)
 const dressMeRef = useRef<HTMLButtonElement>(null)
 const [showUnlock, setShowUnlock] = useState(false)
 const [showPushPrompt, setShowPushPrompt] = useState(false)
@@ -470,9 +471,10 @@ return (
 <WelcomeOverlay
   weatherRef={weatherRef}
   categoryRef={categoryRef}
+  weatherToggleRef={weatherToggleRef}
   dressMeRef={dressMeRef}
   itemCount={wardrobeItems.length}
-  delayMs={showUnlock ? 2900 : 0}
+  delayMs={showUnlock ? 3200 : 0}
 />
 
 <AnimatePresence>
@@ -1091,8 +1093,8 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
               </div>
            </motion.div>
 
-            {/* ── Wetter-Schalter ── */}
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.21, duration: 0.4 }}
+         {/* ── Wetter-Schalter ── */}
+            <motion.div ref={weatherToggleRef} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.21, duration: 0.4 }}
               onClick={() => { setWeatherAware(v => !v); setOutfit(null) }}
               style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '14px', border: `1px solid ${weatherAware ? accent + '40' : border}`, background: weatherAware ? accentDim : card, marginBottom: '18px', cursor: 'pointer', WebkitTapHighlightColor: 'transparent' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
