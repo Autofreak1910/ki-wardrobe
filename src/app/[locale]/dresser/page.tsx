@@ -127,26 +127,7 @@ useEffect(() => {
   setGreeting(getGreeting(locale))
 }, [locale])
 useEffect(() => { loadWardrobe(); fetchWeather() }, [])
-// Heartbeat: solange App offen ist, laufend "lastSeen" schreiben (alle 10 Sek)
-useEffect(() => {
-  function heartbeat() {
-    try { localStorage.setItem('kw_app_last_seen', String(Date.now())) } catch {}
-  }
-  // NICHT sofort schreiben — erst nach 2 Sek, damit loadWardrobe den alten Wert noch lesen kann
-  const startTimer = setTimeout(heartbeat, 2000)
-  const interval = setInterval(() => {
-    if (document.visibilityState === 'visible') heartbeat()
-  }, 10 * 1000)
-  function onVisible() {
-    if (document.visibilityState === 'visible') heartbeat()
-  }
-document.addEventListener('visibilitychange', onVisible)
-  return () => {
-    clearTimeout(startTimer)
-    clearInterval(interval)
-    document.removeEventListener('visibilitychange', onVisible)
-  }
-}, [])
+
 
 useEffect(() => {
   if (wardrobeItems.length >= 3) {
@@ -190,13 +171,6 @@ useEffect(() => {
 }, [outfit])
 
 async function loadWardrobe() {
-    // GANZ ZUERST auslesen, bevor der Heartbeat den Wert ueberschreibt
-    let lastSeenAgoAtLoad = 999999999
-    try {
-      const ls = localStorage.getItem('kw_app_last_seen')
-      if (ls) lastSeenAgoAtLoad = Date.now() - parseInt(ls)
-    } catch {}
-
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
 // Pruefe ob eingeladener User die Begruessung noch nicht gesehen hat (pro User-ID, nicht pro Browser)
@@ -239,34 +213,8 @@ async function loadWardrobe() {
       .limit(1)
       .maybeSingle()
 
-// PRIORITAET 1: zuletzt generiertes Outfit aus localStorage (nur wenn vor <5 Min zuletzt aktiv)
-    let restored = false
-    try {
-      const stored = localStorage.getItem('kw_current_outfit')
-      if (stored && data) {
-  const parsed = JSON.parse(stored)
-        const fiveMin = 5 * 60 * 1000
-        // Wert von GANZ OBEN nutzen (vor Heartbeat-Ueberschreibung gelesen)
-        const stillFresh = lastSeenAgoAtLoad < fiveMin
-        console.log('Outfit restore check — last seen ago (sec):', Math.round(lastSeenAgoAtLoad / 1000), 'stillFresh:', stillFresh)
-        if (parsed.date === new Date().toDateString() && parsed.outfits?.length > 0 && stillFresh) {
-          const rebuiltOutfits = parsed.outfits.map((o: any) => ({
-            ...o,
-            itemObjects: (o.itemObjects ?? [])
-              .map((saved: any) => data.find(i => i.id === saved.id) ?? saved)
-              .filter(Boolean),
-          }))
-          setOutfit({ outfits: rebuiltOutfits, active: parsed.active ?? 0 })
-          if (parsed.occasion) setSelected(parsed.occasion)
-          restored = true
-        } else {
-          localStorage.removeItem('kw_current_outfit')
-        }
-      }
-    } catch {}
-
-    // PRIORITAET 2: heutiges daily_outfit (nur falls kein gespeichertes da war)
-    if (!restored && dailyOutfit && data) {
+// Heutiges daily_outfit anzeigen
+    if (dailyOutfit && data) {
       const itemObjects = dailyOutfit.item_ids
         .map((id: string) => data.find(i => i.id === id))
         .filter(Boolean)
@@ -471,7 +419,6 @@ setLoading(true); setSaved(false); setOutfit(null)
         return { items: o.items, reasoning: o.reasoning, vibe: o.vibe, itemObjects: matchedItems }
       })
 setOutfit({ outfits: mappedOutfits, active: 0 })
-   try { localStorage.setItem('kw_current_outfit', JSON.stringify({ outfits: mappedOutfits, active: 0, occasion: selected, date: new Date().toDateString() })) } catch {}
    // Falls Tab nicht aktiv: lokale Benachrichtigung dass Outfit fertig ist
    try {
      if (document.visibilityState === 'hidden' && 'Notification' in window && Notification.permission === 'granted') {
@@ -499,7 +446,6 @@ const allUsedIds = (mappedOutfits[0]?.itemObjects ?? []).map((item: ClothingItem
 } catch (err) { console.error(err) }
   finally {
     setLoading(false)
-    try { localStorage.removeItem('kw_outfit_generating') } catch {}
   }
 }
 
@@ -1214,7 +1160,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
       <div style={{ display: 'flex', gap: '6px' }}>
         {outfit.outfits.map((o, i) => (
           <motion.button key={i} whileTap={{ scale: 0.95 }}
-   onClick={() => { const updated = { ...outfit, active: i }; setOutfit(updated); setSaved(false); try { localStorage.setItem('kw_current_outfit', JSON.stringify({ ...updated, occasion: selected, date: new Date().toDateString() })) } catch {} }}
+  onClick={() => { setOutfit({ ...outfit, active: i }); setSaved(false) }}
             style={{
               flex: 1, padding: '8px 4px', borderRadius: '10px',
               border: `1px solid ${outfit.active === i ? accent : border}`,
