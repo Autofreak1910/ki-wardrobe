@@ -75,8 +75,10 @@ function pickLeastUsed(pool: any[], usage: Record<string, UsageInfo>, excludeIds
 
 export async function POST(request: NextRequest) {
   try {
-    const { items, occasion, weather, blockedNames, usageCounts, recentCombos } = await request.json()
+    const { items, occasion, weather, blockedNames, usageCounts, recentCombos, activeCategories, weatherAware } = await request.json()
     const recentComboSet = new Set(Array.isArray(recentCombos) ? recentCombos : [])
+    const wantsJacket = Array.isArray(activeCategories) ? activeCategories.includes('jacken') : true
+    const useWeather = weatherAware !== false
     const locale = request.headers.get('x-locale') || 'de'
     const isEnglish = locale === 'en'
 const usage: Record<string, UsageInfo> = usageCounts && typeof usageCounts === 'object' ? usageCounts : {}
@@ -109,7 +111,7 @@ const sessionUsedTops = new Set<string>(blocked)
       let pickedTop: any = null
       let pickedBaseTop: any = null
 
-      if (isCold) {
+      if (isCold && useWeather) {
         const layerPieces = tops.filter((t: any) => t.layer_type === 'layer')
         const basePieces = tops.filter((t: any) => t.layer_type === 'base')
         if (layerPieces.length > 0 && basePieces.length > 0 && Math.random() > 0.4) {
@@ -126,9 +128,16 @@ const sessionUsedTops = new Set<string>(blocked)
      const pickedHose = pickLeastUsed(hosen, usage, sessionUsedHosen)
       const pickedSchuh = pickLeastUsed(schuhe, usage, sessionUsedSchuhe)
       console.log('PICKED hose:', pickedHose ? uniqueId(pickedHose) : 'none', '| PICKED schuh:', pickedSchuh ? uniqueId(pickedSchuh) : 'none')
-      const pickedJacke = jacken.length > 0 && Math.random() > 0.45
-        ? pickLeastUsed(jacken, usage, new Set())
-        : null
+     // Jacke: Wenn User die Jacken-Kategorie ausgewaehlt hat, kommt IMMER eine rein.
+      // Nur wenn Wetter-Modus aktiv UND sehr warm (>24°C), darf sie weggelassen werden.
+      let pickedJacke: any = null
+      if (jacken.length > 0 && wantsJacket) {
+        if (useWeather && tempValue > 24) {
+          pickedJacke = Math.random() > 0.6 ? pickLeastUsed(jacken, usage, new Set()) : null
+        } else {
+          pickedJacke = pickLeastUsed(jacken, usage, new Set())
+        }
+      }
 
       if (pickedTop) sessionUsedTops.add(uniqueId(pickedTop))
       if (pickedBaseTop) sessionUsedTops.add(uniqueId(pickedBaseTop))

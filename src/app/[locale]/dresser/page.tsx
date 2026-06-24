@@ -96,6 +96,7 @@ const [outfit, setOutfit] = useState<OutfitGroup | null>(null)
   const [wardrobeItems, setWardrobeItems] = useState<ClothingItem[]>([])
   const [hasItems, setHasItems] = useState(true)
  const [activeCategories, setActiveCategories] = useState<string[]>(['tops', 'hosen', 'jacken', 'schuhe'])
+ const [weatherAware, setWeatherAware] = useState(true)
   const [weather, setWeather] = useState<Weather | null>(null)
   const [weatherLoading, setWeatherLoading] = useState(true)
 const [username, setUsername] = useState<string>('')
@@ -392,7 +393,7 @@ setLoading(true); setSaved(false); setOutfit(null)
     const res = await fetch('/api/generate-outfit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-locale': locale },
-      body: JSON.stringify({ items: itemsToUse, occasion: selected, weather: weatherStr, blockedNames, usageCounts, recentCombos }),
+      body: JSON.stringify({ items: itemsToUse, occasion: selected, weather: weatherStr, blockedNames, usageCounts, recentCombos, activeCategories, weatherAware }),
       keepalive: true,
     })
     const data = await res.json()
@@ -1103,6 +1104,28 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
                     </motion.button>
                   )
                 })}
+              </div>
+           </motion.div>
+
+            {/* ── Wetter-Schalter ── */}
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.21, duration: 0.4 }}
+              onClick={() => { setWeatherAware(v => !v); setOutfit(null) }}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '14px', border: `1px solid ${weatherAware ? accent + '40' : border}`, background: weatherAware ? accentDim : card, marginBottom: '18px', cursor: 'pointer', WebkitTapHighlightColor: 'transparent' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
+                <span style={{ fontSize: '17px' }}>{weatherAware ? '🌤️' : '🎨'}</span>
+                <div>
+                  <p style={{ fontSize: '13px', fontWeight: 700, color: text, letterSpacing: '-0.01em' }}>
+                    {locale === 'de' ? 'Wetter berücksichtigen' : 'Consider weather'}
+                  </p>
+                  <p style={{ fontSize: '11px', color: muted, marginTop: '1px' }}>
+                    {weatherAware
+                      ? (locale === 'de' ? 'KI passt Outfit ans Wetter an' : 'AI matches outfit to weather')
+                      : (locale === 'de' ? 'Nur deine Auswahl zählt' : 'Only your selection counts')}
+                  </p>
+                </div>
+              </div>
+              <div style={{ width: '44px', height: '26px', borderRadius: '13px', background: weatherAware ? accent : border, position: 'relative' as const, transition: 'background 0.2s', flexShrink: 0 }}>
+                <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#fff', position: 'absolute', top: '3px', transition: 'left 0.2s', left: weatherAware ? '21px' : '3px', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
               </div>
             </motion.div>
 
