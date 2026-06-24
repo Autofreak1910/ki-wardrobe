@@ -81,11 +81,35 @@ for (const userId of userIds) {
         } catch {}
       }
 
+      // Temperatur aus weatherStr extrahieren fuer klare Wetter-Regeln
+      const tempMatch = weatherStr.match(/(-?\d+)/)
+      const tempValue = tempMatch ? parseInt(tempMatch[1]) : 18
+
+      let weatherRule = ''
+      if (tempValue >= 25) {
+        weatherRule = 'Es ist HEISS (über 25°C). Wähle KEINE Jacke und keine warmen Schichten. Leichte, luftige Kleidung.'
+      } else if (tempValue >= 20) {
+        weatherRule = 'Es ist warm (20-24°C). Normalerweise KEINE Jacke nötig, höchstens eine sehr leichte.'
+      } else if (tempValue >= 16) {
+        weatherRule = 'Es ist mild (16-19°C). Eine leichte Jacke ist optional.'
+      } else if (tempValue >= 8) {
+        weatherRule = 'Es ist kühl (8-15°C). Eine Jacke wird empfohlen.'
+      } else {
+        weatherRule = 'Es ist KALT (unter 8°C). Eine warme Jacke und ggf. mehrere Schichten sind wichtig.'
+      }
+
       const completion = await openai.chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: 'Du bist ein KI-Modeberater. Antworte ausschließlich mit validem JSON, keine Erklärungen außerhalb des JSON.' },
-          { role: 'user', content: `Erstelle EIN Outfit für heute aus dieser Kleidung: ${JSON.stringify(items.map((i: any) => ({ name: i.name, category: i.category, color: i.color })))}. Wetter: ${weatherStr}. Anlass: Casual/Alltag. Antworte als JSON: {"items": ["Name1", "Name2"], "reasoning": "kurze Begründung auf Deutsch", "vibe": "kurzes Stichwort"}` },
+          { role: 'system', content: 'Du bist ein KI-Modeberater. Du beachtest IMMER das Wetter und die Temperatur bei der Outfit-Wahl. Antworte ausschließlich mit validem JSON, keine Erklärungen außerhalb des JSON.' },
+          { role: 'user', content: `Erstelle EIN Outfit für heute aus dieser Kleidung: ${JSON.stringify(items.map((i: any) => ({ name: i.name, category: i.category, color: i.color })))}.
+
+WETTER: ${weatherStr}.
+WICHTIGE WETTER-REGEL: ${weatherRule}
+
+Ein vollständiges Outfit hat ein Oberteil, eine Hose und Schuhe. Eine Jacke NUR wenn es die Temperatur erfordert (siehe Wetter-Regel). Anlass: Casual/Alltag.
+
+Antworte als JSON: {"items": ["Name1", "Name2", "Name3"], "reasoning": "kurze Begründung auf Deutsch die die Temperatur erwähnt", "vibe": "kurzes Stichwort"}` },
         ],
         response_format: { type: 'json_object' },
       })
