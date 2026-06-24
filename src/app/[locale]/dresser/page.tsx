@@ -127,7 +127,16 @@ const [greeting, setGreeting] = useState('')
 useEffect(() => {
   setGreeting(getGreeting(locale))
 }, [locale])
-useEffect(() => { loadWardrobe(); fetchWeather() }, [])
+useEffect(() => {
+  // Altes gespeichertes Outfit + Flags einmalig entfernen (Persistenz wurde abgeschafft)
+  try {
+    localStorage.removeItem('kw_current_outfit')
+    localStorage.removeItem('kw_outfit_generating')
+    localStorage.removeItem('kw_app_last_seen')
+  } catch {}
+  loadWardrobe()
+  fetchWeather()
+}, [])
 
 
 useEffect(() => {
