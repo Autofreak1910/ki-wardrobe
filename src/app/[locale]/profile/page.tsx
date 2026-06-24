@@ -114,8 +114,12 @@ const [totalInvitesSuccessful, setTotalInvitesSuccessful] = useState(0)
 const [showInviteStats, setShowInviteStats] = useState(false)
 const [pushEnabled, setPushEnabled] = useState(false)
 const [pushLoading, setPushLoading] = useState(false)
+const [weatherEnabled, setWeatherEnabled] = useState(true)
 
-  useEffect(() => { loadProfile() }, [])
+useEffect(() => { loadProfile() }, [])
+  useEffect(() => {
+    setWeatherEnabled(localStorage.getItem('kw_weather_disabled') !== 'true')
+  }, [])
 useEffect(() => {
   const params = new URLSearchParams(window.location.search)
   if (params.get('upgrade') === 'true') setShowUpgrade(true)
@@ -551,6 +555,29 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
               <p style={{ fontSize: '14px', color: text, fontWeight: 500 }}>Dark Mode</p>
               <button onClick={toggle} style={{ width: '44px', height: '26px', borderRadius: '13px', border: 'none', background: isDark ? accent : border, cursor: 'pointer', position: 'relative' as const, transition: 'background 0.2s' }}>
                 <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#fff', position: 'absolute', top: '3px', transition: 'left 0.2s', left: isDark ? '21px' : '3px', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+              </button>
+            </div>
+            <div style={{ height: '1px', background: border, margin: '0 16px' }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px' }}>
+              <div>
+                <p style={{ fontSize: '14px', color: text, fontWeight: 500 }}>
+                  {locale === 'de' ? '🌤️ Wetter & Standort' : '🌤️ Weather & location'}
+                </p>
+                <p style={{ fontSize: '11px', color: muted, marginTop: '2px' }}>
+                  {locale === 'de' ? 'Outfit passend zum Wetter' : 'Outfit matched to weather'}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  const newVal = !weatherEnabled
+                  setWeatherEnabled(newVal)
+                  try {
+                    if (newVal) localStorage.removeItem('kw_weather_disabled')
+                    else localStorage.setItem('kw_weather_disabled', 'true')
+                  } catch {}
+                }}
+                style={{ width: '44px', height: '26px', borderRadius: '13px', border: 'none', background: weatherEnabled ? accent : border, cursor: 'pointer', position: 'relative' as const, transition: 'background 0.2s', flexShrink: 0 }}>
+                <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#fff', position: 'absolute', top: '3px', transition: 'left 0.2s', left: weatherEnabled ? '21px' : '3px', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
               </button>
             </div>
             <div style={{ height: '1px', background: border, margin: '0 16px' }} />

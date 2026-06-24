@@ -279,23 +279,41 @@ async function loadWardrobe() {
     }
   }
 
-  async function fetchWeather() {
+ async function fetchWeather() {
   setWeatherLoading(true)
+  // Wenn Wetter in Einstellungen deaktiviert: nichts tun
+  if (localStorage.getItem('kw_weather_disabled') === 'true') {
+    setWeather(null)
+    setWeatherLoading(false)
+    return
+  }
   try {
-    // Geolocation mit kurzem Timeout
-    const pos = await Promise.race([
-      new Promise<GeolocationPosition>((resolve, reject) =>
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          timeout: 5000,
-          maximumAge: 300000, // Cache 5 Min
-          enableHighAccuracy: false,
-        })
-      ),
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('timeout')), 5000)
-      )
-    ])
-const { latitude: lat, longitude: lon } = pos.coords
+    let lat: number, lon: number
+    // Gecachte Koordinaten nutzen, falls vorhanden (kein erneutes Nachfragen)
+    const cachedCoords = localStorage.getItem('kw_coords')
+    if (cachedCoords) {
+      const parsed = JSON.parse(cachedCoords)
+      lat = parsed.lat
+      lon = parsed.lon
+    } else {
+      // Nur beim allerersten Mal nach Standort fragen
+      const pos = await Promise.race([
+        new Promise<GeolocationPosition>((resolve, reject) =>
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            timeout: 5000,
+            maximumAge: 300000,
+            enableHighAccuracy: false,
+          })
+        ),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('timeout')), 5000)
+        )
+      ])
+      lat = pos.coords.latitude
+      lon = pos.coords.longitude
+      // Koordinaten cachen, damit wir nie wieder fragen muessen
+      try { localStorage.setItem('kw_coords', JSON.stringify({ lat, lon })) } catch {}
+    }
 
     // Standort für Cron-Job speichern (für tägliches Auto-Outfit)
     supabase.auth.getSession().then(({ data: { session } }) => {
