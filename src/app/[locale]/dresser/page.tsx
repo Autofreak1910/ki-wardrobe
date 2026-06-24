@@ -114,6 +114,7 @@ const categoryRef = useRef<HTMLDivElement>(null)
 const weatherToggleRef = useRef<HTMLDivElement>(null)
 const dressMeRef = useRef<HTMLButtonElement>(null)
 const [showUnlock, setShowUnlock] = useState(false)
+const [onboardingReady, setOnboardingReady] = useState(false)
 const [showPushPrompt, setShowPushPrompt] = useState(false)
 const [showProWelcome, setShowProWelcome] = useState(false)
 const [showReferralReward, setShowReferralReward] = useState(false)
@@ -145,7 +146,12 @@ useEffect(() => {
     const seen = localStorage.getItem('kw_welcome_seen')
     if (!seen) {
       setShowUnlock(true)
-      setTimeout(() => setShowUnlock(false), 2800)
+      // Schloss-Animation laeuft 2800ms — DANACH erst Tour freigeben
+      setTimeout(() => {
+        setShowUnlock(false)
+        // Kurze Pause nach dem Ausblenden, dann Tour freigeben
+        setTimeout(() => setOnboardingReady(true), 600)
+      }, 2800)
     }
   }
 }, [wardrobeItems.length])
@@ -474,7 +480,7 @@ return (
   weatherToggleRef={weatherToggleRef}
   dressMeRef={dressMeRef}
   itemCount={wardrobeItems.length}
-  delayMs={showUnlock ? 3200 : 0}
+  ready={onboardingReady && !weatherLoading}
 />
 
 <AnimatePresence>
