@@ -1264,24 +1264,34 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
       </motion.div>
     </AnimatePresence>
 {outfit.outfits.length < 3 && (
-  <motion.div
+  <motion.button
     initial={{ opacity: 0, y: 6 }}
     animate={{ opacity: 1, y: 0 }}
+    whileTap={{ scale: 0.98 }}
+    onClick={() => router.push('/' + locale + '/wardrobe')}
     style={{
       margin: '0 18px 12px',
-      padding: '10px 14px',
+      width: 'calc(100% - 36px)',
+      padding: '12px 14px',
       borderRadius: '12px',
       background: accentDim,
-      border: `1px solid ${border}`,
-      display: 'flex', alignItems: 'center', gap: '8px',
+      border: `1px solid ${accent}40`,
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px',
+      cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
+      WebkitTapHighlightColor: 'transparent',
     }}>
-    <span style={{ fontSize: '16px' }}>👕</span>
-    <p style={{ fontSize: '12px', color: accent, fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}>
-      {locale === 'de'
-        ? `Lade mehr Klamotten hoch für bis zu 3 Vorschläge!`
-        : `Upload more clothes for up to 3 suggestions!`}
-    </p>
-  </motion.div>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <span style={{ fontSize: '16px' }}>👕</span>
+      <p style={{ fontSize: '12px', color: accent, fontWeight: 600, textAlign: 'left' as const }}>
+        {locale === 'de'
+          ? `Lade mehr Klamotten hoch für bis zu 3 Vorschläge!`
+          : `Upload more clothes for up to 3 suggestions!`}
+      </p>
+    </div>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+      <polyline points="9 18 15 12 9 6"/>
+    </svg>
+  </motion.button>
 )}
 </motion.div>
 )}
