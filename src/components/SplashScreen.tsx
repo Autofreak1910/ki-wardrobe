@@ -24,11 +24,11 @@ const interval = setInterval(() => {
     return () => clearInterval(interval)
   }, [])
 
-  // An die echten App-Hintergrundfarben angleichen (kein weisser Bruch zum iOS-Splash)
-  const bg = isDark ? '#080c18' : '#f0f4ff'
-  const fg = isDark ? '#e8eeff' : '#0a1628'
-  const sub = isDark ? '#4d6080' : '#6b7fa8'
-  const bar = isDark ? '#1a2540' : '#dde3f5'
+ // Gruener Hintergrund passend zum nativen iOS-Splash (#0ea472) — nahtloser Uebergang
+  const bg = '#0ea472'
+  const fg = '#ffffff'
+  const sub = 'rgba(255,255,255,0.8)'
+  const bar = 'rgba(255,255,255,0.25)'
 
   return (
     <AnimatePresence>
@@ -45,28 +45,23 @@ const interval = setInterval(() => {
             fontFamily: "'DM Sans', sans-serif",
           }}
         >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.92 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        <div
             style={{
-              width: '72px', height: '72px', borderRadius: '20px',
+              width: '88px', height: '88px', borderRadius: '24px',
               overflow: 'hidden', marginBottom: '20px',
-              boxShadow: isDark
-                ? '0 0 0 1px #27272a, 0 8px 24px rgba(0,0,0,0.5)'
-                : '0 0 0 1px #e4e4e7, 0 8px 24px rgba(0,0,0,0.08)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
             }}
           >
             <img src="/icon-512.png" alt="KiWardrobe" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          </motion.div>
+          </div>
 
-          <motion.p
-            initial={{ opacity: 0, y: 8 }}
+ <motion.p
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ delay: 0.25, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             style={{
               fontFamily: "'DM Serif Display', serif",
-              fontSize: '26px', fontWeight: 400,
+              fontSize: '28px', fontWeight: 400,
               color: fg, marginBottom: '4px', letterSpacing: '-0.02em',
             }}
           >
