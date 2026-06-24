@@ -1233,12 +1233,12 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
       cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
       WebkitTapHighlightColor: 'transparent',
     }}>
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+<div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
       <span style={{ fontSize: '16px' }}>👕</span>
       <p style={{ fontSize: '12px', color: accent, fontWeight: 600, textAlign: 'left' as const }}>
         {locale === 'de'
-          ? `Lade mehr Klamotten hoch für bis zu 3 Vorschläge!`
-          : `Upload more clothes for up to 3 suggestions!`}
+          ? `Tipp: Hier tippen, um mehr Klamotten für bis zu 3 Vorschläge hochzuladen!`
+          : `Tip: Tap here to upload more clothes for up to 3 suggestions!`}
       </p>
     </div>
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
