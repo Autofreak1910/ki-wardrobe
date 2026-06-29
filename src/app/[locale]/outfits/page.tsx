@@ -137,8 +137,8 @@ const accentDim = isDark ? 'rgba(77,126,255,0.1)' : 'rgba(59,107,255,0.08)'
                     transition={{ delay: i * 0.04 }}
                     style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden' }}>
                     {/* Images */}
-                    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(outfitItems.length || 1, 3)}, 1fr)`, height: '140px', background: isDark ? '#0a1510' : '#e6f7f0' }}>
-                      {outfitItems.slice(0, 3).map((item, j) => (
+                  <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(outfitItems.length || 1, 4)}, 1fr)`, height: '140px', background: isDark ? '#0a1510' : '#e6f7f0' }}>
+                      {outfitItems.map((item, j) => (
                         <div key={j} style={{ overflow: 'hidden' }}>
                           <img src={item.image_url} alt={item.name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                         </div>
