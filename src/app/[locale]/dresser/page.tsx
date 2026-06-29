@@ -98,9 +98,10 @@ const [dailyFreeOutfitLoading, setDailyFreeOutfitLoading] = useState(true)
   const [wardrobeItems, setWardrobeItems] = useState<ClothingItem[]>([])
   const [hasItems, setHasItems] = useState(true)
  const [activeCategories, setActiveCategories] = useState<string[]>(['tops', 'hosen', 'jacken', 'schuhe'])
- const [weatherAware, setWeatherAware] = useState(true)
+const [weatherAware, setWeatherAware] = useState(true)
   const [weather, setWeather] = useState<Weather | null>(null)
   const [weatherLoading, setWeatherLoading] = useState(true)
+  const [weatherDisabled, setWeatherDisabled] = useState(false)
 const [username, setUsername] = useState<string>('')
   const [isPremium, setIsPremium] = useState(false)
   const { theme } = useTheme()
@@ -235,14 +236,17 @@ async function loadWardrobe() {
 
 }
 
- async function fetchWeather() {
+async function fetchWeather() {
   setWeatherLoading(true)
   // Wenn Wetter in Einstellungen deaktiviert: nichts tun
   if (localStorage.getItem('kw_weather_disabled') === 'true') {
     setWeather(null)
     setWeatherLoading(false)
+    setWeatherDisabled(true)
+    setWeatherAware(false)
     return
   }
+  setWeatherDisabled(false)
   try {
     let lat: number, lon: number
     // Gecachte Koordinaten nutzen, falls vorhanden (kein erneutes Nachfragen)
@@ -951,13 +955,23 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
           </div>
 
           {/* Right: Weather Card */}
- <motion.div
+<motion.div
   ref={weatherRef}
   initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }}
   transition={{ delay: 0.1, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-  onClick={fetchWeather}
-  style={{ flexShrink: 0, width: '120px', background: card, border: `1px solid ${border}`, borderRadius: '20px', padding: '14px 12px', textAlign: 'center' as const, cursor: 'pointer', boxShadow: isDark ? 'none' : '0 2px 16px rgba(10,46,30,0.07)' }}>
-{weatherLoading ? (
+  onClick={() => weatherDisabled ? router.push('/' + locale + '/profile') : fetchWeather()}
+  style={{ flexShrink: 0, width: '120px', background: card, border: `1px solid ${border}`, borderRadius: '20px', padding: '14px 12px', textAlign: 'center' as const, cursor: 'pointer', opacity: weatherDisabled ? 0.55 : 1, boxShadow: isDark ? 'none' : '0 2px 16px rgba(10,46,30,0.07)' }}>
+{weatherDisabled ? (
+              <>
+                <div style={{ fontSize: '24px', lineHeight: 1, marginBottom: '6px' }}>🔒</div>
+                <p style={{ fontSize: '11px', fontWeight: 700, color: muted, lineHeight: 1.3 }}>
+                  {locale === 'de' ? 'Wetter aus' : 'Weather off'}
+                </p>
+                <p style={{ fontSize: '10px', fontWeight: 600, color: accent, marginTop: '4px' }}>
+                  {locale === 'de' ? 'Hier aktivieren' : 'Tap to enable'}
+                </p>
+              </>
+            ) : weatherLoading ? (
               <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.2, repeat: Infinity }}
                 style={{ width: '60px', height: '14px', borderRadius: '6px', background: border, margin: '0 auto 8px' }} />
             ) : (
@@ -976,7 +990,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
                 )}
               </>
             )}
-  </motion.div>
+    </motion.div>
         </div>
 
 {!dailyFreeOutfitLoading && dailyFreeOutfit && (
@@ -1165,25 +1179,27 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
               </div>
            </motion.div>
 
-         {/* ── Wetter-Schalter ── */}
+   {/* ── Wetter-Schalter ── */}
             <motion.div ref={weatherToggleRef} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.21, duration: 0.4 }}
-              onClick={() => { setWeatherAware(v => !v); setOutfit(null) }}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '14px', border: `1px solid ${weatherAware ? accent + '40' : border}`, background: weatherAware ? accentDim : card, marginBottom: '18px', cursor: 'pointer', WebkitTapHighlightColor: 'transparent' }}>
+              onClick={() => { if (weatherDisabled) { router.push('/' + locale + '/profile'); return } setWeatherAware(v => !v); setOutfit(null) }}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '14px', border: `1px solid ${weatherDisabled ? border : weatherAware ? accent + '40' : border}`, background: weatherDisabled ? card : weatherAware ? accentDim : card, marginBottom: '18px', cursor: 'pointer', opacity: weatherDisabled ? 0.55 : 1, WebkitTapHighlightColor: 'transparent' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
-                <span style={{ fontSize: '17px' }}>{weatherAware ? '🌤️' : '🎨'}</span>
+                <span style={{ fontSize: '17px' }}>{weatherDisabled ? '🔒' : weatherAware ? '🌤️' : '🎨'}</span>
                 <div>
                   <p style={{ fontSize: '13px', fontWeight: 700, color: text, letterSpacing: '-0.01em' }}>
                     {locale === 'de' ? 'Wetter berücksichtigen' : 'Consider weather'}
                   </p>
                   <p style={{ fontSize: '11px', color: muted, marginTop: '1px' }}>
-                    {weatherAware
+                    {weatherDisabled
+                      ? (locale === 'de' ? 'Standort & Wetter im Profil deaktiviert — hier tippen zum Aktivieren' : 'Location & weather disabled in profile — tap to enable')
+                      : weatherAware
                       ? (locale === 'de' ? 'KI passt Outfit ans Wetter an' : 'AI matches outfit to weather')
                       : (locale === 'de' ? 'Nur deine Auswahl zählt' : 'Only your selection counts')}
                   </p>
                 </div>
               </div>
-              <div style={{ width: '44px', height: '26px', borderRadius: '13px', background: weatherAware ? accent : border, position: 'relative' as const, transition: 'background 0.2s', flexShrink: 0 }}>
-                <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#fff', position: 'absolute', top: '3px', transition: 'left 0.2s', left: weatherAware ? '21px' : '3px', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+              <div style={{ width: '44px', height: '26px', borderRadius: '13px', background: weatherDisabled ? border : weatherAware ? accent : border, position: 'relative' as const, transition: 'background 0.2s', flexShrink: 0 }}>
+                <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#fff', position: 'absolute', top: '3px', transition: 'left 0.2s', left: weatherAware && !weatherDisabled ? '21px' : '3px', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
               </div>
             </motion.div>
 
