@@ -932,20 +932,22 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
                 {username}.
               </p>
             )}
-            {wardrobeItems.length > 0 && (
-              <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', marginTop: '10px', background: accentDim, border: `1px solid ${border}`, borderRadius: '100px', padding: '5px 12px 5px 10px' }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.57a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.57a2 2 0 00-1.34-2.23z"/>
-                </svg>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: muted }}>
-                  {locale === 'de' ? 'Kleiderschrank:' : 'Wardrobe:'}
-                </span>
-                <span style={{ fontSize: '12px', fontWeight: 800, color: accent }}>
-                  {wardrobeItems.length} {locale === 'de' ? 'Teile' : 'items'}
-                </span>
-              </motion.div>
-            )}
+           {wardrobeItems.length > 0 && (
+  <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}
+    whileTap={{ scale: 0.95 }}
+    onClick={() => router.push('/' + locale + '/wardrobe')}
+    style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', marginTop: '10px', background: accentDim, border: `1px solid ${border}`, borderRadius: '100px', padding: '5px 12px 5px 10px', cursor: 'pointer', WebkitTapHighlightColor: 'transparent' }}>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.57a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.57a2 2 0 00-1.34-2.23z"/>
+    </svg>
+    <span style={{ fontSize: '12px', fontWeight: 600, color: muted }}>
+      {locale === 'de' ? 'Kleiderschrank:' : 'Wardrobe:'}
+    </span>
+    <span style={{ fontSize: '12px', fontWeight: 800, color: accent }}>
+      {wardrobeItems.length} {locale === 'de' ? 'Teile' : 'items'}
+    </span>
+  </motion.div>
+)}
           </div>
 
           {/* Right: Weather Card */}
