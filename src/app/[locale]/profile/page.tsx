@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useTheme } from '@/context/ThemeContext'
 import { useLocale } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
@@ -115,11 +115,24 @@ const [showInviteStats, setShowInviteStats] = useState(false)
 const [pushEnabled, setPushEnabled] = useState(false)
 const [pushLoading, setPushLoading] = useState(false)
 const [weatherEnabled, setWeatherEnabled] = useState(true)
+const [highlightWeather, setHighlightWeather] = useState(false)
+const weatherSettingRef = useRef<HTMLDivElement>(null)
 
 useEffect(() => { loadProfile() }, [])
   useEffect(() => {
     setWeatherEnabled(localStorage.getItem('kw_weather_disabled') !== 'true')
   }, [])
+
+useEffect(() => {
+  const params = new URLSearchParams(window.location.search)
+  if (params.get('scrollTo') === 'weather' && weatherSettingRef.current) {
+    setTimeout(() => {
+      weatherSettingRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      setHighlightWeather(true)
+      setTimeout(() => setHighlightWeather(false), 2200)
+    }, 400)
+  }
+}, [loading])
 useEffect(() => {
   const params = new URLSearchParams(window.location.search)
   if (params.get('upgrade') === 'true') setShowUpgrade(true)
@@ -558,7 +571,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
               </button>
             </div>
             <div style={{ height: '1px', background: border, margin: '0 16px' }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px' }}>
+  <div ref={weatherSettingRef} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderRadius: '12px', background: highlightWeather ? accentDim : 'transparent', boxShadow: highlightWeather ? `0 0 0 2px ${accent}` : 'none', transition: 'background 0.3s, box-shadow 0.3s' }}>
               <div>
                 <p style={{ fontSize: '14px', color: text, fontWeight: 500 }}>
                   {locale === 'de' ? '🌤️ Wetter & Standort' : '🌤️ Weather & location'}

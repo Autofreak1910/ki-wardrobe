@@ -959,7 +959,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
   ref={weatherRef}
   initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }}
   transition={{ delay: 0.1, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-  onClick={() => weatherDisabled ? router.push('/' + locale + '/profile') : fetchWeather()}
+onClick={() => weatherDisabled ? router.push('/' + locale + '/profile?scrollTo=weather') : fetchWeather()}
   style={{ flexShrink: 0, width: '120px', background: card, border: `1px solid ${border}`, borderRadius: '20px', padding: '14px 12px', textAlign: 'center' as const, cursor: 'pointer', opacity: weatherDisabled ? 0.55 : 1, boxShadow: isDark ? 'none' : '0 2px 16px rgba(10,46,30,0.07)' }}>
 {weatherDisabled ? (
               <>
@@ -1181,7 +1181,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
 
    {/* ── Wetter-Schalter ── */}
             <motion.div ref={weatherToggleRef} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.21, duration: 0.4 }}
-              onClick={() => { if (weatherDisabled) { router.push('/' + locale + '/profile'); return } setWeatherAware(v => !v); setOutfit(null) }}
+              onClick={() => { if (weatherDisabled) { router.push('/' + locale + '/profile?scrollTo=weather'); return } setWeatherAware(v => !v); setOutfit(null) }}
               style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '14px', border: `1px solid ${weatherDisabled ? border : weatherAware ? accent + '40' : border}`, background: weatherDisabled ? card : weatherAware ? accentDim : card, marginBottom: '18px', cursor: 'pointer', opacity: weatherDisabled ? 0.55 : 1, WebkitTapHighlightColor: 'transparent' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
                 <span style={{ fontSize: '17px' }}>{weatherDisabled ? '🔒' : weatherAware ? '🌤️' : '🎨'}</span>
