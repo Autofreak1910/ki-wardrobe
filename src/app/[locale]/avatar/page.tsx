@@ -253,10 +253,10 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
                 {locale === 'de' ? 'Probiere Klamotten virtuell an' : 'Try on clothes virtually'}
               </p>
             </div>
-            {!isPremium && (
+          {!isPremium && (
               <div style={{ background: accentDim, border: `1px solid ${border}`, borderRadius: '12px', padding: '8px 12px', textAlign: 'center' as const }}>
-                <p style={{ fontSize: '18px', fontWeight: 800, color: triesLeft > 0 ? accent : '#ef4444' }}>{triesLeft}</p>
-                <p style={{ fontSize: '10px', color: muted }}>{locale === 'de' ? 'übrig' : 'left'}</p>
+                <p style={{ fontSize: '18px', fontWeight: 800, color: triesLeft > 0 ? accent : '#ef4444' }}>{triesLeft}<span style={{ fontSize: '12px', fontWeight: 600, color: muted }}>/3</span></p>
+                <p style={{ fontSize: '10px', color: muted }}>{locale === 'de' ? 'übrig · einmalig' : 'left · one-time'}</p>
               </div>
             )}
           {isPremium && (
