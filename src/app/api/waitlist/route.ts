@@ -19,3 +19,9 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ success: true })
 }
+
+export async function GET() {
+  const supabase = await createClient()
+  const { count } = await supabase.from('waitlist').select('*', { count: 'exact', head: true })
+  return NextResponse.json({ count: count ?? 0 })
+}
