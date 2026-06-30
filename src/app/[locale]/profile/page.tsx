@@ -110,6 +110,7 @@ const [withdrawalConsent, setWithdrawalConsent] = useState(false)
   const accentDim = isDark ? 'rgba(77,126,255,0.1)' : 'rgba(59,107,255,0.08)'
 const [todayOutfits, setTodayOutfits] = useState(0)
 const [tryOnToday, setTryOnToday] = useState(0)
+const [multiScansThisWeek, setMultiScansThisWeek] = useState(0)
 const [totalInvitesSuccessful, setTotalInvitesSuccessful] = useState(0)
 const [showInviteStats, setShowInviteStats] = useState(false)
 const [pushEnabled, setPushEnabled] = useState(false)
@@ -146,15 +147,19 @@ async function loadProfile() {
     if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
     const startOfDay = new Date()
     startOfDay.setHours(0, 0, 0, 0)
-  const [profileRes, itemsRes, outfitsRes, todayOutfitsRes, tryOnRes] = await Promise.all([
+const weekAgo = new Date()
+    weekAgo.setDate(weekAgo.getDate() - 7)
+  const [profileRes, itemsRes, outfitsRes, todayOutfitsRes, tryOnRes, multiScanRes] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', session.user.id).single(),
       supabase.from('clothing_items').select('id').eq('user_id', session.user.id),
       supabase.from('outfits').select('id').eq('user_id', session.user.id),
       supabase.from('outfit_generations').select('id', { count: 'exact', head: true }).eq('user_id', session.user.id).gte('created_at', startOfDay.toISOString()),
       supabase.from('avatar_results').select('id', { count: 'exact', head: true }).eq('user_id', session.user.id).gte('created_at', startOfDay.toISOString()),
+      supabase.from('multi_scan_generations').select('id', { count: 'exact', head: true }).eq('user_id', session.user.id).gte('created_at', weekAgo.toISOString()),
     ])
   setTodayOutfits(todayOutfitsRes.count ?? 0)
   setTryOnToday(tryOnRes.count ?? 0)
+  setMultiScansThisWeek(multiScanRes.count ?? 0)
 
 if (profileRes.data?.referral_code) {
     const { data: refCount } = await supabase.rpc('count_successful_referrals', { p_referral_code: profileRes.data.referral_code })
@@ -319,14 +324,15 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
           </div>
 
           {/* Stats */}
-         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
             {[
               { label: locale === 'de' ? 'Kleidung' : 'Items', value: itemCount, max: isPremium ? null : 20 },
               { label: locale === 'de' ? 'Outfits' : 'Outfits', value: todayOutfits, max: isPremium ? 15 : 3 },
               { label: locale === 'de' ? 'Gespeichert' : 'Saved', value: outfitCount, max: isPremium ? null : 5 },
-        isPremium
+              isPremium
                 ? { label: 'Try-On', value: tryOnToday, max: 2 }
                 : { label: 'Try-On', value: (3 - (profile?.avatar_tries_left ?? 3)), max: 3 },
+              ...(isPremium ? [{ label: locale === 'de' ? 'Schrank-Scan' : 'Closet scan', value: multiScansThisWeek, max: 3 }] : []),
             ].map(stat => (
               <div key={stat.label} style={{ background: card, border: `1px solid ${border}`, borderRadius: '14px', padding: '14px 12px', textAlign: 'center' as const }}>
                 <p style={{ fontSize: '22px', fontWeight: 800, color: stat.max && stat.value >= stat.max ? '#ef4444' : text, letterSpacing: '-0.03em', marginBottom: '2px' }}>
@@ -692,6 +698,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
 { title: locale === 'de' ? 'Max. 5 Outfits speichern' : 'Max. 5 saved outfits', sub: '' },
 { title: locale === 'de' ? 'Basis KI-Styling' : 'Basic AI styling', sub: '' },
 { title: locale === 'de' ? '3 Virtual Try-Ons' : '3 virtual try-ons', sub: locale === 'de' ? 'einmalig, gesamt' : 'one-time, total' },
+{ title: locale === 'de' ? 'Kein Schrank-Scan' : 'No closet scan', sub: '' },
             ].map((f, i) => (
               <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
                 <span style={{ fontSize: '11px', color: muted, flexShrink: 0, marginTop: '2px' }}>○</span>
@@ -732,7 +739,8 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
                 { title: locale === 'de' ? 'Unbegrenzt Kleidung' : 'Unlimited items', sub: '' },
                 { title: locale === 'de' ? 'Unbegrenzt speichern' : 'Unlimited saved', sub: '' },
                 { title: locale === 'de' ? '2× Virtual Try-On' : '2× Virtual Try-On', sub: locale === 'de' ? 'pro Tag' : 'per day' },
-                { title: 'Style DNA', sub: locale === 'de' ? 'KI Stil-Analyse' : 'AI style analysis' },
+              { title: 'Style DNA', sub: locale === 'de' ? 'KI Stil-Analyse' : 'AI style analysis' },
+                { title: locale === 'de' ? 'Schrank-Scan ✦' : 'Closet scan ✦', sub: locale === 'de' ? '3× pro Woche · ganzer Schrank' : '3× per week · whole closet' },
               ].map((f, i) => (
                 <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
                   <span style={{ fontSize: '11px', color: '#fff', flexShrink: 0, marginTop: '2px' }}>✦</span>
