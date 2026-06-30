@@ -208,12 +208,19 @@ async function handleMultiUpload(e: React.ChangeEvent<HTMLInputElement>) {
       }
       await supabase.from('multi_scan_generations').insert({ user_id: checkSession.user.id })
     }
-
-    const convertedFile = await convertToJpeg(file)
+const convertedFile = await convertToJpeg(file)
     setMultiAnalyzing(true)
     setDetectedItems([])
 
     try {
+      const { data: { session: uploadSession } } = await supabase.auth.getSession()
+      if (!uploadSession?.user) throw new Error('No session')
+
+      const tempFileName = `${uploadSession.user.id}/multi-scan-${Date.now()}.jpg`
+      const { error: tempUploadErr } = await supabase.storage.from('clothing').upload(tempFileName, convertedFile)
+      if (tempUploadErr) throw tempUploadErr
+      const { data: { publicUrl: originalImageUrl } } = supabase.storage.from('clothing').getPublicUrl(tempFileName)
+
       const base64 = await fileToBase64(convertedFile)
       const dataUrl = `data:${convertedFile.type};base64,${base64}`
       setMultiOriginalImage(dataUrl)
@@ -236,26 +243,93 @@ async function handleMultiUpload(e: React.ChangeEvent<HTMLInputElement>) {
       img.src = dataUrl
       await new Promise(resolve => { img.onload = resolve })
 
-      const cropped = result.items.map((it: any) => {
-        const canvas = document.createElement('canvas')
-        const cropX = (it.x / 100) * img.naturalWidth
-        const cropY = (it.y / 100) * img.naturalHeight
-        const cropW = (it.width / 100) * img.naturalWidth
-        const cropH = (it.height / 100) * img.naturalHeight
-        canvas.width = cropW
-        canvas.height = cropH
-        const ctx = canvas.getContext('2d')!
-        ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH)
-        return {
-          x: it.x, y: it.y, width: it.width, height: it.height,
+      const cropped: any[] = []
+      for (const it of result.items) {
+        const pointX = Math.round((it.centerX / 100) * img.naturalWidth)
+        const pointY = Math.round((it.centerY / 100) * img.naturalHeight)
+
+        let finalImage: string | null = null
+        try {
+          const segRes = await fetch('/api/segment-clothing', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageUrl: originalImageUrl, pointX, pointY }),
+          })
+          const segData = await segRes.json()
+          if (segData.success && segData.maskUrl) {
+            const maskImg = new Image()
+            maskImg.crossOrigin = 'anonymous'
+            maskImg.src = segData.maskUrl
+            await new Promise((resolve, reject) => { maskImg.onload = resolve; maskImg.onerror = reject })
+
+            const maskCanvas = document.createElement('canvas')
+            maskCanvas.width = img.naturalWidth
+            maskCanvas.height = img.naturalHeight
+            const mctx = maskCanvas.getContext('2d')!
+            mctx.drawImage(maskImg, 0, 0, img.naturalWidth, img.naturalHeight)
+            const maskData = mctx.getImageData(0, 0, maskCanvas.width, maskCanvas.height).data
+
+            let minX = maskCanvas.width, minY = maskCanvas.height, maxX = 0, maxY = 0
+            for (let y = 0; y < maskCanvas.height; y += 2) {
+              for (let x = 0; x < maskCanvas.width; x += 2) {
+                const alpha = maskData[(y * maskCanvas.width + x) * 4]
+                if (alpha > 128) {
+                  if (x < minX) minX = x
+                  if (x > maxX) maxX = x
+                  if (y < minY) minY = y
+                  if (y > maxY) maxY = y
+                }
+              }
+            }
+
+            if (maxX > minX && maxY > minY) {
+              const outCanvas = document.createElement('canvas')
+              const w = maxX - minX
+              const h = maxY - minY
+              outCanvas.width = w
+              outCanvas.height = h
+              const octx = outCanvas.getContext('2d')!
+              octx.drawImage(img, minX, minY, w, h, 0, 0, w, h)
+
+              const fullMaskCanvas = document.createElement('canvas')
+              fullMaskCanvas.width = img.naturalWidth
+              fullMaskCanvas.height = img.naturalHeight
+              const fmctx = fullMaskCanvas.getContext('2d')!
+              fmctx.drawImage(maskImg, 0, 0, img.naturalWidth, img.naturalHeight)
+              const cropMaskData = fmctx.getImageData(minX, minY, w, h)
+              const outData = octx.getImageData(0, 0, w, h)
+              for (let p = 0; p < outData.data.length / 4; p++) {
+                outData.data[p * 4 + 3] = cropMaskData.data[p * 4]
+              }
+              octx.putImageData(outData, 0, 0)
+              finalImage = outCanvas.toDataURL('image/png')
+            }
+          }
+        } catch (segErr) {
+          console.error('Segmentation failed for item, falling back to box crop:', segErr)
+        }
+
+        if (!finalImage) {
+          const fallbackCanvas = document.createElement('canvas')
+          const fw = img.naturalWidth * 0.22
+          const fh = img.naturalHeight * 0.3
+          fallbackCanvas.width = fw
+          fallbackCanvas.height = fh
+          const fctx = fallbackCanvas.getContext('2d')!
+          fctx.drawImage(img, pointX - fw / 2, pointY - fh / 2, fw, fh, 0, 0, fw, fh)
+          finalImage = fallbackCanvas.toDataURL('image/jpeg', 0.9)
+        }
+
+        cropped.push({
+          x: it.centerX, y: it.centerY, width: 0, height: 0,
           category: it.category ?? 'tops',
           color: it.color ?? 'Unbekannt',
           name: it.name ?? 'Kleidungsstück',
           brand: it.brand ?? undefined,
-          croppedImage: canvas.toDataURL('image/jpeg', 0.9),
+          croppedImage: finalImage,
           included: true,
-        }
-      })
+        })
+      }
 
       setDetectedItems(cropped)
       setMultiAnalyzing(false)
