@@ -21,7 +21,10 @@ export async function POST(req: Request) {
       }
     )
 
-let maskUrl: string
+console.log('SAM raw output keys:', Object.keys(output ?? {}))
+    console.log('SAM combined_mask type:', typeof output?.combined_mask, output?.combined_mask)
+
+    let maskUrl: string
     if (output && output.combined_mask && typeof output.combined_mask.url === 'function') {
       maskUrl = output.combined_mask.url().toString()
     } else if (output && typeof output.combined_mask === 'string') {
