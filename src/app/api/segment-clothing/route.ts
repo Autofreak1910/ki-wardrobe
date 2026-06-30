@@ -21,8 +21,10 @@ export async function POST(req: Request) {
       }
     )
 
-    let maskUrl: string
-    if (output && typeof output.combined_mask === 'string') {
+let maskUrl: string
+    if (output && output.combined_mask && typeof output.combined_mask.url === 'function') {
+      maskUrl = output.combined_mask.url().toString()
+    } else if (output && typeof output.combined_mask === 'string') {
       maskUrl = output.combined_mask
     } else if (typeof output === 'string') {
       maskUrl = output
@@ -31,7 +33,7 @@ export async function POST(req: Request) {
     } else if (output && typeof output.url === 'function') {
       maskUrl = output.url().toString()
     } else {
-      console.error('Unexpected SAM output:', JSON.stringify(output))
+      console.error('Unexpected SAM output keys:', Object.keys(output ?? {}))
       throw new Error('Unexpected output format from SAM')
     }
 
