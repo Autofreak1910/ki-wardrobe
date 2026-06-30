@@ -274,10 +274,10 @@ const navBorder = isDark ? '#1a2540' : '#dde3f5'
         }}
       >
         {/* Liquid Glass Bubble — only shown after mount + positioned */}
-        <motion.div
+     <motion.div
           style={{
             position: 'absolute',
-            top: '50%',
+            top: NAV_H / 2,
             y: '-50%',
             x: bubbleX,
             opacity: bubbleOpacity,
