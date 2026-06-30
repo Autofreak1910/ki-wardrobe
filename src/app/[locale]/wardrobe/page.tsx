@@ -35,6 +35,16 @@ const [limitMsg, setLimitMsg] = useState<string | null>(null)
   const [dnaLoading, setDnaLoading] = useState(false)
   const [showDna, setShowDna] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const multiFileInputRef = useRef<HTMLInputElement>(null)
+  const [multiMode, setMultiMode] = useState(false)
+  const [multiAnalyzing, setMultiAnalyzing] = useState(false)
+  const [multiOriginalImage, setMultiOriginalImage] = useState<string | null>(null)
+  const [detectedItems, setDetectedItems] = useState<Array<{
+    x: number; y: number; width: number; height: number
+    category: string; color: string; name: string; brand?: string
+    croppedImage: string; included: boolean; uploading?: boolean
+  }>>([])
+  const [multiSaving, setMultiSaving] = useState(false)
   const { theme } = useTheme()
   const t = useTranslations()
   const locale = useLocale()
@@ -61,8 +71,7 @@ const [limitMsg, setLimitMsg] = useState<string | null>(null)
 const { data: stillPremium } = await supabase.rpc('check_and_expire_premium', { p_user_id: session.user.id })
     setIsPremium(stillPremium ?? false)
   }
-
-  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
 
@@ -159,10 +168,147 @@ const { data: stillPremium } = await supabase.rpc('check_and_expire_premium', { 
       console.error(err)
       setAnalyzeStep(locale === 'de' ? 'Fehler beim Upload' : 'Upload failed')
       setAnalyzing(false)
-    } finally {
+} finally {
       setUploading(false)
       if (fileInputRef.current) fileInputRef.current.value = ''
     }
+  }
+
+  async function handleMultiUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const LIMIT = isPremium ? Infinity : 20
+    if (items.length >= LIMIT) {
+      setLimitMsg(locale === 'de'
+        ? 'Max. 20 Kleidungsstücke im Free Plan. Upgrade für unbegrenzt!'
+        : 'Max. 20 items in Free Plan. Upgrade for unlimited!')
+      setTimeout(() => setLimitMsg(null), 4000)
+      if (multiFileInputRef.current) multiFileInputRef.current.value = ''
+      return
+    }
+
+    const convertedFile = await convertToJpeg(file)
+    setMultiAnalyzing(true)
+    setDetectedItems([])
+
+    try {
+      const base64 = await fileToBase64(convertedFile)
+      const dataUrl = `data:${convertedFile.type};base64,${base64}`
+      setMultiOriginalImage(dataUrl)
+
+      const res = await fetch('/api/analyze-multi-clothing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-locale': locale },
+        body: JSON.stringify({ imageBase64: base64, mimeType: convertedFile.type || 'image/jpeg' }),
+      })
+      const result = await res.json()
+      if (!result.success || !result.items?.length) {
+        setMultiAnalyzing(false)
+        setMultiMode(false)
+        setLimitMsg(locale === 'de' ? 'Keine Kleidung erkannt. Versuch ein anderes Foto.' : 'No clothing detected. Try another photo.')
+        setTimeout(() => setLimitMsg(null), 4000)
+        return
+      }
+
+      const img = new Image()
+      img.src = dataUrl
+      await new Promise(resolve => { img.onload = resolve })
+
+      const cropped = result.items.map((it: any) => {
+        const canvas = document.createElement('canvas')
+        const cropX = (it.x / 100) * img.naturalWidth
+        const cropY = (it.y / 100) * img.naturalHeight
+        const cropW = (it.width / 100) * img.naturalWidth
+        const cropH = (it.height / 100) * img.naturalHeight
+        canvas.width = cropW
+        canvas.height = cropH
+        const ctx = canvas.getContext('2d')!
+        ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH)
+        return {
+          x: it.x, y: it.y, width: it.width, height: it.height,
+          category: it.category ?? 'tops',
+          color: it.color ?? 'Unbekannt',
+          name: it.name ?? 'Kleidungsstück',
+          brand: it.brand ?? undefined,
+          croppedImage: canvas.toDataURL('image/jpeg', 0.9),
+          included: true,
+        }
+      })
+
+      setDetectedItems(cropped)
+      setMultiAnalyzing(false)
+      setMultiMode(true)
+    } catch (err) {
+      console.error('Multi-upload failed:', err)
+      setMultiAnalyzing(false)
+      setLimitMsg(locale === 'de' ? 'Fehler beim Analysieren' : 'Error analyzing')
+      setTimeout(() => setLimitMsg(null), 4000)
+    } finally {
+      if (multiFileInputRef.current) multiFileInputRef.current.value = ''
+    }
+  }
+
+  function toggleDetectedItem(index: number) {
+    setDetectedItems(prev => prev.map((it, i) => i === index ? { ...it, included: !it.included } : it))
+  }
+
+  function updateDetectedItem(index: number, field: 'name' | 'color' | 'brand' | 'category', value: string) {
+    setDetectedItems(prev => prev.map((it, i) => i === index ? { ...it, [field]: value } : it))
+  }
+
+  async function saveMultiItems() {
+    const toSave = detectedItems.filter(it => it.included)
+    if (toSave.length === 0) return
+    setMultiSaving(true)
+
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.user) { setMultiSaving(false); return }
+    const user = session.user
+
+    for (let i = 0; i < toSave.length; i++) {
+      const item = toSave[i]
+      try {
+        const blob = await (await fetch(item.croppedImage)).blob()
+        const fileName = `${user.id}/${Date.now()}-${i}.jpg`
+        const { error: uploadError } = await supabase.storage.from('clothing').upload(fileName, blob, { contentType: 'image/jpeg' })
+        if (uploadError) throw uploadError
+        const { data: { publicUrl: originalUrl } } = supabase.storage.from('clothing').getPublicUrl(fileName)
+
+        let publicUrl = originalUrl
+        try {
+          const bgRes = await fetch('/api/remove-background', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageUrl: originalUrl }),
+          })
+          const bgData = await bgRes.json()
+          if (bgData.success && bgData.imageUrl) {
+            const cleanBlob = await (await fetch(bgData.imageUrl)).blob()
+            const cleanFileName = `${user.id}/${Date.now()}-${i}-clean.png`
+            const { error: cleanErr } = await supabase.storage.from('clothing').upload(cleanFileName, cleanBlob, { contentType: 'image/png' })
+            if (!cleanErr) {
+              const { data: { publicUrl: cleanUrl } } = supabase.storage.from('clothing').getPublicUrl(cleanFileName)
+              publicUrl = cleanUrl
+            }
+          }
+        } catch {}
+
+        await supabase.from('clothing_items').insert({
+          user_id: user.id, image_url: publicUrl,
+          category: item.category, color: item.color, name: item.name,
+          brand: item.brand || null, style_tags: [], season: [],
+        })
+      } catch (err) {
+        console.error('Failed to save item', i, err)
+      }
+    }
+
+    setMultiSaving(false)
+    setMultiMode(false)
+    setDetectedItems([])
+    setMultiOriginalImage(null)
+    loadItems()
   }
 
   async function handleDelete(id: string) {
@@ -341,19 +487,42 @@ const { data: stillPremium } = await supabase.rpc('check_and_expire_premium', { 
   </motion.div>
 )}
 
-<motion.div
-  whileTap={{ scale: 0.99 }}
-  onClick={() => !uploading && fileInputRef.current?.click()}
-  style={{ border: `2px dashed ${uploading ? accent : border}`, borderRadius: '16px', padding: '22px', textAlign: 'center' as const, cursor: uploading ? 'default' : 'pointer', marginBottom: '16px', transition: 'all 0.2s', background: uploading ? accentDim : card }}>
-  <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: accentDim, border: `1px solid ${border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
-    </svg>
-  </div>
-  <p style={{ fontWeight: 600, color: text, marginBottom: '2px', fontSize: '14px', letterSpacing: '-0.01em' }}>{t('wardrobe.upload')}</p>
-  <p style={{ fontSize: '12px', color: muted }}>{t('wardrobe.uploadSub')}</p>
-</motion.div>
+<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
+  <motion.div
+    whileTap={{ scale: 0.99 }}
+    onClick={() => !uploading && fileInputRef.current?.click()}
+    style={{ border: `2px dashed ${uploading ? accent : border}`, borderRadius: '16px', padding: '18px 12px', textAlign: 'center' as const, cursor: uploading ? 'default' : 'pointer', transition: 'all 0.2s', background: uploading ? accentDim : card }}>
+    <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: accentDim, border: `1px solid ${border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px' }}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+    </div>
+    <p style={{ fontWeight: 600, color: text, marginBottom: '2px', fontSize: '13px', letterSpacing: '-0.01em' }}>{t('wardrobe.upload')}</p>
+    <p style={{ fontSize: '11px', color: muted }}>{locale === 'de' ? 'Ein Teil' : 'One item'}</p>
+  </motion.div>
+
+  <motion.div
+    whileTap={{ scale: 0.99 }}
+    onClick={() => !multiAnalyzing && multiFileInputRef.current?.click()}
+    style={{ border: `2px dashed ${multiAnalyzing ? accent : border}`, borderRadius: '16px', padding: '18px 12px', textAlign: 'center' as const, cursor: multiAnalyzing ? 'default' : 'pointer', transition: 'all 0.2s', background: multiAnalyzing ? accentDim : card }}>
+    <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'rgba(168,85,247,0.1)', border: `1px solid ${border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px' }}>
+      {multiAnalyzing ? (
+        <motion.span animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
+          style={{ display: 'block', width: '14px', height: '14px', borderRadius: '50%', border: `2px solid ${border}`, borderTopColor: '#a855f7' }} />
+      ) : (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a855f7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="2" y="6" width="20" height="16" rx="2"/><circle cx="12" cy="14" r="3"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+        </svg>
+      )}
+    </div>
+    <p style={{ fontWeight: 600, color: text, marginBottom: '2px', fontSize: '13px', letterSpacing: '-0.01em' }}>
+      {multiAnalyzing ? (locale === 'de' ? 'Erkenne...' : 'Detecting...') : (locale === 'de' ? 'Mehrere Teile' : 'Multiple items')}
+    </p>
+    <p style={{ fontSize: '11px', color: muted }}>{locale === 'de' ? 'Ganzer Schrank' : 'Whole closet'}</p>
+  </motion.div>
+</div>
         <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleUpload} style={{ display: 'none' }} />
+        <input ref={multiFileInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleMultiUpload} style={{ display: 'none' }} />
 
         {/* Analyze progress */}
         <AnimatePresence>
@@ -540,6 +709,69 @@ const { data: stillPremium } = await supabase.rpc('check_and_expire_premium', { 
                 <p style={{ textAlign: 'center' as const, color: muted, fontSize: '14px', padding: '20px 0' }}>{locale === 'de' ? 'Fehler beim Laden' : 'Error loading'}</p>
               )}
             </motion.div>
+          </motion.div>
+        )}
+</AnimatePresence>
+
+      {/* Multi-Item Review Modal */}
+      <AnimatePresence>
+        {multiMode && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ position: 'fixed', inset: 0, background: bg, zIndex: 2000, overflowY: 'auto' as const }}>
+            <div style={{ maxWidth: '700px', margin: '0 auto', padding: '24px 16px 100px' }}>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <div>
+                  <h2 style={{ fontSize: '22px', fontWeight: 800, color: text, letterSpacing: '-0.03em' }}>
+                    {locale === 'de' ? 'Erkannte Teile' : 'Detected items'}
+                  </h2>
+                  <p style={{ fontSize: '13px', color: muted }}>
+                    {detectedItems.filter(it => it.included).length} {locale === 'de' ? 'von' : 'of'} {detectedItems.length} {locale === 'de' ? 'ausgewählt' : 'selected'}
+                  </p>
+                </div>
+                <button onClick={() => { setMultiMode(false); setDetectedItems([]); setMultiOriginalImage(null) }}
+                  style={{ background: card, border: `1px solid ${border}`, borderRadius: '10px', width: '36px', height: '36px', cursor: 'pointer', fontSize: '16px', color: muted }}>✕</button>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '10px', marginBottom: '24px' }}>
+                {detectedItems.map((item, i) => (
+                  <div key={i} style={{ background: card, border: `1px solid ${item.included ? accent : border}`, borderRadius: '14px', overflow: 'hidden', opacity: item.included ? 1 : 0.45, transition: 'all 0.2s' }}>
+                    <div style={{ position: 'relative' as const }}>
+                      <div style={{ aspectRatio: '3/4', overflow: 'hidden', background: secondary }}>
+                        <img src={item.croppedImage} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      </div>
+                      <button onClick={() => toggleDetectedItem(i)}
+                        style={{ position: 'absolute' as const, top: '6px', right: '6px', width: '26px', height: '26px', borderRadius: '50%', border: 'none', cursor: 'pointer', background: item.included ? accent : 'rgba(0,0,0,0.5)', color: '#fff', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {item.included ? '✓' : '+'}
+                      </button>
+                    </div>
+                    <div style={{ padding: '8px' }}>
+                      <input value={item.name} onChange={e => updateDetectedItem(i, 'name', e.target.value)}
+                        style={{ width: '100%', fontSize: '12px', fontWeight: 700, color: text, border: 'none', background: 'transparent', outline: 'none', marginBottom: '4px', fontFamily: "'DM Sans', sans-serif", padding: 0 }} />
+                      <input value={item.color} onChange={e => updateDetectedItem(i, 'color', e.target.value)}
+                        style={{ width: '100%', fontSize: '11px', color: muted, border: 'none', background: 'transparent', outline: 'none', marginBottom: '4px', fontFamily: "'DM Sans', sans-serif", padding: 0 }} />
+                      <input value={item.brand ?? ''} onChange={e => updateDetectedItem(i, 'brand', e.target.value)}
+                        placeholder={locale === 'de' ? 'Marke (optional)' : 'Brand (optional)'}
+                        style={{ width: '100%', fontSize: '11px', color: accent, border: 'none', background: 'transparent', outline: 'none', fontFamily: "'DM Sans', sans-serif", padding: 0 }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ position: 'fixed' as const, bottom: 0, left: 0, right: 0, padding: '16px', background: bg, borderTop: `1px solid ${border}` }}>
+                <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+                  <motion.button whileTap={{ scale: 0.97 }}
+                    onClick={saveMultiItems}
+                    disabled={multiSaving || detectedItems.filter(it => it.included).length === 0}
+                    style={{ width: '100%', padding: '16px', borderRadius: '14px', border: 'none', background: multiSaving ? border : `linear-gradient(135deg, ${accent}, #6b9fff)`, color: '#fff', fontSize: '15px', fontWeight: 700, cursor: multiSaving ? 'wait' : 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: multiSaving ? 'none' : `0 6px 24px ${accent}40` }}>
+                    {multiSaving
+                      ? (locale === 'de' ? 'Speichere...' : 'Saving...')
+                      : `${locale === 'de' ? 'Speichern' : 'Save'} (${detectedItems.filter(it => it.included).length})`}
+                  </motion.button>
+                </div>
+              </div>
+
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
