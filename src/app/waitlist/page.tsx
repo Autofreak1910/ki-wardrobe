@@ -131,10 +131,14 @@ export default function WaitlistPage() {
         {lang === 'de' ? 'EN' : 'DE'}
       </button>
 
-      <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-        style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '40px', position: 'relative' as const, zIndex: 1 }}>
-        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: `linear-gradient(135deg, ${teal}, #0891b2)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '18px', color: '#fff' }}>K</div>
-        <span style={{ fontSize: '19px', fontWeight: 700, color: text }}>KiWardrobe</span>
+<motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, type: 'spring', damping: 14 }}
+        style={{ marginBottom: '20px', position: 'relative' as const, zIndex: 1 }}>
+        <img src="/icon-512.png" alt="KiWardrobe" style={{ width: '84px', height: '84px', borderRadius: '22px', boxShadow: '0 12px 40px rgba(14,164,114,0.35)' }} />
+      </motion.div>
+
+      <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}
+        style={{ marginBottom: '32px', position: 'relative' as const, zIndex: 1 }}>
+        <span style={{ fontSize: '21px', fontWeight: 800, color: text, letterSpacing: '-0.02em' }}>KiWardrobe</span>
       </motion.div>
 
       <motion.span initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}
