@@ -5,6 +5,8 @@ html, body {
   padding: 0;
   width: 100%;
   overflow-x: hidden;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: none;
 }
 
 :root {
@@ -47,6 +49,8 @@ body {
   font-family: 'DM Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior-x: none;
+  touch-action: pan-y;
 }
 
 input {
