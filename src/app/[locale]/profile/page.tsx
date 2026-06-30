@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from '@/components/Navbar'
-type Profile = { id: string; username: string; is_premium: boolean; age?: string; country?: string; created_at: string; email?: string; gender?: string; style_preferences?: string[]; budget_range?: string; referral_code?: string; premium_until?: string; invites_this_month?: number; bonus_month_claimed_this_period?: boolean }
+type Profile = { id: string; username: string; is_premium: boolean; age?: string; country?: string; created_at: string; email?: string; gender?: string; style_preferences?: string[]; budget_range?: string; referral_code?: string; premium_until?: string; invites_this_month?: number; bonus_month_claimed_this_period?: boolean; avatar_tries_left?: number }
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4)
@@ -324,7 +324,9 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
               { label: locale === 'de' ? 'Kleidung' : 'Items', value: itemCount, max: isPremium ? null : 20 },
               { label: locale === 'de' ? 'Outfits' : 'Outfits', value: todayOutfits, max: isPremium ? 15 : 3 },
               { label: locale === 'de' ? 'Gespeichert' : 'Saved', value: outfitCount, max: isPremium ? null : 5 },
-              { label: 'Try-On', value: tryOnToday, max: isPremium ? 2 : 3 },
+        isPremium
+                ? { label: 'Try-On', value: tryOnToday, max: 2 }
+                : { label: 'Try-On', value: (3 - (profile?.avatar_tries_left ?? 3)), max: 3 },
             ].map(stat => (
               <div key={stat.label} style={{ background: card, border: `1px solid ${border}`, borderRadius: '14px', padding: '14px 12px', textAlign: 'center' as const }}>
                 <p style={{ fontSize: '22px', fontWeight: 800, color: stat.max && stat.value >= stat.max ? '#ef4444' : text, letterSpacing: '-0.03em', marginBottom: '2px' }}>
@@ -373,7 +375,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
         { label: locale === 'de' ? 'Outfits/Tag' : 'Outfits/day', value: isPremium ? '15' : '3' },
         { label: locale === 'de' ? 'Kleidung' : 'Items', value: isPremium ? '∞' : '20' },
         { label: locale === 'de' ? 'Speichern' : 'Saved', value: isPremium ? '∞' : '5' },
-        { label: locale === 'de' ? 'Try-On/Tag' : 'Try-On/day', value: isPremium ? '2' : '3✦' },
+       { label: locale === 'de' ? 'Try-On' : 'Try-On', value: isPremium ? (locale === 'de' ? '2/Tag' : '2/day') : (locale === 'de' ? '3 gesamt' : '3 total') },
         { label: 'Style DNA', value: isPremium ? '✓' : '✗' },
       ].map((f, i) => (
         <div key={i} style={{ background: accentDim, borderRadius: '10px', padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -689,6 +691,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
 { title: locale === 'de' ? 'Max. 20 Kleidungsstücke' : 'Max. 20 items', sub: '' },
 { title: locale === 'de' ? 'Max. 5 Outfits speichern' : 'Max. 5 saved outfits', sub: '' },
 { title: locale === 'de' ? 'Basis KI-Styling' : 'Basic AI styling', sub: '' },
+{ title: locale === 'de' ? '3 Virtual Try-Ons' : '3 virtual try-ons', sub: locale === 'de' ? 'einmalig, gesamt' : 'one-time, total' },
             ].map((f, i) => (
               <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
                 <span style={{ fontSize: '11px', color: muted, flexShrink: 0, marginTop: '2px' }}>○</span>
