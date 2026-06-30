@@ -94,6 +94,7 @@ export default function DresserPage() {
 const [outfit, setOutfit] = useState<OutfitGroup | null>(null)
 const [dailyFreeOutfit, setDailyFreeOutfit] = useState<{ id: string; reasoning: string; vibe?: string; itemObjects: ClothingItem[] } | null>(null)
 const [dailyFreeOutfitLoading, setDailyFreeOutfitLoading] = useState(true)
+const [dailyFreeOutfitExpanded, setDailyFreeOutfitExpanded] = useState(false)
   const [saved, setSaved] = useState(false)
   const [wardrobeItems, setWardrobeItems] = useState<ClothingItem[]>([])
   const [hasItems, setHasItems] = useState(true)
@@ -997,48 +998,57 @@ onClick={() => weatherDisabled ? router.push('/' + locale + '/profile?scrollTo=w
   <motion.div
     initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.4 }}
-    style={{ marginBottom: '22px', border: `1px solid ${border}`, borderRadius: '20px', overflow: 'hidden', background: card, boxShadow: isDark ? 'none' : '0 4px 24px rgba(10,46,30,0.08)' }}>
+    style={{ marginBottom: '18px', border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden', background: card, boxShadow: isDark ? 'none' : '0 4px 24px rgba(10,46,30,0.08)' }}>
 
-    {/* Header mit Gratis-Badge */}
-    <div style={{ padding: '14px 18px', borderBottom: `1px solid ${border}`, background: 'linear-gradient(135deg, rgba(251,191,36,0.12), rgba(236,72,153,0.06))' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-        <span style={{ fontSize: '11px', fontWeight: 800, color: '#fff', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '100px', padding: '3px 10px', letterSpacing: '0.02em', boxShadow: '0 2px 8px rgba(251,191,36,0.4)' }}>
+    {/* Kompakte Zeile — immer sichtbar */}
+    <motion.div whileTap={{ scale: 0.99 }}
+      onClick={() => setDailyFreeOutfitExpanded(v => !v)}
+      style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', cursor: 'pointer', background: 'linear-gradient(135deg, rgba(251,191,36,0.1), rgba(236,72,153,0.05))', WebkitTapHighlightColor: 'transparent' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '9px', minWidth: 0 }}>
+        <span style={{ fontSize: '10px', fontWeight: 800, color: '#fff', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '100px', padding: '3px 9px', letterSpacing: '0.02em', flexShrink: 0, boxShadow: '0 2px 8px rgba(251,191,36,0.4)' }}>
           🎁 {locale === 'de' ? 'GRATIS' : 'FREE'}
         </span>
-        <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: muted }}>
-          {locale === 'de' ? 'Heutiges Tagesoutfit' : "Today's outfit"}
+        <p style={{ fontSize: '13px', fontWeight: 700, color: text, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
+          {locale === 'de' ? 'Dein Tagesoutfit ist da ✦' : 'Your daily outfit is ready ✦'}
         </p>
       </div>
-      <p style={{ fontSize: '16px', fontWeight: 800, color: text, letterSpacing: '-0.03em' }}>
-        {locale === 'de' ? 'Die KI hat das für dich vorbereitet ✦' : 'The AI prepared this for you ✦'}
-      </p>
-    </div>
+      <motion.span animate={{ rotate: dailyFreeOutfitExpanded ? 180 : 0 }} style={{ color: muted, fontSize: '13px', flexShrink: 0 }}>▾</motion.span>
+    </motion.div>
 
-    {/* Items */}
-    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${dailyFreeOutfit.itemObjects.length >= 3 ? 3 : 2}, 1fr)`, gap: '1px', background: border }}>
-      {dailyFreeOutfit.itemObjects.map((item, i) => (
-        <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.06 }} style={{ background: card }}>
-          <div style={{ aspectRatio: '1', overflow: 'hidden', background: isDark ? '#0a1510' : '#f0fdf8' }}>
-            <img src={item.image_url} alt={item.name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+    {/* Ausgeklappter Inhalt */}
+    <AnimatePresence>
+      {dailyFreeOutfitExpanded && (
+        <motion.div
+          initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.25 }}
+          style={{ overflow: 'hidden' }}>
+
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${dailyFreeOutfit.itemObjects.length >= 3 ? 3 : 2}, 1fr)`, gap: '1px', background: border, borderTop: `1px solid ${border}` }}>
+            {dailyFreeOutfit.itemObjects.map((item, i) => (
+              <div key={i} style={{ background: card }}>
+                <div style={{ aspectRatio: '1', overflow: 'hidden', background: isDark ? '#0a1510' : '#f0fdf8' }}>
+                  <img src={item.image_url} alt={item.name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                </div>
+                <div style={{ padding: '9px 11px' }}>
+                  <p style={{ fontSize: '11px', fontWeight: 700, color: text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, marginBottom: '1px' }}>{item.name}</p>
+                  <p style={{ fontSize: '10px', color: muted }}>{item.color}{item.brand ? ` · ${item.brand}` : ''}</p>
+                </div>
+              </div>
+            ))}
           </div>
-          <div style={{ padding: '9px 11px' }}>
-            <p style={{ fontSize: '11px', fontWeight: 700, color: text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, marginBottom: '1px' }}>{item.name}</p>
-            <p style={{ fontSize: '10px', color: muted }}>{item.color}{item.brand ? ` · ${item.brand}` : ''}</p>
-          </div>
+
+          {dailyFreeOutfit.reasoning && (
+            <div style={{ padding: '14px 18px', borderTop: `1px solid ${border}` }}>
+              <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#f59e0b', marginBottom: '7px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ display: 'inline-block', width: '5px', height: '5px', borderRadius: '50%', background: '#f59e0b' }} />
+                {t('dresser.kiStylist')}
+              </p>
+              <p style={{ fontSize: '13px', color: muted, lineHeight: 1.7 }}>{dailyFreeOutfit.reasoning}</p>
+            </div>
+          )}
         </motion.div>
-      ))}
-    </div>
-
-    {/* KI Begründung */}
-    {dailyFreeOutfit.reasoning && (
-      <div style={{ padding: '14px 18px', borderTop: `1px solid ${border}` }}>
-        <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#f59e0b', marginBottom: '7px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ display: 'inline-block', width: '5px', height: '5px', borderRadius: '50%', background: '#f59e0b' }} />
-          {t('dresser.kiStylist')}
-        </p>
-        <p style={{ fontSize: '13px', color: muted, lineHeight: 1.7 }}>{dailyFreeOutfit.reasoning}</p>
-      </div>
-    )}
+      )}
+    </AnimatePresence>
   </motion.div>
 )}
 
