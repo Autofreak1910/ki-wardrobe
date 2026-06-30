@@ -174,7 +174,7 @@ async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     }
   }
 
-  async function handleMultiUpload(e: React.ChangeEvent<HTMLInputElement>) {
+async function handleMultiUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
 
@@ -186,6 +186,27 @@ async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
       setTimeout(() => setLimitMsg(null), 4000)
       if (multiFileInputRef.current) multiFileInputRef.current.value = ''
       return
+    }
+
+    const { data: { session: checkSession } } = await supabase.auth.getSession()
+    if (checkSession?.user) {
+      const weekAgo = new Date()
+      weekAgo.setDate(weekAgo.getDate() - 7)
+      const { count: weeklyCount } = await supabase
+        .from('multi_scan_generations')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', checkSession.user.id)
+        .gte('created_at', weekAgo.toISOString())
+
+      if ((weeklyCount ?? 0) >= 3) {
+        setLimitMsg(locale === 'de'
+          ? 'Max. 3 Schrank-Scans pro Woche erreicht. Nächste Woche wieder!'
+          : 'Max. 3 closet scans per week reached. Try again next week!')
+        setTimeout(() => setLimitMsg(null), 4000)
+        if (multiFileInputRef.current) multiFileInputRef.current.value = ''
+        return
+      }
+      await supabase.from('multi_scan_generations').insert({ user_id: checkSession.user.id })
     }
 
     const convertedFile = await convertToJpeg(file)
@@ -501,10 +522,16 @@ async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     <p style={{ fontSize: '11px', color: muted }}>{locale === 'de' ? 'Ein Teil' : 'One item'}</p>
   </motion.div>
 
-  <motion.div
+<motion.div
     whileTap={{ scale: 0.99 }}
-    onClick={() => !multiAnalyzing && multiFileInputRef.current?.click()}
-    style={{ border: `2px dashed ${multiAnalyzing ? accent : border}`, borderRadius: '16px', padding: '18px 12px', textAlign: 'center' as const, cursor: multiAnalyzing ? 'default' : 'pointer', transition: 'all 0.2s', background: multiAnalyzing ? accentDim : card }}>
+    onClick={() => {
+      if (!isPremium) { router.push('/' + locale + '/profile?upgrade=true'); return }
+      if (!multiAnalyzing) multiFileInputRef.current?.click()
+    }}
+    style={{ border: `2px dashed ${multiAnalyzing ? accent : border}`, borderRadius: '16px', padding: '18px 12px', textAlign: 'center' as const, cursor: multiAnalyzing ? 'default' : 'pointer', transition: 'all 0.2s', background: multiAnalyzing ? accentDim : card, position: 'relative' as const, opacity: !isPremium ? 0.85 : 1 }}>
+    {!isPremium && (
+      <span style={{ position: 'absolute' as const, top: '8px', right: '8px', fontSize: '9px', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '5px', padding: '2px 6px' }}>PRO</span>
+    )}
     <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'rgba(168,85,247,0.1)', border: `1px solid ${border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px' }}>
       {multiAnalyzing ? (
         <motion.span animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
