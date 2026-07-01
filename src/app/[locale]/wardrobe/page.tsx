@@ -808,15 +808,16 @@ const processedItems = result.items.map((it: any) => {
                 {detectedItems.map((item, i) => (
                   <div key={i} style={{ background: card, border: `1px solid ${item.included ? accent : border}`, borderRadius: '14px', overflow: 'hidden', opacity: item.included ? 1 : 0.45, transition: 'all 0.2s' }}>
                     <div style={{ position: 'relative' as const }}>
-                   <div style={{ aspectRatio: '3/4', overflow: 'hidden', background: secondary, position: 'relative' as const }}>
+                  <div style={{ aspectRatio: '3/4', overflow: 'hidden', background: secondary }}>
                         <img
                           src={item.croppedImage}
                           style={{
-                            position: 'absolute' as const,
-                            left: `-${((item as any).cropX / (item as any).cropW) * 100}%`,
-                            top: `-${((item as any).cropY / (item as any).cropH) * 100}%`,
-                            width: `${(100 / (item as any).cropW) * 100}%`,
-                            height: 'auto',
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'none',
+                            objectPosition: `-${(item as any).cropX}% -${(item as any).cropY}%`,
+                            transform: `scale(${100 / (item as any).cropW})`,
+                            transformOrigin: `${(item as any).cropX}% ${(item as any).cropY}%`,
                             display: 'block',
                           }}
                         />
