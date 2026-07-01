@@ -206,25 +206,19 @@ async function handleMultiUpload(e: React.ChangeEvent<HTMLInputElement>) {
         if (multiFileInputRef.current) multiFileInputRef.current.value = ''
         return
       }
-      await supabase.from('multi_scan_generations').insert({ user_id: checkSession.user.id })
+await supabase.from('multi_scan_generations').insert({ user_id: checkSession.user.id })
     }
-const convertedFile = await convertToJpeg(file)
+
+    const convertedFile = await convertToJpeg(file)
     setMultiAnalyzing(true)
     setDetectedItems([])
 
     try {
-      const { data: { session: uploadSession } } = await supabase.auth.getSession()
-      if (!uploadSession?.user) throw new Error('No session')
-
-      const tempFileName = `${uploadSession.user.id}/multi-scan-${Date.now()}.jpg`
-      const { error: tempUploadErr } = await supabase.storage.from('clothing').upload(tempFileName, convertedFile)
-      if (tempUploadErr) throw tempUploadErr
-      const { data: { publicUrl: originalImageUrl } } = supabase.storage.from('clothing').getPublicUrl(tempFileName)
-
       const base64 = await fileToBase64(convertedFile)
       const dataUrl = `data:${convertedFile.type};base64,${base64}`
       setMultiOriginalImage(dataUrl)
 
+      // Schritt 1: GPT-4o erkennt alle Teile mit Boxen
       const res = await fetch('/api/analyze-multi-clothing', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-locale': locale },
@@ -239,99 +233,94 @@ const convertedFile = await convertToJpeg(file)
         return
       }
 
+      // Schritt 2: Alle Teile aus Originalbild ausschneiden (mit 15% Puffer)
       const img = new Image()
       img.src = dataUrl
       await new Promise(resolve => { img.onload = resolve })
 
-      const cropped: any[] = []
-      for (const it of result.items) {
-        const pointX = Math.round((it.centerX / 100) * img.naturalWidth)
-        const pointY = Math.round((it.centerY / 100) * img.naturalHeight)
+      const { data: { session: uploadSession } } = await supabase.auth.getSession()
+      if (!uploadSession?.user) throw new Error('No session')
 
-        let finalImage: string | null = null
+      // Schritt 3: Alle rembg-Calls PARALLEL laufen lassen
+      const processedItems = await Promise.all(result.items.map(async (it: any) => {
         try {
-          const segRes = await fetch('/api/segment-clothing', {
+          // Crop mit Puffer ausschneiden
+          const padX = (it.width / 100) * img.naturalWidth * 0.15
+          const padY = (it.height / 100) * img.naturalHeight * 0.15
+          const cropX = Math.max(0, (it.x / 100) * img.naturalWidth - padX)
+          const cropY = Math.max(0, (it.y / 100) * img.naturalHeight - padY)
+          const cropW = Math.min(img.naturalWidth - cropX, (it.width / 100) * img.naturalWidth + padX * 2)
+          const cropH = Math.min(img.naturalHeight - cropY, (it.height / 100) * img.naturalHeight + padY * 2)
+
+          const cropCanvas = document.createElement('canvas')
+          cropCanvas.width = cropW
+          cropCanvas.height = cropH
+          cropCanvas.getContext('2d')!.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH)
+          const cropBlob = await new Promise<Blob>(resolve => cropCanvas.toBlob(b => resolve(b!), 'image/jpeg', 0.9))
+
+          // Crop temporär in Supabase hochladen für rembg
+          const tempFileName = `${uploadSession.user.id}/multi-temp-${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`
+          const { error: tempErr } = await supabase.storage.from('clothing').upload(tempFileName, cropBlob, { contentType: 'image/jpeg' })
+          if (tempErr) throw tempErr
+          const { data: { publicUrl: tempUrl } } = supabase.storage.from('clothing').getPublicUrl(tempFileName)
+
+          // rembg Hintergrund entfernen
+          const bgRes = await fetch('/api/remove-background', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ imageUrl: originalImageUrl, pointX, pointY }),
+            body: JSON.stringify({ imageUrl: tempUrl }),
           })
-          const segData = await segRes.json()
-          if (segData.success && segData.maskUrl) {
-            const maskImg = new Image()
-            maskImg.crossOrigin = 'anonymous'
-            maskImg.src = segData.maskUrl
-            await new Promise((resolve, reject) => { maskImg.onload = resolve; maskImg.onerror = reject })
+          const bgData = await bgRes.json()
 
-            const maskCanvas = document.createElement('canvas')
-            maskCanvas.width = img.naturalWidth
-            maskCanvas.height = img.naturalHeight
-            const mctx = maskCanvas.getContext('2d')!
-            mctx.drawImage(maskImg, 0, 0, img.naturalWidth, img.naturalHeight)
-            const maskData = mctx.getImageData(0, 0, maskCanvas.width, maskCanvas.height).data
-
-            let minX = maskCanvas.width, minY = maskCanvas.height, maxX = 0, maxY = 0
-            for (let y = 0; y < maskCanvas.height; y += 2) {
-              for (let x = 0; x < maskCanvas.width; x += 2) {
-                const alpha = maskData[(y * maskCanvas.width + x) * 4]
-                if (alpha > 128) {
-                  if (x < minX) minX = x
-                  if (x > maxX) maxX = x
-                  if (y < minY) minY = y
-                  if (y > maxY) maxY = y
-                }
-              }
-            }
-
-            if (maxX > minX && maxY > minY) {
-              const outCanvas = document.createElement('canvas')
-              const w = maxX - minX
-              const h = maxY - minY
-              outCanvas.width = w
-              outCanvas.height = h
-              const octx = outCanvas.getContext('2d')!
-              octx.drawImage(img, minX, minY, w, h, 0, 0, w, h)
-
-              const fullMaskCanvas = document.createElement('canvas')
-              fullMaskCanvas.width = img.naturalWidth
-              fullMaskCanvas.height = img.naturalHeight
-              const fmctx = fullMaskCanvas.getContext('2d')!
-              fmctx.drawImage(maskImg, 0, 0, img.naturalWidth, img.naturalHeight)
-              const cropMaskData = fmctx.getImageData(minX, minY, w, h)
-              const outData = octx.getImageData(0, 0, w, h)
-              for (let p = 0; p < outData.data.length / 4; p++) {
-                outData.data[p * 4 + 3] = cropMaskData.data[p * 4]
-              }
-              octx.putImageData(outData, 0, 0)
-              finalImage = outCanvas.toDataURL('image/png')
-            }
+          let finalImage = cropCanvas.toDataURL('image/jpeg', 0.9)
+          if (bgData.success && bgData.imageUrl) {
+            const cleanRes = await fetch(bgData.imageUrl)
+            const cleanBlob = await cleanRes.blob()
+            finalImage = await new Promise(resolve => {
+              const reader = new FileReader()
+              reader.onload = () => resolve(reader.result as string)
+              reader.readAsDataURL(cleanBlob)
+            })
           }
-        } catch (segErr) {
-          console.error('Segmentation failed for item, falling back to box crop:', segErr)
-        }
 
-        if (!finalImage) {
+          // Temp-Datei aufräumen (fire and forget)
+          supabase.storage.from('clothing').remove([tempFileName]).catch(() => {})
+
+          return {
+            x: it.x, y: it.y, width: it.width, height: it.height,
+            category: it.category ?? 'tops',
+            color: it.color ?? 'Unbekannt',
+            name: it.name ?? 'Kleidungsstück',
+            brand: it.brand ?? undefined,
+            croppedImage: finalImage,
+            included: true,
+          }
+        } catch (err) {
+          console.error('Failed to process item:', err)
+          // Fallback: einfacher Crop ohne Hintergrundentfernung
+          const padX = (it.width / 100) * img.naturalWidth * 0.1
+          const padY = (it.height / 100) * img.naturalHeight * 0.1
+          const cropX = Math.max(0, (it.x / 100) * img.naturalWidth - padX)
+          const cropY = Math.max(0, (it.y / 100) * img.naturalHeight - padY)
+          const cropW = Math.min(img.naturalWidth - cropX, (it.width / 100) * img.naturalWidth + padX * 2)
+          const cropH = Math.min(img.naturalHeight - cropY, (it.height / 100) * img.naturalHeight + padY * 2)
           const fallbackCanvas = document.createElement('canvas')
-          const fw = img.naturalWidth * 0.22
-          const fh = img.naturalHeight * 0.3
-          fallbackCanvas.width = fw
-          fallbackCanvas.height = fh
-          const fctx = fallbackCanvas.getContext('2d')!
-          fctx.drawImage(img, pointX - fw / 2, pointY - fh / 2, fw, fh, 0, 0, fw, fh)
-          finalImage = fallbackCanvas.toDataURL('image/jpeg', 0.9)
+          fallbackCanvas.width = cropW
+          fallbackCanvas.height = cropH
+          fallbackCanvas.getContext('2d')!.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH)
+          return {
+            x: it.x, y: it.y, width: it.width, height: it.height,
+            category: it.category ?? 'tops',
+            color: it.color ?? 'Unbekannt',
+            name: it.name ?? 'Kleidungsstück',
+            brand: it.brand ?? undefined,
+            croppedImage: fallbackCanvas.toDataURL('image/jpeg', 0.9),
+            included: true,
+          }
         }
+      }))
 
-        cropped.push({
-          x: it.centerX, y: it.centerY, width: 0, height: 0,
-          category: it.category ?? 'tops',
-          color: it.color ?? 'Unbekannt',
-          name: it.name ?? 'Kleidungsstück',
-          brand: it.brand ?? undefined,
-          croppedImage: finalImage,
-          included: true,
-        })
-      }
-
-      setDetectedItems(cropped)
+      setDetectedItems(processedItems)
       setMultiAnalyzing(false)
       setMultiMode(true)
     } catch (err) {
@@ -623,7 +612,32 @@ const convertedFile = await convertToJpeg(file)
   </motion.div>
 </div>
         <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleUpload} style={{ display: 'none' }} />
-        <input ref={multiFileInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleMultiUpload} style={{ display: 'none' }} />
+    <input ref={multiFileInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleMultiUpload} style={{ display: 'none' }} />
+
+        <AnimatePresence>
+          {multiAnalyzing && (
+            <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+              style={{ background: card, border: `1px solid ${border}`, borderRadius: '14px', padding: '16px', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
+                <motion.span animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                  style={{ display: 'block', width: '18px', height: '18px', borderRadius: '50%', border: `2px solid ${border}`, borderTopColor: '#a855f7', flexShrink: 0 }} />
+                <span style={{ fontSize: '13px', fontWeight: 600, color: text }}>
+                  {locale === 'de' ? 'KI scannt deinen Schrank...' : 'AI scanning your closet...'}
+                </span>
+              </div>
+              <div style={{ height: '3px', background: border, borderRadius: '2px', overflow: 'hidden' }}>
+                <motion.div
+                  initial={{ width: '0%' }}
+                  animate={{ width: '90%' }}
+                  transition={{ duration: 12, ease: 'easeInOut' }}
+                  style={{ height: '100%', background: 'linear-gradient(90deg, #a855f7, #6b9fff)', borderRadius: '2px' }} />
+              </div>
+              <p style={{ fontSize: '11px', color: muted, marginTop: '8px' }}>
+                {locale === 'de' ? 'Erkennung + Hintergrundentfernung läuft parallel...' : 'Detection + background removal running in parallel...'}
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Analyze progress */}
         <AnimatePresence>
