@@ -249,23 +249,13 @@ await supabase.from('multi_scan_generations').insert({ user_id: checkSession.use
       if (!uploadSession?.user) throw new Error('No session')
 
 const processedItems = result.items.map((it: any) => {
-        const padX = (it.width / 100) * img.naturalWidth * 0.15
-        const padY = (it.height / 100) * img.naturalHeight * 0.15
-        const cropX = Math.max(0, (it.x / 100) * img.naturalWidth - padX)
-        const cropY = Math.max(0, (it.y / 100) * img.naturalHeight - padY)
-        const cropW = Math.min(img.naturalWidth - cropX, (it.width / 100) * img.naturalWidth + padX * 2)
-        const cropH = Math.min(img.naturalHeight - cropY, (it.height / 100) * img.naturalHeight + padY * 2)
-        const cropCanvas = document.createElement('canvas')
-        cropCanvas.width = Math.max(1, Math.round(cropW))
-        cropCanvas.height = Math.max(1, Math.round(cropH))
-        cropCanvas.getContext('2d')!.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, Math.round(cropW), Math.round(cropH))
         return {
           x: it.x, y: it.y, width: it.width, height: it.height,
           category: it.category ?? 'tops',
           color: it.color ?? 'Unbekannt',
           name: it.name ?? 'Kleidungsstück',
           brand: it.brand ?? undefined,
-          croppedImage: cropCanvas.toDataURL('image/jpeg', 0.92),
+          croppedImage: dataUrl,
           included: true,
         }
       })
