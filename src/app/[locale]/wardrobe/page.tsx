@@ -235,7 +235,8 @@ await supabase.from('multi_scan_generations').insert({ user_id: checkSession.use
       }
 
       // Schritt 2: Alle Teile aus Originalbild ausschneiden (mit 15% Puffer)
-     const img = new Image()
+ const img = new Image()
+      img.crossOrigin = 'anonymous'
       await new Promise<void>((resolve, reject) => {
         img.onload = () => resolve()
         img.onerror = () => reject(new Error('Image failed to load'))
@@ -250,21 +251,25 @@ await supabase.from('multi_scan_generations').insert({ user_id: checkSession.use
       if (!uploadSession?.user) throw new Error('No session')
 
 const processedItems = result.items.map((it: any) => {
-        const pad = 15
-        const x = Math.max(0, it.x - pad)
-        const y = Math.max(0, it.y - pad)
-        const w = Math.min(100 - x, it.width + pad * 2)
-        const h = Math.min(100 - y, it.height + pad * 2)
+        const padX = (it.width / 100) * img.naturalWidth * 0.15
+        const padY = (it.height / 100) * img.naturalHeight * 0.15
+        const cropX = Math.max(0, (it.x / 100) * img.naturalWidth - padX)
+        const cropY = Math.max(0, (it.y / 100) * img.naturalHeight - padY)
+        const cropW = Math.min(img.naturalWidth - cropX, (it.width / 100) * img.naturalWidth + padX * 2)
+        const cropH = Math.min(img.naturalHeight - cropY, (it.height / 100) * img.naturalHeight + padY * 2)
+        const cropCanvas = document.createElement('canvas')
+        cropCanvas.width = Math.max(1, Math.round(cropW))
+        cropCanvas.height = Math.max(1, Math.round(cropH))
+        cropCanvas.getContext('2d')!.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, Math.round(cropW), Math.round(cropH))
+        const dataURL = cropCanvas.toDataURL('image/jpeg', 0.92)
         return {
           x: it.x, y: it.y, width: it.width, height: it.height,
           category: it.category ?? 'tops',
           color: it.color ?? 'Unbekannt',
           name: it.name ?? 'Kleidungsstück',
           brand: it.brand ?? undefined,
-          croppedImage: dataUrl,
-          originalImage: dataUrl,
+          croppedImage: dataURL || dataUrl,
           included: true,
-          cropX: x, cropY: y, cropW: w, cropH: h,
         }
       })
 
@@ -808,20 +813,9 @@ const processedItems = result.items.map((it: any) => {
                 {detectedItems.map((item, i) => (
                   <div key={i} style={{ background: card, border: `1px solid ${item.included ? accent : border}`, borderRadius: '14px', overflow: 'hidden', opacity: item.included ? 1 : 0.45, transition: 'all 0.2s' }}>
                     <div style={{ position: 'relative' as const }}>
-                  <div style={{ aspectRatio: '3/4', overflow: 'hidden', background: secondary }}>
-                        <img
-                          src={item.croppedImage}
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'none',
-                            objectPosition: `-${(item as any).cropX}% -${(item as any).cropY}%`,
-                            transform: `scale(${100 / (item as any).cropW})`,
-                            transformOrigin: `${(item as any).cropX}% ${(item as any).cropY}%`,
-                            display: 'block',
-                          }}
-                        />
-                      </div>
+                <div style={{ aspectRatio: '3/4', overflow: 'hidden', background: secondary }}>
+                    <img src={item.croppedImage} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  </div>
                       <button onClick={() => toggleDetectedItem(i)}
                         style={{ position: 'absolute' as const, top: '6px', right: '6px', width: '26px', height: '26px', borderRadius: '50%', border: 'none', cursor: 'pointer', background: item.included ? accent : 'rgba(0,0,0,0.5)', color: '#fff', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         {item.included ? '✓' : '+'}
