@@ -272,15 +272,23 @@ await supabase.from('multi_scan_generations').insert({ user_id: checkSession.use
           })
           const bgData = await bgRes.json()
 
-          let finalImage = cropCanvas.toDataURL('image/jpeg', 0.9)
+ let finalImage = cropCanvas.toDataURL('image/jpeg', 0.9)
           if (bgData.success && bgData.imageUrl) {
-            const cleanRes = await fetch(bgData.imageUrl)
-            const cleanBlob = await cleanRes.blob()
-            finalImage = await new Promise(resolve => {
-              const reader = new FileReader()
-              reader.onload = () => resolve(reader.result as string)
-              reader.readAsDataURL(cleanBlob)
-            })
+            try {
+              // rembg-Ergebnis in Supabase speichern (statt direkt als Data-URL)
+              const cleanRes = await fetch(bgData.imageUrl)
+              if (cleanRes.ok) {
+                const cleanBlob = await cleanRes.blob()
+                const cleanFileName = `${uploadSession.user.id}/multi-clean-${Date.now()}-${Math.random().toString(36).slice(2)}.png`
+                const { error: cleanErr } = await supabase.storage.from('clothing').upload(cleanFileName, cleanBlob, { contentType: 'image/png' })
+                if (!cleanErr) {
+                  const { data: { publicUrl: cleanUrl } } = supabase.storage.from('clothing').getPublicUrl(cleanFileName)
+                  finalImage = cleanUrl
+                }
+              }
+            } catch (cleanErr) {
+              console.error('Clean image save failed, using crop:', cleanErr)
+            }
           }
 
           // Temp-Datei aufräumen (fire and forget)
