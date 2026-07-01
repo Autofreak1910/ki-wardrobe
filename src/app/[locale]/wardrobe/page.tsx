@@ -256,7 +256,15 @@ await supabase.from('multi_scan_generations').insert({ user_id: checkSession.use
           cropCanvas.width = cropW
           cropCanvas.height = cropH
           cropCanvas.getContext('2d')!.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH)
-          const cropBlob = await new Promise<Blob>(resolve => cropCanvas.toBlob(b => resolve(b!), 'image/jpeg', 0.9))
+    const cropBlob = await new Promise<Blob>((resolve, reject) => {
+            cropCanvas.toBlob(b => {
+              if (!b || b.size < 1000) {
+                reject(new Error(`Invalid crop blob: size=${b?.size ?? 0}, cropX=${cropX.toFixed(0)}, cropY=${cropY.toFixed(0)}, cropW=${cropW.toFixed(0)}, cropH=${cropH.toFixed(0)}, imgW=${img.naturalWidth}, imgH=${img.naturalHeight}`))
+              } else {
+                resolve(b)
+              }
+            }, 'image/jpeg', 0.9)
+          })
 
           // Crop temporär in Supabase hochladen für rembg
           const tempFileName = `${uploadSession.user.id}/multi-temp-${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`
