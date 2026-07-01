@@ -248,101 +248,27 @@ await supabase.from('multi_scan_generations').insert({ user_id: checkSession.use
       const { data: { session: uploadSession } } = await supabase.auth.getSession()
       if (!uploadSession?.user) throw new Error('No session')
 
-      // Schritt 3: Alle rembg-Calls PARALLEL laufen lassen
-      const processedItems = await Promise.all(result.items.map(async (it: any) => {
-        try {
-          // Crop mit Puffer ausschneiden
-          const padX = (it.width / 100) * img.naturalWidth * 0.15
-          const padY = (it.height / 100) * img.naturalHeight * 0.15
-          const cropX = Math.max(0, (it.x / 100) * img.naturalWidth - padX)
-          const cropY = Math.max(0, (it.y / 100) * img.naturalHeight - padY)
-          const cropW = Math.min(img.naturalWidth - cropX, (it.width / 100) * img.naturalWidth + padX * 2)
-          const cropH = Math.min(img.naturalHeight - cropY, (it.height / 100) * img.naturalHeight + padY * 2)
-
-       console.log(`Item crop: x=${cropX.toFixed(0)} y=${cropY.toFixed(0)} w=${cropW.toFixed(0)} h=${cropH.toFixed(0)} (img ${img.naturalWidth}x${img.naturalHeight})`)
-          const cropCanvas = document.createElement('canvas')
-          cropCanvas.width = Math.max(1, Math.round(cropW))
-          cropCanvas.height = Math.max(1, Math.round(cropH))
-          cropCanvas.getContext('2d')!.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH)
-          const cropBlob = await new Promise<Blob>((resolve, reject) => {
-            cropCanvas.toBlob(b => {
-              if (!b || b.size < 1000) {
-                reject(new Error(`Invalid crop blob: size=${b?.size ?? 0}, cropX=${cropX.toFixed(0)}, cropY=${cropY.toFixed(0)}, cropW=${cropW.toFixed(0)}, cropH=${cropH.toFixed(0)}, imgW=${img.naturalWidth}, imgH=${img.naturalHeight}`))
-              } else {
-                resolve(b)
-              }
-            }, 'image/jpeg', 0.9)
-          })
-
-          // Crop temporär in Supabase hochladen für rembg
-          const tempFileName = `${uploadSession.user.id}/multi-temp-${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`
-          const { error: tempErr } = await supabase.storage.from('clothing').upload(tempFileName, cropBlob, { contentType: 'image/jpeg' })
-          if (tempErr) throw tempErr
-          const { data: { publicUrl: tempUrl } } = supabase.storage.from('clothing').getPublicUrl(tempFileName)
-
-          // rembg Hintergrund entfernen
-          const bgRes = await fetch('/api/remove-background', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ imageUrl: tempUrl }),
-          })
-          const bgData = await bgRes.json()
-
- let finalImage = cropCanvas.toDataURL('image/jpeg', 0.9)
-          if (bgData.success && bgData.imageUrl) {
-            try {
-              // rembg-Ergebnis in Supabase speichern (statt direkt als Data-URL)
-              const cleanRes = await fetch(bgData.imageUrl)
-              if (cleanRes.ok) {
-                const cleanBlob = await cleanRes.blob()
-                const cleanFileName = `${uploadSession.user.id}/multi-clean-${Date.now()}-${Math.random().toString(36).slice(2)}.png`
-                const { error: cleanErr } = await supabase.storage.from('clothing').upload(cleanFileName, cleanBlob, { contentType: 'image/png' })
-                if (!cleanErr) {
-                  const { data: { publicUrl: cleanUrl } } = supabase.storage.from('clothing').getPublicUrl(cleanFileName)
-                  finalImage = cleanUrl
-                }
-              }
-            } catch (cleanErr) {
-              console.error('Clean image save failed, using crop:', cleanErr)
-            }
-          }
-
-          // Temp-Datei aufräumen (fire and forget)
-          supabase.storage.from('clothing').remove([tempFileName]).catch(() => {})
-
-          return {
-            x: it.x, y: it.y, width: it.width, height: it.height,
-            category: it.category ?? 'tops',
-            color: it.color ?? 'Unbekannt',
-            name: it.name ?? 'Kleidungsstück',
-            brand: it.brand ?? undefined,
-            croppedImage: finalImage,
-            included: true,
-          }
-        } catch (err) {
-          console.error('Failed to process item:', err)
-          // Fallback: einfacher Crop ohne Hintergrundentfernung
-          const padX = (it.width / 100) * img.naturalWidth * 0.1
-          const padY = (it.height / 100) * img.naturalHeight * 0.1
-          const cropX = Math.max(0, (it.x / 100) * img.naturalWidth - padX)
-          const cropY = Math.max(0, (it.y / 100) * img.naturalHeight - padY)
-          const cropW = Math.min(img.naturalWidth - cropX, (it.width / 100) * img.naturalWidth + padX * 2)
-          const cropH = Math.min(img.naturalHeight - cropY, (it.height / 100) * img.naturalHeight + padY * 2)
-          const fallbackCanvas = document.createElement('canvas')
-          fallbackCanvas.width = cropW
-          fallbackCanvas.height = cropH
-          fallbackCanvas.getContext('2d')!.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH)
-          return {
-            x: it.x, y: it.y, width: it.width, height: it.height,
-            category: it.category ?? 'tops',
-            color: it.color ?? 'Unbekannt',
-            name: it.name ?? 'Kleidungsstück',
-            brand: it.brand ?? undefined,
-            croppedImage: fallbackCanvas.toDataURL('image/jpeg', 0.9),
-            included: true,
-          }
+const processedItems = result.items.map((it: any) => {
+        const padX = (it.width / 100) * img.naturalWidth * 0.15
+        const padY = (it.height / 100) * img.naturalHeight * 0.15
+        const cropX = Math.max(0, (it.x / 100) * img.naturalWidth - padX)
+        const cropY = Math.max(0, (it.y / 100) * img.naturalHeight - padY)
+        const cropW = Math.min(img.naturalWidth - cropX, (it.width / 100) * img.naturalWidth + padX * 2)
+        const cropH = Math.min(img.naturalHeight - cropY, (it.height / 100) * img.naturalHeight + padY * 2)
+        const cropCanvas = document.createElement('canvas')
+        cropCanvas.width = Math.max(1, Math.round(cropW))
+        cropCanvas.height = Math.max(1, Math.round(cropH))
+        cropCanvas.getContext('2d')!.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, Math.round(cropW), Math.round(cropH))
+        return {
+          x: it.x, y: it.y, width: it.width, height: it.height,
+          category: it.category ?? 'tops',
+          color: it.color ?? 'Unbekannt',
+          name: it.name ?? 'Kleidungsstück',
+          brand: it.brand ?? undefined,
+          croppedImage: cropCanvas.toDataURL('image/jpeg', 0.92),
+          included: true,
         }
-      }))
+      })
 
       setDetectedItems(processedItems)
       setMultiAnalyzing(false)
