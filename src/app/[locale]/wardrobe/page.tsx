@@ -303,7 +303,16 @@ const processedItems = result.items.map((it: any) => {
     for (let i = 0; i < toSave.length; i++) {
       const item = toSave[i]
       try {
-        const blob = await (await fetch(item.croppedImage)).blob()
+       // Data-URL direkt in Blob umwandeln statt fetch()
+        const dataUrlParts = item.croppedImage.split(',')
+        const byteString = atob(dataUrlParts[1])
+        const mimeType = dataUrlParts[0].split(':')[1].split(';')[0]
+        const byteArray = new Uint8Array(byteString.length)
+        for (let j = 0; j < byteString.length; j++) {
+          byteArray[j] = byteString.charCodeAt(j)
+        }
+        const blob = new Blob([byteArray], { type: mimeType })
+
         const fileName = `${user.id}/${Date.now()}-${i}.jpg`
         const { error: uploadError } = await supabase.storage.from('clothing').upload(fileName, blob, { contentType: 'image/jpeg' })
         if (uploadError) throw uploadError
