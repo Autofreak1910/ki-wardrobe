@@ -39,10 +39,11 @@ const [limitMsg, setLimitMsg] = useState<string | null>(null)
   const [multiMode, setMultiMode] = useState(false)
   const [multiAnalyzing, setMultiAnalyzing] = useState(false)
   const [multiOriginalImage, setMultiOriginalImage] = useState<string | null>(null)
-  const [detectedItems, setDetectedItems] = useState<Array<{
+const [detectedItems, setDetectedItems] = useState<Array<{
     x: number; y: number; width: number; height: number
     category: string; color: string; name: string; brand?: string
     croppedImage: string; included: boolean; uploading?: boolean
+    originalImage?: string
   }>>([])
   const [multiSaving, setMultiSaving] = useState(false)
   const { theme } = useTheme()
@@ -249,6 +250,11 @@ await supabase.from('multi_scan_generations').insert({ user_id: checkSession.use
       if (!uploadSession?.user) throw new Error('No session')
 
 const processedItems = result.items.map((it: any) => {
+        const pad = 15
+        const x = Math.max(0, it.x - pad)
+        const y = Math.max(0, it.y - pad)
+        const w = Math.min(100 - x, it.width + pad * 2)
+        const h = Math.min(100 - y, it.height + pad * 2)
         return {
           x: it.x, y: it.y, width: it.width, height: it.height,
           category: it.category ?? 'tops',
@@ -256,7 +262,9 @@ const processedItems = result.items.map((it: any) => {
           name: it.name ?? 'Kleidungsstück',
           brand: it.brand ?? undefined,
           croppedImage: dataUrl,
+          originalImage: dataUrl,
           included: true,
+          cropX: x, cropY: y, cropW: w, cropH: h,
         }
       })
 
@@ -294,15 +302,14 @@ const processedItems = result.items.map((it: any) => {
       const item = toSave[i]
       try {
        // Data-URL direkt in Blob umwandeln statt fetch()
+     // Originalbild als Base64 → Blob → Supabase hochladen
         const dataUrlParts = item.croppedImage.split(',')
         const byteString = atob(dataUrlParts[1])
-        const mimeType = dataUrlParts[0].split(':')[1].split(';')[0]
         const byteArray = new Uint8Array(byteString.length)
         for (let j = 0; j < byteString.length; j++) {
           byteArray[j] = byteString.charCodeAt(j)
         }
-        const blob = new Blob([byteArray], { type: mimeType })
-
+        const blob = new Blob([byteArray], { type: 'image/jpeg' })
         const fileName = `${user.id}/${Date.now()}-${i}.jpg`
         const { error: uploadError } = await supabase.storage.from('clothing').upload(fileName, blob, { contentType: 'image/jpeg' })
         if (uploadError) throw uploadError
@@ -801,8 +808,18 @@ const processedItems = result.items.map((it: any) => {
                 {detectedItems.map((item, i) => (
                   <div key={i} style={{ background: card, border: `1px solid ${item.included ? accent : border}`, borderRadius: '14px', overflow: 'hidden', opacity: item.included ? 1 : 0.45, transition: 'all 0.2s' }}>
                     <div style={{ position: 'relative' as const }}>
-                      <div style={{ aspectRatio: '3/4', overflow: 'hidden', background: secondary }}>
-                        <img src={item.croppedImage} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                   <div style={{ aspectRatio: '3/4', overflow: 'hidden', background: secondary, position: 'relative' as const }}>
+                        <img
+                          src={item.croppedImage}
+                          style={{
+                            position: 'absolute' as const,
+                            left: `-${((item as any).cropX / (item as any).cropW) * 100}%`,
+                            top: `-${((item as any).cropY / (item as any).cropH) * 100}%`,
+                            width: `${(100 / (item as any).cropW) * 100}%`,
+                            height: 'auto',
+                            display: 'block',
+                          }}
+                        />
                       </div>
                       <button onClick={() => toggleDetectedItem(i)}
                         style={{ position: 'absolute' as const, top: '6px', right: '6px', width: '26px', height: '26px', borderRadius: '50%', border: 'none', cursor: 'pointer', background: item.included ? accent : 'rgba(0,0,0,0.5)', color: '#fff', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
