@@ -268,16 +268,21 @@ await supabase.from('multi_scan_generations').insert({ user_id: checkSession.use
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ imageUrl: originalImageUrl, x: it.x, y: it.y, width: it.width, height: it.height }),
           })
-          if (!cropRes.ok) throw new Error('Crop failed')
+  if (!cropRes.ok) throw new Error('Crop failed')
           const cropBlob = await cropRes.blob()
-          const cropUrl = URL.createObjectURL(cropBlob)
+          const cropDataUrl = await new Promise<string>(resolve => {
+            const reader = new FileReader()
+            reader.onload = () => resolve(reader.result as string)
+            reader.readAsDataURL(cropBlob)
+          })
+
           return {
             x: it.x, y: it.y, width: it.width, height: it.height,
             category: it.category ?? 'tops',
             color: it.color ?? 'Unbekannt',
             name: it.name ?? 'Kleidungsstück',
             brand: it.brand ?? undefined,
-            croppedImage: cropUrl,
+            croppedImage: cropDataUrl,
             croppedBlob: cropBlob,
             included: true,
           }
