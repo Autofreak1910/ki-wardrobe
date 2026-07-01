@@ -176,141 +176,96 @@ async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
   }
 
 async function handleMultiUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+  const file = e.target.files?.[0]
+  if (!file) return
+  if (multiFileInputRef.current) multiFileInputRef.current.value = ''
 
-    const LIMIT = isPremium ? Infinity : 20
-    if (items.length >= LIMIT) {
-      setLimitMsg(locale === 'de'
-        ? 'Max. 20 Kleidungsstücke im Free Plan. Upgrade für unbegrenzt!'
-        : 'Max. 20 items in Free Plan. Upgrade for unlimited!')
+  const { data: { session: checkSession } } = await supabase.auth.getSession()
+  if (!checkSession?.user) return
+
+  const weekAgo = new Date()
+  weekAgo.setDate(weekAgo.getDate() - 7)
+  const { count: weeklyCount } = await supabase
+    .from('multi_scan_generations')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', checkSession.user.id)
+    .gte('created_at', weekAgo.toISOString())
+
+  if ((weeklyCount ?? 0) >= 3) {
+    setLimitMsg(locale === 'de' ? 'Max. 3 Schrank-Scans pro Woche!' : 'Max. 3 closet scans per week!')
+    setTimeout(() => setLimitMsg(null), 4000)
+    return
+  }
+  await supabase.from('multi_scan_generations').insert({ user_id: checkSession.user.id })
+
+  const convertedFile = await convertToJpeg(file)
+  setMultiAnalyzing(true)
+  setDetectedItems([])
+
+  try {
+    const base64 = await fileToBase64(convertedFile)
+
+    // Schritt 1: GPT-4o erkennt Kleidungsstücke mit Bounding Boxes
+    const analyzeRes = await fetch('/api/analyze-multi-clothing', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-locale': locale },
+      body: JSON.stringify({ imageBase64: base64, mimeType: 'image/jpeg' }),
+    })
+    const analyzeData = await analyzeRes.json()
+    if (!analyzeData.success || !analyzeData.items?.length) {
+      setLimitMsg(locale === 'de' ? 'Keine Kleidung erkannt.' : 'No clothing detected.')
       setTimeout(() => setLimitMsg(null), 4000)
-      if (multiFileInputRef.current) multiFileInputRef.current.value = ''
+      setMultiAnalyzing(false)
       return
     }
 
-    const { data: { session: checkSession } } = await supabase.auth.getSession()
-    if (checkSession?.user) {
-      const weekAgo = new Date()
-      weekAgo.setDate(weekAgo.getDate() - 7)
-      const { count: weeklyCount } = await supabase
-        .from('multi_scan_generations')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', checkSession.user.id)
-        .gte('created_at', weekAgo.toISOString())
+    // Schritt 2: Originalbild in Supabase hochladen (für Server-Crop)
+    const fileName = `${checkSession.user.id}/multi-orig-${Date.now()}.jpg`
+    await supabase.storage.from('clothing').upload(fileName, convertedFile, { contentType: 'image/jpeg' })
+    const { data: { publicUrl: origUrl } } = supabase.storage.from('clothing').getPublicUrl(fileName)
 
-      if ((weeklyCount ?? 0) >= 3) {
-        setLimitMsg(locale === 'de'
-          ? 'Max. 3 Schrank-Scans pro Woche erreicht. Nächste Woche wieder!'
-          : 'Max. 3 closet scans per week reached. Try again next week!')
-        setTimeout(() => setLimitMsg(null), 4000)
-        if (multiFileInputRef.current) multiFileInputRef.current.value = ''
-        return
-      }
-await supabase.from('multi_scan_generations').insert({ user_id: checkSession.user.id })
-    }
-
-    const convertedFile = await convertToJpeg(file)
-    setMultiAnalyzing(true)
-    setDetectedItems([])
-
-    try {
-      const base64 = await fileToBase64(convertedFile)
-      const dataUrl = `data:${convertedFile.type};base64,${base64}`
-      setMultiOriginalImage(dataUrl)
-
-      // Schritt 1: GPT-4o erkennt alle Teile mit Boxen
-      const res = await fetch('/api/analyze-multi-clothing', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-locale': locale },
-        body: JSON.stringify({ imageBase64: base64, mimeType: convertedFile.type || 'image/jpeg' }),
-      })
-      const result = await res.json()
-      if (!result.success || !result.items?.length) {
-        setMultiAnalyzing(false)
-        setMultiMode(false)
-        setLimitMsg(locale === 'de' ? 'Keine Kleidung erkannt. Versuch ein anderes Foto.' : 'No clothing detected. Try another photo.')
-        setTimeout(() => setLimitMsg(null), 4000)
-        return
-      }
-
-      // Schritt 2: Alle Teile aus Originalbild ausschneiden (mit 15% Puffer)
- const img = new Image()
-      img.crossOrigin = 'anonymous'
-      await new Promise<void>((resolve, reject) => {
-        img.onload = () => resolve()
-        img.onerror = () => reject(new Error('Image failed to load'))
-        img.src = dataUrl
-      })
-      console.log('Image loaded:', img.naturalWidth, 'x', img.naturalHeight)
-      if (!img.naturalWidth || !img.naturalHeight) {
-        throw new Error('Image has no dimensions after loading')
-      }
-
-  const { data: { session: uploadSession } } = await supabase.auth.getSession()
-      if (!uploadSession?.user) throw new Error('No session')
-
-      // Originalbild einmalig hochladen
-      const dataUrlParts = dataUrl.split(',')
-      const byteString = atob(dataUrlParts[1])
-      const byteArray = new Uint8Array(byteString.length)
-      for (let k = 0; k < byteString.length; k++) byteArray[k] = byteString.charCodeAt(k)
-      const originalBlob = new Blob([byteArray], { type: 'image/jpeg' })
-      const originalFileName = `${uploadSession.user.id}/multi-original-${Date.now()}.jpg`
-      await supabase.storage.from('clothing').upload(originalFileName, originalBlob, { contentType: 'image/jpeg' })
-      const { data: { publicUrl: originalImageUrl } } = supabase.storage.from('clothing').getPublicUrl(originalFileName)
-
-      // Alle Crops parallel serverseitig machen
-      const processedItems = await Promise.all(result.items.map(async (it: any) => {
-        try {
-          const cropRes = await fetch('/api/crop-image', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ imageUrl: originalImageUrl, x: it.x, y: it.y, width: it.width, height: it.height }),
-          })
-  if (!cropRes.ok) throw new Error('Crop failed')
-          const cropBlob = await cropRes.blob()
-          const cropDataUrl = await new Promise<string>(resolve => {
-            const reader = new FileReader()
-            reader.onload = () => resolve(reader.result as string)
-            reader.readAsDataURL(cropBlob)
-          })
-
-          return {
-            x: it.x, y: it.y, width: it.width, height: it.height,
-            category: it.category ?? 'tops',
-            color: it.color ?? 'Unbekannt',
-            name: it.name ?? 'Kleidungsstück',
-            brand: it.brand ?? undefined,
-            croppedImage: cropDataUrl,
-            croppedBlob: cropBlob,
-            included: true,
-          }
-        } catch {
-          return {
-            x: it.x, y: it.y, width: it.width, height: it.height,
-            category: it.category ?? 'tops',
-            color: it.color ?? 'Unbekannt',
-            name: it.name ?? 'Kleidungsstück',
-            brand: it.brand ?? undefined,
-            croppedImage: originalImageUrl,
-            included: true,
-          }
+    // Schritt 3: Für jedes Teil Server-Crop aufrufen (parallel)
+    const processedItems = await Promise.all(analyzeData.items.map(async (it: any) => {
+      try {
+        const cropRes = await fetch('/api/crop-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageUrl: origUrl, x: it.x, y: it.y, width: it.width, height: it.height }),
+        })
+        if (!cropRes.ok) throw new Error('crop failed')
+        const cropBlob = await cropRes.blob()
+        const cropDataUrl = await new Promise<string>(res => {
+          const reader = new FileReader()
+          reader.onload = () => res(reader.result as string)
+          reader.readAsDataURL(cropBlob)
+        })
+        return {
+          x: it.x, y: it.y, width: it.width, height: it.height,
+          category: it.category ?? 'tops',
+          color: it.color ?? 'Unbekannt',
+          name: it.name ?? 'Kleidungsstück',
+          brand: it.brand ?? undefined,
+          croppedImage: cropDataUrl,
+          croppedBlob: cropBlob,
+          included: true,
         }
-      }))
+      } catch {
+        return null
+      }
+    }))
 
-      setDetectedItems(processedItems)
-      setMultiAnalyzing(false)
-      setMultiMode(true)
-    } catch (err) {
-      console.error('Multi-upload failed:', err)
-      setMultiAnalyzing(false)
-      setLimitMsg(locale === 'de' ? 'Fehler beim Analysieren' : 'Error analyzing')
-      setTimeout(() => setLimitMsg(null), 4000)
-    } finally {
-      if (multiFileInputRef.current) multiFileInputRef.current.value = ''
-    }
+    setDetectedItems(processedItems.filter(Boolean) as any)
+    setMultiAnalyzing(false)
+    setMultiMode(true)
+  } catch (err) {
+    console.error('Multi-upload failed:', err)
+    setLimitMsg(locale === 'de' ? 'Fehler beim Analysieren' : 'Error analyzing')
+    setTimeout(() => setLimitMsg(null), 4000)
+    setMultiAnalyzing(false)
   }
+}
+
+    
 
   function toggleDetectedItem(index: number) {
     setDetectedItems(prev => prev.map((it, i) => i === index ? { ...it, included: !it.included } : it))
@@ -341,28 +296,8 @@ await supabase.from('multi_scan_generations').insert({ user_id: checkSession.use
         const { error: uploadError } = await supabase.storage.from('clothing').upload(fileName, blob, { contentType: 'image/jpeg' })
         if (uploadError) throw uploadError
         const { data: { publicUrl: originalUrl } } = supabase.storage.from('clothing').getPublicUrl(fileName)
-
-        let publicUrl = originalUrl
-        try {
-          const bgRes = await fetch('/api/remove-background', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ imageUrl: originalUrl }),
-          })
-          const bgData = await bgRes.json()
-          if (bgData.success && bgData.imageUrl) {
-            const cleanBlob = await (await fetch(bgData.imageUrl)).blob()
-            const cleanFileName = `${user.id}/${Date.now()}-${i}-clean.png`
-            const { error: cleanErr } = await supabase.storage.from('clothing').upload(cleanFileName, cleanBlob, { contentType: 'image/png' })
-            if (!cleanErr) {
-              const { data: { publicUrl: cleanUrl } } = supabase.storage.from('clothing').getPublicUrl(cleanFileName)
-              publicUrl = cleanUrl
-            }
-          }
-        } catch {}
-
-        await supabase.from('clothing_items').insert({
-          user_id: user.id, image_url: publicUrl,
+await supabase.from('clothing_items').insert({
+          user_id: session.user.id, image_url: originalUrl,
           category: item.category, color: item.color, name: item.name,
           brand: item.brand || null, style_tags: [], season: [],
         })
