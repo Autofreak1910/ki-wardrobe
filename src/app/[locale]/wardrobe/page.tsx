@@ -42,8 +42,8 @@ const [limitMsg, setLimitMsg] = useState<string | null>(null)
 const [detectedItems, setDetectedItems] = useState<Array<{
     x: number; y: number; width: number; height: number
     category: string; color: string; name: string; brand?: string
-    croppedImage: string; included: boolean; uploading?: boolean
-    originalImage?: string
+  croppedImage: string; included: boolean; uploading?: boolean
+    originalImage?: string; croppedBlob?: Blob
   }>>([])
   const [multiSaving, setMultiSaving] = useState(false)
   const { theme } = useTheme()
@@ -247,31 +247,52 @@ await supabase.from('multi_scan_generations').insert({ user_id: checkSession.use
         throw new Error('Image has no dimensions after loading')
       }
 
-      const { data: { session: uploadSession } } = await supabase.auth.getSession()
+  const { data: { session: uploadSession } } = await supabase.auth.getSession()
       if (!uploadSession?.user) throw new Error('No session')
 
-const processedItems = result.items.map((it: any) => {
-        const padX = (it.width / 100) * img.naturalWidth * 0.15
-        const padY = (it.height / 100) * img.naturalHeight * 0.15
-        const cropX = Math.max(0, (it.x / 100) * img.naturalWidth - padX)
-        const cropY = Math.max(0, (it.y / 100) * img.naturalHeight - padY)
-        const cropW = Math.min(img.naturalWidth - cropX, (it.width / 100) * img.naturalWidth + padX * 2)
-        const cropH = Math.min(img.naturalHeight - cropY, (it.height / 100) * img.naturalHeight + padY * 2)
-        const cropCanvas = document.createElement('canvas')
-        cropCanvas.width = Math.max(1, Math.round(cropW))
-        cropCanvas.height = Math.max(1, Math.round(cropH))
-        cropCanvas.getContext('2d')!.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, Math.round(cropW), Math.round(cropH))
-        const dataURL = cropCanvas.toDataURL('image/jpeg', 0.92)
-        return {
-          x: it.x, y: it.y, width: it.width, height: it.height,
-          category: it.category ?? 'tops',
-          color: it.color ?? 'Unbekannt',
-          name: it.name ?? 'Kleidungsstück',
-          brand: it.brand ?? undefined,
-          croppedImage: dataURL || dataUrl,
-          included: true,
+      // Originalbild einmalig hochladen
+      const dataUrlParts = dataUrl.split(',')
+      const byteString = atob(dataUrlParts[1])
+      const byteArray = new Uint8Array(byteString.length)
+      for (let k = 0; k < byteString.length; k++) byteArray[k] = byteString.charCodeAt(k)
+      const originalBlob = new Blob([byteArray], { type: 'image/jpeg' })
+      const originalFileName = `${uploadSession.user.id}/multi-original-${Date.now()}.jpg`
+      await supabase.storage.from('clothing').upload(originalFileName, originalBlob, { contentType: 'image/jpeg' })
+      const { data: { publicUrl: originalImageUrl } } = supabase.storage.from('clothing').getPublicUrl(originalFileName)
+
+      // Alle Crops parallel serverseitig machen
+      const processedItems = await Promise.all(result.items.map(async (it: any) => {
+        try {
+          const cropRes = await fetch('/api/crop-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageUrl: originalImageUrl, x: it.x, y: it.y, width: it.width, height: it.height }),
+          })
+          if (!cropRes.ok) throw new Error('Crop failed')
+          const cropBlob = await cropRes.blob()
+          const cropUrl = URL.createObjectURL(cropBlob)
+          return {
+            x: it.x, y: it.y, width: it.width, height: it.height,
+            category: it.category ?? 'tops',
+            color: it.color ?? 'Unbekannt',
+            name: it.name ?? 'Kleidungsstück',
+            brand: it.brand ?? undefined,
+            croppedImage: cropUrl,
+            croppedBlob: cropBlob,
+            included: true,
+          }
+        } catch {
+          return {
+            x: it.x, y: it.y, width: it.width, height: it.height,
+            category: it.category ?? 'tops',
+            color: it.color ?? 'Unbekannt',
+            name: it.name ?? 'Kleidungsstück',
+            brand: it.brand ?? undefined,
+            croppedImage: originalImageUrl,
+            included: true,
+          }
         }
-      })
+      }))
 
       setDetectedItems(processedItems)
       setMultiAnalyzing(false)
@@ -308,13 +329,9 @@ const processedItems = result.items.map((it: any) => {
       try {
        // Data-URL direkt in Blob umwandeln statt fetch()
      // Originalbild als Base64 → Blob → Supabase hochladen
-        const dataUrlParts = item.croppedImage.split(',')
-        const byteString = atob(dataUrlParts[1])
-        const byteArray = new Uint8Array(byteString.length)
-        for (let j = 0; j < byteString.length; j++) {
-          byteArray[j] = byteString.charCodeAt(j)
-        }
-        const blob = new Blob([byteArray], { type: 'image/jpeg' })
+      const blob = (item as any).croppedBlob
+          ? (item as any).croppedBlob
+          : await fetch(item.croppedImage).then(r => r.blob())
         const fileName = `${user.id}/${Date.now()}-${i}.jpg`
         const { error: uploadError } = await supabase.storage.from('clothing').upload(fileName, blob, { contentType: 'image/jpeg' })
         if (uploadError) throw uploadError
