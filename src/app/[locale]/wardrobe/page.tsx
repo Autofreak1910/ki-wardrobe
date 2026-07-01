@@ -234,9 +234,16 @@ await supabase.from('multi_scan_generations').insert({ user_id: checkSession.use
       }
 
       // Schritt 2: Alle Teile aus Originalbild ausschneiden (mit 15% Puffer)
-      const img = new Image()
-      img.src = dataUrl
-      await new Promise(resolve => { img.onload = resolve })
+     const img = new Image()
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve()
+        img.onerror = () => reject(new Error('Image failed to load'))
+        img.src = dataUrl
+      })
+      console.log('Image loaded:', img.naturalWidth, 'x', img.naturalHeight)
+      if (!img.naturalWidth || !img.naturalHeight) {
+        throw new Error('Image has no dimensions after loading')
+      }
 
       const { data: { session: uploadSession } } = await supabase.auth.getSession()
       if (!uploadSession?.user) throw new Error('No session')
@@ -252,11 +259,12 @@ await supabase.from('multi_scan_generations').insert({ user_id: checkSession.use
           const cropW = Math.min(img.naturalWidth - cropX, (it.width / 100) * img.naturalWidth + padX * 2)
           const cropH = Math.min(img.naturalHeight - cropY, (it.height / 100) * img.naturalHeight + padY * 2)
 
+       console.log(`Item crop: x=${cropX.toFixed(0)} y=${cropY.toFixed(0)} w=${cropW.toFixed(0)} h=${cropH.toFixed(0)} (img ${img.naturalWidth}x${img.naturalHeight})`)
           const cropCanvas = document.createElement('canvas')
-          cropCanvas.width = cropW
-          cropCanvas.height = cropH
+          cropCanvas.width = Math.max(1, Math.round(cropW))
+          cropCanvas.height = Math.max(1, Math.round(cropH))
           cropCanvas.getContext('2d')!.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH)
-    const cropBlob = await new Promise<Blob>((resolve, reject) => {
+          const cropBlob = await new Promise<Blob>((resolve, reject) => {
             cropCanvas.toBlob(b => {
               if (!b || b.size < 1000) {
                 reject(new Error(`Invalid crop blob: size=${b?.size ?? 0}, cropX=${cropX.toFixed(0)}, cropY=${cropY.toFixed(0)}, cropW=${cropW.toFixed(0)}, cropH=${cropH.toFixed(0)}, imgW=${img.naturalWidth}, imgH=${img.naturalHeight}`))
