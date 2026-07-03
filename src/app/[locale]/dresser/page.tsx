@@ -130,6 +130,7 @@ const [referrerName, setReferrerName] = useState('')
  const today = days[new Date().getDay()]
   const dateStr = new Date().toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-GB', { day: 'numeric', month: 'long' })
 const [greeting, setGreeting] = useState('')
+  const [streak, setStreak] = useState(0)
 useEffect(() => {
   setGreeting(getGreeting(locale))
 }, [locale])
@@ -142,6 +143,7 @@ useEffect(() => {
   loadWardrobe()
   fetchWeather()
   loadDailyFreeOutfit()
+  loadStreak()
 
   // Wardrobe neu laden wenn User zurückkommt (z.B. nach Upload)
   function onVisible() {
@@ -210,7 +212,14 @@ useEffect(() => {
   }
 }, [outfit])
 
-async function loadWardrobe() {
+async function loadStreak() {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.user) return
+    const { data } = await supabase.from('profiles').select('current_streak').eq('id', session.user.id).single()
+    if (data?.current_streak) setStreak(data.current_streak)
+  }
+
+  async function loadWardrobe() {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
 // Pruefe ob eingeladener User die Begruessung noch nicht gesehen hat (pro User-ID, nicht pro Browser)
@@ -933,6 +942,14 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
               </p>
               {isPremium && (
                 <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '4px', padding: '2px 6px', letterSpacing: '0.04em', boxShadow: '0 2px 6px rgba(251,191,36,0.4)' }}>✦ PRO</span>
+              )}
+              {streak >= 2 && (
+                <motion.span
+                  initial={{ scale: 0 }} animate={{ scale: 1 }}
+                  transition={{ type: 'spring', damping: 10, delay: 0.3 }}
+                  style={{ fontSize: '11px', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #f97316, #ef4444)', borderRadius: '6px', padding: '2px 7px', letterSpacing: '0.02em', boxShadow: '0 2px 8px rgba(249,115,22,0.4)' }}>
+                  🔥 {streak}
+                </motion.span>
               )}
             </div>
       <h1 style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.04em', color: text, lineHeight: 1.15 }}>
