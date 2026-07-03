@@ -544,10 +544,12 @@ async function handleMultiUpload(e: React.ChangeEvent<HTMLInputElement>) {
         <div style={{ position: 'absolute' as const, bottom: '-4px', right: '-4px', width: '16px', height: '16px', borderRadius: '50%', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px' }}>🔒</div>
       )}
     </div>
-    <p style={{ fontWeight: 600, color: text, marginBottom: '2px', fontSize: '13px', letterSpacing: '-0.01em' }}>
-      {multiAnalyzing ? (locale === 'de' ? 'Erkenne...' : 'Detecting...') : (locale === 'de' ? 'Mehrere Teile' : 'Multiple items')}
+ <p style={{ fontWeight: 600, color: isPremium ? text : muted, marginBottom: '2px', fontSize: '13px', letterSpacing: '-0.01em' }}>
+      {multiAnalyzing ? (locale === 'de' ? 'Analysiere...' : 'Analyzing...') : (locale === 'de' ? 'Mehrere Fotos' : 'Multiple photos')}
     </p>
-    <p style={{ fontSize: '11px', color: muted }}>{locale === 'de' ? 'Bis zu 10 Fotos' : 'Up to 10 photos'}</p>
+    <p style={{ fontSize: '11px', color: isPremium ? muted : '#f59e0b', fontWeight: isPremium ? 400 : 600 }}>
+      {isPremium ? (locale === 'de' ? 'Bis zu 10 auf einmal' : 'Up to 10 at once') : (locale === 'de' ? '🔒 Pro erforderlich' : '🔒 Pro required')}
+    </p>
   </motion.div>
 </div>
         <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleUpload} style={{ display: 'none' }} />
