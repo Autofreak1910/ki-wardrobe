@@ -979,24 +979,29 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
           </div>
 
           {/* Streak Card */}
-          {streak >= 1 && (
+          {true && (
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.25, type: 'spring', damping: 14 }}
               style={{ flexShrink: 0, width: '80px', background: streak >= 7 ? 'linear-gradient(135deg, rgba(249,115,22,0.15), rgba(239,68,68,0.1))' : card, border: `1px solid ${streak >= 7 ? 'rgba(249,115,22,0.3)' : border}`, borderRadius: '20px', padding: '14px 8px', textAlign: 'center' as const, boxShadow: streak >= 7 ? '0 4px 20px rgba(249,115,22,0.2)' : 'none' }}>
-              <motion.p
+         <motion.p
                 animate={streak >= 3 ? { scale: [1, 1.15, 1] } : {}}
                 transition={{ duration: 0.6, delay: 0.5 }}
                 style={{ fontSize: '28px', lineHeight: 1, marginBottom: '4px' }}>
-                🔥
+                {streak === 0 ? '🔥' : streak >= 7 ? '🔥' : '🔥'}
               </motion.p>
-              <p style={{ fontSize: '20px', fontWeight: 800, color: streak >= 7 ? '#f97316' : text, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: '4px' }}>
+              <p style={{ fontSize: '20px', fontWeight: 800, color: streak === 0 ? muted : streak >= 7 ? '#f97316' : text, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: '4px' }}>
                 {streak}
               </p>
               <p style={{ fontSize: '9px', fontWeight: 600, color: muted, letterSpacing: '0.04em', textTransform: 'uppercase' as const }}>
-                {locale === 'de' ? 'Tage' : 'Days'}
+                {locale === 'de' ? streak === 0 ? 'Start!' : 'Tage' : streak === 0 ? 'Start!' : 'Days'}
               </p>
+              {streak === 0 && (
+                <p style={{ fontSize: '8px', color: muted, marginTop: '4px', lineHeight: 1.3 }}>
+                  {locale === 'de' ? 'Täglich' : 'Daily'}
+                </p>
+              )}
               {streak === 7 && (
                 <motion.p initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
                   style={{ fontSize: '14px', marginTop: '4px' }}>🏆</motion.p>
