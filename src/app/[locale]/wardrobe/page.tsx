@@ -38,12 +38,10 @@ const [limitMsg, setLimitMsg] = useState<string | null>(null)
   const multiFileInputRef = useRef<HTMLInputElement>(null)
   const [multiMode, setMultiMode] = useState(false)
   const [multiAnalyzing, setMultiAnalyzing] = useState(false)
-  const [multiOriginalImage, setMultiOriginalImage] = useState<string | null>(null)
+  const [multiProgress, setMultiProgress] = useState(0)
 const [detectedItems, setDetectedItems] = useState<Array<{
-    x: number; y: number; width: number; height: number
     category: string; color: string; name: string; brand?: string
-  croppedImage: string; included: boolean; uploading?: boolean
-    originalImage?: string; croppedBlob?: Blob
+    croppedImage: string; included: boolean; file: File
   }>>([])
   const [multiSaving, setMultiSaving] = useState(false)
   const { theme } = useTheme()
@@ -176,98 +174,85 @@ async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
   }
 
 async function handleMultiUpload(e: React.ChangeEvent<HTMLInputElement>) {
-  const file = e.target.files?.[0]
-  if (!file) return
+  const files = Array.from(e.target.files ?? [])
+  if (!files.length) return
   if (multiFileInputRef.current) multiFileInputRef.current.value = ''
 
-  const { data: { session: checkSession } } = await supabase.auth.getSession()
-  if (!checkSession?.user) return
+  if (!isPremium) {
+    router.push('/' + locale + '/profile?upgrade=true')
+    return
+  }
+
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) return
 
   const weekAgo = new Date()
   weekAgo.setDate(weekAgo.getDate() - 7)
   const { count: weeklyCount } = await supabase
     .from('multi_scan_generations')
     .select('*', { count: 'exact', head: true })
-    .eq('user_id', checkSession.user.id)
+    .eq('user_id', session.user.id)
     .gte('created_at', weekAgo.toISOString())
 
   if ((weeklyCount ?? 0) >= 3) {
-    setLimitMsg(locale === 'de' ? 'Max. 3 Schrank-Scans pro Woche!' : 'Max. 3 closet scans per week!')
+    setLimitMsg(locale === 'de' ? 'Max. 3× Mehrfach-Upload pro Woche!' : 'Max. 3× multi-upload per week!')
     setTimeout(() => setLimitMsg(null), 4000)
     return
   }
-  await supabase.from('multi_scan_generations').insert({ user_id: checkSession.user.id })
+  await supabase.from('multi_scan_generations').insert({ user_id: session.user.id })
 
-  const convertedFile = await convertToJpeg(file)
   setMultiAnalyzing(true)
+  setMultiProgress(0)
   setDetectedItems([])
 
   try {
-    const base64 = await fileToBase64(convertedFile)
+    const converted = await Promise.all(files.slice(0, 10).map((f: File) => convertToJpeg(f)))
 
-    // Schritt 1: GPT-4o erkennt Kleidungsstücke mit Bounding Boxes
-    const analyzeRes = await fetch('/api/analyze-multi-clothing', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-locale': locale },
-      body: JSON.stringify({ imageBase64: base64, mimeType: 'image/jpeg' }),
-    })
-    const analyzeData = await analyzeRes.json()
-    if (!analyzeData.success || !analyzeData.items?.length) {
-      setLimitMsg(locale === 'de' ? 'Keine Kleidung erkannt.' : 'No clothing detected.')
-      setTimeout(() => setLimitMsg(null), 4000)
-      setMultiAnalyzing(false)
-      return
-    }
+    for (let i = 0; i < converted.length; i++) {
+      setMultiProgress(Math.round(((i + 0.5) / converted.length) * 100))
+      const file = converted[i]
+      const base64 = await fileToBase64(file)
+      const dataUrl = `data:image/jpeg;base64,${base64}`
 
-    // Schritt 2: Originalbild in Supabase hochladen (für Server-Crop)
-    const fileName = `${checkSession.user.id}/multi-orig-${Date.now()}.jpg`
-    await supabase.storage.from('clothing').upload(fileName, convertedFile, { contentType: 'image/jpeg' })
-    const { data: { publicUrl: origUrl } } = supabase.storage.from('clothing').getPublicUrl(fileName)
-
-    // Schritt 3: Für jedes Teil Server-Crop aufrufen (parallel)
-    const processedItems = await Promise.all(analyzeData.items.map(async (it: any) => {
       try {
-        const cropRes = await fetch('/api/crop-image', {
+        const res = await fetch('/api/analyze-clothing', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageUrl: origUrl, x: it.x, y: it.y, width: it.width, height: it.height }),
+          body: JSON.stringify({ imageBase64: base64, locale }),
         })
-        if (!cropRes.ok) throw new Error('crop failed')
-        const cropBlob = await cropRes.blob()
-        const cropDataUrl = await new Promise<string>(res => {
-          const reader = new FileReader()
-          reader.onload = () => res(reader.result as string)
-          reader.readAsDataURL(cropBlob)
-        })
-        return {
-          x: it.x, y: it.y, width: it.width, height: it.height,
-          category: it.category ?? 'tops',
-          color: it.color ?? 'Unbekannt',
-          name: it.name ?? 'Kleidungsstück',
-          brand: it.brand ?? undefined,
-          croppedImage: cropDataUrl,
-          croppedBlob: cropBlob,
+        const data = await res.json()
+        results.push({
+          category: data.category ?? 'tops',
+          color: data.color ?? '',
+          name: data.name ?? '',
+          brand: data.brand ?? '',
+          croppedImage: dataUrl,
           included: true,
-        }
+          file,
+        })
       } catch {
-        return null
+        results.push({
+          category: 'tops', color: '', name: '', brand: '',
+          croppedImage: dataUrl,
+          included: true,
+          file,
+        })
       }
-    }))
+      setMultiProgress(Math.round(((i + 1) / converted.length) * 100))
+    }
 
-    setDetectedItems(processedItems.filter(Boolean) as any)
+    setDetectedItems(results)
     setMultiAnalyzing(false)
     setMultiMode(true)
   } catch (err) {
-    console.error('Multi-upload failed:', err)
+    console.error('Multi upload failed:', err)
+    setMultiAnalyzing(false)
     setLimitMsg(locale === 'de' ? 'Fehler beim Analysieren' : 'Error analyzing')
     setTimeout(() => setLimitMsg(null), 4000)
-    setMultiAnalyzing(false)
   }
 }
 
-    
-
-  function toggleDetectedItem(index: number) {
+    function toggleDetectedItem(index: number) {
     setDetectedItems(prev => prev.map((it, i) => i === index ? { ...it, included: !it.included } : it))
   }
 
@@ -277,29 +262,47 @@ async function handleMultiUpload(e: React.ChangeEvent<HTMLInputElement>) {
 
   async function saveMultiItems() {
     const toSave = detectedItems.filter(it => it.included)
-    if (toSave.length === 0) return
+    if (!toSave.length) return
     setMultiSaving(true)
 
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) { setMultiSaving(false); return }
-    const user = session.user
 
     for (let i = 0; i < toSave.length; i++) {
       const item = toSave[i]
       try {
-       // Data-URL direkt in Blob umwandeln statt fetch()
-     // Originalbild als Base64 → Blob → Supabase hochladen
-      const blob = (item as any).croppedBlob
-          ? (item as any).croppedBlob
-          : await fetch(item.croppedImage).then(r => r.blob())
-        const fileName = `${user.id}/${Date.now()}-${i}.jpg`
-        const { error: uploadError } = await supabase.storage.from('clothing').upload(fileName, blob, { contentType: 'image/jpeg' })
-        if (uploadError) throw uploadError
+        const fileName = `${session.user.id}/${Date.now()}-${i}.jpg`
+        const { error: upErr } = await supabase.storage.from('clothing').upload(fileName, item.file, { contentType: 'image/jpeg' })
+        if (upErr) throw upErr
         const { data: { publicUrl: originalUrl } } = supabase.storage.from('clothing').getPublicUrl(fileName)
-await supabase.from('clothing_items').insert({
-          user_id: session.user.id, image_url: originalUrl,
-          category: item.category, color: item.color, name: item.name,
-          brand: item.brand || null, style_tags: [], season: [],
+
+        let publicUrl = originalUrl
+        try {
+          const bgRes = await fetch('/api/remove-background', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageUrl: originalUrl }),
+          })
+          const bgData = await bgRes.json()
+          if (bgData.success && bgData.imageUrl) {
+            const cleanBlob = await fetch(bgData.imageUrl).then(r => r.blob())
+            const cleanFileName = `${session.user.id}/${Date.now()}-${i}-clean.png`
+            const { error: cleanErr } = await supabase.storage.from('clothing').upload(cleanFileName, cleanBlob, { contentType: 'image/png' })
+            if (!cleanErr) {
+              const { data: { publicUrl: cleanUrl } } = supabase.storage.from('clothing').getPublicUrl(cleanFileName)
+              publicUrl = cleanUrl
+            }
+          }
+        } catch {}
+
+        await supabase.from('clothing_items').insert({
+          user_id: session.user.id,
+          image_url: publicUrl,
+          category: item.category,
+          color: item.color,
+          name: item.name,
+          brand: item.brand || null,
+          style_tags: [], season: [],
         })
       } catch (err) {
         console.error('Failed to save item', i, err)
@@ -309,11 +312,10 @@ await supabase.from('clothing_items').insert({
     setMultiSaving(false)
     setMultiMode(false)
     setDetectedItems([])
-    setMultiOriginalImage(null)
     loadItems()
   }
 
-  async function handleDelete(id: string) {
+    async function handleDelete(id: string) {
     await supabase.from('clothing_items').delete().eq('id', id)
     setSelectedItem(null); loadItems()
   }
@@ -536,11 +538,11 @@ await supabase.from('clothing_items').insert({
     <p style={{ fontWeight: 600, color: text, marginBottom: '2px', fontSize: '13px', letterSpacing: '-0.01em' }}>
       {multiAnalyzing ? (locale === 'de' ? 'Erkenne...' : 'Detecting...') : (locale === 'de' ? 'Mehrere Teile' : 'Multiple items')}
     </p>
-    <p style={{ fontSize: '11px', color: muted }}>{locale === 'de' ? 'Ganzer Schrank' : 'Whole closet'}</p>
+    <p style={{ fontSize: '11px', color: muted }}>{locale === 'de' ? 'Bis zu 10 Fotos' : 'Up to 10 photos'}</p>
   </motion.div>
 </div>
         <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleUpload} style={{ display: 'none' }} />
-    <input ref={multiFileInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleMultiUpload} style={{ display: 'none' }} />
+    <input ref={multiFileInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleMultiUpload} multiple style={{ display: 'none' }} />
 
         <AnimatePresence>
           {multiAnalyzing && (
@@ -556,12 +558,12 @@ await supabase.from('clothing_items').insert({
               <div style={{ height: '3px', background: border, borderRadius: '2px', overflow: 'hidden' }}>
                 <motion.div
                   initial={{ width: '0%' }}
-                  animate={{ width: '90%' }}
-                  transition={{ duration: 12, ease: 'easeInOut' }}
+                  animate={{ width: `${multiProgress}%` }}
+                  transition={{ duration: 0.3, ease: 'easeOut' }}
                   style={{ height: '100%', background: 'linear-gradient(90deg, #a855f7, #6b9fff)', borderRadius: '2px' }} />
               </div>
               <p style={{ fontSize: '11px', color: muted, marginTop: '8px' }}>
-                {locale === 'de' ? 'Erkennung + Hintergrundentfernung läuft parallel...' : 'Detection + background removal running in parallel...'}
+                {locale === 'de' ? `KI analysiert... ${multiProgress}%` : `AI analyzing... ${multiProgress}%`}
               </p>
             </motion.div>
           )}
