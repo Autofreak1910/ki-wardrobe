@@ -462,7 +462,7 @@ await supabase.from('clothing_items').insert({
         </div>
 
 {/* Style DNA Banner */}
-{items.length >= 5 && (
+{items.length >= 3 && (
   <motion.div
     initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
     onClick={generateStyleDna}
@@ -474,17 +474,27 @@ await supabase.from('clothing_items').insert({
       marginBottom: '16px', cursor: 'pointer',
       display: 'flex', alignItems: 'center', gap: '12px',
     }}>
-    <span style={{ fontSize: '24px' }}>{isPremium ? '🧬' : '🔒'}</span>
+<div style={{ width: '40px', height: '40px', borderRadius: '12px', background: isPremium ? 'linear-gradient(135deg, #a855f7, #6b9fff)' : accentDim, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      <span style={{ fontSize: '20px' }}>{isPremium ? '🧬' : '🔒'}</span>
+    </div>
     <div style={{ flex: 1 }}>
-      <p style={{ fontSize: '13px', fontWeight: 700, color: text, marginBottom: '2px' }}>
-        {locale === 'de' ? 'Style DNA entdecken' : 'Discover your Style DNA'}
-      </p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+        <p style={{ fontSize: '13px', fontWeight: 700, color: text }}>
+          {locale === 'de' ? 'Style DNA entdecken' : 'Discover your Style DNA'}
+        </p>
+        {!isPremium && (
+          <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '5px', padding: '2px 6px' }}>PRO</span>
+        )}
+      </div>
       <p style={{ fontSize: '11px', color: muted }}>
         {isPremium
           ? (locale === 'de' ? `KI analysiert deine ${items.length} Kleidungsstücke` : `AI analyzes your ${items.length} items`)
-          : (locale === 'de' ? 'Nur für Pro · €4,99' : 'Pro only · €4.99')}
+          : (locale === 'de' ? 'Entsperr deine persönliche Stil-Analyse' : 'Unlock your personal style analysis')}
       </p>
     </div>
+    {!isPremium && (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+    )}
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
   </motion.div>
 )}
