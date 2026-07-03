@@ -521,9 +521,13 @@ async function handleMultiUpload(e: React.ChangeEvent<HTMLInputElement>) {
       if (!isPremium) { router.push('/' + locale + '/profile?upgrade=true'); return }
       if (!multiAnalyzing) multiFileInputRef.current?.click()
     }}
-    style={{ border: `2px dashed ${multiAnalyzing ? accent : border}`, borderRadius: '16px', padding: '18px 12px', textAlign: 'center' as const, cursor: multiAnalyzing ? 'default' : 'pointer', transition: 'all 0.2s', background: multiAnalyzing ? accentDim : card, position: 'relative' as const, opacity: !isPremium ? 0.85 : 1 }}>
+   style={{ border: `2px dashed ${multiAnalyzing ? accent : border}`, borderRadius: '16px', padding: '18px 12px', textAlign: 'center' as const, cursor: multiAnalyzing ? 'default' : 'pointer', transition: 'all 0.2s', background: multiAnalyzing ? accentDim : card, position: 'relative' as const, opacity: !isPremium ? 0.6 : 1, filter: !isPremium ? 'grayscale(0.3)' : 'none' }}>
     {!isPremium && (
-      <span style={{ position: 'absolute' as const, top: '8px', right: '8px', fontSize: '9px', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '5px', padding: '2px 6px' }}>PRO</span>
+      <>
+        <div style={{ position: 'absolute' as const, inset: 0, borderRadius: '16px', background: 'rgba(0,0,0,0.04)', zIndex: 0 }} />
+        <span style={{ position: 'absolute' as const, top: '8px', right: '8px', fontSize: '9px', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '5px', padding: '2px 6px', zIndex: 1 }}>PRO</span>
+        <span style={{ position: 'absolute' as const, top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontSize: '22px', zIndex: 1, pointerEvents: 'none' }}>🔒</span>
+      </>
     )}
     <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'rgba(168,85,247,0.1)', border: `1px solid ${border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px' }}>
       {multiAnalyzing ? (
