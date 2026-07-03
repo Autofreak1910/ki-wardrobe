@@ -451,111 +451,39 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
   </motion.div>
 )}
 
-{/* Invite Friends — direkt nach Plan sichtbar */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}
-          style={{ background: `linear-gradient(135deg, ${accent}, #6b9fff)`, borderRadius: '16px', padding: '18px', marginBottom: '12px', position: 'relative' as const, overflow: 'hidden' }}>
-<motion.div whileTap={{ scale: 0.99 }} onClick={() => setShowInviteStats(!showInviteStats)}
-            style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '12px', padding: '12px 14px', marginBottom: '12px', cursor: 'pointer' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <p style={{ fontSize: '20px', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>{totalInvitesSuccessful}</p>
-                <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.8)' }}>
-                  {locale === 'de' ? 'erfolgreiche Einladungen' : 'successful invites'}
-                </p>
-              </div>
-              <div style={{ textAlign: 'right' as const, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div>
-                  <p style={{ fontSize: '20px', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>
-                    +{Math.min(totalInvitesSuccessful, 4) * 7}{(profile?.bonus_month_claimed_this_period) ? ' +30' : ''}
-                  </p>
-                  <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.8)' }}>
-                    {locale === 'de' ? 'Bonus-Tage gesamt' : 'total bonus days'}
-                  </p>
-                </div>
-                <motion.span animate={{ rotate: showInviteStats ? 180 : 0 }} style={{ color: '#fff', fontSize: '14px' }}>▾</motion.span>
-              </div>
-            </div>
+{/* Invite Friends — kompakt */}
+<motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}
+  style={{ background: `linear-gradient(135deg, ${accent}, #6b9fff)`, borderRadius: '16px', padding: '16px', marginBottom: '12px' }}>
 
-            <AnimatePresence>
-              {showInviteStats && (
-                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
-                  style={{ overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
-                  <div style={{ height: '1px', background: 'rgba(255,255,255,0.2)', margin: '12px 0' }} />
-                  <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '8px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.85)' }}>{locale === 'de' ? 'Diesen Monat eingeladen' : 'Invited this month'}</p>
-                      <p style={{ fontSize: '12px', fontWeight: 700, color: '#fff' }}>{profile?.invites_this_month ?? 0}</p>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.85)' }}>{locale === 'de' ? 'Pro Einladung' : 'Per invite'}</p>
-                      <p style={{ fontSize: '12px', fontWeight: 700, color: '#fff' }}>+7 {locale === 'de' ? 'Tage' : 'days'}</p>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.85)' }}>{locale === 'de' ? 'Max. pro Monat (normal)' : 'Max per month (normal)'}</p>
-                      <p style={{ fontSize: '12px', fontWeight: 700, color: '#fff' }}>+28 {locale === 'de' ? 'Tage' : 'days'}</p>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.85)' }}>{locale === 'de' ? 'Bonus bei 15 Einladungen' : 'Bonus at 15 invites'}</p>
-                      <p style={{ fontSize: '12px', fontWeight: 700, color: '#fff' }}>+30 {locale === 'de' ? 'Tage' : 'days'}</p>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
+  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+    <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>🎁</div>
+    <div style={{ flex: 1 }}>
+      <p style={{ fontSize: '14px', fontWeight: 800, color: '#fff', marginBottom: '2px', letterSpacing: '-0.02em' }}>
+        {locale === 'de' ? 'Freunde einladen' : 'Invite friends'}
+      </p>
+      <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', lineHeight: 1.4 }}>
+        {locale === 'de' ? 'Du +7 Tage · Freund 14 Tage Pro gratis' : 'You +7 days · Friend 14 days Pro free'}
+      </p>
+    </div>
+    <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '8px', padding: '4px 10px', flexShrink: 0 }}>
+      <p style={{ fontSize: '12px', fontWeight: 700, color: '#fff' }}>{totalInvitesSuccessful} ✓</p>
+    </div>
+  </div>
 
-          {!(profile?.bonus_month_claimed_this_period) && (profile?.invites_this_month ?? 0) > 0 && (
-            <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '12px', padding: '10px 14px', marginBottom: '14px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <p style={{ fontSize: '11px', fontWeight: 700, color: '#fff' }}>
-                  {locale === 'de' ? '🎁 Bonus-Monat' : '🎁 Bonus month'}
-                </p>
-                <p style={{ fontSize: '11px', fontWeight: 700, color: '#fff' }}>
-                  {profile?.invites_this_month ?? 0}/15
-                </p>
-              </div>
-              <div style={{ height: '6px', background: 'rgba(255,255,255,0.25)', borderRadius: '3px', overflow: 'hidden' }}>
-                <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, ((profile?.invites_this_month ?? 0) / 15) * 100)}%` }} transition={{ duration: 0.6 }}
-                  style={{ height: '100%', background: '#fff', borderRadius: '3px' }} />
-              </div>
-              <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.85)', marginTop: '6px' }}>
-                {locale === 'de'
-                  ? `Noch ${Math.max(0, 15 - (profile?.invites_this_month ?? 0))} Einladungen bis zu +30 Tagen Bonus`
-                  : `${Math.max(0, 15 - (profile?.invites_this_month ?? 0))} more invites until +30 bonus days`}
-              </p>
-            </div>
-          )}
+  <motion.button whileTap={{ scale: 0.97 }}
+    onClick={async () => {
+      const inviteUrl = `https://kiwardrobe-app.vercel.app/${locale}/auth/register?ref=${profile?.referral_code ?? ''}`
+      const shareText = locale === 'de'
+        ? `Ich hab gerade meinen eigenen Avatar erstellt und KI sagt mir jeden Morgen was ich anziehen soll 🤯 KiWardrobe ist echt krass — probier's aus, mit meinem Link bekommst du 14 Tage Pro komplett gratis: ${inviteUrl}`
+        : `I just made my own AI avatar and it tells me what to wear every morning 🤯 KiWardrobe is actually insane — try it, my link gets you 14 days Pro completely free: ${inviteUrl}`
+      if (navigator.share) { try { await navigator.share({ title: 'KiWardrobe', text: shareText, url: inviteUrl }) } catch {} }
+      else { await navigator.clipboard.writeText(shareText); alert(locale === 'de' ? 'Link kopiert!' : 'Link copied!') }
+    }}
+    style={{ width: '100%', background: '#fff', border: 'none', borderRadius: '10px', padding: '11px', fontSize: '13px', fontWeight: 700, color: accent, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
+    {locale === 'de' ? '📤 Einladungslink teilen' : '📤 Share invite link'}
+  </motion.button>
+</motion.div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-            <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>🎁</div>
-            <div>
-              <p style={{ fontSize: '15px', fontWeight: 800, color: '#fff', marginBottom: '2px' }}>
-                {locale === 'de' ? 'Freunde einladen' : 'Invite friends'}
-              </p>
-              <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.85)', lineHeight: 1.4 }}>
-                {locale === 'de'
-                  ? 'Dein Freund bekommt 14 Tage Pro gratis, du 1 Woche pro Einladung!'
-                  : 'Your friend gets 14 days Pro free, you get 1 week per invite!'}
-              </p>
-            </div>
-          </div>
-          <motion.button whileTap={{ scale: 0.97 }}
-            onClick={async () => {
-              const inviteUrl = `https://kiwardrobe-app.vercel.app/${locale}/auth/register?ref=${profile?.referral_code ?? ''}`
-            const shareText = locale === 'de'
-                ? `Ich hab gerade meinen eigenen Avatar erstellt und KI sagt mir jeden Morgen was ich anziehen soll 🤯 KiWardrobe ist echt krass — probier's aus, mit meinem Link bekommst du 14 Tage Pro komplett gratis: ${inviteUrl}`
-                : `I just made my own AI avatar and it tells me what to wear every morning 🤯 KiWardrobe is actually insane — try it, my link gets you 14 days Pro completely free: ${inviteUrl}`
-              if (navigator.share) {
-                try { await navigator.share({ title: 'KiWardrobe', text: shareText, url: inviteUrl }) } catch {}
-              } else {
-                await navigator.clipboard.writeText(shareText)
-                alert(locale === 'de' ? 'Link kopiert!' : 'Link copied!')
-              }
-            }}
-            style={{ width: '100%', background: '#fff', border: 'none', borderRadius: '12px', padding: '12px', fontSize: '14px', fontWeight: 700, color: accent, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
-            {locale === 'de' ? '📤 Einladungslink teilen' : '📤 Share invite link'}
-          </motion.button>
-        </motion.div>
 
 
 {/* Konto - Button zum Öffnen */}
