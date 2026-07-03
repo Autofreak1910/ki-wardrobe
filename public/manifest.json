@@ -4,8 +4,8 @@
   "description": "Dein persönlicher KI-Stylist",
   "start_url": "/de/dresser",
   "display": "standalone",
-  "background_color": "#0ea472",
-  "theme_color": "#0ea472",
+  "background_color": "#061712",
+  "theme_color": "#061712",
   "orientation": "portrait",
   "splash_pages": null,
   "icons": [
