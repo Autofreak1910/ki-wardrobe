@@ -131,6 +131,7 @@ const [referrerName, setReferrerName] = useState('')
   const dateStr = new Date().toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-GB', { day: 'numeric', month: 'long' })
 const [greeting, setGreeting] = useState('')
   const [streak, setStreak] = useState(0)
+  const [streakReward, setStreakReward] = useState<{ days: number; milestone: number } | null>(null)
 useEffect(() => {
   setGreeting(getGreeting(locale))
 }, [locale])
@@ -446,6 +447,13 @@ setLoading(true); setSaved(false); setOutfit(null)
         return { items: o.items, reasoning: o.reasoning, vibe: o.vibe, itemObjects: matchedItems }
       })
 setOutfit({ outfits: mappedOutfits, active: 0 })
+     // Streak updaten
+      try {
+        const streakRes = await fetch('/api/update-streak', { method: 'POST' })
+        const streakData = await streakRes.json()
+        if (streakData.streak) setStreak(streakData.streak)
+        if (streakData.streakReward) setStreakReward(streakData.streakReward)
+      } catch {}
    // Falls Tab nicht aktiv: lokale Benachrichtigung dass Outfit fertig ist
    try {
      if (document.visibilityState === 'hidden' && 'Notification' in window && Notification.permission === 'granted') {
@@ -984,24 +992,17 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.25, type: 'spring', damping: 14 }}
-              style={{ flexShrink: 0, width: '80px', background: streak >= 7 ? 'linear-gradient(135deg, rgba(249,115,22,0.15), rgba(239,68,68,0.1))' : card, border: `1px solid ${streak >= 7 ? 'rgba(249,115,22,0.3)' : border}`, borderRadius: '20px', padding: '14px 8px', textAlign: 'center' as const, boxShadow: streak >= 7 ? '0 4px 20px rgba(249,115,22,0.2)' : 'none' }}>
-         <motion.p
+              style={{ flexShrink: 0, width: '80px', background: streak >= 7 ? 'linear-gradient(135deg, rgba(249,115,22,0.15), rgba(239,68,68,0.1))' : card, border: `1px solid ${streak >= 7 ? 'rgba(249,115,22,0.3)' : border}`, borderRadius: '20px', padding: '14px 8px', textAlign: 'center' as const, boxShadow: streak >= 7 ? '0 4px 20px rgba(249,115,22,0.2)' : 'none', opacity: streak === 0 ? 0.4 : 1, filter: streak === 0 ? 'grayscale(1)' : 'none', transition: 'opacity 0.4s, filter 0.4s' }}>
+              <motion.p
                 animate={streak >= 3 ? { scale: [1, 1.15, 1] } : {}}
                 transition={{ duration: 0.6, delay: 0.5 }}
-                style={{ fontSize: '28px', lineHeight: 1, marginBottom: '4px' }}>
-                {streak === 0 ? '🔥' : streak >= 7 ? '🔥' : '🔥'}
-              </motion.p>
+                style={{ fontSize: '28px', lineHeight: 1, marginBottom: '4px' }}>🔥</motion.p>
               <p style={{ fontSize: '20px', fontWeight: 800, color: streak === 0 ? muted : streak >= 7 ? '#f97316' : text, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: '4px' }}>
                 {streak}
               </p>
               <p style={{ fontSize: '9px', fontWeight: 600, color: muted, letterSpacing: '0.04em', textTransform: 'uppercase' as const }}>
-                {locale === 'de' ? streak === 0 ? 'Start!' : 'Tage' : streak === 0 ? 'Start!' : 'Days'}
+                {streak === 0 ? (locale === 'de' ? 'Start!' : 'Start!') : (locale === 'de' ? 'Tage' : 'Days')}
               </p>
-              {streak === 0 && (
-                <p style={{ fontSize: '8px', color: muted, marginTop: '4px', lineHeight: 1.3 }}>
-                  {locale === 'de' ? 'Täglich' : 'Daily'}
-                </p>
-              )}
               {streak === 7 && (
                 <motion.p initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
                   style={{ fontSize: '14px', marginTop: '4px' }}>🏆</motion.p>
@@ -1409,6 +1410,38 @@ onClick={() => weatherDisabled ? router.push('/' + locale + '/profile?scrollTo=w
             </AnimatePresence>
           </>
         )}
+
+      {/* Streak Reward Popup */}
+      <AnimatePresence>
+        {streakReward && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setStreakReward(null)}
+            style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+            <motion.div
+              initial={{ scale: 0.7, opacity: 0, y: 40 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: 'spring', damping: 14 }}
+              onClick={e => e.stopPropagation()}
+              style={{ background: card, borderRadius: '28px', padding: '32px 24px', textAlign: 'center' as const, maxWidth: '320px', width: '100%', border: '1px solid rgba(249,115,22,0.3)', boxShadow: '0 24px 64px rgba(249,115,22,0.2)' }}>
+              <motion.p animate={{ scale: [1, 1.2, 1], rotate: [0, -10, 10, 0] }} transition={{ duration: 0.6 }}
+                style={{ fontSize: '56px', marginBottom: '16px' }}>🔥</motion.p>
+              <p style={{ fontSize: '22px', fontWeight: 800, color: '#f97316', letterSpacing: '-0.03em', marginBottom: '8px' }}>
+                {streakReward.milestone}{locale === 'de' ? '-Tage-Streak!' : '-Day Streak!'}
+              </p>
+              <p style={{ fontSize: '15px', color: text, fontWeight: 600, marginBottom: '6px' }}>
+                {locale === 'de' ? `+${streakReward.days} Tag${streakReward.days > 1 ? 'e' : ''} Pro gratis! 🎁` : `+${streakReward.days} day${streakReward.days > 1 ? 's' : ''} Pro free! 🎁`}
+              </p>
+              <p style={{ fontSize: '13px', color: muted, marginBottom: '24px' }}>
+                {locale === 'de' ? 'Weiter so — bleib dran! 💪' : 'Keep it up — stay consistent! 💪'}
+              </p>
+              <motion.button whileTap={{ scale: 0.97 }} onClick={() => setStreakReward(null)}
+                style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: 'linear-gradient(135deg, #f97316, #ef4444)', color: '#fff', fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: '0 6px 24px rgba(249,115,22,0.4)' }}>
+                {locale === 'de' ? '🎉 Eingelöst!' : '🎉 Claimed!'}
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       </main>
     </div>
   )
