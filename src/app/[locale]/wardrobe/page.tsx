@@ -205,6 +205,8 @@ async function handleMultiUpload(e: React.ChangeEvent<HTMLInputElement>) {
   setMultiProgress(0)
   setDetectedItems([])
 
+const results: Array<{ category: string; color: string; name: string; brand?: string; croppedImage: string; included: boolean; file: File }> = []
+
   try {
     const converted = await Promise.all(files.slice(0, 10).map((f: File) => convertToJpeg(f)))
 
@@ -245,11 +247,16 @@ async function handleMultiUpload(e: React.ChangeEvent<HTMLInputElement>) {
     setDetectedItems(results)
     setMultiAnalyzing(false)
     setMultiMode(true)
-  } catch (err) {
+} catch (err) {
     console.error('Multi upload failed:', err)
     setMultiAnalyzing(false)
-    setLimitMsg(locale === 'de' ? 'Fehler beim Analysieren' : 'Error analyzing')
-    setTimeout(() => setLimitMsg(null), 4000)
+    setMultiMode(results.length > 0)
+    if (results.length > 0) {
+      setDetectedItems(results)
+    } else {
+      setLimitMsg(locale === 'de' ? 'Fehler beim Analysieren' : 'Error analyzing')
+      setTimeout(() => setLimitMsg(null), 4000)
+    }
   }
 }
 
