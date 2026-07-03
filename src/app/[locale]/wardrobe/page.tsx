@@ -276,52 +276,51 @@ const results: Array<{ category: string; color: string; name: string; brand?: st
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) { setMultiSaving(false); return }
 
-    for (let i = 0; i < toSave.length; i++) {
-      const item = toSave[i]
+await Promise.allSettled(toSave.map(async (item, i) => {
+    try {
+      const fileName = `${session.user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`
+      const { error: upErr } = await supabase.storage.from('clothing').upload(fileName, item.file, { contentType: 'image/jpeg' })
+      if (upErr) throw upErr
+      const { data: { publicUrl: originalUrl } } = supabase.storage.from('clothing').getPublicUrl(fileName)
+
+      let publicUrl = originalUrl
       try {
-        const fileName = `${session.user.id}/${Date.now()}-${i}.jpg`
-        const { error: upErr } = await supabase.storage.from('clothing').upload(fileName, item.file, { contentType: 'image/jpeg' })
-        if (upErr) throw upErr
-        const { data: { publicUrl: originalUrl } } = supabase.storage.from('clothing').getPublicUrl(fileName)
-
-        let publicUrl = originalUrl
-        try {
-          const bgRes = await fetch('/api/remove-background', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ imageUrl: originalUrl }),
-          })
-          const bgData = await bgRes.json()
-          if (bgData.success && bgData.imageUrl) {
-            const cleanBlob = await fetch(bgData.imageUrl).then(r => r.blob())
-            const cleanFileName = `${session.user.id}/${Date.now()}-${i}-clean.png`
-            const { error: cleanErr } = await supabase.storage.from('clothing').upload(cleanFileName, cleanBlob, { contentType: 'image/png' })
-            if (!cleanErr) {
-              const { data: { publicUrl: cleanUrl } } = supabase.storage.from('clothing').getPublicUrl(cleanFileName)
-              publicUrl = cleanUrl
-            }
-          }
-        } catch {}
-
-        await supabase.from('clothing_items').insert({
-          user_id: session.user.id,
-          image_url: publicUrl,
-          category: item.category,
-          color: item.color,
-          name: item.name,
-          brand: item.brand || null,
-          style_tags: [], season: [],
+        const bgRes = await fetch('/api/remove-background', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageUrl: originalUrl }),
         })
-      } catch (err) {
-        console.error('Failed to save item', i, err)
-      }
-    }
+        const bgData = await bgRes.json()
+        if (bgData.success && bgData.imageUrl) {
+          const cleanBlob = await fetch(bgData.imageUrl).then(r => r.blob())
+          const cleanFileName = `${session.user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}-clean.png`
+          const { error: cleanErr } = await supabase.storage.from('clothing').upload(cleanFileName, cleanBlob, { contentType: 'image/png' })
+          if (!cleanErr) {
+            const { data: { publicUrl: cleanUrl } } = supabase.storage.from('clothing').getPublicUrl(cleanFileName)
+            publicUrl = cleanUrl
+          }
+        }
+      } catch {}
 
-    setMultiSaving(false)
-    setMultiMode(false)
-    setDetectedItems([])
-    loadItems()
-  }
+      await supabase.from('clothing_items').insert({
+        user_id: session.user.id,
+        image_url: publicUrl,
+        category: item.category,
+        color: item.color,
+        name: item.name,
+        brand: item.brand || null,
+        style_tags: [], season: [],
+      })
+    } catch (err) {
+      console.error('Failed to save item', i, err)
+    }
+  }))
+
+  setMultiSaving(false)
+  setMultiMode(false)
+  setDetectedItems([])
+  loadItems()
+}
 
     async function handleDelete(id: string) {
     await supabase.from('clothing_items').delete().eq('id', id)
