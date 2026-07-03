@@ -940,7 +940,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
 
         {/* ── Hero Header: Greeting + Weather Card side by side ── */}
         <div
-          style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '28px' }}>
+          style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px', marginBottom: '20px' }}>
 
           {/* Left: Greeting */}
           <div style={{ flex: 1 }}>
@@ -991,7 +991,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25, duration: 0.5 }}
-            style={{ flexShrink: 0, width: '100px', background: streak >= 7 ? 'linear-gradient(135deg, rgba(249,115,22,0.12), rgba(239,68,68,0.06))' : card, border: `1px solid ${streak >= 7 ? 'rgba(249,115,22,0.3)' : border}`, borderRadius: '20px', padding: '12px 8px', textAlign: 'center' as const, boxShadow: streak >= 7 ? '0 4px 20px rgba(249,115,22,0.15)' : 'none', opacity: streak === 0 ? 0.5 : 1, filter: streak === 0 ? 'grayscale(0.8)' : 'none', transition: 'all 0.4s', cursor: 'default' }}>
+            style={{ flexShrink: 0, width: '86px', background: streak >= 7 ? 'linear-gradient(135deg, rgba(249,115,22,0.12), rgba(239,68,68,0.06))' : card, border: `1px solid ${streak >= 7 ? 'rgba(249,115,22,0.3)' : border}`, borderRadius: '18px', padding: '10px 6px', textAlign: 'center' as const, boxShadow: streak >= 7 ? '0 4px 20px rgba(249,115,22,0.15)' : 'none', opacity: streak === 0 ? 0.5 : 1, filter: streak === 0 ? 'grayscale(0.8)' : 'none', transition: 'all 0.4s', cursor: 'default' }}>
 
             {/* Flamme + Zahl */}
             <motion.p
@@ -1039,7 +1039,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
   initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }}
   transition={{ delay: 0.1, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
 onClick={() => weatherDisabled ? router.push('/' + locale + '/profile?scrollTo=weather') : fetchWeather()}
-  style={{ flexShrink: 0, width: '120px', background: card, border: `1px solid ${border}`, borderRadius: '20px', padding: '14px 12px', textAlign: 'center' as const, cursor: 'pointer', opacity: weatherDisabled ? 0.55 : 1, boxShadow: isDark ? 'none' : '0 2px 16px rgba(10,46,30,0.07)' }}>
+  style={{ flexShrink: 0, width: '100px', background: card, border: `1px solid ${border}`, borderRadius: '18px', padding: '12px 8px', textAlign: 'center' as const, cursor: 'pointer', opacity: weatherDisabled ? 0.55 : 1, boxShadow: isDark ? 'none' : '0 2px 16px rgba(10,46,30,0.07)' }}>
 {weatherDisabled ? (
               <>
                 <div style={{ fontSize: '24px', lineHeight: 1, marginBottom: '6px' }}>🔒</div>
@@ -1056,7 +1056,7 @@ onClick={() => weatherDisabled ? router.push('/' + locale + '/profile?scrollTo=w
             ) : (
               <>
                 <div style={{ fontSize: '28px', lineHeight: 1, marginBottom: '4px' }}>{weather?.icon}</div>
-                <p style={{ fontSize: '22px', fontWeight: 800, color: text, letterSpacing: '-0.04em', marginBottom: '6px', lineHeight: 1 }}>
+                <p style={{ fontSize: '20px', fontWeight: 800, color: text, letterSpacing: '-0.04em', marginBottom: '4px', lineHeight: 1 }}>
                   {weather?.temp}°C
                 </p>
              {weather?.city && (
