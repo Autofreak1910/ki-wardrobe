@@ -58,7 +58,7 @@ function getGreeting(locale: string): string {
   return pool[hoursSinceEpoch % pool.length]
 }
 
-const occasions = ['casual', 'uni', 'work', 'date', 'sport', 'party', 'festival'] as const
+const occasions = ['casual', 'work', 'date', 'party'] as const
 
 const categoryConfig = [
   { key: 'tops',   labelDe: 'Oberteil', labelEn: 'Top',
