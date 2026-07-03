@@ -143,9 +143,9 @@ if (insertErr) { console.error('Daily outfit insert error:', insertErr); outfits
   }
 
 // Premium-Ablauf-Status und Sprache pro User vorab laden
-  const { data: profilesData } = await supabase
+const { data: profilesData } = await supabase
     .from('profiles')
-    .select('id, is_premium, premium_until, language')
+    .select('id, is_premium, premium_until, language, current_streak')
     .in('id', userIds)
 
   const profileMap = new Map((profilesData ?? []).map(p => [p.id, p]))
@@ -175,13 +175,24 @@ for (const sub of subscriptions) {
         }
       }
 
-      if (!payload) {
+if (!payload) {
+        const streak = profile?.current_streak ?? 0
         if (hadSuccess) {
           payload = JSON.stringify({
             title: lang === 'en' ? '☀️ Your outfit is ready!' : '☀️ Dein Outfit ist bereit!',
             body: lang === 'en'
               ? 'The AI already prepared a free outfit for you today. Take a look!'
               : 'Die KI hat heute schon ein gratis Outfit für dich vorbereitet. Schau es dir an!',
+            url: '/' + lang + '/dresser',
+          })
+        } else if (streak >= 2) {
+          payload = JSON.stringify({
+            title: lang === 'en'
+              ? `🔥 Keep your ${streak}-day streak going!`
+              : `🔥 Halt deinen ${streak}-Tage-Streak aufrecht!`,
+            body: lang === 'en'
+              ? 'Generate your daily outfit now and keep the streak alive!'
+              : 'Generiere jetzt dein Tagesoutfit und behalte deinen Streak!',
             url: '/' + lang + '/dresser',
           })
         } else {
