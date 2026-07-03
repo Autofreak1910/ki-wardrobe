@@ -215,17 +215,18 @@ async function handleMultiUpload(e: React.ChangeEvent<HTMLInputElement>) {
       const dataUrl = `data:image/jpeg;base64,${base64}`
 
       try {
-        const res = await fetch('/api/analyze-clothing', {
+       const res = await fetch('/api/analyze-clothing', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageBase64: base64, locale }),
+          body: JSON.stringify({ imageBase64: base64, mimeType: 'image/jpeg', locale }),
         })
         const data = await res.json()
+        const analysis = data.analysis ?? data
         results.push({
-          category: data.category ?? 'tops',
-          color: data.color ?? '',
-          name: data.name ?? '',
-          brand: data.brand ?? '',
+          category: analysis.category ?? 'tops',
+          color: analysis.color ?? '',
+          name: analysis.name ?? '',
+          brand: analysis.brand ?? '',
           croppedImage: dataUrl,
           included: true,
           file,
