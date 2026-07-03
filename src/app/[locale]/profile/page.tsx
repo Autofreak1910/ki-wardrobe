@@ -332,7 +332,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
               isPremium
                 ? { label: 'Try-On', value: tryOnToday, max: 2 }
                 : { label: 'Try-On', value: (3 - (profile?.avatar_tries_left ?? 3)), max: 3 },
-              ...(isPremium ? [{ label: locale === 'de' ? 'Schrank-Scan' : 'Closet scan', value: multiScansThisWeek, max: 3 }] : []),
+            ...(isPremium ? [{ label: locale === 'de' ? 'Multi-Upload' : 'Multi-upload', value: multiScansThisWeek, max: 3 }] : []),
             ].map(stat => (
           <div key={stat.label} style={{ background: card, border: `1px solid ${border}`, borderRadius: '12px', padding: '10px 10px', textAlign: 'center' as const, flexShrink: 0, minWidth: '64px' }}>
                 <p style={{ fontSize: '16px', fontWeight: 800, color: stat.max && stat.value >= stat.max ? '#ef4444' : text, letterSpacing: '-0.03em', marginBottom: '1px' }}>
@@ -441,7 +441,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
         <span style={{ fontSize: '20px' }}>✦</span>
         <div>
           <p style={{ fontSize: '14px', fontWeight: 800, color: '#f59e0b', marginBottom: '1px', letterSpacing: '-0.02em' }}>KiWardrobe Pro</p>
-          <p style={{ fontSize: '11px', color: muted }}>{locale === 'de' ? 'Mehr Outfits · Unbegrenzt · Style DNA' : 'More outfits · Unlimited · Style DNA'}</p>
+          <p style={{ fontSize: '11px', color: muted }}>{locale === 'de' ? 'Mehr Outfits · Unbegrenzt · Style DNA · Multi-Upload' : 'More outfits · Unlimited · Style DNA · Multi-upload'}</p>
         </div>
       </div>
       <div style={{ background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '10px', padding: '6px 12px', flexShrink: 0, boxShadow: '0 2px 8px rgba(251,191,36,0.4)' }}>
@@ -675,6 +675,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
 { title: locale === 'de' ? 'Basis KI-Styling' : 'Basic AI styling', sub: '' },
 { title: locale === 'de' ? '3 Virtual Try-Ons' : '3 virtual try-ons', sub: locale === 'de' ? 'einmalig, gesamt' : 'one-time, total' },
 { title: locale === 'de' ? 'Kein Schrank-Scan' : 'No closet scan', sub: '' },
+{ title: locale === 'de' ? 'Kein Mehrfach-Upload' : 'No multi-upload', sub: '' },
             ].map((f, i) => (
               <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
                 <span style={{ fontSize: '11px', color: muted, flexShrink: 0, marginTop: '2px' }}>○</span>
@@ -716,7 +717,8 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
                 { title: locale === 'de' ? 'Unbegrenzt speichern' : 'Unlimited saved', sub: '' },
                 { title: locale === 'de' ? '2× Virtual Try-On' : '2× Virtual Try-On', sub: locale === 'de' ? 'pro Tag' : 'per day' },
               { title: 'Style DNA', sub: locale === 'de' ? 'KI Stil-Analyse' : 'AI style analysis' },
-                { title: locale === 'de' ? 'Schrank-Scan ✦' : 'Closet scan ✦', sub: locale === 'de' ? '3× pro Woche · ganzer Schrank' : '3× per week · whole closet' },
+          { title: locale === 'de' ? 'Schrank-Scan ✦' : 'Closet scan ✦', sub: locale === 'de' ? '3× pro Woche · ganzer Schrank' : '3× per week · whole closet' },
+{ title: locale === 'de' ? 'Mehrfach-Upload ✦' : 'Multi-upload ✦', sub: locale === 'de' ? 'Bis zu 10 Fotos auf einmal' : 'Up to 10 photos at once' },
               ].map((f, i) => (
                 <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
                   <span style={{ fontSize: '11px', color: '#fff', flexShrink: 0, marginTop: '2px' }}>✦</span>
