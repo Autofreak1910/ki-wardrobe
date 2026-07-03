@@ -529,14 +529,19 @@ async function handleMultiUpload(e: React.ChangeEvent<HTMLInputElement>) {
         <span style={{ position: 'absolute' as const, top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontSize: '22px', zIndex: 1, pointerEvents: 'none' }}>🔒</span>
       </>
     )}
-    <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'rgba(168,85,247,0.1)', border: `1px solid ${border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px' }}>
-      {multiAnalyzing ? (
-        <motion.span animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
-          style={{ display: 'block', width: '14px', height: '14px', borderRadius: '50%', border: `2px solid ${border}`, borderTopColor: '#a855f7' }} />
-      ) : (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a855f7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="2" y="6" width="20" height="16" rx="2"/><circle cx="12" cy="14" r="3"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
-        </svg>
+<div style={{ position: 'relative' as const, width: '32px', height: '32px', margin: '0 auto 8px' }}>
+      <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: isPremium ? 'rgba(168,85,247,0.1)' : accentDim, border: `1px solid ${border}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {multiAnalyzing ? (
+          <motion.span animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
+            style={{ display: 'block', width: '14px', height: '14px', borderRadius: '50%', border: `2px solid ${border}`, borderTopColor: '#a855f7' }} />
+        ) : (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isPremium ? '#a855f7' : muted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="6" width="20" height="16" rx="2"/><circle cx="12" cy="14" r="3"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+          </svg>
+        )}
+      </div>
+      {!isPremium && (
+        <div style={{ position: 'absolute' as const, bottom: '-4px', right: '-4px', width: '16px', height: '16px', borderRadius: '50%', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px' }}>🔒</div>
       )}
     </div>
     <p style={{ fontWeight: 600, color: text, marginBottom: '2px', fontSize: '13px', letterSpacing: '-0.01em' }}>
