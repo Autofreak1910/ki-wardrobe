@@ -306,8 +306,8 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
 
         {/* Avatar */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} style={{ marginBottom: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
-          <div style={{ width: '60px', height: '60px', borderRadius: '18px', background: isPremium ? 'linear-gradient(135deg, #fbbf24, #f59e0b)' : `linear-gradient(135deg, ${accent}, #6b9fff)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 800, color: '#fff', flexShrink: 0, boxShadow: isPremium ? '0 4px 20px rgba(251,191,36,0.6), 0 0 40px rgba(251,191,36,0.2)' : `0 4px 20px ${accent}50` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
+          <div style={{ width: '50px', height: '50px', borderRadius: '14px', background: isPremium ? 'linear-gradient(135deg, #fbbf24, #f59e0b)' : `linear-gradient(135deg, ${accent}, #6b9fff)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 800, color: '#fff', flexShrink: 0, boxShadow: isPremium ? '0 4px 20px rgba(251,191,36,0.6), 0 0 40px rgba(251,191,36,0.2)' : `0 4px 20px ${accent}50` }}>
               {initial}
             </div>
             <div>
@@ -324,7 +324,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
           </div>
 
           {/* Stats */}
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
             {[
               { label: locale === 'de' ? 'Kleidung' : 'Items', value: itemCount, max: isPremium ? null : 20 },
               { label: locale === 'de' ? 'Outfits' : 'Outfits', value: todayOutfits, max: isPremium ? 15 : 3 },
@@ -334,11 +334,11 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
                 : { label: 'Try-On', value: (3 - (profile?.avatar_tries_left ?? 3)), max: 3 },
               ...(isPremium ? [{ label: locale === 'de' ? 'Schrank-Scan' : 'Closet scan', value: multiScansThisWeek, max: 3 }] : []),
             ].map(stat => (
-              <div key={stat.label} style={{ background: card, border: `1px solid ${border}`, borderRadius: '14px', padding: '14px 12px', textAlign: 'center' as const }}>
-                <p style={{ fontSize: '22px', fontWeight: 800, color: stat.max && stat.value >= stat.max ? '#ef4444' : text, letterSpacing: '-0.03em', marginBottom: '2px' }}>
+            <div key={stat.label} style={{ background: card, border: `1px solid ${border}`, borderRadius: '12px', padding: '10px 8px', textAlign: 'center' as const }}>
+                <p style={{ fontSize: '17px', fontWeight: 800, color: stat.max && stat.value >= stat.max ? '#ef4444' : text, letterSpacing: '-0.03em', marginBottom: '1px' }}>
                   {stat.value}{stat.max ? `/${stat.max}` : ''}
                 </p>
-                <p style={{ fontSize: '10px', color: muted, fontWeight: 500 }}>{stat.label}</p>
+                <p style={{ fontSize: '9px', color: muted, fontWeight: 500 }}>{stat.label}</p>
               </div>
             ))}
           </div>
