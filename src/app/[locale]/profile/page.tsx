@@ -455,7 +455,9 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}
   style={{ background: `linear-gradient(135deg, ${accent}, #6b9fff)`, borderRadius: '16px', padding: '16px', marginBottom: '12px' }}>
 
-  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+  {/* Kompakte Zeile — immer sichtbar, ausklappbar */}
+  <motion.div whileTap={{ scale: 0.99 }} onClick={() => setShowInviteStats(v => !v)}
+    style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px', cursor: 'pointer' }}>
     <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>🎁</div>
     <div style={{ flex: 1 }}>
       <p style={{ fontSize: '14px', fontWeight: 800, color: '#fff', marginBottom: '2px', letterSpacing: '-0.02em' }}>
@@ -465,10 +467,54 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
         {locale === 'de' ? 'Du +7 Tage · Freund 14 Tage Pro gratis' : 'You +7 days · Friend 14 days Pro free'}
       </p>
     </div>
-    <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '8px', padding: '4px 10px', flexShrink: 0 }}>
-      <p style={{ fontSize: '12px', fontWeight: 700, color: '#fff' }}>{totalInvitesSuccessful} ✓</p>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+      <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '8px', padding: '4px 10px' }}>
+        <p style={{ fontSize: '12px', fontWeight: 700, color: '#fff' }}>{totalInvitesSuccessful} ✓</p>
+      </div>
+      <motion.span animate={{ rotate: showInviteStats ? 180 : 0 }} style={{ color: '#fff', fontSize: '12px' }}>▾</motion.span>
     </div>
-  </div>
+  </motion.div>
+
+  {/* Ausgeklappt: Details */}
+  <AnimatePresence>
+    {showInviteStats && (
+      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+        transition={{ duration: 0.25 }} style={{ overflow: 'hidden', marginBottom: '12px' }}>
+        <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: '12px', padding: '12px 14px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.85)' }}>{locale === 'de' ? 'Erfolgreiche Einladungen' : 'Successful invites'}</p>
+            <p style={{ fontSize: '12px', fontWeight: 700, color: '#fff' }}>{totalInvitesSuccessful}</p>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.85)' }}>{locale === 'de' ? 'Bonus-Tage verdient' : 'Bonus days earned'}</p>
+            <p style={{ fontSize: '12px', fontWeight: 700, color: '#fff' }}>+{Math.min(totalInvitesSuccessful, 4) * 7} {locale === 'de' ? 'Tage' : 'days'}</p>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.85)' }}>{locale === 'de' ? 'Diesen Monat' : 'This month'}</p>
+            <p style={{ fontSize: '12px', fontWeight: 700, color: '#fff' }}>{profile?.invites_this_month ?? 0}/4</p>
+          </div>
+          {!(profile?.bonus_month_claimed_this_period) && (
+            <>
+              <div style={{ height: '1px', background: 'rgba(255,255,255,0.2)', margin: '8px 0' }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <p style={{ fontSize: '11px', fontWeight: 700, color: '#fff' }}>🎁 {locale === 'de' ? 'Bonus-Monat' : 'Bonus month'}</p>
+                <p style={{ fontSize: '11px', color: '#fff' }}>{profile?.invites_this_month ?? 0}/15</p>
+              </div>
+              <div style={{ height: '5px', background: 'rgba(255,255,255,0.25)', borderRadius: '3px', overflow: 'hidden' }}>
+                <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, ((profile?.invites_this_month ?? 0) / 15) * 100)}%` }}
+                  transition={{ duration: 0.6 }} style={{ height: '100%', background: '#fff', borderRadius: '3px' }} />
+              </div>
+              <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.8)', marginTop: '5px' }}>
+                {locale === 'de'
+                  ? `Noch ${Math.max(0, 15 - (profile?.invites_this_month ?? 0))} bis +30 Bonus-Tage`
+                  : `${Math.max(0, 15 - (profile?.invites_this_month ?? 0))} more until +30 bonus days`}
+              </p>
+            </>
+          )}
+        </div>
+      </motion.div>
+    )}
+  </AnimatePresence>
 
   <motion.button whileTap={{ scale: 0.97 }}
     onClick={async () => {
