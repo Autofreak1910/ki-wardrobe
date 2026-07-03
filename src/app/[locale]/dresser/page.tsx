@@ -134,7 +134,6 @@ useEffect(() => {
   setGreeting(getGreeting(locale))
 }, [locale])
 useEffect(() => {
-  // Altes gespeichertes Outfit + Flags einmalig entfernen (Persistenz wurde abgeschafft)
   try {
     localStorage.removeItem('kw_current_outfit')
     localStorage.removeItem('kw_outfit_generating')
@@ -143,6 +142,13 @@ useEffect(() => {
   loadWardrobe()
   fetchWeather()
   loadDailyFreeOutfit()
+
+  // Wardrobe neu laden wenn User zurückkommt (z.B. nach Upload)
+  function onVisible() {
+    if (document.visibilityState === 'visible') loadWardrobe()
+  }
+  document.addEventListener('visibilitychange', onVisible)
+  return () => document.removeEventListener('visibilitychange', onVisible)
 }, [])
 
 async function loadDailyFreeOutfit() {
