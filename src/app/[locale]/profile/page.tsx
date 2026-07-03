@@ -324,7 +324,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
           </div>
 
           {/* Stats */}
-<div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+<div style={{ display: 'flex', gap: '6px', overflowX: 'auto' as const, paddingBottom: '2px' }}>
             {[
               { label: locale === 'de' ? 'Kleidung' : 'Items', value: itemCount, max: isPremium ? null : 20 },
               { label: locale === 'de' ? 'Outfits' : 'Outfits', value: todayOutfits, max: isPremium ? 15 : 3 },
@@ -334,20 +334,20 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
                 : { label: 'Try-On', value: (3 - (profile?.avatar_tries_left ?? 3)), max: 3 },
               ...(isPremium ? [{ label: locale === 'de' ? 'Schrank-Scan' : 'Closet scan', value: multiScansThisWeek, max: 3 }] : []),
             ].map(stat => (
-            <div key={stat.label} style={{ background: card, border: `1px solid ${border}`, borderRadius: '12px', padding: '10px 8px', textAlign: 'center' as const }}>
-                <p style={{ fontSize: '17px', fontWeight: 800, color: stat.max && stat.value >= stat.max ? '#ef4444' : text, letterSpacing: '-0.03em', marginBottom: '1px' }}>
+          <div key={stat.label} style={{ background: card, border: `1px solid ${border}`, borderRadius: '12px', padding: '10px 10px', textAlign: 'center' as const, flexShrink: 0, minWidth: '64px' }}>
+                <p style={{ fontSize: '16px', fontWeight: 800, color: stat.max && stat.value >= stat.max ? '#ef4444' : text, letterSpacing: '-0.03em', marginBottom: '1px' }}>
                   {stat.value}{stat.max ? `/${stat.max}` : ''}
                 </p>
-                <p style={{ fontSize: '9px', color: muted, fontWeight: 500 }}>{stat.label}</p>
+                <p style={{ fontSize: '9px', color: muted, fontWeight: 500, whiteSpace: 'nowrap' as const }}>{stat.label}</p>
               </div>
             ))}
           </div>
         </motion.div>
 {/* Mein Plan */}
 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-  style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden', marginBottom: '12px' }}>
-  <div style={{ padding: '10px 16px', borderBottom: `1px solid ${border}`, background: accentDim }}>
-    <p style={{ fontSize: '10px', fontWeight: 700, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
+  style={{ background: isPremium ? 'linear-gradient(135deg, rgba(251,191,36,0.08), rgba(245,158,11,0.04))' : card, border: `1px solid ${isPremium ? 'rgba(251,191,36,0.3)' : border}`, borderRadius: '16px', overflow: 'hidden', marginBottom: '12px', boxShadow: isPremium ? '0 4px 24px rgba(251,191,36,0.1)' : 'none' }}>
+  <div style={{ padding: '10px 16px', borderBottom: `1px solid ${isPremium ? 'rgba(251,191,36,0.2)' : border}`, background: isPremium ? 'rgba(251,191,36,0.1)' : accentDim }}>
+    <p style={{ fontSize: '10px', fontWeight: 700, color: isPremium ? '#f59e0b' : accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
       {locale === 'de' ? 'Mein Plan' : 'My Plan'}
     </p>
   </div>
@@ -435,21 +435,23 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
   <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
     onClick={() => setShowUpgrade(true)}
     whileTap={{ scale: 0.98 }}
-    style={{ background: accentDim, border: `1px solid ${accent}40`, borderRadius: '14px', padding: '12px 16px', marginBottom: '12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-      <span style={{ fontSize: '16px' }}>✦</span>
-      <div>
-        <p style={{ fontSize: '13px', fontWeight: 700, color: accent, marginBottom: '1px' }}>KiWardrobe Pro</p>
-        <p style={{ fontSize: '11px', color: muted }}>{locale === 'de' ? 'Mehr Outfits · Unbegrenzt · Style DNA' : 'More outfits · Unlimited · Style DNA'}</p>
+    style={{ background: 'linear-gradient(135deg, rgba(251,191,36,0.12), rgba(245,158,11,0.06))', border: '1px solid rgba(251,191,36,0.35)', borderRadius: '16px', padding: '14px 16px', marginBottom: '12px', cursor: 'pointer', boxShadow: '0 4px 20px rgba(251,191,36,0.12)' }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <span style={{ fontSize: '20px' }}>✦</span>
+        <div>
+          <p style={{ fontSize: '14px', fontWeight: 800, color: '#f59e0b', marginBottom: '1px', letterSpacing: '-0.02em' }}>KiWardrobe Pro</p>
+          <p style={{ fontSize: '11px', color: muted }}>{locale === 'de' ? 'Mehr Outfits · Unbegrenzt · Style DNA' : 'More outfits · Unlimited · Style DNA'}</p>
+        </div>
       </div>
-    </div>
-    <div style={{ background: accent, borderRadius: '8px', padding: '5px 10px', flexShrink: 0 }}>
-      <p style={{ fontSize: '12px', fontWeight: 700, color: '#fff' }}>€4,99</p>
+      <div style={{ background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '10px', padding: '6px 12px', flexShrink: 0, boxShadow: '0 2px 8px rgba(251,191,36,0.4)' }}>
+        <p style={{ fontSize: '12px', fontWeight: 700, color: '#fff' }}>€4,99</p>
+      </div>
     </div>
   </motion.div>
 )}
 
-{/* Invite Friends */}
+{/* Invite Friends — direkt nach Plan sichtbar */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}
           style={{ background: `linear-gradient(135deg, ${accent}, #6b9fff)`, borderRadius: '16px', padding: '18px', marginBottom: '12px', position: 'relative' as const, overflow: 'hidden' }}>
 <motion.div whileTap={{ scale: 0.99 }} onClick={() => setShowInviteStats(!showInviteStats)}
