@@ -22,6 +22,7 @@ export default function Navbar({ activePage }: { activePage: string }) {
   const dragIndexRef = useRef(-1)
   const initializedRef = useRef(false)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [streak, setStreak] = useState(0)
 
 const tabs = [
     {
@@ -118,6 +119,10 @@ useEffect(() => {
       const supabase = createClient()
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session?.user?.email === ADMIN_EMAIL) setIsAdmin(true)
+        if (session?.user) {
+          supabase.from('profiles').select('current_streak').eq('id', session.user.id).single()
+            .then(({ data }) => { if (data?.current_streak >= 2) setStreak(data.current_streak) })
+        }
       })
     })
   }, [])
@@ -312,6 +317,23 @@ pointerEvents: 'none',
             }}>
             ⚡
           </motion.button>
+        )}
+
+        {streak >= 2 && !isAdmin && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ type: 'spring', damping: 12, delay: 0.3 }}
+            style={{
+              position: 'absolute', top: '8px', right: '10px',
+              background: 'linear-gradient(135deg, #f97316, #ef4444)',
+              borderRadius: '10px', padding: '3px 8px',
+              display: 'flex', alignItems: 'center', gap: '3px',
+              zIndex: 2, boxShadow: '0 2px 8px rgba(249,115,22,0.4)',
+            }}>
+            <span style={{ fontSize: '11px' }}>🔥</span>
+            <span style={{ fontSize: '11px', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>{streak}</span>
+          </motion.div>
         )}
 
         {tabs.map((item) => {
