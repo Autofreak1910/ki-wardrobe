@@ -476,7 +476,7 @@ await Promise.allSettled(toSave.map(async (item, i) => {
           </motion.div>
         </div>
 
-        {/* Upload Buttons — neu gestaltet */}
+        {/* Upload */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
           {/* Einzelfoto */}
           <motion.div whileTap={{ scale: 0.97 }}
@@ -589,57 +589,6 @@ await Promise.allSettled(toSave.map(async (item, i) => {
   </motion.div>
 )}
 
-<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
-  <motion.div
-    whileTap={{ scale: 0.99 }}
-    onClick={() => !uploading && fileInputRef.current?.click()}
-    style={{ border: `2px dashed ${uploading ? accent : border}`, borderRadius: '16px', padding: '18px 12px', textAlign: 'center' as const, cursor: uploading ? 'default' : 'pointer', transition: 'all 0.2s', background: uploading ? accentDim : card }}>
-    <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: accentDim, border: `1px solid ${border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px' }}>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
-      </svg>
-    </div>
-    <p style={{ fontWeight: 600, color: text, marginBottom: '2px', fontSize: '13px', letterSpacing: '-0.01em' }}>{t('wardrobe.upload')}</p>
-    <p style={{ fontSize: '11px', color: muted }}>{locale === 'de' ? 'Ein Teil' : 'One item'}</p>
-  </motion.div>
-
-<motion.div
-    whileTap={{ scale: 0.99 }}
-    onClick={() => {
-      if (!isPremium) { router.push('/' + locale + '/profile?upgrade=true'); return }
-      if (!multiAnalyzing) multiFileInputRef.current?.click()
-    }}
-   style={{ border: `2px dashed ${multiAnalyzing ? accent : border}`, borderRadius: '16px', padding: '18px 12px', textAlign: 'center' as const, cursor: multiAnalyzing ? 'default' : 'pointer', transition: 'all 0.2s', background: multiAnalyzing ? accentDim : card, position: 'relative' as const, opacity: !isPremium ? 0.6 : 1, filter: !isPremium ? 'grayscale(0.3)' : 'none' }}>
-    {!isPremium && (
-      <>
-        <div style={{ position: 'absolute' as const, inset: 0, borderRadius: '16px', background: 'rgba(0,0,0,0.04)', zIndex: 0 }} />
-        <span style={{ position: 'absolute' as const, top: '8px', right: '8px', fontSize: '9px', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '5px', padding: '2px 6px', zIndex: 1 }}>PRO</span>
-        <span style={{ position: 'absolute' as const, top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontSize: '22px', zIndex: 1, pointerEvents: 'none' }}>🔒</span>
-      </>
-    )}
-<div style={{ position: 'relative' as const, width: '32px', height: '32px', margin: '0 auto 8px' }}>
-      <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: isPremium ? 'rgba(168,85,247,0.1)' : accentDim, border: `1px solid ${border}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {multiAnalyzing ? (
-          <motion.span animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
-            style={{ display: 'block', width: '14px', height: '14px', borderRadius: '50%', border: `2px solid ${border}`, borderTopColor: '#a855f7' }} />
-        ) : (
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isPremium ? '#a855f7' : muted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="2" y="6" width="20" height="16" rx="2"/><circle cx="12" cy="14" r="3"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
-          </svg>
-        )}
-      </div>
-      {!isPremium && (
-        <div style={{ position: 'absolute' as const, bottom: '-4px', right: '-4px', width: '16px', height: '16px', borderRadius: '50%', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px' }}>🔒</div>
-      )}
-    </div>
- <p style={{ fontWeight: 600, color: isPremium ? text : muted, marginBottom: '2px', fontSize: '13px', letterSpacing: '-0.01em' }}>
-      {multiAnalyzing ? (locale === 'de' ? 'Analysiere...' : 'Analyzing...') : (locale === 'de' ? 'Mehrere Fotos' : 'Multiple photos')}
-    </p>
-    <p style={{ fontSize: '11px', color: isPremium ? muted : '#f59e0b', fontWeight: isPremium ? 400 : 600 }}>
-      {isPremium ? (locale === 'de' ? 'Bis zu 10 auf einmal' : 'Up to 10 at once') : (locale === 'de' ? '🔒 Pro erforderlich' : '🔒 Pro required')}
-    </p>
-  </motion.div>
-</div>
         <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleUpload} style={{ display: 'none' }} />
     <input ref={multiFileInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleMultiUpload} multiple style={{ display: 'none' }} />
 
