@@ -133,6 +133,7 @@ const [referrerName, setReferrerName] = useState('')
 const [greeting, setGreeting] = useState('')
   const [streak, setStreak] = useState(0)
   const [streakReward, setStreakReward] = useState<{ days: number; milestone: number } | null>(null)
+  const [showStreakInfo, setShowStreakInfo] = useState(false)
 useEffect(() => {
   setGreeting(getGreeting(locale))
 }, [locale])
@@ -1024,7 +1025,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25, duration: 0.5 }}
-           onClick={() => alert(locale === 'de' ? `🔥 ${streak} Tage Streak!\n\nGeneriere täglich dein Outfit um deinen Streak zu halten.\n\n7 Tage → +1 Tag Pro gratis\n14 Tage → +2 Tage Pro gratis\n30 Tage → +3 Tage Pro gratis` : `🔥 ${streak} Day Streak!\n\nGenerate your outfit daily to keep your streak.\n\n7 days → +1 day Pro free\n14 days → +2 days Pro free\n30 days → +3 days Pro free`)}
+           onClick={() => setShowStreakInfo(true)}
             style={{ flexShrink: 0, width: '86px', cursor: 'pointer', background: streak >= 7 ? 'linear-gradient(135deg, rgba(249,115,22,0.12), rgba(239,68,68,0.06))' : card, border: `1px solid ${streak >= 7 ? 'rgba(249,115,22,0.3)' : border}`, borderRadius: '18px', padding: '10px 6px', textAlign: 'center' as const, boxShadow: streak >= 7 ? '0 4px 20px rgba(249,115,22,0.15)' : 'none', opacity: streak === 0 ? 0.5 : 1, filter: streak === 0 ? 'grayscale(0.8)' : 'none', transition: 'all 0.4s', cursor: 'default' }}>
 
             {/* Flamme + Zahl */}
@@ -1233,95 +1234,51 @@ onClick={() => weatherDisabled ? router.push('/' + locale + '/profile?scrollTo=w
   </motion.div>
 ) : (
           <>
-            {/* ── Occasion chips ── */}
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, duration: 0.4 }} style={{ marginBottom: '12px' }}>
-              <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: muted, marginBottom: '10px' }}>
-                {locale === 'de' ? 'Anlass' : 'Occasion'}
-              </p>
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' as const }}>
-                {occasions.map((occ, i) => {
+            {/* ── Kompakte Settings Karte ── */}
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, duration: 0.4 }}
+              style={{ background: card, border: `1px solid ${border}`, borderRadius: '18px', padding: '14px 16px', marginBottom: '16px' }}>
+
+              {/* Anlass */}
+              <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', overflowX: 'auto' as const, paddingBottom: '2px' }}>
+                {occasions.map((occ) => {
                   const isOn = selected === occ
                   return (
-                    <motion.button key={occ}
-                      initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.14 + i * 0.03 }}
-                      whileTap={{ scale: 0.92 }}
+                    <motion.button key={occ} whileTap={{ scale: 0.92 }}
                       onClick={() => { setSelected(occ); setOutfit(null); setSaved(false) }}
-                      style={{ padding: '8px 16px', borderRadius: '100px', border: `1px solid ${isOn ? accent : border}`, background: isOn ? accent : card, color: isOn ? '#fff' : muted, fontSize: '13px', fontWeight: isOn ? 600 : 400, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer', letterSpacing: '-0.01em', transition: 'all 0.15s', WebkitTapHighlightColor: 'transparent', boxShadow: isOn ? '0 2px 12px rgba(14,164,114,0.3)' : 'none' }}>
+                      style={{ padding: '7px 14px', borderRadius: '100px', border: `1px solid ${isOn ? accent : border}`, background: isOn ? accent : 'transparent', color: isOn ? '#fff' : muted, fontSize: '13px', fontWeight: isOn ? 600 : 400, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer', whiteSpace: 'nowrap' as const, flexShrink: 0, WebkitTapHighlightColor: 'transparent' }}>
                       {t('dresser.occasions.' + occ)}
                     </motion.button>
                   )
                 })}
               </div>
-            </motion.div>
 
-      {/* ── Category Chips (kompakt) ── */}
-           <motion.div ref={categoryRef} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18, duration: 0.4 }} style={{ marginBottom: '18px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: muted }}>
-                  {t('dresser.whatForOutfit')}
-                </p>
-          <motion.button whileTap={{ scale: 0.92 }}
-                  onClick={() => { setActiveCategories(['tops','hosen','jacken','schuhe']); setOutfit(null) }}
-                  style={{ fontSize: '11px', fontWeight: 600, padding: '4px 12px', borderRadius: '100px', border: `1px solid ${activeCategories.length === 4 ? accent : border}`, background: activeCategories.length === 4 ? accentDim : 'transparent', color: activeCategories.length === 4 ? accent : muted, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
-                  {locale === 'de' ? 'Alle' : 'All'}
-                </motion.button>
-              </div>
+              {/* Divider */}
+              <div style={{ height: '1px', background: border, marginBottom: '12px' }} />
 
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' as const }}>
-                {categoryConfig.map((cat) => {
-                  const isOn = activeCategories.includes(cat.key)
-                  const exists = wardrobeItems.some(item => item.category === cat.key)
-
-                  return (
-                    <motion.button
-                      key={cat.key}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => toggleCategory(cat.key)}
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: '6px',
-                        padding: '8px 14px',
-                        borderRadius: '100px',
-                        border: `1px solid ${isOn ? accent : border}`,
-                        background: isOn ? accentDim : card,
-                        color: isOn ? accent : exists ? text : muted,
-                        cursor: 'pointer', opacity: exists ? 1 : 0.4,
-                        transition: 'all 0.15s',
-                        WebkitTapHighlightColor: 'transparent',
-                        fontFamily: "'DM Sans', sans-serif",
-                        fontSize: '13px', fontWeight: isOn ? 600 : 400,
-                      }}>
-                      <span style={{ display: 'flex', color: isOn ? accent : muted, opacity: exists ? 1 : 0.5, transform: 'scale(0.7)' }}>
-                        {cat.icon}
-                      </span>
-                      {locale === 'de' ? cat.labelDe : cat.labelEn}
-                    </motion.button>
-                  )
-                })}
-              </div>
-           </motion.div>
-
-   {/* ── Wetter-Schalter ── */}
-            <motion.div ref={weatherToggleRef} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.21, duration: 0.4 }}
-              onClick={() => { if (weatherDisabled) { router.push('/' + locale + '/profile?scrollTo=weather'); return } setWeatherAware(v => !v); setOutfit(null) }}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '14px', border: `1px solid ${weatherDisabled ? border : weatherAware ? accent + '40' : border}`, background: weatherDisabled ? card : weatherAware ? accentDim : card, marginBottom: '18px', cursor: 'pointer', opacity: weatherDisabled ? 0.55 : 1, WebkitTapHighlightColor: 'transparent' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
-                <span style={{ fontSize: '17px' }}>{weatherDisabled ? '🔒' : weatherAware ? '🌤️' : '🎨'}</span>
-                <div>
-                  <p style={{ fontSize: '13px', fontWeight: 700, color: text, letterSpacing: '-0.01em' }}>
-                    {locale === 'de' ? 'Wetter berücksichtigen' : 'Consider weather'}
-                  </p>
-                  <p style={{ fontSize: '11px', color: muted, marginTop: '1px' }}>
-                    {weatherDisabled
-                      ? (locale === 'de' ? 'Standort & Wetter im Profil deaktiviert — hier tippen zum Aktivieren' : 'Location & weather disabled in profile — tap to enable')
-                      : weatherAware
-                      ? (locale === 'de' ? 'KI passt Outfit ans Wetter an' : 'AI matches outfit to weather')
-                      : (locale === 'de' ? 'Nur deine Auswahl zählt' : 'Only your selection counts')}
-                  </p>
+              {/* Kategorien + Wetter in einer Zeile */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' as const, flex: 1 }}>
+                  {categoryConfig.map((cat) => {
+                    const isOn = activeCategories.includes(cat.key)
+                    const exists = wardrobeItems.some(item => item.category === cat.key)
+                    return (
+                      <motion.button key={cat.key} whileTap={{ scale: 0.92 }}
+                        onClick={() => toggleCategory(cat.key)}
+                        style={{ padding: '5px 10px', borderRadius: '100px', border: `1px solid ${isOn ? accent : border}`, background: isOn ? accentDim : 'transparent', color: isOn ? accent : muted, fontSize: '11px', fontWeight: isOn ? 700 : 400, cursor: 'pointer', opacity: exists ? 1 : 0.35, WebkitTapHighlightColor: 'transparent', fontFamily: "'DM Sans', sans-serif" }}>
+                        {locale === 'de' ? cat.labelDe : cat.labelEn}
+                      </motion.button>
+                    )
+                  })}
                 </div>
-              </div>
-              <div style={{ width: '44px', height: '26px', borderRadius: '13px', background: weatherDisabled ? border : weatherAware ? accent : border, position: 'relative' as const, transition: 'background 0.2s', flexShrink: 0 }}>
-                <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#fff', position: 'absolute', top: '3px', transition: 'left 0.2s', left: weatherAware && !weatherDisabled ? '21px' : '3px', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+                {/* Wetter Toggle kompakt */}
+                <motion.div whileTap={{ scale: 0.9 }}
+                  onClick={() => { if (weatherDisabled) { router.push('/' + locale + '/profile?scrollTo=weather'); return } setWeatherAware(v => !v); setOutfit(null) }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', flexShrink: 0, WebkitTapHighlightColor: 'transparent' }}>
+                  <span style={{ fontSize: '16px' }}>{weatherDisabled ? '🔒' : weatherAware ? '🌤️' : '🌤️'}</span>
+                  <div style={{ width: '36px', height: '20px', borderRadius: '10px', background: weatherAware && !weatherDisabled ? accent : border, position: 'relative' as const, transition: 'background 0.2s' }}>
+                    <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#fff', position: 'absolute', top: '2px', transition: 'left 0.2s', left: weatherAware && !weatherDisabled ? '18px' : '2px', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+                  </div>
+                </motion.div>
               </div>
             </motion.div>
 
@@ -1490,6 +1447,60 @@ onClick={() => weatherDisabled ? router.push('/' + locale + '/profile?scrollTo=w
               <motion.button whileTap={{ scale: 0.97 }} onClick={() => setStreakReward(null)}
                 style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: 'linear-gradient(135deg, #f97316, #ef4444)', color: '#fff', fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: '0 6px 24px rgba(249,115,22,0.4)' }}>
                 {locale === 'de' ? '🎉 Eingelöst!' : '🎉 Claimed!'}
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Streak Info Modal */}
+      <AnimatePresence>
+        {showStreakInfo && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setShowStreakInfo(false)}
+            style={{ position: 'fixed', inset: 0, zIndex: 9997, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '0 16px 32px' }}>
+            <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
+              transition={{ type: 'spring', damping: 20 }}
+              onClick={e => e.stopPropagation()}
+              style={{ background: card, borderRadius: '28px', padding: '28px 24px', width: '100%', maxWidth: '400px', border: `1px solid ${border}` }}>
+
+              <div style={{ textAlign: 'center' as const, marginBottom: '20px' }}>
+                <motion.p animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 0.5 }}
+                  style={{ fontSize: '48px', marginBottom: '8px' }}>🔥</motion.p>
+                <p style={{ fontSize: '28px', fontWeight: 800, color: streak >= 7 ? '#f97316' : text, letterSpacing: '-0.04em', marginBottom: '4px' }}>
+                  {streak} {locale === 'de' ? 'Tage' : 'Days'}
+                </p>
+                <p style={{ fontSize: '14px', color: muted }}>
+                  {locale === 'de' ? 'Generiere täglich ein Outfit um deinen Streak zu halten' : 'Generate an outfit daily to keep your streak'}
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '8px', marginBottom: '20px' }}>
+                {[
+                  { days: 7, reward: '+1 Tag Pro', emoji: '🏅', claimed: streak >= 7 },
+                  { days: 14, reward: '+2 Tage Pro', emoji: '🥇', claimed: streak >= 14 },
+                  { days: 30, reward: '+3 Tage Pro', emoji: '👑', claimed: streak >= 30 },
+                ].map(m => (
+                  <div key={m.days} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '14px', background: m.claimed ? 'rgba(249,115,22,0.08)' : accentDim, border: `1px solid ${m.claimed ? 'rgba(249,115,22,0.3)' : border}` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '20px' }}>{m.emoji}</span>
+                      <div>
+                        <p style={{ fontSize: '13px', fontWeight: 700, color: m.claimed ? '#f97316' : text }}>
+                          {m.days} {locale === 'de' ? 'Tage' : 'days'} → {m.reward} {locale === 'de' ? 'gratis' : 'free'}
+                        </p>
+                        <p style={{ fontSize: '11px', color: muted }}>
+                          {m.claimed ? (locale === 'de' ? '✓ Erreicht!' : '✓ Reached!') : `${locale === 'de' ? 'Noch' : 'Only'} ${Math.max(0, m.days - streak)} ${locale === 'de' ? 'Tage' : 'days'}`}
+                        </p>
+                      </div>
+                    </div>
+                    {m.claimed && <span style={{ fontSize: '18px' }}>✅</span>}
+                  </div>
+                ))}
+              </div>
+
+              <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowStreakInfo(false)}
+                style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: streak >= 1 ? 'linear-gradient(135deg, #f97316, #ef4444)' : accent, color: '#fff', fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
+                {locale === 'de' ? 'Weiter so! 🔥' : 'Keep it up! 🔥'}
               </motion.button>
             </motion.div>
           </motion.div>
