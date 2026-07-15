@@ -98,8 +98,8 @@ console.log('All schuhe with usage:', schuhe.map((s: any) => uniqueId(s) + ' -> 
     const tempValue = tempMatch ? parseInt(tempMatch[1]) : 18
     const isCold = tempValue < 16
 
-    const outfitCount = items.length >= 6 ? 3 : items.length >= 4 ? 2 : 1
-    const vibes = ['Casual Cool', 'Minimal Chic', 'Bold Statement']
+    const outfitCount = 1
+    const vibes = ['']
     const outfits: { items: string[]; reasoning: string; vibe: string }[] = []
 
 const sessionUsedTops = new Set<string>(blocked)
@@ -175,10 +175,10 @@ let chosenItems = [pickedTop, pickedBaseTop, pickedHose, pickedSchuh, pickedJack
 
       let prompt = ''
       if (isEnglish) {
-        prompt = 'You are a fashion stylist. The user will wear exactly these items for "' + occasion + '" with vibe "' + vibes[i] + '": ' + chosenDescriptions + '. Weather: ' + weather + '. '
+      prompt = 'You are a fashion stylist. The user will wear exactly these items for \"' + occasion + '\": ' + chosenDescriptions + '. Weather: ' + weather + '. '
         prompt += 'Write a short, natural one-sentence reasoning (max 25 words) why this combination works together (colors, style, weather), naturally mentioning the temperature. Respond ONLY with JSON: {"reasoning": "your text here"}'
       } else {
-        prompt = 'Du bist ein Fashion-Stylist. Der Nutzer traegt genau diese Teile fuer "' + occasion + '" mit Vibe "' + vibes[i] + '": ' + chosenDescriptions + '. Wetter: ' + weather + '. '
+        prompt = 'Du bist ein Fashion-Stylist. Der Nutzer traegt genau diese Teile fuer \"' + occasion + '\": ' + chosenDescriptions + '. Wetter: ' + weather + '. '
         prompt += 'Schreib eine kurze, natuerliche ein-Satz-Begruendung (max 25 Woerter) warum diese Kombination zusammenpasst (Farben, Stil, Wetter), erwaehne dabei natuerlich die Temperatur. Antworte NUR mit JSON: {"reasoning": "dein Text hier"}'
       }
 
