@@ -510,35 +510,41 @@ await Promise.allSettled(toSave.map(async (item, i) => {
             <p style={{ fontSize: '11px', color: muted }}>{locale === 'de' ? 'Ein Kleidungsstück' : 'One item'}</p>
           </motion.div>
 
-          {/* Mehrere Fotos — Pro */}
-          <motion.div whileTap={{ scale: isPremium ? 0.97 : 1 }}
-            onClick={() => {
-              if (!isPremium) { router.push('/' + locale + '/profile?upgrade=true'); return }
-              if (!multiAnalyzing) multiFileInputRef.current?.click()
-            }}
-            style={{ background: multiAnalyzing ? 'rgba(168,85,247,0.08)' : card, border: `1.5px solid ${multiAnalyzing ? '#a855f7' : isPremium ? '#a855f740' : border}`, borderRadius: '18px', padding: '18px 14px', cursor: 'pointer', transition: 'all 0.2s', textAlign: 'center' as const, position: 'relative' as const, opacity: isPremium ? 1 : 0.65 }}>
+   {/* Mehrere Fotos — Pro */}
+          <motion.div whileTap={{ scale: 0.97 }}
+            onClick={() => { if (!isPremium) { router.push('/' + locale + '/profile?upgrade=true'); return } if (!multiAnalyzing) multiFileInputRef.current?.click() }}
+            style={{
+              background: isPremium ? card : 'linear-gradient(135deg, rgba(251,191,36,0.15), rgba(245,158,11,0.08))',
+              border: isPremium ? `1px solid ${border}` : '1px solid rgba(251,191,36,0.35)',
+              borderRadius: '18px', padding: '20px 14px', cursor: 'pointer',
+              textAlign: 'center' as const, position: 'relative' as const,
+            }}>
             {!isPremium && (
-              <span style={{ position: 'absolute' as const, top: '10px', right: '10px', fontSize: '9px', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '5px', padding: '2px 7px' }}>PRO</span>
+              <span style={{ position: 'absolute' as const, top: '10px', right: '10px', fontSize: '9px', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '5px', padding: '2px 7px', boxShadow: '0 2px 6px rgba(251,191,36,0.4)' }}>PRO</span>
             )}
-            <div style={{ width: '44px', height: '44px', borderRadius: '14px', background: isPremium ? 'rgba(168,85,247,0.1)' : accentDim, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px', position: 'relative' as const }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '16px', background: isPremium ? accentDim : 'rgba(251,191,36,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px', border: isPremium ? `1px solid ${border}` : '1px solid rgba(251,191,36,0.3)' }}>
               {multiAnalyzing ? (
                 <motion.span animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
-                  style={{ display: 'block', width: '18px', height: '18px', borderRadius: '50%', border: `2px solid ${border}`, borderTopColor: '#a855f7' }} />
-              ) : (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isPremium ? '#a855f7' : muted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  style={{ display: 'block', width: '20px', height: '20px', borderRadius: '50%', border: `2px solid ${border}`, borderTopColor: accent }} />
+              ) : isPremium ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="2" y="6" width="20" height="16" rx="2"/><circle cx="12" cy="14" r="3"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
                 </svg>
-              )}
-              {!isPremium && (
-                <div style={{ position: 'absolute' as const, bottom: '-4px', right: '-4px', width: '16px', height: '16px', borderRadius: '50%', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px' }}>🔒</div>
+              ) : (
+                <span style={{ fontSize: '22px' }}>🔒</span>
               )}
             </div>
-            <p style={{ fontWeight: 700, color: isPremium ? text : muted, fontSize: '13px', marginBottom: '3px', letterSpacing: '-0.01em' }}>
+            <p style={{ fontWeight: 700, color: isPremium ? text : '#92610a', fontSize: '13px', marginBottom: '3px', letterSpacing: '-0.02em' }}>
               {multiAnalyzing ? (locale === 'de' ? 'Analysiere...' : 'Analyzing...') : (locale === 'de' ? 'Mehrere Fotos' : 'Multiple photos')}
             </p>
-            <p style={{ fontSize: '11px', color: isPremium ? '#a855f7' : '#f59e0b', fontWeight: 600 }}>
-              {isPremium ? (locale === 'de' ? 'Bis zu 10 auf einmal' : 'Up to 10 at once') : (locale === 'de' ? 'Pro erforderlich' : 'Pro required')}
+            <p style={{ fontSize: '11px', color: isPremium ? muted : '#b07d20', fontWeight: 500, marginBottom: isPremium ? 0 : '6px' }}>
+              {locale === 'de' ? 'Bis zu 10 auf einmal' : 'Up to 10 at once'}
             </p>
+            {!isPremium && (
+              <p style={{ fontSize: '11px', color: '#f59e0b', fontWeight: 700 }}>
+                {locale === 'de' ? 'Jetzt freischalten →' : 'Unlock now →'}
+              </p>
+            )}
           </motion.div>
         </div>
 
