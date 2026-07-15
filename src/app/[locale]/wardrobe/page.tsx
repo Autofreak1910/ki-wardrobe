@@ -453,7 +453,7 @@ await Promise.allSettled(toSave.map(async (item, i) => {
           style={{ position: 'relative' as const, marginBottom: '20px', borderRadius: '0 0 28px 28px', overflow: 'hidden', height: '200px', marginLeft: '-0px', marginRight: '-0px' }}>
 
    <img
-            src="/closet-hero.jpg"
+            src="/closet-hero.jpg.png"
             alt=""
             style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', position: 'absolute', inset: 0 }}
           />
