@@ -1030,12 +1030,12 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
             <p style={{ fontSize: '9px', color: muted, fontWeight: 600, marginTop: '4px' }}>{locale === 'de' ? 'Teile' : 'Items'}</p>
           </motion.div>
 
-          {/* Tagesoutfit */}
+    {/* Tagesoutfit */}
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}
-            onClick={() => setDailyFreeOutfitExpanded(v => !v)}
-            style={{ background: card, border: `1px solid ${dailyFreeOutfit ? 'rgba(251,191,36,0.3)' : border}`, borderRadius: '16px', padding: '12px 8px', textAlign: 'center' as const, cursor: 'pointer', background: dailyFreeOutfit ? 'rgba(251,191,36,0.06)' : card }}>
+            onClick={() => { setDailyFreeOutfitExpanded(true); setTimeout(() => mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' }), 100) }}
+            style={{ background: card, border: `1px solid ${accent}40`, borderRadius: '16px', padding: '12px 8px', textAlign: 'center' as const, cursor: 'pointer' }}>
             <p style={{ fontSize: '20px', lineHeight: 1 }}>🎁</p>
-            <p style={{ fontSize: '9px', color: muted, fontWeight: 600, marginTop: '4px' }}>{locale === 'de' ? 'Tagesoutfit' : 'Daily'}</p>
+            <p style={{ fontSize: '9px', color: accent, fontWeight: 600, marginTop: '4px' }}>{locale === 'de' ? 'Gratis' : 'Free'}</p>
           </motion.div>
 
           {/* Streak */}
@@ -1067,9 +1067,9 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
     {/* Kompakte Zeile — immer sichtbar */}
     <motion.div whileTap={{ scale: 0.99 }}
       onClick={() => setDailyFreeOutfitExpanded(v => !v)}
-      style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', cursor: 'pointer', background: 'linear-gradient(135deg, rgba(251,191,36,0.1), rgba(236,72,153,0.05))', WebkitTapHighlightColor: 'transparent' }}>
+      style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', cursor: 'pointer', background: accentDim, WebkitTapHighlightColor: 'transparent' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '9px', minWidth: 0 }}>
-        <span style={{ fontSize: '10px', fontWeight: 800, color: '#fff', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '100px', padding: '3px 9px', letterSpacing: '0.02em', flexShrink: 0, boxShadow: '0 2px 8px rgba(251,191,36,0.4)' }}>
+       <span style={{ fontSize: '10px', fontWeight: 800, color: '#fff', background: accent, borderRadius: '100px', padding: '3px 9px', letterSpacing: '0.02em', flexShrink: 0 }}>
           🎁 {locale === 'de' ? 'GRATIS' : 'FREE'}
         </span>
         <p style={{ fontSize: '13px', fontWeight: 700, color: text, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
