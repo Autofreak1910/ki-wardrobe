@@ -244,7 +244,7 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
 
         {/* Hero Banner */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}
-          style={{ position: 'relative' as const, height: '200px', marginBottom: '0', overflow: 'hidden' }}>
+   style={{ position: 'relative' as const, height: '140px', marginBottom: '0', overflow: 'hidden' }}>
           <img
            src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80&auto=format&fit=crop"
             alt=""
@@ -265,11 +265,11 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
         </motion.div>
 
         {/* Title */}
-        <div style={{ padding: '16px 20px 0', marginBottom: '20px' }}>
-          <h1 style={{ fontSize: '28px', fontWeight: 800, color: text, letterSpacing: '-0.04em', marginBottom: '2px' }}>
+      <div style={{ padding: '12px 20px 0', marginBottom: '12px' }}>
+          <h1 style={{ fontSize: '24px', fontWeight: 800, color: text, letterSpacing: '-0.04em', marginBottom: '2px' }}>
             Virtual Try-On
           </h1>
-          <p style={{ fontSize: '13px', color: muted }}>
+          <p style={{ fontSize: '12px', color: muted }}>
             {locale === 'de' ? 'Probiere Klamotten virtuell an deinem Foto an' : 'Try clothes on your photo virtually'}
           </p>
         </div>
@@ -299,14 +299,14 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
             {/* Step 1 — Selfie */}
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
               style={{ background: 'transparent', marginBottom: '12px', padding: '0 20px' }}>
-              <p style={{ fontSize: '10px', fontWeight: 700, color: muted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '10px' }}>
+          <p style={{ fontSize: '10px', fontWeight: 700, color: muted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>
                 {locale === 'de' ? 'Schritt 1 · Dein Foto' : 'Step 1 · Your Photo'}
               </p>
-              <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '20px', overflow: 'hidden' }}>
-              <div style={{ padding: '16px' }}>
+             <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '20px', overflow: 'hidden' }}>
+              <div style={{ padding: '10px' }}>
                 {!selfie ? (
-                 <motion.div whileTap={{ scale: 0.98 }} onClick={() => fileRef.current?.click()}
-                    style={{ padding: '20px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}>
+                <motion.div whileTap={{ scale: 0.98 }} onClick={() => fileRef.current?.click()}
+                    style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}>
                     <div style={{ width: '52px', height: '52px', borderRadius: '16px', background: accentDim, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px', flexShrink: 0 }}>🤳</div>
                     <div style={{ textAlign: 'left' as const }}>
                       <p style={{ fontSize: '14px', fontWeight: 700, color: text, marginBottom: '2px', letterSpacing: '-0.02em' }}>
@@ -335,7 +335,7 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
             {/* Step 2 — Kleidung wählen */}
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
               style={{ background: 'transparent', marginBottom: '12px', padding: '0 20px' }}>
-              <p style={{ fontSize: '10px', fontWeight: 700, color: muted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '10px' }}>
+            <p style={{ fontSize: '10px', fontWeight: 700, color: muted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>
                 {locale === 'de' ? 'Schritt 2 · Kleidung wählen' : 'Step 2 · Choose clothing'}
               </p>
               <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '20px', overflow: 'hidden' }}>
@@ -345,8 +345,8 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
                     {locale === 'de' ? 'Keine Kleidung im Schrank' : 'No clothes in wardrobe'}
                   </p>
                 ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-                    {items.map(item => (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                    {items.filter(item => item.category !== 'schuhe').map(item => (
                       <motion.div key={item.id} whileTap={{ scale: 0.95 }}
                         onClick={() => setSelectedItem(selectedItem?.id === item.id ? null : item)}
                         style={{ borderRadius: '12px', overflow: 'hidden', border: `2px solid ${selectedItem?.id === item.id ? accent : border}`, cursor: 'pointer', position: 'relative' as const }}>
