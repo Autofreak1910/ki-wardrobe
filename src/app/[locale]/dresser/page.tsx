@@ -1021,7 +1021,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
         </div>
 
         {/* Stats Row: Teile / Tagesoutfit / Streak / Pro */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '14px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '14px' }}>
           {/* Teile */}
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
             onClick={() => router.push('/' + locale + '/wardrobe')}
@@ -1030,13 +1030,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
             <p style={{ fontSize: '9px', color: muted, fontWeight: 600, marginTop: '4px' }}>{locale === 'de' ? 'Teile' : 'Items'}</p>
           </motion.div>
 
-    {/* Tagesoutfit */}
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}
-            onClick={() => { setDailyFreeOutfitExpanded(true); setTimeout(() => mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' }), 100) }}
-            style={{ background: card, border: `1px solid ${accent}40`, borderRadius: '16px', padding: '12px 8px', textAlign: 'center' as const, cursor: 'pointer' }}>
-            <p style={{ fontSize: '20px', lineHeight: 1 }}>🎁</p>
-            <p style={{ fontSize: '9px', color: accent, fontWeight: 600, marginTop: '4px' }}>{locale === 'de' ? 'Gratis' : 'Free'}</p>
-          </motion.div>
+ 
 
           {/* Streak */}
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.21 }}
