@@ -105,6 +105,8 @@ const [weatherAware, setWeatherAware] = useState(true)
   const [weatherDisabled, setWeatherDisabled] = useState(false)
 const [username, setUsername] = useState<string>('')
   const [isPremium, setIsPremium] = useState(false)
+  const [premiumUntil, setPremiumUntil] = useState<string | null>(null)
+  const [showProInfo, setShowProInfo] = useState(false)
   const { theme } = useTheme()
   const t = useTranslations()
   const locale = useLocale()
@@ -253,8 +255,14 @@ async function loadStreak() {
 
     const { data } = await supabase.from('clothing_items').select('*').eq('user_id', session.user.id)
     if (data) { setWardrobeItems(data); setHasItems(data.length >= 3) }
- const { data: profile } = await supabase.from('profiles').select('username').eq('id', session.user.id).single()
+const { data: profile } = await supabase.from('profiles').select('username, premium_until').eq('id', session.user.id).single()
     if (profile?.username) setUsername(profile.username)
+    if (profile?.premium_until) {
+      const until = new Date(profile.premium_until)
+      if (until > new Date()) {
+        setPremiumUntil(until.toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' }))
+      }
+    }
     const { data: stillPremium } = await supabase.rpc('check_and_expire_premium', { p_user_id: session.user.id })
     setIsPremium(stillPremium ?? false)
 
@@ -1041,9 +1049,10 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
 
           {/* Pro */}
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24 }}
-            onClick={() => !isPremium && setShowUpgrade(true)}
-            style={{ background: isPremium ? 'linear-gradient(135deg, rgba(251,191,36,0.15), rgba(245,158,11,0.08))' : card, border: `1px solid ${isPremium ? 'rgba(251,191,36,0.3)' : border}`, borderRadius: '16px', padding: '12px 8px', textAlign: 'center' as const, cursor: isPremium ? 'default' : 'pointer' }}>
-            <p style={{ fontSize: '20px', lineHeight: 1 }}>{isPremium ? '💎' : '⭐'}</p>
+            onClick={() => setShowProInfo(true)}
+            style={{ background: isPremium ? 'linear-gradient(135deg, rgba(251,191,36,0.2), rgba(245,158,11,0.1))' : card, border: `1px solid ${isPremium ? 'rgba(251,191,36,0.4)' : border}`, borderRadius: '16px', padding: '12px 8px', textAlign: 'center' as const, cursor: 'pointer', boxShadow: isPremium ? '0 0 16px rgba(251,191,36,0.25)' : 'none', opacity: isPremium ? 1 : 0.6, transition: 'all 0.3s' }}>
+            <motion.p animate={isPremium ? { scale: [1, 1.1, 1] } : {}} transition={{ duration: 2, repeat: Infinity }}
+              style={{ fontSize: '20px', lineHeight: 1 }}>{isPremium ? '💎' : '⭐'}</motion.p>
             <p style={{ fontSize: '9px', color: isPremium ? '#f59e0b' : muted, fontWeight: 700, marginTop: '4px' }}>PRO</p>
           </motion.div>
         </div>
@@ -1426,6 +1435,74 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
                 style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: streak >= 1 ? 'linear-gradient(135deg, #f97316, #ef4444)' : accent, color: '#fff', fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
                 {locale === 'de' ? 'Weiter so! 🔥' : 'Keep it up! 🔥'}
               </motion.button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Pro Info Modal */}
+      <AnimatePresence>
+        {showProInfo && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setShowProInfo(false)}
+            style={{ position: 'fixed', inset: 0, zIndex: 9997, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '0 16px 90px' }}>
+            <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
+              transition={{ type: 'spring', damping: 20 }}
+              onClick={e => e.stopPropagation()}
+              style={{ background: card, borderRadius: '28px', padding: '24px 20px', width: '100%', maxWidth: '400px', border: `1px solid ${isPremium ? 'rgba(251,191,36,0.3)' : border}`, maxHeight: '80vh', overflowY: 'auto' as const }}>
+
+              {/* Header */}
+              <div style={{ textAlign: 'center' as const, marginBottom: '20px' }}>
+                <motion.p animate={isPremium ? { scale: [1, 1.15, 1] } : {}} transition={{ duration: 1.5, repeat: Infinity }}
+                  style={{ fontSize: '40px', marginBottom: '8px' }}>{isPremium ? '💎' : '⭐'}</motion.p>
+                <p style={{ fontSize: '20px', fontWeight: 800, color: isPremium ? '#f59e0b' : text, letterSpacing: '-0.03em', marginBottom: '4px' }}>
+                  KiWardrobe {isPremium ? 'Pro' : (locale === 'de' ? 'Free' : 'Free')}
+                </p>
+                {isPremium && premiumUntil && (
+                  <p style={{ fontSize: '12px', color: muted }}>
+                    {locale === 'de' ? `Aktiv bis ${premiumUntil}` : `Active until ${premiumUntil}`}
+                  </p>
+                )}
+              </div>
+
+              {/* Feature Vergleich */}
+              <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '8px', marginBottom: '20px' }}>
+                {[
+                  { label: locale === 'de' ? 'Outfits/Tag' : 'Outfits/day', free: '3', pro: '15' },
+                  { label: locale === 'de' ? 'Kleidungsstücke' : 'Clothing items', free: 'Max. 20', pro: '∞' },
+                  { label: locale === 'de' ? 'Outfits speichern' : 'Save outfits', free: 'Max. 5', pro: '∞' },
+                  { label: 'Virtual Try-On', free: locale === 'de' ? '3 gesamt' : '3 total', pro: '2/Tag' },
+                  { label: 'Style DNA', free: '✗', pro: '✓' },
+                  { label: locale === 'de' ? 'Mehrfach-Upload' : 'Multi-upload', free: '✗', pro: '✓' },
+                  { label: locale === 'de' ? 'Schrank-Scan' : 'Closet scan', free: '✗', pro: '3×/' + (locale === 'de' ? 'Woche' : 'week') },
+                ].map((f, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '12px', background: isPremium ? 'rgba(251,191,36,0.06)' : accentDim, border: `1px solid ${border}` }}>
+                    <p style={{ fontSize: '13px', color: text, fontWeight: 500 }}>{f.label}</p>
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                      <p style={{ fontSize: '12px', color: muted, minWidth: '50px', textAlign: 'center' as const }}>{f.free}</p>
+                      <p style={{ fontSize: '12px', color: '#f59e0b', fontWeight: 700, minWidth: '50px', textAlign: 'center' as const }}>{f.pro}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Spalten-Header */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', padding: '0 14px', marginBottom: '-4px' }}>
+                <p style={{ fontSize: '10px', color: muted, fontWeight: 600, minWidth: '50px', textAlign: 'center' as const }}>Free</p>
+                <p style={{ fontSize: '10px', color: '#f59e0b', fontWeight: 700, minWidth: '50px', textAlign: 'center' as const }}>Pro</p>
+              </div>
+
+              {isPremium ? (
+                <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowProInfo(false)}
+                  style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', color: '#fff', fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", marginTop: '8px' }}>
+                  {locale === 'de' ? '✦ Pro aktiv — weiter so!' : '✦ Pro active — keep it up!'}
+                </motion.button>
+              ) : (
+                <motion.button whileTap={{ scale: 0.97 }} onClick={() => { setShowProInfo(false); setShowUpgrade(true) }}
+                  style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', color: '#fff', fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", marginTop: '8px', boxShadow: '0 6px 24px rgba(251,191,36,0.4)' }}>
+                  {locale === 'de' ? '✦ Jetzt upgraden — €4,99/Monat' : '✦ Upgrade now — €4.99/month'}
+                </motion.button>
+              )}
             </motion.div>
           </motion.div>
         )}
