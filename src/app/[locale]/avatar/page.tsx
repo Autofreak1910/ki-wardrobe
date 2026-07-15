@@ -303,7 +303,7 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
                 {locale === 'de' ? 'Schritt 1 · Dein Foto' : 'Step 1 · Your Photo'}
               </p>
              <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '20px', overflow: 'hidden' }}>
-              <div style={{ padding: '10px' }}>
+              <div style={{ padding: '8px' }}>
                 {!selfie ? (
                 <motion.div whileTap={{ scale: 0.98 }} onClick={() => fileRef.current?.click()}
                     style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}>
@@ -367,7 +367,7 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
             <motion.button whileTap={{ scale: 0.97 }}
               onClick={generateAvatar}
               disabled={loading || !selfie || !selectedItem}
-              style={{ width: '100%', padding: '18px', background: (!selfie || !selectedItem || loading) ? (isDark ? '#0d1225' : '#e8eeff') : `linear-gradient(135deg, ${accent}, #6b9fff)`, border: 'none', borderRadius: '16px', fontSize: '16px', fontWeight: 700, color: (!selfie || !selectedItem || loading) ? muted : '#fff', cursor: (!selfie || !selectedItem || loading) ? 'not-allowed' : 'pointer', fontFamily: "'DM Sans', sans-serif", marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: (!selfie || !selectedItem || loading) ? 'none' : `0 4px 20px ${accent}40`, transition: 'all 0.2s' }}>
+              style={{ width: '100%', padding: '16px', background: `linear-gradient(135deg, ${accent}, #6b9fff)`, border: 'none', borderRadius: '16px', fontSize: '15px', fontWeight: 700, color: '#fff', cursor: loading ? 'wait' : 'pointer', fontFamily: "'DM Sans', sans-serif", marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: `0 4px 20px ${accent}40`, transition: 'all 0.2s', opacity: (!selfie || !selectedItem) ? 0.6 : 1 }}>
               {loading ? (
                 <>
                   <motion.span animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
@@ -486,20 +486,20 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
           </>
         )}
 
-        {/* Info Box */}
+        {/* Info Box — kompakt */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
-          style={{ background: accentDim, border: `1px solid ${border}`, borderRadius: '14px', padding: '14px 16px' }}>
-          <p style={{ fontSize: '11px', fontWeight: 700, color: accent, marginBottom: '8px', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>
-            💡 {locale === 'de' ? 'Tipps für beste Ergebnisse' : 'Tips for best results'}
-          </p>
-          {[
-            locale === 'de' ? 'Ganzkörper Foto verwenden' : 'Use a full body photo',
-            locale === 'de' ? 'Heller Hintergrund empfohlen' : 'Light background recommended',
-            locale === 'de' ? 'Einzelnes Kleidungsstück wählen' : 'Choose a single clothing item',
-            locale === 'de' ? 'Gute Beleuchtung für bestes Ergebnis' : 'Good lighting for best result',
-          ].map((tip, i) => (
-            <p key={i} style={{ fontSize: '12px', color: muted, marginBottom: '4px' }}>· {tip}</p>
-          ))}
+          style={{ background: accentDim, border: `1px solid ${border}`, borderRadius: '14px', padding: '10px 16px', margin: '0 0 8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' as const }}>
+            <span style={{ fontSize: '11px' }}>💡</span>
+            {[
+              locale === 'de' ? 'Ganzkörper' : 'Full body',
+              locale === 'de' ? 'Heller HG' : 'Light BG',
+              locale === 'de' ? 'Ein Teil' : 'One item',
+              locale === 'de' ? 'Gutes Licht' : 'Good light',
+            ].map((tip, i) => (
+              <span key={i} style={{ fontSize: '11px', color: muted, background: card, borderRadius: '100px', padding: '3px 8px', border: `1px solid ${border}` }}>{tip}</span>
+            ))}
+          </div>
         </motion.div>
 
       </main>
