@@ -448,63 +448,144 @@ await Promise.allSettled(toSave.map(async (item, i) => {
 
       <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '900px', width: '100%', margin: '0 auto', padding: '84px 16px 108px', position: 'relative', zIndex: 1 }}>
 
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+        {/* Header — Gemini Style */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '12px', alignItems: 'start', marginBottom: '20px' }}>
           <div>
-            <p style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: accent, marginBottom: '4px', opacity: 0.8 }}>
+            <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: accent, marginBottom: '6px', opacity: 0.7 }}>
               {locale === 'de' ? 'Dein Kleiderschrank' : 'Your Wardrobe'}
             </p>
-            <h1 style={{ fontSize: '28px', fontWeight: 800, color: text, letterSpacing: '-0.04em', marginBottom: '2px' }}>
-              {t('wardrobe.title')}
+            <h1 style={{ fontSize: '30px', fontWeight: 800, color: text, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: '0' }}>
+              {locale === 'de' ? 'Dein' : 'Your'}
             </h1>
-          <p style={{ fontSize: '13px', color: muted }}>
-              {items.length}{!isPremium ? ' / 20' : ''} {t('wardrobe.pieces')}{totalValue > 0 && ` · ~€${totalValue.toFixed(0)}`}
-            </p>
+            <h1 style={{ fontSize: '30px', fontWeight: 800, color: text, letterSpacing: '-0.04em', lineHeight: 1.1 }}>
+              {locale === 'de' ? 'Kleiderschrank' : 'Wardrobe'}
+            </h1>
           </div>
-          <select value={sort} onChange={e => setSort(e.target.value)}
-            style={{ background: card, border: `1px solid ${border}`, borderRadius: '10px', padding: '9px 12px', fontSize: '12px', color: text, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", outline: 'none', marginTop: '4px' }}>
-            <option value="newest">{t('wardrobe.newestFirst')}</option>
-            <option value="oldest">{t('wardrobe.oldestFirst')}</option>
-            <option value="name">{t('wardrobe.nameAZ')}</option>
-            <option value="price">{t('wardrobe.priceDesc')}</option>
-          </select>
+
+          {/* Teile-Kachel */}
+          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+            style={{ background: card, border: `1px solid ${border}`, borderRadius: '20px', padding: '16px', textAlign: 'center' as const, minWidth: '110px' }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '6px' }}>
+              <path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.57a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.57a2 2 0 00-1.34-2.23z"/>
+            </svg>
+            <p style={{ fontSize: '22px', fontWeight: 800, color: text, letterSpacing: '-0.04em', lineHeight: 1 }}>
+              {items.length}{!isPremium ? <span style={{ fontSize: '14px', color: muted }}>/20</span> : ''}
+            </p>
+            <p style={{ fontSize: '11px', color: muted, marginTop: '4px', fontWeight: 600 }}>{t('wardrobe.pieces')}</p>
+            {totalValue > 0 && <p style={{ fontSize: '10px', color: accent, marginTop: '2px', fontWeight: 600 }}>~€{totalValue.toFixed(0)}</p>}
+          </motion.div>
         </div>
 
-{/* Style DNA Banner */}
+        {/* Upload Buttons — neu gestaltet */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
+          {/* Einzelfoto */}
+          <motion.div whileTap={{ scale: 0.97 }}
+            onClick={() => !uploading && fileInputRef.current?.click()}
+            style={{ background: uploading ? accentDim : card, border: `1.5px solid ${uploading ? accent : border}`, borderRadius: '18px', padding: '18px 14px', cursor: uploading ? 'default' : 'pointer', transition: 'all 0.2s', textAlign: 'center' as const }}>
+            <div style={{ width: '44px', height: '44px', borderRadius: '14px', background: accentDim, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
+              {uploading ? (
+                <motion.span animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
+                  style={{ display: 'block', width: '18px', height: '18px', borderRadius: '50%', border: `2px solid ${border}`, borderTopColor: accent }} />
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+              )}
+            </div>
+            <p style={{ fontWeight: 700, color: text, fontSize: '13px', marginBottom: '3px', letterSpacing: '-0.01em' }}>
+              {uploading ? (locale === 'de' ? 'Lädt hoch...' : 'Uploading...') : (locale === 'de' ? 'Foto hochladen' : 'Upload photo')}
+            </p>
+            <p style={{ fontSize: '11px', color: muted }}>{locale === 'de' ? 'Ein Kleidungsstück' : 'One item'}</p>
+          </motion.div>
+
+          {/* Mehrere Fotos — Pro */}
+          <motion.div whileTap={{ scale: isPremium ? 0.97 : 1 }}
+            onClick={() => {
+              if (!isPremium) { router.push('/' + locale + '/profile?upgrade=true'); return }
+              if (!multiAnalyzing) multiFileInputRef.current?.click()
+            }}
+            style={{ background: multiAnalyzing ? 'rgba(168,85,247,0.08)' : card, border: `1.5px solid ${multiAnalyzing ? '#a855f7' : isPremium ? '#a855f740' : border}`, borderRadius: '18px', padding: '18px 14px', cursor: 'pointer', transition: 'all 0.2s', textAlign: 'center' as const, position: 'relative' as const, opacity: isPremium ? 1 : 0.65 }}>
+            {!isPremium && (
+              <span style={{ position: 'absolute' as const, top: '10px', right: '10px', fontSize: '9px', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '5px', padding: '2px 7px' }}>PRO</span>
+            )}
+            <div style={{ width: '44px', height: '44px', borderRadius: '14px', background: isPremium ? 'rgba(168,85,247,0.1)' : accentDim, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px', position: 'relative' as const }}>
+              {multiAnalyzing ? (
+                <motion.span animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
+                  style={{ display: 'block', width: '18px', height: '18px', borderRadius: '50%', border: `2px solid ${border}`, borderTopColor: '#a855f7' }} />
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isPremium ? '#a855f7' : muted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="6" width="20" height="16" rx="2"/><circle cx="12" cy="14" r="3"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+                </svg>
+              )}
+              {!isPremium && (
+                <div style={{ position: 'absolute' as const, bottom: '-4px', right: '-4px', width: '16px', height: '16px', borderRadius: '50%', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px' }}>🔒</div>
+              )}
+            </div>
+            <p style={{ fontWeight: 700, color: isPremium ? text : muted, fontSize: '13px', marginBottom: '3px', letterSpacing: '-0.01em' }}>
+              {multiAnalyzing ? (locale === 'de' ? 'Analysiere...' : 'Analyzing...') : (locale === 'de' ? 'Mehrere Fotos' : 'Multiple photos')}
+            </p>
+            <p style={{ fontSize: '11px', color: isPremium ? '#a855f7' : '#f59e0b', fontWeight: 600 }}>
+              {isPremium ? (locale === 'de' ? 'Bis zu 10 auf einmal' : 'Up to 10 at once') : (locale === 'de' ? 'Pro erforderlich' : 'Pro required')}
+            </p>
+          </motion.div>
+        </div>
+
+{/* Style DNA Banner — Krass */}
 {items.length >= 3 && (
   <motion.div
     initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
     onClick={generateStyleDna}
     whileTap={{ scale: 0.98 }}
     style={{
-      background: `linear-gradient(135deg, ${accent}15, #6b9fff10)`,
-      border: `1px solid ${border}`,
-      borderRadius: '14px', padding: '14px 16px',
+      position: 'relative' as const,
+      background: isPremium
+        ? 'linear-gradient(135deg, #0f0c1a, #1a0f2e, #0f1a2e)'
+        : 'linear-gradient(135deg, #0a1628, #0f1a2e)',
+      borderRadius: '20px', padding: '20px 18px',
       marginBottom: '16px', cursor: 'pointer',
-      display: 'flex', alignItems: 'center', gap: '12px',
+      overflow: 'hidden', minHeight: '120px',
+      boxShadow: isPremium ? '0 8px 32px rgba(168,85,247,0.25)' : '0 4px 20px rgba(0,0,0,0.15)',
     }}>
-<div style={{ width: '40px', height: '40px', borderRadius: '12px', background: isPremium ? 'linear-gradient(135deg, #a855f7, #6b9fff)' : accentDim, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-      <span style={{ fontSize: '20px' }}>{isPremium ? '🧬' : '🔒'}</span>
+    {/* Glow Effekte */}
+    <div style={{ position: 'absolute', top: '-30px', right: '-20px', width: '160px', height: '160px', borderRadius: '50%', background: isPremium ? 'radial-gradient(circle, rgba(168,85,247,0.3), transparent 70%)' : 'radial-gradient(circle, rgba(14,164,114,0.2), transparent 70%)', filter: 'blur(20px)', pointerEvents: 'none' }} />
+    <div style={{ position: 'absolute', bottom: '-20px', left: '30%', width: '100px', height: '100px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(107,159,255,0.2), transparent 70%)', filter: 'blur(15px)', pointerEvents: 'none' }} />
+
+    {/* DNA Helix SVG als Dekoration */}
+    <div style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', opacity: 0.15 }}>
+      <svg width="60" height="80" viewBox="0 0 60 80" fill="none">
+        <path d="M10 5 Q30 20 50 35 Q30 50 10 65 Q30 50 50 35" stroke="white" strokeWidth="2" fill="none"/>
+        <path d="M50 5 Q30 20 10 35 Q30 50 50 65" stroke="white" strokeWidth="2" fill="none"/>
+        {[10,20,30,40,50,60,70].map(y => (
+          <line key={y} x1="15" y1={y} x2="45" y2={y+2} stroke="white" strokeWidth="1" opacity="0.5"/>
+        ))}
+      </svg>
     </div>
-    <div style={{ flex: 1 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-        <p style={{ fontSize: '13px', fontWeight: 700, color: text }}>
+
+    <div style={{ position: 'relative', zIndex: 1 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+        <p style={{ fontSize: '13px', fontWeight: 700, color: 'rgba(255,255,255,0.9)', letterSpacing: '0.02em' }}>
           {locale === 'de' ? 'Style DNA entdecken' : 'Discover your Style DNA'}
         </p>
-        {!isPremium && (
-          <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '5px', padding: '2px 6px' }}>PRO</span>
+        {!isPremium ? (
+          <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '5px', padding: '2px 7px', boxShadow: '0 2px 8px rgba(251,191,36,0.4)' }}>PRO</span>
+        ) : (
+          <span style={{ fontSize: '9px', fontWeight: 700, color: '#a855f7', background: 'rgba(168,85,247,0.2)', borderRadius: '5px', padding: '2px 7px', border: '1px solid rgba(168,85,247,0.3)' }}>✦ AKTIV</span>
         )}
       </div>
-      <p style={{ fontSize: '11px', color: muted }}>
-        {isPremium
-          ? (locale === 'de' ? `KI analysiert deine ${items.length} Kleidungsstücke` : `AI analyzes your ${items.length} items`)
-          : (locale === 'de' ? 'Entsperr deine persönliche Stil-Analyse' : 'Unlock your personal style analysis')}
+      <p style={{ fontSize: '22px', fontWeight: 800, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: '6px' }}>
+        {locale === 'de' ? 'Starke DNA' : 'Strong DNA'}
       </p>
+      <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)', lineHeight: 1.4 }}>
+        {isPremium
+          ? (locale === 'de' ? `Analysiere deinen Stil-Code mit KI · ${items.length} Teile` : `Analyze your style code with AI · ${items.length} items`)
+          : (locale === 'de' ? 'Analysiere deinen Stil-Code mit KI.' : 'Analyze your style code with AI.')}
+      </p>
+      {!isPremium && (
+        <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', marginTop: '4px', fontStyle: 'italic' }}>
+          *{locale === 'de' ? 'Nur für PRO Mitglieder' : 'Pro members only'}
+        </p>
+      )}
     </div>
-    {!isPremium && (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
-    )}
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
   </motion.div>
 )}
 
