@@ -118,7 +118,14 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
           const result = await res.json()
           console.log('Referral result:', result)
           if (result.success) {
-            localStorage.setItem('kw_pro_welcome_pending', 'true')
+            // Pro-Ablaufdatum berechnen (14 Tage ab heute)
+            const proUntil = new Date()
+            proUntil.setDate(proUntil.getDate() + 14)
+            localStorage.setItem('kw_pro_welcome_pending', JSON.stringify({
+              days: 14,
+              until: proUntil.toLocaleDateString(lang === 'en' ? 'en-GB' : 'de-DE', { day: 'numeric', month: 'long', year: 'numeric' }),
+              fromInvite: true,
+            }))
           }
         } catch (err) {
           console.error('Referral failed:', err)

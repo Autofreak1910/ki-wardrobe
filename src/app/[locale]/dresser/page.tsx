@@ -121,6 +121,7 @@ const [showUnlock, setShowUnlock] = useState(false)
 const [onboardingReady, setOnboardingReady] = useState(false)
 const [showPushPrompt, setShowPushPrompt] = useState(false)
 const [showProWelcome, setShowProWelcome] = useState(false)
+  const [proWelcomeData, setProWelcomeData] = useState<{ days: number; until: string; fromInvite: boolean } | null>(null)
 const [showReferralReward, setShowReferralReward] = useState(false)
 const [showWelcomeInvited, setShowWelcomeInvited] = useState(false)
 const [referrerName, setReferrerName] = useState('')
@@ -184,10 +185,15 @@ useEffect(() => {
 
 function checkProWelcomePending() {
   const pending = localStorage.getItem('kw_pro_welcome_pending')
-  if (pending === 'true') {
+  if (pending) {
     localStorage.removeItem('kw_pro_welcome_pending')
+    try {
+      const data = JSON.parse(pending)
+      setProWelcomeData(data)
+    } catch {
+      setProWelcomeData({ days: 14, until: '', fromInvite: false })
+    }
     setTimeout(() => setShowProWelcome(true), 600)
-    setTimeout(() => setShowProWelcome(false), 5500)
   }
   const params = new URLSearchParams(window.location.search)
   if (params.get('referral_reward') === 'true') {
@@ -839,9 +845,33 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.0 }}
-        style={{ fontSize: '15px', color: muted, fontFamily: "'DM Sans', sans-serif", textAlign: 'center' as const, maxWidth: '280px', lineHeight: 1.6 }}>
-        {locale === 'de' ? '10 Outfits täglich · Unbegrenzt Kleidung · Style DNA 🚀' : '10 outfits daily · Unlimited items · Style DNA 🚀'}
+        style={{ fontSize: '15px', color: muted, fontFamily: "'DM Sans', sans-serif", textAlign: 'center' as const, maxWidth: '280px', lineHeight: 1.6, marginBottom: '12px' }}>
+        {proWelcomeData?.fromInvite
+          ? (locale === 'de' ? `Dein Freund hat dich eingeladen 🎁` : `Your friend invited you 🎁`)
+          : (locale === 'de' ? '15 Outfits täglich · Unbegrenzt Kleidung · Style DNA 🚀' : '15 outfits daily · Unlimited items · Style DNA 🚀')}
       </motion.p>
+
+      {proWelcomeData?.until && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 1.15 }}
+          style={{ background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.3)', borderRadius: '12px', padding: '10px 20px', marginBottom: '16px' }}>
+          <p style={{ fontSize: '13px', fontWeight: 700, color: '#fbbf24', fontFamily: "'DM Sans', sans-serif", textAlign: 'center' as const }}>
+            {locale === 'de' ? `✦ Pro aktiv bis ${proWelcomeData.until}` : `✦ Pro active until ${proWelcomeData.until}`}
+          </p>
+        </motion.div>
+      )}
+
+      <motion.button
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.3 }}
+        whileTap={{ scale: 0.97 }}
+        onClick={() => setShowProWelcome(false)}
+        style={{ background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', border: 'none', borderRadius: '14px', padding: '14px 32px', fontSize: '15px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: '0 6px 24px rgba(251,191,36,0.4)' }}>
+        {locale === 'de' ? 'Los geht's! ✦' : 'Let's go! ✦'}
+      </motion.button>
     </motion.div>
   )}
 </AnimatePresence>

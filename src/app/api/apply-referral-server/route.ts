@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 export async function POST(request: NextRequest) {
   try {
     const { userId, referralCode } = await request.json()
-    if (!userId || !referralCode) {
+  if (!userId || !referralCode) {
       return NextResponse.json({ success: false, error: 'missing params' })
     }
 
@@ -30,8 +30,19 @@ export async function POST(request: NextRequest) {
           .eq('referral_code', referralCode)
           .single()
 
-        if (referrerProfile) {
+    if (referrerProfile) {
           const lang = referrerProfile.language === 'en' ? 'en' : 'de'
+
+          // Einlader-Popup in Supabase speichern
+          await supabase.from('profiles')
+            .update({
+              referral_popup_pending: JSON.stringify({
+                newUserName: 'Jemand',
+                bonusDays: 7,
+              })
+            })
+            .eq('id', referrerProfile.id)
+
           const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://kiwardrobe-app.vercel.app'
           await fetch(baseUrl + '/api/send-push-to-user', {
             method: 'POST',

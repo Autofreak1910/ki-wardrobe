@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/send-daily-push",
-      "schedule": "0 8 * * *"
+      "schedule": "0 3 * * *"
     },
     {
       "path": "/api/send-streak-reminder",
