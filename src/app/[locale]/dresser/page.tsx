@@ -222,8 +222,8 @@ useEffect(() => {
 async function loadStreak() {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) return
-    const { data } = await supabase.from('profiles').select('current_streak').eq('id', session.user.id).single()
-    if (data?.current_streak) setStreak(data.current_streak)
+    const { data } = await supabase.from('profiles').select('current_streak, last_outfit_date').eq('id', session.user.id).single()
+    if (data?.current_streak !== undefined) setStreak(data.current_streak ?? 0)
   }
 
   async function loadWardrobe() {
@@ -455,7 +455,10 @@ setLoading(true); setSaved(false); setOutfit(null)
 setOutfit({ outfits: mappedOutfits, active: 0 })
      // Streak updaten
       try {
-        const streakRes = await fetch('/api/update-streak', { method: 'POST' })
+       const streakRes = await fetch('/api/update-streak', { 
+          method: 'POST',
+          credentials: 'include',
+        })
         const streakData = await streakRes.json()
         if (streakData.streak) setStreak(streakData.streak)
         if (streakData.streakReward) setStreakReward(streakData.streakReward)
@@ -1021,7 +1024,8 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25, duration: 0.5 }}
-            style={{ flexShrink: 0, width: '86px', background: streak >= 7 ? 'linear-gradient(135deg, rgba(249,115,22,0.12), rgba(239,68,68,0.06))' : card, border: `1px solid ${streak >= 7 ? 'rgba(249,115,22,0.3)' : border}`, borderRadius: '18px', padding: '10px 6px', textAlign: 'center' as const, boxShadow: streak >= 7 ? '0 4px 20px rgba(249,115,22,0.15)' : 'none', opacity: streak === 0 ? 0.5 : 1, filter: streak === 0 ? 'grayscale(0.8)' : 'none', transition: 'all 0.4s', cursor: 'default' }}>
+           onClick={() => alert(locale === 'de' ? `🔥 ${streak} Tage Streak!\n\nGeneriere täglich dein Outfit um deinen Streak zu halten.\n\n7 Tage → +1 Tag Pro gratis\n14 Tage → +2 Tage Pro gratis\n30 Tage → +3 Tage Pro gratis` : `🔥 ${streak} Day Streak!\n\nGenerate your outfit daily to keep your streak.\n\n7 days → +1 day Pro free\n14 days → +2 days Pro free\n30 days → +3 days Pro free`)}
+            style={{ flexShrink: 0, width: '86px', cursor: 'pointer', background: streak >= 7 ? 'linear-gradient(135deg, rgba(249,115,22,0.12), rgba(239,68,68,0.06))' : card, border: `1px solid ${streak >= 7 ? 'rgba(249,115,22,0.3)' : border}`, borderRadius: '18px', padding: '10px 6px', textAlign: 'center' as const, boxShadow: streak >= 7 ? '0 4px 20px rgba(249,115,22,0.15)' : 'none', opacity: streak === 0 ? 0.5 : 1, filter: streak === 0 ? 'grayscale(0.8)' : 'none', transition: 'all 0.4s', cursor: 'default' }}>
 
             {/* Flamme + Zahl */}
             <motion.p
