@@ -1008,7 +1008,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
           {/* Wetter Badge oben rechts */}
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}
             onClick={() => { if (weatherDisabled) router.push('/' + locale + '/profile?scrollTo=weather') }}
-            style={{ position: 'absolute' as const, top: '16px', right: '18px', background: isDark ? 'rgba(10,22,40,0.85)' : 'rgba(255,255,255,0.9)', backdropFilter: 'blur(12px)', border: `1px solid ${border}`, borderRadius: '16px', padding: '10px 14px', textAlign: 'center' as const, zIndex: 2, cursor: weatherDisabled ? 'pointer' : 'default', minWidth: '70px' }}>
+           style={{ position: 'absolute' as const, top: '16px', right: '18px', background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '16px', padding: '10px 14px', textAlign: 'center' as const, zIndex: 2, cursor: weatherDisabled ? 'pointer' : 'default', minWidth: '70px', boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}>
             {weatherDisabled ? (
               <><div style={{ fontSize: '20px' }}>🔒</div><p style={{ fontSize: '9px', color: muted, marginTop: '2px' }}>Wetter aus</p></>
             ) : weatherLoading ? (
@@ -1017,15 +1017,15 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
             ) : (
               <>
                 <div style={{ fontSize: '24px', lineHeight: 1, marginBottom: '2px' }}>{weather?.icon}</div>
-                <p style={{ fontSize: '18px', fontWeight: 800, color: text, letterSpacing: '-0.04em', lineHeight: 1 }}>{weather?.temp}°C</p>
-                {weather?.city && <p style={{ fontSize: '9px', color: muted, marginTop: '2px', maxWidth: '70px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>📍 {weather.city}</p>}
+              <p style={{ fontSize: '18px', fontWeight: 800, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1 }}>{weather?.temp}°C</p>
+                {weather?.city && <p style={{ fontSize: '9px', color: 'rgba(255,255,255,0.8)', marginTop: '2px', maxWidth: '70px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>📍 {weather.city}</p>}
               </>
             )}
           </motion.div>
         </motion.div>
 
         {/* Stats Row */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', margin: '12px 18px 14px', padding: 0 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', margin: '12px 18px 14px', padding: 0 }}>
           {/* Teile */}
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
             onClick={() => router.push('/' + locale + '/wardrobe')}
@@ -1035,6 +1035,14 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
             </svg>
             <p style={{ fontSize: '18px', fontWeight: 800, color: text, letterSpacing: '-0.03em', lineHeight: 1 }}>{wardrobeItems.length}</p>
             <p style={{ fontSize: '9px', color: muted, fontWeight: 600, marginTop: '2px' }}>{locale === 'de' ? 'Teile' : 'Items'}</p>
+          </motion.div>
+
+        {/* Tagesoutfit */}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }}
+            onClick={() => setDailyFreeOutfitExpanded(v => !v)}
+            style={{ background: dailyFreeOutfit ? 'rgba(14,164,114,0.08)' : card, border: `1px solid ${dailyFreeOutfit ? accent + '40' : border}`, borderRadius: '16px', padding: '12px 6px', textAlign: 'center' as const, cursor: 'pointer' }}>
+            <span style={{ fontSize: '18px', lineHeight: 1, display: 'block', marginBottom: '2px' }}>👕</span>
+            <p style={{ fontSize: '9px', color: dailyFreeOutfit ? accent : muted, fontWeight: 700, marginTop: '2px', lineHeight: 1.2 }}>{locale === 'de' ? 'Tages-outfit' : 'Daily outfit'}</p>
           </motion.div>
 
           {/* Streak */}
@@ -1064,7 +1072,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
         </div>
 
         <div style={{ padding: '0 18px' }}>
-        {!dailyFreeOutfitLoading && dailyFreeOutfit && (
+       {!dailyFreeOutfitLoading && dailyFreeOutfit && dailyFreeOutfitExpanded && (
   <motion.div
     initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.4 }}
