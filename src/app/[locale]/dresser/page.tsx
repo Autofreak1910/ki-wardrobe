@@ -1332,25 +1332,7 @@ onClick={() => weatherDisabled ? router.push('/' + locale + '/profile?scrollTo=w
       : `💡 Upload more clothes for up to 3 outfit suggestions`}
   </p>
 )}
-      {/* 3 Vibe Tabs */}
-      <div style={{ display: 'flex', gap: '6px' }}>
-        {outfit.outfits.map((o, i) => (
-          <motion.button key={i} whileTap={{ scale: 0.95 }}
-  onClick={() => { setOutfit({ ...outfit, active: i }); setSaved(false) }}
-            style={{
-              flex: 1, padding: '8px 4px', borderRadius: '10px',
-              border: `1px solid ${outfit.active === i ? accent : border}`,
-              background: outfit.active === i ? accent : 'transparent',
-              color: outfit.active === i ? '#fff' : muted,
-              fontSize: '11px', fontWeight: 600,
-              cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
-              transition: 'all 0.15s', WebkitTapHighlightColor: 'transparent',
-            }}>
-            {o.vibe ?? `Outfit ${i + 1}`}
-          </motion.button>
-        ))}
-      </div>
-    </div>
+</div>
 
     {/* Active Outfit */}
     <AnimatePresence mode="wait">
