@@ -1440,7 +1440,7 @@ onClick={() => weatherDisabled ? router.push('/' + locale + '/profile?scrollTo=w
         {showStreakInfo && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={() => setShowStreakInfo(false)}
-            style={{ position: 'fixed', inset: 0, zIndex: 9997, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '0 16px 16px' }}>
+            style={{ position: 'fixed', inset: 0, zIndex: 9997, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '0 16px 90px' }}>
             <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
               transition={{ type: 'spring', damping: 20 }}
               onClick={e => e.stopPropagation()}
