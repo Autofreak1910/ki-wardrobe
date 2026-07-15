@@ -701,7 +701,7 @@ await Promise.allSettled(toSave.map(async (item, i) => {
             ))}
           </div>
 
-          {/* Alle anzeigen Button */}
+     {/* Alle anzeigen Button */}
           {filtered.length > 6 && (
             <motion.button whileTap={{ scale: 0.97 }}
               onClick={() => setShowAll(v => !v)}
@@ -900,5 +900,3 @@ await Promise.allSettled(toSave.map(async (item, i) => {
         )}
       </AnimatePresence>
     </div>
-  )
-}
