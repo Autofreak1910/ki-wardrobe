@@ -246,7 +246,7 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}
           style={{ position: 'relative' as const, height: '200px', marginBottom: '0', overflow: 'hidden' }}>
           <img
-            src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&q=80&auto=format&fit=crop"
+           src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80&auto=format&fit=crop"
             alt=""
             style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', position: 'absolute', inset: 0 }}
           />
@@ -305,15 +305,18 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
               <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '20px', overflow: 'hidden' }}>
               <div style={{ padding: '16px' }}>
                 {!selfie ? (
-                  <motion.div whileTap={{ scale: 0.98 }} onClick={() => fileRef.current?.click()}
-                    style={{ padding: '32px', textAlign: 'center' as const, cursor: 'pointer' }}>
-                    <p style={{ fontSize: '40px', marginBottom: '12px' }}>🤳</p>
-                    <p style={{ fontSize: '15px', fontWeight: 700, color: text, marginBottom: '4px', letterSpacing: '-0.02em' }}>
-                      {locale === 'de' ? 'Selfie hochladen' : 'Upload selfie'}
-                    </p>
-                    <p style={{ fontSize: '12px', color: muted }}>
-                      {locale === 'de' ? 'Ganzkörper Foto für beste Ergebnisse' : 'Full body photo for best results'}
-                    </p>
+                 <motion.div whileTap={{ scale: 0.98 }} onClick={() => fileRef.current?.click()}
+                    style={{ padding: '20px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}>
+                    <div style={{ width: '52px', height: '52px', borderRadius: '16px', background: accentDim, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px', flexShrink: 0 }}>🤳</div>
+                    <div style={{ textAlign: 'left' as const }}>
+                      <p style={{ fontSize: '14px', fontWeight: 700, color: text, marginBottom: '2px', letterSpacing: '-0.02em' }}>
+                        {locale === 'de' ? 'Selfie hochladen' : 'Upload selfie'}
+                      </p>
+                      <p style={{ fontSize: '12px', color: muted }}>
+                        {locale === 'de' ? 'Ganzkörper Foto für beste Ergebnisse' : 'Full body photo for best results'}
+                      </p>
+                    </div>
+                    <svg style={{ marginLeft: 'auto', flexShrink: 0 }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
                   </motion.div>
                 ) : (
                   <div style={{ position: 'relative' as const }}>
