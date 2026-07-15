@@ -19,6 +19,7 @@ type ClothingItem = {
 export default function WardrobePage() {
   const [items, setItems] = useState<ClothingItem[]>([])
   const [filter, setFilter] = useState('all')
+  const [showAll, setShowAll] = useState(false)
   const [sort, setSort] = useState('newest')
   const [uploading, setUploading] = useState(false)
   const [analyzing, setAnalyzing] = useState(false)
@@ -678,24 +679,38 @@ await Promise.allSettled(toSave.map(async (item, i) => {
             <p style={{ fontSize: '13px', color: muted }}>{t('wardrobe.uploadFirst')}</p>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-            {filtered.map((item, i) => (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))', gap: '10px' }}>
+            {(showAll ? filtered : filtered.slice(0, 6)).map((item, i) => (
               <motion.div key={item.id}
                 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.03, duration: 0.3 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => openItem(item)}
-                style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden', cursor: 'pointer' }}>
-                <div style={{ aspectRatio: '1/1', overflow: 'hidden', background: secondary }}>
+                style={{ background: card, border: `1px solid ${border}`, borderRadius: '14px', overflow: 'hidden', cursor: 'pointer' }}>
+                <div style={{ aspectRatio: '3/4', overflow: 'hidden', background: secondary }}>
                   <img src={item.image_url} alt={item.name ?? item.category} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                 </div>
-                <div style={{ padding: '8px 8px 10px' }}>
-                  <p style={{ fontSize: '11px', fontWeight: 700, color: text, marginBottom: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, letterSpacing: '-0.01em' }}>{item.name ?? item.category}</p>
-                  <p style={{ fontSize: '10px', color: muted }}>{item.color}</p>
+                <div style={{ padding: '8px 10px' }}>
+                  <p style={{ fontSize: '12px', fontWeight: 600, color: text, marginBottom: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, letterSpacing: '-0.01em' }}>{item.name ?? item.category}</p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <p style={{ fontSize: '11px', color: muted }}>{item.color}</p>
+                    {item.purchase_price && <p style={{ fontSize: '11px', color: accent, fontWeight: 600 }}>€{item.purchase_price}</p>}
+                  </div>
                 </div>
               </motion.div>
             ))}
           </div>
+
+          {/* Alle anzeigen Button */}
+          {filtered.length > 6 && (
+            <motion.button whileTap={{ scale: 0.97 }}
+              onClick={() => setShowAll(v => !v)}
+              style={{ width: '100%', marginTop: '12px', padding: '12px', background: card, border: `1px solid ${border}`, borderRadius: '14px', fontSize: '13px', fontWeight: 600, color: accent, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+              {showAll
+                ? (locale === 'de' ? '▲ Weniger anzeigen' : '▲ Show less')
+                : `▼ ${locale === 'de' ? `Alle ${filtered.length} anzeigen` : `Show all ${filtered.length}`}`}
+            </motion.button>
+          )}
         )}
         </div>
       </main>
