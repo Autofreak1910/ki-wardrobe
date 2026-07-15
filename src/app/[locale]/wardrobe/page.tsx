@@ -450,7 +450,7 @@ await Promise.allSettled(toSave.map(async (item, i) => {
 
         {/* Hero Banner — Walk-in Closet */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}
-          style={{ position: 'relative' as const, marginBottom: '20px', borderRadius: '0 0 28px 28px', overflow: 'hidden', height: '200px', marginLeft: '-0px', marginRight: '-0px' }}>
+          style={{ position: 'relative' as const, marginBottom: '16px', borderRadius: '0 0 24px 24px', overflow: 'hidden', height: '150px' }}>
 
    <img
             src="/closet-hero.jpg.png"
@@ -488,12 +488,12 @@ await Promise.allSettled(toSave.map(async (item, i) => {
         </div>
 
         <div style={{ padding: '0 16px' }}>
-        {/* Upload */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
+        {/* Upload — kompakt */}
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
           {/* Einzelfoto */}
           <motion.div whileTap={{ scale: 0.97 }}
             onClick={() => !uploading && fileInputRef.current?.click()}
-            style={{ background: uploading ? accentDim : card, border: `1.5px solid ${uploading ? accent : border}`, borderRadius: '18px', padding: '18px 14px', cursor: uploading ? 'default' : 'pointer', transition: 'all 0.2s', textAlign: 'center' as const }}>
+            style={{ background: uploading ? accentDim : card, border: `1px solid ${uploading ? accent : border}`, borderRadius: '14px', padding: '12px 14px', cursor: uploading ? 'default' : 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
             <div style={{ width: '44px', height: '44px', borderRadius: '14px', background: accentDim, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
               {uploading ? (
                 <motion.span animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
@@ -516,13 +516,14 @@ await Promise.allSettled(toSave.map(async (item, i) => {
             style={{
               background: isPremium ? card : 'linear-gradient(135deg, rgba(251,191,36,0.15), rgba(245,158,11,0.08))',
               border: isPremium ? `1px solid ${border}` : '1px solid rgba(251,191,36,0.35)',
-              borderRadius: '18px', padding: '20px 14px', cursor: 'pointer',
-              textAlign: 'center' as const, position: 'relative' as const,
+              borderRadius: '14px', padding: '12px 14px', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: '10px', flex: 1,
+              position: 'relative' as const,
             }}>
             {!isPremium && (
               <span style={{ position: 'absolute' as const, top: '10px', right: '10px', fontSize: '9px', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '5px', padding: '2px 7px', boxShadow: '0 2px 6px rgba(251,191,36,0.4)' }}>PRO</span>
             )}
-            <div style={{ width: '48px', height: '48px', borderRadius: '16px', background: isPremium ? accentDim : 'rgba(251,191,36,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px', border: isPremium ? `1px solid ${border}` : '1px solid rgba(251,191,36,0.3)' }}>
+            <div style={{ width: '36px', height: '36px', borderRadius: '12px', background: isPremium ? accentDim : 'rgba(251,191,36,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: isPremium ? `1px solid ${border}` : '1px solid rgba(251,191,36,0.3)' }}>
               {multiAnalyzing ? (
                 <motion.span animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
                   style={{ display: 'block', width: '20px', height: '20px', borderRadius: '50%', border: `2px solid ${border}`, borderTopColor: accent }} />
@@ -534,17 +535,14 @@ await Promise.allSettled(toSave.map(async (item, i) => {
                 <span style={{ fontSize: '22px' }}>🔒</span>
               )}
             </div>
-            <p style={{ fontWeight: 700, color: isPremium ? text : '#92610a', fontSize: '13px', marginBottom: '3px', letterSpacing: '-0.02em' }}>
-              {multiAnalyzing ? (locale === 'de' ? 'Analysiere...' : 'Analyzing...') : (locale === 'de' ? 'Mehrere Fotos' : 'Multiple photos')}
-            </p>
-            <p style={{ fontSize: '11px', color: isPremium ? muted : '#b07d20', fontWeight: 500, marginBottom: isPremium ? 0 : '6px' }}>
-              {locale === 'de' ? 'Bis zu 10 auf einmal' : 'Up to 10 at once'}
-            </p>
-            {!isPremium && (
-              <p style={{ fontSize: '11px', color: '#f59e0b', fontWeight: 700 }}>
-                {locale === 'de' ? 'Jetzt freischalten →' : 'Unlock now →'}
+            <div>
+              <p style={{ fontWeight: 700, color: isPremium ? text : '#92610a', fontSize: '13px', marginBottom: '1px', letterSpacing: '-0.02em' }}>
+                {multiAnalyzing ? (locale === 'de' ? 'Analysiere...' : 'Analyzing...') : (locale === 'de' ? 'Mehrere Fotos' : 'Multiple photos')}
               </p>
-            )}
+              <p style={{ fontSize: '11px', color: isPremium ? muted : '#f59e0b', fontWeight: isPremium ? 400 : 600 }}>
+                {isPremium ? (locale === 'de' ? 'Bis zu 10 auf einmal' : 'Up to 10 at once') : (locale === 'de' ? 'Jetzt freischalten' : 'Unlock now')}
+              </p>
+            </div>
           </motion.div>
         </div>
 
@@ -560,8 +558,8 @@ await Promise.allSettled(toSave.map(async (item, i) => {
         ? 'linear-gradient(135deg, #0f0c1a, #1a0f2e, #0f1a2e)'
         : 'linear-gradient(135deg, #0a1628, #0f1a2e)',
       borderRadius: '20px', padding: '20px 18px',
-      marginBottom: '16px', cursor: 'pointer',
-      overflow: 'hidden', minHeight: '120px',
+      marginBottom: '12px', cursor: 'pointer',
+      overflow: 'hidden', minHeight: '100px',
       boxShadow: isPremium ? '0 8px 32px rgba(168,85,247,0.25)' : '0 4px 20px rgba(0,0,0,0.15)',
     }}>
     {/* Glow Effekte */}
