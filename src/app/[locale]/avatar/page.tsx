@@ -240,32 +240,42 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
 
       <Navbar activePage="avatar" />
 
-      <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '560px', width: '100%', margin: '0 auto', padding: '84px 20px 108px', position: 'relative', zIndex: 1 }}>
+      <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '560px', width: '100%', margin: '0 auto', padding: '68px 0 108px', position: 'relative', zIndex: 1 }}>
 
-        {/* Header */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: '24px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div>
-              <h1 style={{ fontSize: '26px', fontWeight: 800, color: text, letterSpacing: '-0.03em', marginBottom: '4px' }}>
-                {locale === 'de' ? 'Virtual Try-On ✦' : 'Virtual Try-On ✦'}
-              </h1>
-              <p style={{ fontSize: '13px', color: muted }}>
-                {locale === 'de' ? 'Probiere Klamotten virtuell an' : 'Try on clothes virtually'}
-              </p>
+        {/* Hero Banner */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}
+          style={{ position: 'relative' as const, height: '200px', marginBottom: '0', overflow: 'hidden' }}>
+          <img
+            src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&q=80&auto=format&fit=crop"
+            alt=""
+            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', position: 'absolute', inset: 0 }}
+          />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(240,244,255,0.1) 0%, rgba(240,244,255,0.7) 70%, rgba(240,244,255,1) 100%)' }} />
+
+          {/* PRO Badge */}
+          {isPremium ? (
+            <div style={{ position: 'absolute' as const, top: '16px', right: '18px', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '10px', padding: '6px 14px', boxShadow: '0 4px 12px rgba(251,191,36,0.4)', zIndex: 2 }}>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: '#fff', letterSpacing: '0.04em' }}>✦ PRO</p>
             </div>
-          {!isPremium && (
-              <div style={{ background: accentDim, border: `1px solid ${border}`, borderRadius: '12px', padding: '8px 12px', textAlign: 'center' as const }}>
-                <p style={{ fontSize: '18px', fontWeight: 800, color: triesLeft > 0 ? accent : '#ef4444' }}>{triesLeft}<span style={{ fontSize: '12px', fontWeight: 600, color: muted }}>/3</span></p>
-                <p style={{ fontSize: '10px', color: muted }}>{locale === 'de' ? 'übrig · einmalig' : 'left · one-time'}</p>
-              </div>
-            )}
-          {isPremium && (
-              <span style={{ fontSize: '10px', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '6px', padding: '4px 10px', boxShadow: '0 2px 8px rgba(251,191,36,0.4)' }}>✦ PRO</span>
-            )}
-          </div>
+          ) : (
+            <div style={{ position: 'absolute' as const, top: '16px', right: '18px', background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '10px', padding: '6px 14px', zIndex: 2 }}>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: '#fff' }}>{triesLeft}/3 {locale === 'de' ? 'übrig' : 'left'}</p>
+            </div>
+          )}
         </motion.div>
 
+        {/* Title */}
+        <div style={{ padding: '16px 20px 0', marginBottom: '20px' }}>
+          <h1 style={{ fontSize: '28px', fontWeight: 800, color: text, letterSpacing: '-0.04em', marginBottom: '2px' }}>
+            Virtual Try-On
+          </h1>
+          <p style={{ fontSize: '13px', color: muted }}>
+            {locale === 'de' ? 'Probiere Klamotten virtuell an deinem Foto an' : 'Try clothes on your photo virtually'}
+          </p>
+        </div>
+
         {/* No tries left — upgrade */}
+        <div style={{ padding: '0 20px' }}>
         {!isPremium && triesLeft <= 0 && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
             onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
@@ -283,22 +293,22 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
           </motion.div>
         )}
 
+        </div>
         {(isPremium || triesLeft > 0) && (
           <>
             {/* Step 1 — Selfie */}
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-              style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden', marginBottom: '12px' }}>
-              <div style={{ padding: '10px 16px', borderBottom: `1px solid ${border}`, background: accentDim }}>
-                <p style={{ fontSize: '10px', fontWeight: 700, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
-                  {locale === 'de' ? 'Schritt 1 · Dein Foto' : 'Step 1 · Your Photo'}
-                </p>
-              </div>
+              style={{ background: 'transparent', marginBottom: '12px', padding: '0 20px' }}>
+              <p style={{ fontSize: '10px', fontWeight: 700, color: muted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '10px' }}>
+                {locale === 'de' ? 'Schritt 1 · Dein Foto' : 'Step 1 · Your Photo'}
+              </p>
+              <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '20px', overflow: 'hidden' }}>
               <div style={{ padding: '16px' }}>
                 {!selfie ? (
                   <motion.div whileTap={{ scale: 0.98 }} onClick={() => fileRef.current?.click()}
-                    style={{ border: `2px dashed ${border}`, borderRadius: '14px', padding: '32px', textAlign: 'center' as const, cursor: 'pointer' }}>
-                    <p style={{ fontSize: '32px', marginBottom: '8px' }}>🤳</p>
-                    <p style={{ fontSize: '14px', fontWeight: 600, color: text, marginBottom: '4px' }}>
+                    style={{ padding: '32px', textAlign: 'center' as const, cursor: 'pointer' }}>
+                    <p style={{ fontSize: '40px', marginBottom: '12px' }}>🤳</p>
+                    <p style={{ fontSize: '15px', fontWeight: 700, color: text, marginBottom: '4px', letterSpacing: '-0.02em' }}>
                       {locale === 'de' ? 'Selfie hochladen' : 'Upload selfie'}
                     </p>
                     <p style={{ fontSize: '12px', color: muted }}>
@@ -316,16 +326,16 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
                 )}
               <input ref={fileRef} type="file" accept="image/*" onChange={handleSelfie} style={{ display: 'none' }} />
               </div>
+              </div>
             </motion.div>
 
             {/* Step 2 — Kleidung wählen */}
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-              style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden', marginBottom: '12px' }}>
-              <div style={{ padding: '10px 16px', borderBottom: `1px solid ${border}`, background: accentDim }}>
-                <p style={{ fontSize: '10px', fontWeight: 700, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
-                  {locale === 'de' ? 'Schritt 2 · Kleidung wählen' : 'Step 2 · Choose clothing'}
-                </p>
-              </div>
+              style={{ background: 'transparent', marginBottom: '12px', padding: '0 20px' }}>
+              <p style={{ fontSize: '10px', fontWeight: 700, color: muted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '10px' }}>
+                {locale === 'de' ? 'Schritt 2 · Kleidung wählen' : 'Step 2 · Choose clothing'}
+              </p>
+              <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '20px', overflow: 'hidden' }}>
               <div style={{ padding: '16px' }}>
                 {items.length === 0 ? (
                   <p style={{ fontSize: '13px', color: muted, textAlign: 'center' as const }}>
@@ -346,9 +356,11 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
                   </div>
                 )}
               </div>
+              </div>
             </motion.div>
 
             {/* Generate Button */}
+            <div style={{ padding: '0 20px' }}>
             <motion.button whileTap={{ scale: 0.97 }}
               onClick={generateAvatar}
               disabled={loading || !selfie || !selectedItem}
@@ -363,6 +375,7 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
                 <>✦ {locale === 'de' ? 'Avatar generieren' : 'Generate avatar'}</>
               )}
             </motion.button>
+            </div>
 
             {/* Error */}
             {error && (
