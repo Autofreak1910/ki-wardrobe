@@ -870,7 +870,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
         whileTap={{ scale: 0.97 }}
         onClick={() => setShowProWelcome(false)}
         style={{ background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', border: 'none', borderRadius: '14px', padding: '14px 32px', fontSize: '15px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: '0 6px 24px rgba(251,191,36,0.4)' }}>
-        {locale === 'de' ? 'Los geht's! ✦' : 'Let's go! ✦'}
+        {locale === 'de' ? "Los geht's! ✦" : "Let's go! ✦"}
       </motion.button>
     </motion.div>
   )}
