@@ -446,36 +446,111 @@ await Promise.allSettled(toSave.map(async (item, i) => {
         )}
       </AnimatePresence>
 
-      <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '900px', width: '100%', margin: '0 auto', padding: '84px 16px 108px', position: 'relative', zIndex: 1 }}>
+      <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '900px', width: '100%', margin: '0 auto', padding: '68px 0 108px', position: 'relative', zIndex: 1 }}>
 
-        {/* Header — Gemini Style */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '12px', alignItems: 'start', marginBottom: '20px' }}>
-          <div>
-            <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: accent, marginBottom: '6px', opacity: 0.7 }}>
+        {/* Hero Banner — Walk-in Closet */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}
+          style={{ position: 'relative' as const, marginBottom: '20px', borderRadius: '0 0 28px 28px', overflow: 'hidden', height: '200px', marginLeft: '-0px', marginRight: '-0px' }}>
+
+          {/* SVG Kleiderschrank Illustration */}
+          <svg viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%', position: 'absolute', inset: 0 }}>
+            {/* Hintergrund */}
+            <rect width="400" height="200" fill={isDark ? '#0a1628' : '#e8edf5'}/>
+
+            {/* Boden */}
+            <rect x="0" y="170" width="400" height="30" fill={isDark ? '#0d1e35' : '#d4dae8'}/>
+
+            {/* Linke Schrank-Sektion */}
+            <rect x="20" y="20" width="110" height="155" rx="4" fill={isDark ? '#1a2840' : '#f0f4ff'} stroke={isDark ? '#2a3a55' : '#dde3f5'} strokeWidth="1"/>
+            {/* Kleiderstange links */}
+            <rect x="30" y="40" width="90" height="3" rx="1.5" fill={isDark ? '#3a5070' : '#b0bcd8'}/>
+            {/* Kleidung hängend links */}
+            {[40,58,76,94].map((x, i) => (
+              <g key={i}>
+                <line x1={x+5} y1="43" x2={x+5} y2="48" stroke={isDark ? '#4a6080' : '#c0cce0'} strokeWidth="1.5"/>
+                <rect x={x} y="48" width="12" height={20 + (i%2)*8} rx="2" fill={isDark ? ['#1e3a5f','#2d4a6f','#1a3355','#253d60'][i] : ['#c8d8f0','#d0ddf5','#b8ccec','#cad5f0'][i]}/>
+              </g>
+            ))}
+            {/* Regal links unten */}
+            <rect x="25" y="125" width="100" height="3" rx="1" fill={isDark ? '#2a3a55' : '#c8d3e8'}/>
+            <rect x="35" y="128" width="35" height="20" rx="3" fill={isDark ? '#1e3050' : '#d5dff0'}/>
+            <rect x="78" y="128" width="35" height="20" rx="3" fill={isDark ? '#1e3050' : '#d5dff0'}/>
+
+            {/* Mittlere Schrank-Sektion */}
+            <rect x="145" y="20" width="110" height="155" rx="4" fill={isDark ? '#1a2840' : '#f0f4ff'} stroke={isDark ? '#2a3a55' : '#dde3f5'} strokeWidth="1"/>
+            {/* Kleiderstange mitte */}
+            <rect x="155" y="40" width="90" height="3" rx="1.5" fill={isDark ? '#3a5070' : '#b0bcd8'}/>
+            {[158,174,190,206,222].map((x, i) => (
+              <g key={i}>
+                <line x1={x+4} y1="43" x2={x+4} y2="48" stroke={isDark ? '#4a6080' : '#c0cce0'} strokeWidth="1.5"/>
+                <rect x={x} y="48" width="10" height={18 + (i%3)*6} rx="2" fill={isDark ? ['#2d4a6f','#1e3a5f','#253d60','#1a3355','#2a4565'][i] : ['#d0ddf5','#c8d8f0','#cad5f0','#b8ccec','#c5d2ee'][i]}/>
+              </g>
+            ))}
+            <rect x="150" y="125" width="100" height="3" rx="1" fill={isDark ? '#2a3a55' : '#c8d3e8'}/>
+            <rect x="155" y="128" width="90" height="5" rx="2" fill={isDark ? '#1e3050' : '#d5dff0'}/>
+            <rect x="155" y="138" width="90" height="5" rx="2" fill={isDark ? '#1a2a45' : '#ccd7ee'}/>
+            <rect x="155" y="148" width="90" height="5" rx="2" fill={isDark ? '#1e3050' : '#d5dff0'}/>
+
+            {/* Rechte Schrank-Sektion */}
+            <rect x="270" y="20" width="110" height="155" rx="4" fill={isDark ? '#1a2840' : '#f0f4ff'} stroke={isDark ? '#2a3a55' : '#dde3f5'} strokeWidth="1"/>
+            {/* Kleiderstange rechts */}
+            <rect x="280" y="40" width="90" height="3" rx="1.5" fill={isDark ? '#3a5070' : '#b0bcd8'}/>
+            {[283,301,319,337].map((x, i) => (
+              <g key={i}>
+                <line x1={x+5} y1="43" x2={x+5} y2="48" stroke={isDark ? '#4a6080' : '#c0cce0'} strokeWidth="1.5"/>
+                <rect x={x} y="48" width="12" height={22 + (i%2)*10} rx="2" fill={isDark ? ['#253d60','#1e3a5f','#2d4a6f','#1a3355'][i] : ['#cad5f0','#c8d8f0','#d0ddf5','#b8ccec'][i]}/>
+              </g>
+            ))}
+            <rect x="275" y="125" width="100" height="3" rx="1" fill={isDark ? '#2a3a55' : '#c8d3e8'}/>
+            <rect x="280" y="128" width="40" height="38" rx="3" fill={isDark ? '#1e3050' : '#d5dff0'}/>
+            <rect x="328" y="128" width="40" height="18" rx="3" fill={isDark ? '#1e3050' : '#d5dff0'}/>
+            <rect x="328" y="150" width="40" height="16" rx="3" fill={isDark ? '#1a2a45' : '#ccd7ee'}/>
+
+            {/* Lichter an Stangen */}
+            <rect x="20" y="18" width="110" height="4" rx="2" fill={isDark ? '#2a4060' : '#e0e8f8'}/>
+            <rect x="145" y="18" width="110" height="4" rx="2" fill={isDark ? '#2a4060' : '#e0e8f8'}/>
+            <rect x="270" y="18" width="110" height="4" rx="2" fill={isDark ? '#2a4060' : '#e0e8f8'}/>
+
+            {/* Gradient overlay für Text */}
+            <defs>
+              <linearGradient id="textOverlay" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={isDark ? '#0a1628' : '#e8edf5'} stopOpacity="0.7"/>
+                <stop offset="60%" stopColor={isDark ? '#0a1628' : '#e8edf5'} stopOpacity="0.3"/>
+                <stop offset="100%" stopColor={isDark ? '#0a1628' : '#e8edf5'} stopOpacity="0"/>
+              </linearGradient>
+            </defs>
+            <rect width="400" height="200" fill="url(#textOverlay)"/>
+          </svg>
+
+          {/* Text über dem Bild */}
+          <div style={{ position: 'absolute' as const, bottom: '20px', left: '20px', zIndex: 2 }}>
+            <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: isDark ? 'rgba(159,225,203,0.8)' : accent, marginBottom: '4px' }}>
               {locale === 'de' ? 'Dein Kleiderschrank' : 'Your Wardrobe'}
             </p>
-            <h1 style={{ fontSize: '30px', fontWeight: 800, color: text, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: '0' }}>
+            <h1 style={{ fontSize: '28px', fontWeight: 800, color: text, letterSpacing: '-0.04em', lineHeight: 1.1, textShadow: isDark ? 'none' : '0 1px 8px rgba(255,255,255,0.8)' }}>
               {locale === 'de' ? 'Dein' : 'Your'}
             </h1>
-            <h1 style={{ fontSize: '30px', fontWeight: 800, color: text, letterSpacing: '-0.04em', lineHeight: 1.1 }}>
+            <h1 style={{ fontSize: '28px', fontWeight: 800, color: text, letterSpacing: '-0.04em', lineHeight: 1.1, textShadow: isDark ? 'none' : '0 1px 8px rgba(255,255,255,0.8)' }}>
               {locale === 'de' ? 'Kleiderschrank' : 'Wardrobe'}
             </h1>
           </div>
 
-          {/* Teile-Kachel */}
+          {/* Teile-Badge oben rechts */}
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-            style={{ background: card, border: `1px solid ${border}`, borderRadius: '20px', padding: '16px', textAlign: 'center' as const, minWidth: '110px' }}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '6px' }}>
-              <path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.57a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.57a2 2 0 00-1.34-2.23z"/>
-            </svg>
-            <p style={{ fontSize: '22px', fontWeight: 800, color: text, letterSpacing: '-0.04em', lineHeight: 1 }}>
-              {items.length}{!isPremium ? <span style={{ fontSize: '14px', color: muted }}>/20</span> : ''}
+            style={{ position: 'absolute' as const, top: '16px', right: '16px', background: isDark ? 'rgba(10,22,40,0.85)' : 'rgba(255,255,255,0.9)', backdropFilter: 'blur(12px)', border: `1px solid ${border}`, borderRadius: '16px', padding: '10px 14px', textAlign: 'center' as const, zIndex: 2 }}>
+            <p style={{ fontSize: '20px', fontWeight: 800, color: text, letterSpacing: '-0.04em', lineHeight: 1 }}>
+              {items.length}{!isPremium && <span style={{ fontSize: '12px', color: muted }}>/20</span>}
             </p>
-            <p style={{ fontSize: '11px', color: muted, marginTop: '4px', fontWeight: 600 }}>{t('wardrobe.pieces')}</p>
-            {totalValue > 0 && <p style={{ fontSize: '10px', color: accent, marginTop: '2px', fontWeight: 600 }}>~€{totalValue.toFixed(0)}</p>}
+            <p style={{ fontSize: '10px', color: muted, fontWeight: 600, marginTop: '2px' }}>{t('wardrobe.pieces')}</p>
           </motion.div>
+        </motion.div>
+
+        {/* Content mit Padding */}
+        <div style={{ padding: '0 16px' }}>
+
         </div>
 
+        <div style={{ padding: '0 16px' }}>
         {/* Upload */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
           {/* Einzelfoto */}
@@ -682,6 +757,7 @@ await Promise.allSettled(toSave.map(async (item, i) => {
             ))}
           </div>
         )}
+        </div>
       </main>
 
       {/* Item detail sheet */}
