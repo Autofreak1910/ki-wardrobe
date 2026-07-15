@@ -972,142 +972,84 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
 
       <main ref={mainRef} style={{ flex: 1, overflowY: 'auto' as const, overflowX: 'hidden', maxWidth: '540px', width: '100%', margin: '0 auto', padding: '68px 18px 112px', position: 'relative', zIndex: 1 }}>
 
-        {/* ── Hero Header: Greeting + Weather Card side by side ── */}
-        <div
-          style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px', marginBottom: '20px' }}>
+        {/* ── Hero Header: 2 Karten nebeneinander ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '14px' }}>
 
-          {/* Left: Greeting */}
-          <div style={{ flex: 1 }}>
-           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-              <p style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: accent, opacity: 0.75 }}>
-                {today} · {dateStr}
-              </p>
-              {isPremium && (
-                <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '4px', padding: '2px 6px', letterSpacing: '0.04em', boxShadow: '0 2px 6px rgba(251,191,36,0.4)' }}>✦ PRO</span>
-              )}
-              {streak >= 2 && (
-                <motion.span
-                  initial={{ scale: 0 }} animate={{ scale: 1 }}
-                  transition={{ type: 'spring', damping: 10, delay: 0.3 }}
-                  style={{ fontSize: '11px', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #f97316, #ef4444)', borderRadius: '6px', padding: '2px 7px', letterSpacing: '0.02em', boxShadow: '0 2px 8px rgba(249,115,22,0.4)' }}>
-                  🔥 {streak}
-                </motion.span>
-              )}
+          {/* Begrüßungs-Karte */}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+            style={{ background: card, border: `1px solid ${border}`, borderRadius: '20px', padding: '16px', display: 'flex', flexDirection: 'column' as const, justifyContent: 'space-between', minHeight: '100px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+              <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: accentDim, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>👤</div>
             </div>
-      <h1 style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.04em', color: text, lineHeight: 1.15 }}>
-              {greeting}{username ? ',' : ''}
-            </h1>
-          {username && (
-              <p style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1.15, background: `linear-gradient(135deg, ${accent}, #0891b2)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                {username}.
-              </p>
-            )}
-           {wardrobeItems.length > 0 && (
-  <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}
-    whileTap={{ scale: 0.95 }}
-    onClick={() => router.push('/' + locale + '/wardrobe')}
-    style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', marginTop: '10px', background: accentDim, border: `1px solid ${border}`, borderRadius: '100px', padding: '5px 12px 5px 10px', cursor: 'pointer', WebkitTapHighlightColor: 'transparent' }}>
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.57a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.57a2 2 0 00-1.34-2.23z"/>
-    </svg>
-    <span style={{ fontSize: '12px', fontWeight: 600, color: muted }}>
-      {locale === 'de' ? 'Kleiderschrank:' : 'Wardrobe:'}
-    </span>
-    <span style={{ fontSize: '12px', fontWeight: 800, color: accent }}>
-      {wardrobeItems.length} {locale === 'de' ? 'Teile' : 'items'}
-    </span>
-  </motion.div>
-)}
-          </div>
-
-          {/* Streak Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25, duration: 0.5 }}
-           onClick={() => setShowStreakInfo(true)}
-            style={{ flexShrink: 0, width: '86px', cursor: 'pointer', background: streak >= 7 ? 'linear-gradient(135deg, rgba(249,115,22,0.12), rgba(239,68,68,0.06))' : card, border: `1px solid ${streak >= 7 ? 'rgba(249,115,22,0.3)' : border}`, borderRadius: '18px', padding: '10px 6px', textAlign: 'center' as const, boxShadow: streak >= 7 ? '0 4px 20px rgba(249,115,22,0.15)' : 'none', opacity: streak === 0 ? 0.5 : 1, filter: streak === 0 ? 'grayscale(0.8)' : 'none', transition: 'all 0.4s', cursor: 'default' }}>
-
-            {/* Flamme + Zahl */}
-            <motion.p
-              animate={streak >= 3 ? { scale: [1, 1.2, 1] } : {}}
-              transition={{ duration: 0.5, delay: 0.5 }}
-              style={{ fontSize: '24px', lineHeight: 1, marginBottom: '2px' }}>🔥</motion.p>
-            <p style={{ fontSize: '22px', fontWeight: 800, color: streak === 0 ? muted : streak >= 7 ? '#f97316' : text, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: '2px' }}>
-              {streak}
-            </p>
-            <p style={{ fontSize: '8px', fontWeight: 600, color: muted, letterSpacing: '0.05em', textTransform: 'uppercase' as const, marginBottom: '8px' }}>
-              {locale === 'de' ? 'Tage' : 'Days'}
-            </p>
-
-            {/* Nächste Belohnung */}
-            {(() => {
-              const next = streak < 7 ? { days: 7, reward: '+1 Pro', left: 7 - streak } :
-                           streak < 14 ? { days: 14, reward: '+2 Pro', left: 14 - streak } :
-                           streak < 30 ? { days: 30, reward: '+3 Pro', left: 30 - streak } : null
-              if (!next) return (
-                <div style={{ background: 'rgba(249,115,22,0.1)', borderRadius: '8px', padding: '4px 4px' }}>
-                  <p style={{ fontSize: '8px', fontWeight: 700, color: '#f97316' }}>👑 Max!</p>
-                </div>
-              )
-              const progress = streak === 0 ? 0 : streak < 7 ? (streak / 7) * 100 : streak < 14 ? ((streak - 7) / 7) * 100 : ((streak - 14) / 16) * 100
-              return (
-                <div>
-                  <div style={{ height: '3px', background: border, borderRadius: '2px', overflow: 'hidden', marginBottom: '4px' }}>
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${progress}%` }}
-                      transition={{ duration: 0.8, delay: 0.3 }}
-                      style={{ height: '100%', background: 'linear-gradient(90deg, #f97316, #ef4444)', borderRadius: '2px' }} />
-                  </div>
-                  <p style={{ fontSize: '8px', color: muted, lineHeight: 1.3 }}>
-                    {next.left}d → <span style={{ color: '#f97316', fontWeight: 700 }}>{next.reward}</span>
-                  </p>
-                </div>
-              )
-            })()}
+            <div>
+              <p style={{ fontSize: '13px', color: muted, marginBottom: '2px' }}>{greeting}{username ? ',' : ''}</p>
+              <p style={{ fontSize: '20px', fontWeight: 800, letterSpacing: '-0.03em', color: text, lineHeight: 1.1 }}>{username ?? 'Du'}.</p>
+              <p style={{ fontSize: '10px', color: muted, marginTop: '4px' }}>{today}, {dateStr}</p>
+            </div>
           </motion.div>
 
-          {/* Right: Weather Card */}
-<motion.div
-  ref={weatherRef}
-  initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }}
-  transition={{ delay: 0.1, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-onClick={() => weatherDisabled ? router.push('/' + locale + '/profile?scrollTo=weather') : fetchWeather()}
-  style={{ flexShrink: 0, width: '100px', background: card, border: `1px solid ${border}`, borderRadius: '18px', padding: '12px 8px', textAlign: 'center' as const, cursor: 'pointer', opacity: weatherDisabled ? 0.55 : 1, boxShadow: isDark ? 'none' : '0 2px 16px rgba(10,46,30,0.07)' }}>
-{weatherDisabled ? (
+          {/* Wetter Karte (zweite Karte im Grid) */}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+            onClick={() => { if (weatherDisabled) router.push('/' + locale + '/profile?scrollTo=weather') }}
+            style={{ background: card, border: `1px solid ${border}`, borderRadius: '20px', padding: '16px', display: 'flex', flexDirection: 'column' as const, justifyContent: 'center', alignItems: 'center', minHeight: '100px', cursor: weatherDisabled ? 'pointer' : 'default', opacity: weatherDisabled ? 0.6 : 1 }}>
+            {weatherDisabled ? (
               <>
-                <div style={{ fontSize: '24px', lineHeight: 1, marginBottom: '6px' }}>🔒</div>
-                <p style={{ fontSize: '11px', fontWeight: 700, color: muted, lineHeight: 1.3 }}>
+                <div style={{ fontSize: '24px', marginBottom: '4px' }}>🔒</div>
+                <p style={{ fontSize: '11px', color: muted, textAlign: 'center' as const }}>
                   {locale === 'de' ? 'Wetter aus' : 'Weather off'}
-                </p>
-                <p style={{ fontSize: '10px', fontWeight: 600, color: accent, marginTop: '4px' }}>
-                  {locale === 'de' ? 'Hier aktivieren' : 'Tap to enable'}
                 </p>
               </>
             ) : weatherLoading ? (
               <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.2, repeat: Infinity }}
-                style={{ width: '60px', height: '14px', borderRadius: '6px', background: border, margin: '0 auto 8px' }} />
+                style={{ width: '50px', height: '12px', borderRadius: '6px', background: border }} />
             ) : (
               <>
-                <div style={{ fontSize: '28px', lineHeight: 1, marginBottom: '4px' }}>{weather?.icon}</div>
-                <p style={{ fontSize: '20px', fontWeight: 800, color: text, letterSpacing: '-0.04em', marginBottom: '4px', lineHeight: 1 }}>
-                  {weather?.temp}°C
-                </p>
-             {weather?.city && (
-                  <>
-                    <div style={{ width: '30px', height: '1px', background: border, margin: '0 auto 6px' }} />
-                    <p style={{ fontSize: '11px', fontWeight: 600, color: muted, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
-                      📍 {weather.city}
-                    </p>
-                  </>
-                )}
+                <div style={{ fontSize: '32px', marginBottom: '4px' }}>{weather?.icon}</div>
+                <p style={{ fontSize: '22px', fontWeight: 800, color: text, letterSpacing: '-0.04em', lineHeight: 1 }}>{weather?.temp}°C</p>
+                {weather?.city && <p style={{ fontSize: '10px', color: muted, marginTop: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, maxWidth: '100%' }}>📍 {weather.city}</p>}
               </>
             )}
-    </motion.div>
+          </motion.div>
         </div>
 
-{!dailyFreeOutfitLoading && dailyFreeOutfit && (
+        {/* Stats Row: Teile / Tagesoutfit / Streak / Pro */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '14px' }}>
+          {/* Teile */}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+            onClick={() => router.push('/' + locale + '/wardrobe')}
+            style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', padding: '12px 8px', textAlign: 'center' as const, cursor: 'pointer' }}>
+            <p style={{ fontSize: '20px', fontWeight: 800, color: text, letterSpacing: '-0.03em', lineHeight: 1 }}>{wardrobeItems.length}</p>
+            <p style={{ fontSize: '9px', color: muted, fontWeight: 600, marginTop: '4px' }}>{locale === 'de' ? 'Teile' : 'Items'}</p>
+          </motion.div>
+
+          {/* Tagesoutfit */}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}
+            onClick={() => setDailyFreeOutfitExpanded(v => !v)}
+            style={{ background: card, border: `1px solid ${dailyFreeOutfit ? 'rgba(251,191,36,0.3)' : border}`, borderRadius: '16px', padding: '12px 8px', textAlign: 'center' as const, cursor: 'pointer', background: dailyFreeOutfit ? 'rgba(251,191,36,0.06)' : card }}>
+            <p style={{ fontSize: '20px', lineHeight: 1 }}>🎁</p>
+            <p style={{ fontSize: '9px', color: muted, fontWeight: 600, marginTop: '4px' }}>{locale === 'de' ? 'Tagesoutfit' : 'Daily'}</p>
+          </motion.div>
+
+          {/* Streak */}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.21 }}
+            onClick={() => setShowStreakInfo(true)}
+            style={{ background: streak >= 7 ? 'linear-gradient(135deg, rgba(249,115,22,0.12), rgba(239,68,68,0.06))' : card, border: `1px solid ${streak >= 7 ? 'rgba(249,115,22,0.3)' : border}`, borderRadius: '16px', padding: '12px 8px', textAlign: 'center' as const, cursor: 'pointer', opacity: streak === 0 ? 0.5 : 1, filter: streak === 0 ? 'grayscale(0.6)' : 'none', transition: 'all 0.3s' }}>
+            <p style={{ fontSize: '16px', lineHeight: 1 }}>🔥</p>
+            <p style={{ fontSize: '16px', fontWeight: 800, color: streak >= 7 ? '#f97316' : text, letterSpacing: '-0.03em', lineHeight: 1, marginTop: '2px' }}>{streak}</p>
+            <p style={{ fontSize: '9px', color: muted, fontWeight: 600, marginTop: '2px' }}>{locale === 'de' ? 'Tage' : 'Days'}</p>
+          </motion.div>
+
+          {/* Pro */}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24 }}
+            onClick={() => !isPremium && setShowUpgrade(true)}
+            style={{ background: isPremium ? 'linear-gradient(135deg, rgba(251,191,36,0.15), rgba(245,158,11,0.08))' : card, border: `1px solid ${isPremium ? 'rgba(251,191,36,0.3)' : border}`, borderRadius: '16px', padding: '12px 8px', textAlign: 'center' as const, cursor: isPremium ? 'default' : 'pointer' }}>
+            <p style={{ fontSize: '20px', lineHeight: 1 }}>{isPremium ? '💎' : '⭐'}</p>
+            <p style={{ fontSize: '9px', color: isPremium ? '#f59e0b' : muted, fontWeight: 700, marginTop: '4px' }}>PRO</p>
+          </motion.div>
+        </div>
+
+
+        {!dailyFreeOutfitLoading && dailyFreeOutfit && (
   <motion.div
     initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.4 }}
