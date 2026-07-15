@@ -1440,11 +1440,11 @@ onClick={() => weatherDisabled ? router.push('/' + locale + '/profile?scrollTo=w
         {showStreakInfo && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={() => setShowStreakInfo(false)}
-            style={{ position: 'fixed', inset: 0, zIndex: 9997, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '0 16px 32px' }}>
+            style={{ position: 'fixed', inset: 0, zIndex: 9997, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '0 16px 16px' }}>
             <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
               transition={{ type: 'spring', damping: 20 }}
               onClick={e => e.stopPropagation()}
-              style={{ background: card, borderRadius: '28px', padding: '28px 24px', width: '100%', maxWidth: '400px', border: `1px solid ${border}` }}>
+              style={{ background: card, borderRadius: '28px', padding: '24px 20px', width: '100%', maxWidth: '400px', border: `1px solid ${border}`, maxHeight: '85vh', overflowY: 'auto' as const }}>
 
               <div style={{ textAlign: 'center' as const, marginBottom: '20px' }}>
                 <motion.p animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 0.5 }}
