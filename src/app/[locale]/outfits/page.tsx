@@ -85,23 +85,11 @@ const accentDim = isDark ? 'rgba(77,126,255,0.1)' : 'rgba(59,107,255,0.08)'
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
           style={{ position: 'relative' as const, height: '180px', overflow: 'hidden', marginBottom: '0' }}>
 
-          {/* Collage aus gespeicherten Outfits oder Placeholder */}
-          <div style={{ position: 'absolute', inset: 0, display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '2px' }}>
-            {outfits.length > 0
-              ? outfits.slice(0, 6).map((outfit, i) => {
-                  const outfitItems = getItemsForOutfit(outfit)
-                  const img = outfitItems[0]?.image_url
-                  return (
-                    <div key={i} style={{ overflow: 'hidden', background: isDark ? '#1a2840' : '#dde8f5' }}>
-                      {img && <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
-                    </div>
-                  )
-                })
-              : [1,2,3,4,5,6].map(i => (
-                  <div key={i} style={{ background: isDark ? `hsl(${210 + i*10}, 30%, ${15 + i*3}%)` : `hsl(${200 + i*15}, 30%, ${75 + i*3}%)` }} />
-                ))
-            }
-          </div>
+       <img
+            src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&q=80&auto=format&fit=crop"
+            alt=""
+            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', position: 'absolute', inset: 0 }}
+          />
 
           {/* Gradient Overlay */}
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(240,244,255,0.15) 0%, rgba(240,244,255,0.75) 65%, rgba(240,244,255,1) 100%)' }} />
