@@ -452,75 +452,12 @@ await Promise.allSettled(toSave.map(async (item, i) => {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}
           style={{ position: 'relative' as const, marginBottom: '20px', borderRadius: '0 0 28px 28px', overflow: 'hidden', height: '200px', marginLeft: '-0px', marginRight: '-0px' }}>
 
-          {/* SVG Kleiderschrank Illustration */}
-          <svg viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%', position: 'absolute', inset: 0 }}>
-            {/* Hintergrund */}
-            <rect width="400" height="200" fill={isDark ? '#0a1628' : '#e8edf5'}/>
-
-            {/* Boden */}
-            <rect x="0" y="170" width="400" height="30" fill={isDark ? '#0d1e35' : '#d4dae8'}/>
-
-            {/* Linke Schrank-Sektion */}
-            <rect x="20" y="20" width="110" height="155" rx="4" fill={isDark ? '#1a2840' : '#f0f4ff'} stroke={isDark ? '#2a3a55' : '#dde3f5'} strokeWidth="1"/>
-            {/* Kleiderstange links */}
-            <rect x="30" y="40" width="90" height="3" rx="1.5" fill={isDark ? '#3a5070' : '#b0bcd8'}/>
-            {/* Kleidung hängend links */}
-            {[40,58,76,94].map((x, i) => (
-              <g key={i}>
-                <line x1={x+5} y1="43" x2={x+5} y2="48" stroke={isDark ? '#4a6080' : '#c0cce0'} strokeWidth="1.5"/>
-                <rect x={x} y="48" width="12" height={20 + (i%2)*8} rx="2" fill={isDark ? ['#1e3a5f','#2d4a6f','#1a3355','#253d60'][i] : ['#c8d8f0','#d0ddf5','#b8ccec','#cad5f0'][i]}/>
-              </g>
-            ))}
-            {/* Regal links unten */}
-            <rect x="25" y="125" width="100" height="3" rx="1" fill={isDark ? '#2a3a55' : '#c8d3e8'}/>
-            <rect x="35" y="128" width="35" height="20" rx="3" fill={isDark ? '#1e3050' : '#d5dff0'}/>
-            <rect x="78" y="128" width="35" height="20" rx="3" fill={isDark ? '#1e3050' : '#d5dff0'}/>
-
-            {/* Mittlere Schrank-Sektion */}
-            <rect x="145" y="20" width="110" height="155" rx="4" fill={isDark ? '#1a2840' : '#f0f4ff'} stroke={isDark ? '#2a3a55' : '#dde3f5'} strokeWidth="1"/>
-            {/* Kleiderstange mitte */}
-            <rect x="155" y="40" width="90" height="3" rx="1.5" fill={isDark ? '#3a5070' : '#b0bcd8'}/>
-            {[158,174,190,206,222].map((x, i) => (
-              <g key={i}>
-                <line x1={x+4} y1="43" x2={x+4} y2="48" stroke={isDark ? '#4a6080' : '#c0cce0'} strokeWidth="1.5"/>
-                <rect x={x} y="48" width="10" height={18 + (i%3)*6} rx="2" fill={isDark ? ['#2d4a6f','#1e3a5f','#253d60','#1a3355','#2a4565'][i] : ['#d0ddf5','#c8d8f0','#cad5f0','#b8ccec','#c5d2ee'][i]}/>
-              </g>
-            ))}
-            <rect x="150" y="125" width="100" height="3" rx="1" fill={isDark ? '#2a3a55' : '#c8d3e8'}/>
-            <rect x="155" y="128" width="90" height="5" rx="2" fill={isDark ? '#1e3050' : '#d5dff0'}/>
-            <rect x="155" y="138" width="90" height="5" rx="2" fill={isDark ? '#1a2a45' : '#ccd7ee'}/>
-            <rect x="155" y="148" width="90" height="5" rx="2" fill={isDark ? '#1e3050' : '#d5dff0'}/>
-
-            {/* Rechte Schrank-Sektion */}
-            <rect x="270" y="20" width="110" height="155" rx="4" fill={isDark ? '#1a2840' : '#f0f4ff'} stroke={isDark ? '#2a3a55' : '#dde3f5'} strokeWidth="1"/>
-            {/* Kleiderstange rechts */}
-            <rect x="280" y="40" width="90" height="3" rx="1.5" fill={isDark ? '#3a5070' : '#b0bcd8'}/>
-            {[283,301,319,337].map((x, i) => (
-              <g key={i}>
-                <line x1={x+5} y1="43" x2={x+5} y2="48" stroke={isDark ? '#4a6080' : '#c0cce0'} strokeWidth="1.5"/>
-                <rect x={x} y="48" width="12" height={22 + (i%2)*10} rx="2" fill={isDark ? ['#253d60','#1e3a5f','#2d4a6f','#1a3355'][i] : ['#cad5f0','#c8d8f0','#d0ddf5','#b8ccec'][i]}/>
-              </g>
-            ))}
-            <rect x="275" y="125" width="100" height="3" rx="1" fill={isDark ? '#2a3a55' : '#c8d3e8'}/>
-            <rect x="280" y="128" width="40" height="38" rx="3" fill={isDark ? '#1e3050' : '#d5dff0'}/>
-            <rect x="328" y="128" width="40" height="18" rx="3" fill={isDark ? '#1e3050' : '#d5dff0'}/>
-            <rect x="328" y="150" width="40" height="16" rx="3" fill={isDark ? '#1a2a45' : '#ccd7ee'}/>
-
-            {/* Lichter an Stangen */}
-            <rect x="20" y="18" width="110" height="4" rx="2" fill={isDark ? '#2a4060' : '#e0e8f8'}/>
-            <rect x="145" y="18" width="110" height="4" rx="2" fill={isDark ? '#2a4060' : '#e0e8f8'}/>
-            <rect x="270" y="18" width="110" height="4" rx="2" fill={isDark ? '#2a4060' : '#e0e8f8'}/>
-
-            {/* Gradient overlay für Text */}
-            <defs>
-              <linearGradient id="textOverlay" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={isDark ? '#0a1628' : '#e8edf5'} stopOpacity="0.7"/>
-                <stop offset="60%" stopColor={isDark ? '#0a1628' : '#e8edf5'} stopOpacity="0.3"/>
-                <stop offset="100%" stopColor={isDark ? '#0a1628' : '#e8edf5'} stopOpacity="0"/>
-              </linearGradient>
-            </defs>
-            <rect width="400" height="200" fill="url(#textOverlay)"/>
-          </svg>
+   <img
+            src="/closet-hero.jpg"
+            alt=""
+            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', position: 'absolute', inset: 0 }}
+          />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(232,237,245,0.88) 35%, rgba(232,237,245,0.15) 100%)' }} />
 
           {/* Text über dem Bild */}
           <div style={{ position: 'absolute' as const, bottom: '20px', left: '20px', zIndex: 2 }}>
