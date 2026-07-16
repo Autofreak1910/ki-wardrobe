@@ -28,7 +28,6 @@ async function enablePush(): Promise<boolean> {
     const permission = await Notification.requestPermission()
     if (permission !== 'granted') return false
 
-    // Bestehende (eventuell kaputte/alte) Subscription erst entfernen
     const existing = await registration.pushManager.getSubscription()
     if (existing) {
       await existing.unsubscribe()
@@ -101,13 +100,13 @@ const [withdrawalConsent, setWithdrawalConsent] = useState(false)
   const supabase = createClient()
   const isDark = theme === 'dark'
 
-  const bg        = isDark ? '#080c18' : '#f0f4ff'
-  const card      = isDark ? '#0d1225' : '#ffffff'
-  const border    = isDark ? '#1a2540' : '#dde3f5'
-  const text      = isDark ? '#e8eeff' : '#0a1628'
-  const muted     = isDark ? '#4d6080' : '#6b7fa8'
-  const accent    = isDark ? '#4d7eff' : '#3b6bff'
-  const accentDim = isDark ? 'rgba(77,126,255,0.1)' : 'rgba(59,107,255,0.08)'
+  const bg        = isDark ? '#17140C' : '#F2EFE7'
+  const card      = isDark ? '#221D12' : '#ffffff'
+  const border    = isDark ? '#3A3320' : '#E7E2D5'
+  const text      = isDark ? '#F5F0E3' : '#24211B'
+  const muted     = isDark ? '#A69B82' : '#8C8776'
+  const accent    = isDark ? '#E5B45B' : '#C9963C'
+  const accentDim = isDark ? 'rgba(229,180,91,0.12)' : 'rgba(201,150,60,0.10)'
 const [todayOutfits, setTodayOutfits] = useState(0)
 const [tryOnToday, setTryOnToday] = useState(0)
 const [multiScansThisWeek, setMultiScansThisWeek] = useState(0)
@@ -214,17 +213,14 @@ async function handleLogout() {
       const res = await fetch('/api/delete-account', { method: 'POST' })
       const data = await res.json()
       if (data.success) {
-        // Gruendliche Abmeldung: globaler signOut + lokale Storage-Bereinigung
         try { await supabase.auth.signOut({ scope: 'global' }) } catch {}
         try {
-          // Alle Supabase Auth-Tokens aus localStorage entfernen
           Object.keys(localStorage).forEach(key => {
             if (key.startsWith('sb-') || key.includes('supabase') || key.startsWith('kw_')) {
               localStorage.removeItem(key)
             }
           })
         } catch {}
-        // Harte Weiterleitung (kein router.push) — laedt die Seite komplett neu, kein Session-Cache
         window.location.href = '/' + locale + '/auth/login'
       } else {
         alert(locale === 'de' ? 'Fehler beim Löschen: ' + data.error : 'Error deleting: ' + data.error)
@@ -288,13 +284,13 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
   )
 
   return (
-    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' as const, background: bg, overflow: 'hidden', fontFamily: "'DM Sans', sans-serif", position: 'relative' as const }}>
+    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' as const, background: bg, overflow: 'hidden', fontFamily: "'Poppins', 'Inter', sans-serif", position: 'relative' as const }}>
 
       <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
-        <div style={{ position: 'absolute', top: '-100px', right: '-60px', width: '380px', height: '380px', borderRadius: '50%', background: isDark ? 'rgba(77,126,255,0.06)' : 'rgba(59,107,255,0.1)', filter: 'blur(90px)' }} />
+        <div style={{ position: 'absolute', top: '-100px', right: '-60px', width: '380px', height: '380px', borderRadius: '50%', background: isDark ? 'rgba(229,180,91,0.08)' : 'rgba(201,150,60,0.10)', filter: 'blur(90px)' }} />
         {!isDark && (
           <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.35 }} xmlns="http://www.w3.org/2000/svg">
-            <defs><pattern id="pdots" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="0.9" fill="#3b6bff" opacity="0.2" /></pattern></defs>
+            <defs><pattern id="pdots" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="0.9" fill="#24211B" opacity="0.08" /></pattern></defs>
             <rect width="100%" height="100%" fill="url(#pdots)" />
           </svg>
         )}
@@ -312,21 +308,21 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
             alt=""
             style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', position: 'absolute', inset: 0 }}
           />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(240,244,255,0.1) 0%, rgba(240,244,255,0.95) 100%)' }} />
+          <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, rgba(242,239,231,0.1) 0%, ${bg}f2 100%)` }} />
         </motion.div>
 
         {/* Avatar + Name + Stats */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
           style={{ padding: '0 20px', marginBottom: '20px', marginTop: '-24px', position: 'relative' as const, zIndex: 2 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px' }}>
-            <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: isPremium ? 'linear-gradient(135deg, #fbbf24, #f59e0b)' : `linear-gradient(135deg, ${accent}, #6b9fff)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px', fontWeight: 800, color: '#fff', flexShrink: 0, boxShadow: isPremium ? '0 4px 20px rgba(251,191,36,0.5)' : `0 4px 20px ${accent}50`, border: `3px solid ${card}` }}>
+            <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: isPremium ? 'linear-gradient(135deg, #EFB43A, #C9963C)' : `linear-gradient(135deg, ${accent}, #E8B45E)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px', fontWeight: 800, color: '#fff', flexShrink: 0, boxShadow: isPremium ? '0 4px 20px rgba(201,150,60,0.5)' : `0 4px 20px ${accent}50`, border: `3px solid ${card}` }}>
               {initial}
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
                 <h1 style={{ fontSize: '22px', fontWeight: 800, color: text, letterSpacing: '-0.03em' }}>{profile?.username ?? 'User'}</h1>
                 {isPremium ? (
-                  <span style={{ fontSize: '10px', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '6px', padding: '3px 8px', boxShadow: '0 2px 8px rgba(251,191,36,0.4)' }}>✦ PRO</span>
+                  <span style={{ fontSize: '10px', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #EFB43A, #C9963C)', borderRadius: '6px', padding: '3px 8px', boxShadow: '0 2px 8px rgba(201,150,60,0.4)' }}>✦ PRO</span>
                 ) : (
                   <span style={{ fontSize: '10px', fontWeight: 700, color: muted, background: accentDim, border: `1px solid ${border}`, borderRadius: '6px', padding: '3px 8px' }}>FREE</span>
                 )}
@@ -364,9 +360,9 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
         <div style={{ padding: '0 20px' }}>
 {/* Mein Plan */}
 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-  style={{ background: isPremium ? 'linear-gradient(135deg, rgba(251,191,36,0.08), rgba(245,158,11,0.04))' : card, border: `1px solid ${isPremium ? 'rgba(251,191,36,0.3)' : border}`, borderRadius: '16px', overflow: 'hidden', marginBottom: '12px', boxShadow: isPremium ? '0 4px 24px rgba(251,191,36,0.1)' : 'none' }}>
-  <div style={{ padding: '10px 16px', borderBottom: `1px solid ${isPremium ? 'rgba(251,191,36,0.2)' : border}`, background: isPremium ? 'rgba(251,191,36,0.1)' : accentDim }}>
-    <p style={{ fontSize: '10px', fontWeight: 700, color: isPremium ? '#f59e0b' : accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
+  style={{ background: isPremium ? '#24211B' : card, border: `1px solid ${isPremium ? '#3A3320' : border}`, borderRadius: '16px', overflow: 'hidden', marginBottom: '12px', boxShadow: isPremium ? '0 4px 24px rgba(201,150,60,0.15)' : 'none' }}>
+  <div style={{ padding: '10px 16px', borderBottom: `1px solid ${isPremium ? 'rgba(229,180,91,0.2)' : border}`, background: isPremium ? 'rgba(229,180,91,0.1)' : accentDim }}>
+    <p style={{ fontSize: '10px', fontWeight: 700, color: isPremium ? '#E5B45B' : accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
       {locale === 'de' ? 'Mein Plan' : 'My Plan'}
     </p>
   </div>
@@ -374,18 +370,21 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <span style={{ fontSize: '18px' }}>{isPremium ? '✦' : '○'}</span>
-        <p style={{ fontSize: '16px', fontWeight: 800, color: text }}>
+        <p style={{ fontSize: '16px', fontWeight: 800, color: isPremium ? '#F5F0E3' : text }}>
           {isPremium ? 'KiWardrobe Pro' : 'KiWardrobe Free'}
         </p>
       </div>
    {isPremium ? (
-        <span style={{ fontSize: '10px', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '6px', padding: '3px 8px', boxShadow: '0 2px 8px rgba(251,191,36,0.4)' }}>✦ PRO</span>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          <span style={{ fontSize: '10px', fontWeight: 700, color: '#24211B', background: '#C9963C', borderRadius: '6px', padding: '3px 8px' }}>AKTIV</span>
+          <span style={{ fontSize: '10px', fontWeight: 700, color: '#24211B', background: '#E5B45B', borderRadius: '6px', padding: '3px 8px' }}>✦ PRO</span>
+        </div>
       ) : (
         <span style={{ fontSize: '10px', fontWeight: 700, color: muted, background: accentDim, border: `1px solid ${border}`, borderRadius: '6px', padding: '3px 8px' }}>FREE</span>
       )}
     </div>
 
-    <p style={{ fontSize: '12px', color: muted, marginBottom: '14px' }}>
+    <p style={{ fontSize: '12px', color: isPremium ? '#A69B82' : muted, marginBottom: '14px' }}>
       {isPremium
         ? (profile?.premium_until
             ? (locale === 'de'
@@ -403,9 +402,9 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
        { label: locale === 'de' ? 'Try-On' : 'Try-On', value: isPremium ? (locale === 'de' ? '2/Tag' : '2/day') : (locale === 'de' ? '3 gesamt' : '3 total') },
         { label: 'Style DNA', value: isPremium ? '✓' : '✗' },
       ].map((f, i) => (
-        <div key={i} style={{ background: accentDim, borderRadius: '10px', padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p style={{ fontSize: '11px', color: muted }}>{f.label}</p>
-          <p style={{ fontSize: '12px', fontWeight: 700, color: text }}>{f.value}</p>
+        <div key={i} style={{ background: isPremium ? 'rgba(229,180,91,0.12)' : accentDim, borderRadius: '10px', padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <p style={{ fontSize: '11px', color: isPremium ? '#A69B82' : muted }}>{f.label}</p>
+          <p style={{ fontSize: '12px', fontWeight: 700, color: isPremium ? '#F5F0E3' : text }}>{f.value}</p>
         </div>
       ))}
     </div>
@@ -426,7 +425,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
               if (navigator.share) { try { await navigator.share({ title: 'KiWardrobe', text: shareText, url: inviteUrl }) } catch {} }
               else { await navigator.clipboard.writeText(shareText); alert(locale === 'de' ? 'Link kopiert!' : 'Link copied!') }
             }}
-            style={{ flex: 1, background: card, border: `1px solid ${border}`, borderRadius: '8px', padding: '9px', fontSize: '11px', fontWeight: 700, color: accent, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
+            style={{ flex: 1, background: card, border: `1px solid ${border}`, borderRadius: '8px', padding: '9px', fontSize: '11px', fontWeight: 700, color: accent, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
             🎁 {locale === 'de' ? 'Freunde einladen' : 'Invite friends'}
           </button>
           <button onClick={async () => {
@@ -440,7 +439,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
               const data = await res.json()
               if (data.url) window.location.href = data.url
             }}
-            style={{ flex: 1, background: `linear-gradient(135deg, ${accent}, #6b9fff)`, border: 'none', borderRadius: '8px', padding: '9px', fontSize: '11px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
+            style={{ flex: 1, background: `linear-gradient(135deg, ${accent}, #E8B45E)`, border: 'none', borderRadius: '8px', padding: '9px', fontSize: '11px', fontWeight: 700, color: '#24211B', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
             ✦ {locale === 'de' ? 'Jetzt zahlen' : 'Pay now'}
           </button>
         </div>
@@ -454,16 +453,16 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
   <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
     onClick={() => setShowUpgrade(true)}
     whileTap={{ scale: 0.98 }}
-    style={{ background: 'linear-gradient(135deg, rgba(251,191,36,0.12), rgba(245,158,11,0.06))', border: '1px solid rgba(251,191,36,0.35)', borderRadius: '16px', padding: '14px 16px', marginBottom: '12px', cursor: 'pointer', boxShadow: '0 4px 20px rgba(251,191,36,0.12)' }}>
+    style={{ background: 'linear-gradient(135deg, rgba(201,150,60,0.14), rgba(229,180,91,0.06))', border: '1px solid rgba(201,150,60,0.35)', borderRadius: '16px', padding: '14px 16px', marginBottom: '12px', cursor: 'pointer', boxShadow: '0 4px 20px rgba(201,150,60,0.12)' }}>
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <span style={{ fontSize: '20px' }}>✦</span>
         <div>
-          <p style={{ fontSize: '14px', fontWeight: 800, color: '#f59e0b', marginBottom: '1px', letterSpacing: '-0.02em' }}>KiWardrobe Pro</p>
+          <p style={{ fontSize: '14px', fontWeight: 800, color: '#9C6B1F', marginBottom: '1px', letterSpacing: '-0.02em' }}>KiWardrobe Pro</p>
           <p style={{ fontSize: '11px', color: muted }}>{locale === 'de' ? 'Mehr Outfits · Unbegrenzt · Style DNA · Multi-Upload' : 'More outfits · Unlimited · Style DNA · Multi-upload'}</p>
         </div>
       </div>
-      <div style={{ background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '10px', padding: '6px 12px', flexShrink: 0, boxShadow: '0 2px 8px rgba(251,191,36,0.4)' }}>
+      <div style={{ background: 'linear-gradient(135deg, #EFB43A, #C9963C)', borderRadius: '10px', padding: '6px 12px', flexShrink: 0, boxShadow: '0 2px 8px rgba(201,150,60,0.4)' }}>
         <p style={{ fontSize: '12px', fontWeight: 700, color: '#fff' }}>€4,99</p>
       </div>
     </div>
@@ -472,7 +471,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
 
 {/* Invite Friends — kompakt */}
 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}
-  style={{ background: `linear-gradient(135deg, ${accent}, #6b9fff)`, borderRadius: '16px', padding: '16px', marginBottom: '12px' }}>
+  style={{ background: 'linear-gradient(135deg, #7A8BA3, #566B85)', borderRadius: '16px', padding: '16px', marginBottom: '12px' }}>
 
   {/* Kompakte Zeile — immer sichtbar, ausklappbar */}
   <motion.div whileTap={{ scale: 0.99 }} onClick={() => setShowInviteStats(v => !v)}
@@ -544,7 +543,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
       if (navigator.share) { try { await navigator.share({ title: 'KiWardrobe', text: shareText, url: inviteUrl }) } catch {} }
       else { await navigator.clipboard.writeText(shareText); alert(locale === 'de' ? 'Link kopiert!' : 'Link copied!') }
     }}
-    style={{ width: '100%', background: '#fff', border: 'none', borderRadius: '10px', padding: '11px', fontSize: '13px', fontWeight: 700, color: accent, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
+    style={{ width: '100%', background: 'linear-gradient(135deg, #EFB43A, #C9963C)', border: 'none', borderRadius: '10px', padding: '11px', fontSize: '13px', fontWeight: 700, color: '#24211B', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
     {locale === 'de' ? '📤 Einladungslink teilen' : '📤 Share invite link'}
   </motion.button>
 </motion.div>
@@ -553,7 +552,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
 
 {/* Konto - Button zum Öffnen */}
 <button onClick={() => setShowAccountSettings(true)}
-  style={{ width: '100%', background: card, border: `1px solid ${border}`, borderRadius: '16px', padding: '14px 16px', marginBottom: '10px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: "'DM Sans', sans-serif" }}>
+  style={{ width: '100%', background: card, border: `1px solid ${border}`, borderRadius: '16px', padding: '14px 16px', marginBottom: '10px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
     <span style={{ fontSize: '16px' }}>⚙️</span>
     <p style={{ fontSize: '14px', fontWeight: 600, color: text }}>{locale === 'de' ? 'Kontoeinstellungen' : 'Account settings'}</p>
@@ -627,7 +626,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px' }}>
               <p style={{ fontSize: '14px', color: text, fontWeight: 500 }}>{locale === 'de' ? 'Sprache' : 'Language'}</p>
               <button onClick={() => { const nl = locale === 'de' ? 'en' : 'de'; const s = window.location.pathname.split('/'); s[1] = nl; window.location.replace(s.join('/')) }}
-                style={{ background: accentDim, border: `1px solid ${border}`, borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: accent, fontFamily: "'DM Sans', sans-serif" }}>
+                style={{ background: accentDim, border: `1px solid ${border}`, borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: accent, fontFamily: "'Poppins', 'Inter', sans-serif" }}>
                 {locale === 'de' ? 'EN' : 'DE'}
               </button>
             </div>
@@ -643,7 +642,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
             <div key={item.path}>
               {i > 0 && <div style={{ height: '1px', background: border, margin: '0 16px' }} />}
               <button onClick={() => router.push('/' + locale + item.path)}
-                style={{ width: '100%', padding: '14px 16px', background: 'transparent', border: 'none', fontSize: '14px', color: text, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", fontWeight: 500, textAlign: 'left' as const, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                style={{ width: '100%', padding: '14px 16px', background: 'transparent', border: 'none', fontSize: '14px', color: text, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", fontWeight: 500, textAlign: 'left' as const, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 {item.label}
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
               </button>
@@ -653,14 +652,14 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
 
       {/* Sign out */}
         <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden', marginBottom: '10px' }}>
-          <button onClick={handleLogout} style={{ width: '100%', padding: '14px 16px', background: 'transparent', border: 'none', fontSize: '14px', color: '#ef4444', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", fontWeight: 600, textAlign: 'left' as const }}>
+          <button onClick={handleLogout} style={{ width: '100%', padding: '14px 16px', background: 'transparent', border: 'none', fontSize: '14px', color: '#ef4444', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", fontWeight: 600, textAlign: 'left' as const }}>
             {locale === 'de' ? 'Abmelden' : 'Sign out'}
           </button>
         </div>
 
         {/* Delete account */}
         <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden', marginBottom: '24px' }}>
-          <button onClick={() => setShowDeleteModal(true)} style={{ width: '100%', padding: '14px 16px', background: 'transparent', border: 'none', fontSize: '13px', color: muted, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", fontWeight: 500, textAlign: 'left' as const }}>
+          <button onClick={() => setShowDeleteModal(true)} style={{ width: '100%', padding: '14px 16px', background: 'transparent', border: 'none', fontSize: '13px', color: muted, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", fontWeight: 500, textAlign: 'left' as const }}>
             {locale === 'de' ? 'Account löschen' : 'Delete account'}
           </button>
         </div>
@@ -678,7 +677,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
       <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
         transition={{ type: 'spring', damping: 28, stiffness: 300 }}
         onClick={e => e.stopPropagation()}
-        style={{ width: '100%', maxWidth: '480px', background: isDark ? '#080c18' : '#f0f4ff', border: `1px solid ${border}`, borderRadius: '28px', padding: '28px 20px 32px' }}>
+        style={{ width: '100%', maxWidth: '480px', background: bg, border: `1px solid ${border}`, borderRadius: '28px', padding: '28px 20px 32px' }}>
         <p style={{ fontSize: '11px', fontWeight: 700, color: muted, letterSpacing: '0.12em', textTransform: 'uppercase' as const, textAlign: 'center' as const, marginBottom: '20px' }}>
           {locale === 'de' ? 'Wähle deinen Plan' : 'Choose your plan'}
         </p>
@@ -721,17 +720,17 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
               const data = await res.json()
               if (data.url) window.location.href = data.url
             }}
-            style={{ background: `linear-gradient(160deg, ${accent}, #6b9fff)`, borderRadius: '18px', padding: '16px 14px', cursor: 'pointer', position: 'relative' as const, overflow: 'hidden', boxShadow: `0 8px 32px ${accent}50` }}>
+            style={{ background: `linear-gradient(160deg, ${accent}, #E8B45E)`, borderRadius: '18px', padding: '16px 14px', cursor: 'pointer', position: 'relative' as const, overflow: 'hidden', boxShadow: `0 8px 32px ${accent}50` }}>
             <div style={{ position: 'absolute', top: '-1px', left: '50%', transform: 'translateX(-50%)', background: '#fff', borderRadius: '0 0 8px 8px', padding: '2px 10px' }}>
               <p style={{ fontSize: '9px', fontWeight: 800, color: accent, letterSpacing: '0.06em', textTransform: 'uppercase' as const, whiteSpace: 'nowrap' as const }}>
                 {locale === 'de' ? 'Empfohlen' : 'Recommended'}
               </p>
             </div>
             <div style={{ marginTop: '12px' }}>
-              <p style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '4px' }}>PRO</p>
-           <p style={{ fontSize: '32px', fontWeight: 800, color: '#fff', letterSpacing: '-0.04em', marginBottom: '2px' }}>€4,99</p>
-              <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', marginBottom: '12px' }}>{locale === 'de' ? 'pro Monat · kündbar' : 'per month'}</p>
-              <div style={{ height: '1px', background: 'rgba(255,255,255,0.2)', marginBottom: '12px' }} />
+              <p style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(36,33,27,0.7)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '4px' }}>PRO</p>
+           <p style={{ fontSize: '32px', fontWeight: 800, color: '#24211B', letterSpacing: '-0.04em', marginBottom: '2px' }}>€4,99</p>
+              <p style={{ fontSize: '11px', color: 'rgba(36,33,27,0.7)', marginBottom: '12px' }}>{locale === 'de' ? 'pro Monat · kündbar' : 'per month'}</p>
+              <div style={{ height: '1px', background: 'rgba(36,33,27,0.2)', marginBottom: '12px' }} />
             {[
                 { title: '15 Outfits', sub: locale === 'de' ? 'pro Tag · 5× mehr' : 'per day · 5× more' },
                 { title: locale === 'de' ? 'Unbegrenzt Kleidung' : 'Unlimited items', sub: '' },
@@ -742,10 +741,10 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
 { title: locale === 'de' ? 'Mehrfach-Upload ✦' : 'Multi-upload ✦', sub: locale === 'de' ? 'Bis zu 10 Fotos auf einmal' : 'Up to 10 photos at once' },
               ].map((f, i) => (
                 <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '11px', color: '#fff', flexShrink: 0, marginTop: '2px' }}>✦</span>
+                  <span style={{ fontSize: '11px', color: '#24211B', flexShrink: 0, marginTop: '2px' }}>✦</span>
                   <div>
-                    <p style={{ fontSize: '11px', fontWeight: 700, color: '#fff' }}>{f.title}</p>
-                    {f.sub && <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.7)' }}>{f.sub}</p>}
+                    <p style={{ fontSize: '11px', fontWeight: 700, color: '#24211B' }}>{f.title}</p>
+                    {f.sub && <p style={{ fontSize: '10px', color: 'rgba(36,33,27,0.7)' }}>{f.sub}</p>}
                   </div>
                 </div>
               ))}
@@ -777,7 +776,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
             const data = await res.json()
             if (data.url) window.location.href = data.url
           }}
-          style={{ width: '100%', padding: '15px', background: withdrawalConsent ? `linear-gradient(135deg, ${accent}, #6b9fff)` : (isDark ? '#0d1225' : '#e8eeff'), border: 'none', borderRadius: '14px', fontSize: '15px', fontWeight: 700, color: withdrawalConsent ? '#fff' : muted, cursor: withdrawalConsent ? 'pointer' : 'not-allowed', fontFamily: "'DM Sans', sans-serif", boxShadow: withdrawalConsent ? `0 4px 20px ${accent}40` : 'none', marginBottom: '10px', transition: 'all 0.2s' }}>
+          style={{ width: '100%', padding: '15px', background: withdrawalConsent ? `linear-gradient(135deg, ${accent}, #E8B45E)` : (isDark ? '#221D12' : '#EDE7D8'), border: 'none', borderRadius: '14px', fontSize: '15px', fontWeight: 700, color: withdrawalConsent ? '#24211B' : muted, cursor: withdrawalConsent ? 'pointer' : 'not-allowed', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: withdrawalConsent ? `0 4px 20px ${accent}40` : 'none', marginBottom: '10px', transition: 'all 0.2s' }}>
           {locale === 'de' ? '✦ Für €4,99/Monat abonnieren' : '✦ Subscribe for €4.99/month'}
         </motion.button>
 
@@ -832,7 +831,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
                   </div>
                   <div style={{ height: '6px', background: border, borderRadius: '3px', overflow: 'hidden' }}>
                     <motion.div initial={{ width: 0 }} animate={{ width: `${s.percent}%` }} transition={{ delay: 0.2 + i * 0.1, duration: 0.6 }}
-                      style={{ height: '100%', background: `linear-gradient(90deg, ${accent}, #6b9fff)`, borderRadius: '3px' }} />
+                      style={{ height: '100%', background: `linear-gradient(90deg, ${accent}, #E8B45E)`, borderRadius: '3px' }} />
                   </div>
                 </div>
               ))}
@@ -848,7 +847,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
               </div>
             </div>
             {dna.tip && (
-              <div style={{ background: `linear-gradient(135deg, ${accent}15, #6b9fff10)`, border: `1px solid ${border}`, borderRadius: '14px', padding: '14px 16px' }}>
+              <div style={{ background: `linear-gradient(135deg, ${accent}15, #E8B45E10)`, border: `1px solid ${border}`, borderRadius: '14px', padding: '14px 16px' }}>
                 <p style={{ fontSize: '11px', fontWeight: 700, color: accent, marginBottom: '6px', textTransform: 'uppercase' as const }}>{locale === 'de' ? '✦ Style Tipp' : '✦ Style Tip'}</p>
                 <p style={{ fontSize: '13px', color: text, lineHeight: 1.6 }}>{dna.tip}</p>
               </div>
@@ -876,7 +875,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
         <div style={{ width: '36px', height: '4px', background: border, borderRadius: '2px', margin: '0 auto 20px' }} />
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '22px', fontWeight: 400, color: text }}>
+          <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '22px', fontWeight: 500, color: text }}>
             {locale === 'de' ? 'Kontoeinstellungen' : 'Account settings'}
           </h2>
           <button onClick={() => setShowAccountSettings(false)} style={{ background: card, border: `1px solid ${border}`, borderRadius: '10px', width: '32px', height: '32px', cursor: 'pointer', fontSize: '14px', color: muted }}>✕</button>
@@ -891,9 +890,9 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
             </label>
             <div style={{ display: 'flex', gap: '8px' }}>
               <input type="text" value={editUsername} onChange={e => setEditUsername(e.target.value)}
-                style={{ flex: 1, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 12px', fontSize: '14px', color: text, outline: 'none', fontFamily: "'DM Sans', sans-serif", background: isDark ? '#080c18' : '#f8faff', minWidth: 0 }} />
+                style={{ flex: 1, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 12px', fontSize: '14px', color: text, outline: 'none', fontFamily: "'Poppins', 'Inter', sans-serif", background: isDark ? '#17140C' : '#F7F4EC', minWidth: 0 }} />
               <motion.button whileTap={{ scale: 0.95 }} onClick={saveUsername} disabled={saving}
-                style={{ background: saved ? accent : 'transparent', border: `1px solid ${saved ? accent : border}`, borderRadius: '10px', padding: '10px 16px', fontSize: '13px', fontWeight: 600, color: saved ? '#fff' : text, cursor: 'pointer', whiteSpace: 'nowrap' as const, transition: 'all 0.2s' }}>
+                style={{ background: saved ? accent : 'transparent', border: `1px solid ${saved ? accent : border}`, borderRadius: '10px', padding: '10px 16px', fontSize: '13px', fontWeight: 600, color: saved ? '#24211B' : text, cursor: 'pointer', whiteSpace: 'nowrap' as const, transition: 'all 0.2s' }}>
                 {saved ? '✓' : saving ? '...' : locale === 'de' ? 'Speichern' : 'Save'}
               </motion.button>
             </div>
@@ -904,9 +903,9 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
             <label style={{ fontSize: '11px', fontWeight: 600, color: muted, display: 'block', marginBottom: '8px', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>Email</label>
             <div style={{ display: 'flex', gap: '8px' }}>
               <input type="email" value={editEmail} onChange={e => setEditEmail(e.target.value)}
-                style={{ flex: 1, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 12px', fontSize: '14px', color: text, outline: 'none', fontFamily: "'DM Sans', sans-serif", background: isDark ? '#080c18' : '#f8faff', minWidth: 0 }} />
+                style={{ flex: 1, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 12px', fontSize: '14px', color: text, outline: 'none', fontFamily: "'Poppins', 'Inter', sans-serif", background: isDark ? '#17140C' : '#F7F4EC', minWidth: 0 }} />
               <motion.button whileTap={{ scale: 0.95 }} onClick={saveEmail}
-                style={{ background: savedEmail ? accent : 'transparent', border: `1px solid ${savedEmail ? accent : border}`, borderRadius: '10px', padding: '10px 16px', fontSize: '13px', fontWeight: 600, color: savedEmail ? '#fff' : text, cursor: 'pointer', whiteSpace: 'nowrap' as const, transition: 'all 0.2s' }}>
+                style={{ background: savedEmail ? accent : 'transparent', border: `1px solid ${savedEmail ? accent : border}`, borderRadius: '10px', padding: '10px 16px', fontSize: '13px', fontWeight: 600, color: savedEmail ? '#24211B' : text, cursor: 'pointer', whiteSpace: 'nowrap' as const, transition: 'all 0.2s' }}>
                 {savedEmail ? '✓' : locale === 'de' ? 'Speichern' : 'Save'}
               </motion.button>
             </div>
@@ -918,9 +917,9 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
             <div style={{ display: 'flex', gap: '8px' }}>
               <input type="number" value={editAge} onChange={e => setEditAge(e.target.value)}
                 placeholder="25" min="13" max="99"
-                style={{ flex: 1, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 12px', fontSize: '14px', color: text, outline: 'none', fontFamily: "'DM Sans', sans-serif", background: isDark ? '#080c18' : '#f8faff', minWidth: 0 }} />
+                style={{ flex: 1, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 12px', fontSize: '14px', color: text, outline: 'none', fontFamily: "'Poppins', 'Inter', sans-serif", background: isDark ? '#17140C' : '#F7F4EC', minWidth: 0 }} />
              <motion.button whileTap={{ scale: 0.95 }} onClick={saveAge}
-                style={{ background: savedAge ? accent : 'transparent', border: `1px solid ${savedAge ? accent : border}`, borderRadius: '10px', padding: '10px 16px', fontSize: '13px', fontWeight: 600, color: savedAge ? '#fff' : text, cursor: 'pointer', whiteSpace: 'nowrap' as const, transition: 'all 0.2s' }}>
+                style={{ background: savedAge ? accent : 'transparent', border: `1px solid ${savedAge ? accent : border}`, borderRadius: '10px', padding: '10px 16px', fontSize: '13px', fontWeight: 600, color: savedAge ? '#24211B' : text, cursor: 'pointer', whiteSpace: 'nowrap' as const, transition: 'all 0.2s' }}>
                 {savedAge ? '✓' : locale === 'de' ? 'Speichern' : 'Save'}
               </motion.button>
             </div>
@@ -957,7 +956,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
         </p>
         <input type="text" value={deleteConfirmText} onChange={e => setDeleteConfirmText(e.target.value)}
           placeholder={locale === 'de' ? 'LÖSCHEN' : 'DELETE'}
-          style={{ width: '100%', border: `1.5px solid ${border}`, borderRadius: '10px', padding: '12px 14px', fontSize: '14px', color: text, outline: 'none', fontFamily: "'DM Sans', sans-serif", background: isDark ? '#080c18' : '#f8faff', marginBottom: '16px', boxSizing: 'border-box' as const }}
+          style={{ width: '100%', border: `1.5px solid ${border}`, borderRadius: '10px', padding: '12px 14px', fontSize: '14px', color: text, outline: 'none', fontFamily: "'Poppins', 'Inter', sans-serif", background: isDark ? '#17140C' : '#F7F4EC', marginBottom: '16px', boxSizing: 'border-box' as const }}
         />
 
         <motion.button whileTap={{ scale: 0.97 }}
@@ -965,18 +964,18 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
           onClick={handleDeleteAccount}
           style={{
             width: '100%', padding: '13px',
-            background: deleteConfirmText === (locale === 'de' ? 'LÖSCHEN' : 'DELETE') && !deleting ? '#ef4444' : (isDark ? '#0d1225' : '#e8eeff'),
+            background: deleteConfirmText === (locale === 'de' ? 'LÖSCHEN' : 'DELETE') && !deleting ? '#ef4444' : (isDark ? '#221D12' : '#EDE7D8'),
             border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 700,
             color: deleteConfirmText === (locale === 'de' ? 'LÖSCHEN' : 'DELETE') && !deleting ? '#fff' : muted,
             cursor: deleteConfirmText === (locale === 'de' ? 'LÖSCHEN' : 'DELETE') && !deleting ? 'pointer' : 'not-allowed',
-            fontFamily: "'DM Sans', sans-serif", marginBottom: '8px',
+            fontFamily: "'Poppins', 'Inter', sans-serif", marginBottom: '8px',
           }}>
           {deleting ? (locale === 'de' ? 'Lösche...' : 'Deleting...') : (locale === 'de' ? '🗑️ Endgültig löschen' : '🗑️ Delete permanently')}
         </motion.button>
         <button
           disabled={deleting}
           onClick={() => { setShowDeleteModal(false); setDeleteConfirmText('') }}
-          style={{ width: '100%', padding: '11px', background: 'transparent', border: 'none', fontSize: '13px', color: muted, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
+          style={{ width: '100%', padding: '11px', background: 'transparent', border: 'none', fontSize: '13px', color: muted, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
           {locale === 'de' ? 'Abbrechen' : 'Cancel'}
         </button>
       </motion.div>
