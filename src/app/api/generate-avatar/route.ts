@@ -46,7 +46,23 @@ const buffer = Buffer.from(base64Data, 'base64')
     
     if (uploadError) throw uploadError
 
-  const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName)
+const { data: { publicUrl: originalPublicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName)
+
+    // Hintergrund vom Selfie entfernen für bessere Try-On-Qualität
+    let publicUrl = originalPublicUrl
+    try {
+      const bgRes = await fetch(new URL('/api/remove-background', req.url).toString(), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageUrl: originalPublicUrl }),
+      })
+      const bgData = await bgRes.json()
+      if (bgData.success && bgData.imageUrl) {
+        publicUrl = bgData.imageUrl
+      }
+    } catch (bgErr) {
+      console.error('Background removal on selfie failed, using original:', bgErr)
+    }
 
     // Selfie-Qualität prüfen bevor teure Generierung läuft
     try {
@@ -59,7 +75,7 @@ const buffer = Buffer.from(base64Data, 'base64')
           messages: [{
             role: 'user',
             content: [
-              { type: 'text', text: 'Is this a clear, well-lit full-body photo of one person, standing straight, facing forward, with a plain uncluttered background, suitable for virtual clothing try-on? Reply with ONLY one word: "good" or "bad".' },
+              { type: 'text', text: 'Is a person clearly visible in this photo, showing at least their upper body, without being extremely blurry or dark? Only say "bad" if the photo is unusable (no person visible, extremely dark, or heavily obstructed). Reply with ONLY one word: "good" or "bad".' },
               { type: 'image_url', image_url: { url: publicUrl } },
             ],
           }],
