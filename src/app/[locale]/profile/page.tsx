@@ -105,8 +105,10 @@ const [withdrawalConsent, setWithdrawalConsent] = useState(false)
   const border    = isDark ? '#2a2a2e' : '#E7E2D5'
   const text      = isDark ? '#F5F3EE' : '#24211B'
   const muted     = isDark ? '#9a978f' : '#8C8776'
-  const accent    = isDark ? '#E5B45B' : '#C9963C'
-  const accentDim = isDark ? 'rgba(229,180,91,0.12)' : 'rgba(201,150,60,0.10)'
+  const accent    = isDark ? '#5C82A0' : '#355C7D'
+  const accentDim = isDark ? 'rgba(92,130,160,0.12)' : 'rgba(53,92,125,0.07)'
+  const gold      = isDark ? '#E5B45B' : '#C9963C'
+  const goldDim   = isDark ? 'rgba(229,180,91,0.12)' : 'rgba(201,150,60,0.10)'
 const [todayOutfits, setTodayOutfits] = useState(0)
 const [tryOnToday, setTryOnToday] = useState(0)
 const [multiScansThisWeek, setMultiScansThisWeek] = useState(0)
@@ -309,7 +311,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
           style={{ padding: '0 20px', marginBottom: '20px', marginTop: '-24px', position: 'relative' as const, zIndex: 2 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px' }}>
-            <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: isPremium ? 'linear-gradient(135deg, #EFB43A, #C9963C)' : `linear-gradient(135deg, ${accent}, #E8B45E)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px', fontWeight: 800, color: '#fff', flexShrink: 0, boxShadow: isPremium ? '0 4px 20px rgba(201,150,60,0.5)' : `0 4px 20px ${accent}50`, border: `3px solid ${card}` }}>
+            <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: isPremium ? 'linear-gradient(135deg, #EFB43A, #C9963C)' : `linear-gradient(135deg, ${accent}, #7FA3C4)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px', fontWeight: 800, color: '#fff', flexShrink: 0, boxShadow: isPremium ? '0 4px 20px rgba(201,150,60,0.5)' : `0 4px 20px ${accent}50`, border: `3px solid ${card}` }}>
               {initial}
             </div>
             <div>
@@ -419,7 +421,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
               if (navigator.share) { try { await navigator.share({ title: 'KiWardrobe', text: shareText, url: inviteUrl }) } catch {} }
               else { await navigator.clipboard.writeText(shareText); alert(locale === 'de' ? 'Link kopiert!' : 'Link copied!') }
             }}
-            style={{ flex: 1, background: card, border: `1px solid ${border}`, borderRadius: '8px', padding: '9px', fontSize: '11px', fontWeight: 700, color: accent, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+            style={{ flex: 1, background: card, border: `1px solid ${border}`, borderRadius: '8px', padding: '9px', fontSize: '11px', fontWeight: 700, color: gold, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
             🎁 {locale === 'de' ? 'Freunde einladen' : 'Invite friends'}
           </button>
           <button onClick={async () => {
@@ -433,7 +435,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
               const data = await res.json()
               if (data.url) window.location.href = data.url
             }}
-            style={{ flex: 1, background: `linear-gradient(135deg, ${accent}, #E8B45E)`, border: 'none', borderRadius: '8px', padding: '9px', fontSize: '11px', fontWeight: 700, color: '#24211B', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+            style={{ flex: 1, background: `linear-gradient(135deg, ${gold}, #E8B45E)`, border: 'none', borderRadius: '8px', padding: '9px', fontSize: '11px', fontWeight: 700, color: '#24211B', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
             ✦ {locale === 'de' ? 'Jetzt zahlen' : 'Pay now'}
           </button>
         </div>
@@ -714,9 +716,9 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
               const data = await res.json()
               if (data.url) window.location.href = data.url
             }}
-            style={{ background: `linear-gradient(160deg, ${accent}, #E8B45E)`, borderRadius: '18px', padding: '16px 14px', cursor: 'pointer', position: 'relative' as const, overflow: 'hidden', boxShadow: `0 8px 32px ${accent}50` }}>
+            style={{ background: `linear-gradient(160deg, ${gold}, #E8B45E)`, borderRadius: '18px', padding: '16px 14px', cursor: 'pointer', position: 'relative' as const, overflow: 'hidden', boxShadow: `0 8px 32px ${gold}50` }}>
             <div style={{ position: 'absolute', top: '-1px', left: '50%', transform: 'translateX(-50%)', background: '#fff', borderRadius: '0 0 8px 8px', padding: '2px 10px' }}>
-              <p style={{ fontSize: '9px', fontWeight: 800, color: accent, letterSpacing: '0.06em', textTransform: 'uppercase' as const, whiteSpace: 'nowrap' as const }}>
+              <p style={{ fontSize: '9px', fontWeight: 800, color: gold, letterSpacing: '0.06em', textTransform: 'uppercase' as const, whiteSpace: 'nowrap' as const }}>
                 {locale === 'de' ? 'Empfohlen' : 'Recommended'}
               </p>
             </div>
@@ -770,7 +772,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
             const data = await res.json()
             if (data.url) window.location.href = data.url
           }}
-          style={{ width: '100%', padding: '15px', background: withdrawalConsent ? `linear-gradient(135deg, ${accent}, #E8B45E)` : (isDark ? '#1D1D20' : '#EDE7D8'), border: 'none', borderRadius: '14px', fontSize: '15px', fontWeight: 700, color: withdrawalConsent ? '#24211B' : muted, cursor: withdrawalConsent ? 'pointer' : 'not-allowed', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: withdrawalConsent ? `0 4px 20px ${accent}40` : 'none', marginBottom: '10px', transition: 'all 0.2s' }}>
+          style={{ width: '100%', padding: '15px', background: withdrawalConsent ? `linear-gradient(135deg, ${gold}, #E8B45E)` : (isDark ? '#1D1D20' : '#EDE7D8'), border: 'none', borderRadius: '14px', fontSize: '15px', fontWeight: 700, color: withdrawalConsent ? '#24211B' : muted, cursor: withdrawalConsent ? 'pointer' : 'not-allowed', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: withdrawalConsent ? `0 4px 20px ${gold}40` : 'none', marginBottom: '10px', transition: 'all 0.2s' }}>
           {locale === 'de' ? '✦ Für €4,99/Monat abonnieren' : '✦ Subscribe for €4.99/month'}
         </motion.button>
 
@@ -825,7 +827,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
                   </div>
                   <div style={{ height: '6px', background: border, borderRadius: '3px', overflow: 'hidden' }}>
                     <motion.div initial={{ width: 0 }} animate={{ width: `${s.percent}%` }} transition={{ delay: 0.2 + i * 0.1, duration: 0.6 }}
-                      style={{ height: '100%', background: `linear-gradient(90deg, ${accent}, #E8B45E)`, borderRadius: '3px' }} />
+                      style={{ height: '100%', background: `linear-gradient(90deg, ${accent}, #7FA3C4)`, borderRadius: '3px' }} />
                   </div>
                 </div>
               ))}
@@ -841,7 +843,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
               </div>
             </div>
             {dna.tip && (
-              <div style={{ background: `linear-gradient(135deg, ${accent}15, #E8B45E10)`, border: `1px solid ${border}`, borderRadius: '14px', padding: '14px 16px' }}>
+              <div style={{ background: `linear-gradient(135deg, ${accent}15, #7FA3C410)`, border: `1px solid ${border}`, borderRadius: '14px', padding: '14px 16px' }}>
                 <p style={{ fontSize: '11px', fontWeight: 700, color: accent, marginBottom: '6px', textTransform: 'uppercase' as const }}>{locale === 'de' ? '✦ Style Tipp' : '✦ Style Tip'}</p>
                 <p style={{ fontSize: '13px', color: text, lineHeight: 1.6 }}>{dna.tip}</p>
               </div>
