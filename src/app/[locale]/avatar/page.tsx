@@ -35,7 +35,7 @@ function createWatermarkedImage(imageUrl: string): Promise<string> {
       const h = canvas.height
       const fontSize = Math.max(20, Math.round(w * 0.09))
       ctx.font = `700 ${fontSize}px 'Poppins', sans-serif`
-      ctx.fillStyle = 'rgba(0,0,0,0.10)'
+      ctx.fillStyle = 'rgba(255,255,255,0.18)'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
       ctx.save()
@@ -51,45 +51,6 @@ function createWatermarkedImage(imageUrl: string): Promise<string> {
   })
 }
 
-function removeBlackBackground(imageUrl: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
-    img.onload = () => {
-      const w = img.naturalWidth
-      const h = img.naturalHeight
-      const canvas = document.createElement('canvas')
-      canvas.width = w
-      canvas.height = h
-      const ctx = canvas.getContext('2d')!
-      ctx.drawImage(img, 0, 0)
-
-      let srcData: ImageData
-      try {
-        srcData = ctx.getImageData(0, 0, w, h)
-      } catch {
-        resolve(imageUrl)
-        return
-      }
-      const px = srcData.data
-
-      // Nur wirklich fast reines Schwarz einfaerben, alles andere bleibt exakt wie es ist.
-      // Kein Ausschneiden, keine Transparenz, keine Verbindungs-Logik -- kann also nichts "wegschneiden".
-      const bgR = 211, bgG = 201, bgB = 168 // #D3C9A8
-      for (let p = 0; p < px.length; p += 4) {
-        const r = px[p], g = px[p + 1], b = px[p + 2]
-        if (Math.max(r, g, b) < 18) {
-          px[p] = bgR; px[p + 1] = bgG; px[p + 2] = bgB
-        }
-      }
-      ctx.putImageData(srcData, 0, 0)
-
-      resolve(canvas.toDataURL('image/jpeg', 0.94))
-    }
-    img.onerror = () => reject(new Error('bg recolor image load failed'))
-    img.src = imageUrl
-  })
-}
 
 async function createShareCard(selfieUrl: string, resultUrl: string, locale: string): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -199,8 +160,6 @@ export default function AvatarPage() {
   const [selectedItem, setSelectedItem] = useState<ClothingItem | null>(null)
   const [selfie, setSelfie] = useState<string | null>(null)
   const [result, setResult] = useState<string | null>(null)
-  const [processedResult, setProcessedResult] = useState<string | null>(null)
-  const [bgProcessing, setBgProcessing] = useState(false)
   const [loading, setLoading] = useState(false)
   const [pageLoading, setPageLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -223,17 +182,6 @@ export default function AvatarPage() {
   const sageGradient = 'linear-gradient(135deg, #7FA98E, #355C7D)'
 
   useEffect(() => { loadData() }, [])
-
-  useEffect(() => {
-    if (!result) { setProcessedResult(null); return }
-    let cancelled = false
-    setBgProcessing(true)
-    removeBlackBackground(result)
-      .then(url => { if (!cancelled) setProcessedResult(url) })
-      .catch(() => { if (!cancelled) setProcessedResult(null) })
-      .finally(() => { if (!cancelled) setBgProcessing(false) })
-    return () => { cancelled = true }
-  }, [result])
 
   async function loadData() {
     const { data: { session } } = await supabase.auth.getSession()
@@ -487,7 +435,7 @@ export default function AvatarPage() {
                       <button
                         onClick={async () => {
                           try {
-                            const watermarked = await createWatermarkedImage(processedResult ?? result)
+                            const watermarked = await createWatermarkedImage(result)
                             const blob = await (await fetch(watermarked)).blob()
                             const url = URL.createObjectURL(blob)
                             const a = document.createElement('a')
@@ -504,11 +452,10 @@ export default function AvatarPage() {
                       </button>
                     </div>
 
-                    {/* Studio-Rahmen */}
                     <div style={{ position: 'relative' as const, borderRadius: '10px', overflow: 'hidden' }}>
                       <img
-                        src={processedResult ?? result}
-                        style={{ width: '100%', display: 'block', maxHeight: '480px', objectFit: 'contain', background: 'linear-gradient(180deg, #E9E4D8 0%, #C9C2B2 100%)' }}
+                        src={result}
+                        style={{ width: '100%', display: 'block', maxHeight: '480px', objectFit: 'contain' }}
                         onError={(e) => {
                           e.currentTarget.style.display = 'none'
                           const div = document.createElement('div')
@@ -519,15 +466,8 @@ export default function AvatarPage() {
                           e.currentTarget.parentNode?.appendChild(div)
                         }}
                       />
-                      {bgProcessing && (
-                        <div style={{ position: 'absolute', top: '10px', left: '10px', background: 'rgba(0,0,0,0.5)', borderRadius: '100px', padding: '5px 11px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <motion.span animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
-                            style={{ display: 'block', width: '10px', height: '10px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff' }} />
-                          <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>{locale === 'de' ? 'Hintergrund wird entfernt…' : 'Removing background…'}</span>
-                        </div>
-                      )}
                       {/* Wasserzeichen mittig, damit es nicht einfach weggeschnitten werden kann */}
-                      <p style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-18deg)', fontSize: '22px', fontWeight: 700, color: 'rgba(0,0,0,0.10)', letterSpacing: '0.02em', whiteSpace: 'nowrap' as const, pointerEvents: 'none' as const }}>✦ KiWardrobe</p>
+                      <p style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-18deg)', fontSize: '22px', fontWeight: 700, color: 'rgba(255,255,255,0.18)', letterSpacing: '0.02em', whiteSpace: 'nowrap' as const, pointerEvents: 'none' as const }}>✦ KiWardrobe</p>
                     </div>
                     <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column' as const, gap: '8px' }}>
                       <motion.button whileTap={{ scale: 0.97 }}
