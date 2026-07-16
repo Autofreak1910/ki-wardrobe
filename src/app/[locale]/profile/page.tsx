@@ -284,16 +284,10 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
   )
 
   return (
-    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' as const, background: bg, overflow: 'hidden', fontFamily: "'Poppins', 'Inter', sans-serif", position: 'relative' as const }}>
+    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' as const, background: bg, overflow: 'hidden', fontFamily: "'Poppins', 'Inter', sans-serif", position: 'relative' as const, backgroundImage: isDark ? 'none' : 'radial-gradient(circle, rgba(36,33,27,0.08) 1px, transparent 1px)', backgroundSize: '18px 18px' }}>
 
       <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
         <div style={{ position: 'absolute', top: '-100px', right: '-60px', width: '380px', height: '380px', borderRadius: '50%', background: isDark ? 'rgba(229,180,91,0.08)' : 'rgba(201,150,60,0.10)', filter: 'blur(90px)' }} />
-        {!isDark && (
-          <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.35 }} xmlns="http://www.w3.org/2000/svg">
-            <defs><pattern id="pdots" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="0.9" fill="#24211B" opacity="0.08" /></pattern></defs>
-            <rect width="100%" height="100%" fill="url(#pdots)" />
-          </svg>
-        )}
       </div>
 
       <Navbar activePage="profile" />

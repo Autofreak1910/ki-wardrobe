@@ -69,18 +69,12 @@ export default function OutfitsPage() {
   const favCount = outfits.filter(o => o.is_favorite).length
 
   return (
-    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' as const, background: bg, overflow: 'hidden', fontFamily: "'Poppins', 'Inter', sans-serif", position: 'relative' as const }}>
+    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' as const, background: bg, overflow: 'hidden', fontFamily: "'Poppins', 'Inter', sans-serif", position: 'relative' as const, backgroundImage: isDark ? 'none' : 'radial-gradient(circle, rgba(29,29,32,0.07) 1px, transparent 1px)', backgroundSize: '18px 18px' }}>
 
       {/* Background */}
       <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
         <div style={{ position: 'absolute', top: '-100px', right: '-60px', width: '380px', height: '380px', borderRadius: '50%', background: isDark ? 'rgba(122,150,172,0.08)' : 'rgba(53,92,125,0.06)', filter: 'blur(90px)' }} />
         <div style={{ position: 'absolute', bottom: '80px', left: '-80px', width: '320px', height: '320px', borderRadius: '50%', background: isDark ? 'rgba(122,150,172,0.06)' : 'rgba(53,92,125,0.05)', filter: 'blur(90px)' }} />
-        {!isDark && (
-          <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.4 }} xmlns="http://www.w3.org/2000/svg">
-            <defs><pattern id="odots" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="0.9" fill="#1D1D20" opacity="0.06" /></pattern></defs>
-            <rect width="100%" height="100%" fill="url(#odots)" />
-          </svg>
-        )}
       </div>
 
       <Navbar activePage="outfits" />
