@@ -23,13 +23,15 @@ export default function OutfitsPage() {
   const supabase = createClient()
   const isDark = theme === 'dark'
 
-const bg        = isDark ? '#080c18' : '#f0f4ff'
-const card      = isDark ? '#0d1225' : '#ffffff'
-const border    = isDark ? '#1a2540' : '#dde3f5'
-const text      = isDark ? '#e8eeff' : '#0a1628'
-const muted     = isDark ? '#4d6080' : '#6b7fa8'
-const accent    = isDark ? '#4d7eff' : '#3b6bff'
-const accentDim = isDark ? 'rgba(77,126,255,0.1)' : 'rgba(59,107,255,0.08)'
+const bg        = isDark ? '#161616' : '#FDFCF9'
+const card      = isDark ? '#1D1D20' : '#ffffff'
+const border    = isDark ? '#2a2a2e' : '#EAE7E0'
+const text      = isDark ? '#F5F3EE' : '#1D1D20'
+const muted     = isDark ? '#9a978f' : '#8A8680'
+const accent    = isDark ? '#5C82A0' : '#355C7D'
+const accentDim = isDark ? 'rgba(92,130,160,0.12)' : 'rgba(53,92,125,0.07)'
+const goldAccent = '#F1B951'
+const sageGradient = 'linear-gradient(135deg, #7FA98E, #355C7D)'
 
   useEffect(() => { loadData() }, [])
 
@@ -63,7 +65,7 @@ const accentDim = isDark ? 'rgba(77,126,255,0.1)' : 'rgba(59,107,255,0.08)'
   const favCount = outfits.filter(o => o.is_favorite).length
 
   return (
-    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' as const, background: bg, overflow: 'hidden', fontFamily: "'DM Sans', sans-serif", position: 'relative' as const }}>
+    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' as const, background: bg, overflow: 'hidden', fontFamily: "'Poppins', 'Inter', sans-serif", position: 'relative' as const }}>
 
       {/* Background */}
       <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
@@ -104,7 +106,7 @@ const accentDim = isDark ? 'rgba(77,126,255,0.1)' : 'rgba(59,107,255,0.08)'
 
           {/* + Button oben rechts */}
           <motion.button whileTap={{ scale: 0.92 }} onClick={() => router.push('/' + locale + '/dresser')}
-            style={{ position: 'absolute' as const, bottom: '16px', right: '20px', width: '44px', height: '44px', borderRadius: '50%', background: `linear-gradient(135deg, ${accent}, #0891b2)`, border: 'none', fontSize: '22px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 16px rgba(14,164,114,0.4)', zIndex: 2 }}>
+            style={{ position: 'absolute' as const, bottom: '16px', right: '20px', width: '44px', height: '44px', borderRadius: '50%', background: sageGradient, border: 'none', fontSize: '22px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 16px rgba(53,92,125,0.4)', zIndex: 2 }}>
             +
           </motion.button>
         </motion.div>
@@ -113,7 +115,7 @@ const accentDim = isDark ? 'rgba(77,126,255,0.1)' : 'rgba(59,107,255,0.08)'
         <div style={{ display: 'flex', gap: '6px', margin: '14px 20px 16px', padding: 0 }}>
           {(['all', 'favorites'] as const).map(f => (
             <button key={f} onClick={() => setFilter(f)}
-              style={{ padding: '8px 18px', borderRadius: '100px', border: `1px solid ${filter === f ? accent : border}`, background: filter === f ? accent : card, color: filter === f ? '#fff' : muted, fontSize: '13px', fontWeight: filter === f ? 600 : 400, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'all 0.15s' }}>
+              style={{ padding: '8px 18px', borderRadius: '100px', border: `1px solid ${filter === f ? accent : border}`, background: filter === f ? accent : card, color: filter === f ? '#fff' : muted, fontSize: '13px', fontWeight: filter === f ? 600 : 400, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", transition: 'all 0.15s' }}>
               {f === 'all' ? (locale === 'de' ? 'Alle' : 'All') : (locale === 'de' ? 'Favoriten' : 'Favorites')}
             </button>
           ))}
@@ -137,7 +139,7 @@ const accentDim = isDark ? 'rgba(77,126,255,0.1)' : 'rgba(59,107,255,0.08)'
             <p style={{ fontSize: '16px', fontWeight: 700, color: text, marginBottom: '6px', letterSpacing: '-0.02em' }}>{t('outfits.empty')}</p>
             <p style={{ fontSize: '13px', color: muted, marginBottom: '20px' }}>{t('outfits.emptySub')}</p>
             <motion.button whileTap={{ scale: 0.96 }} onClick={() => router.push('/' + locale + '/dresser')}
-              style={{ background: `linear-gradient(135deg, ${accent}, #0891b2)`, border: 'none', borderRadius: '10px', padding: '11px 22px', fontSize: '14px', fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: '0 4px 16px rgba(14,164,114,0.35)' }}>
+              style={{ background: sageGradient, border: 'none', borderRadius: '10px', padding: '11px 22px', fontSize: '14px', fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: '0 4px 16px rgba(53,92,125,0.35)' }}>
               {t('outfits.dressMe')}
             </motion.button>
           </div>
