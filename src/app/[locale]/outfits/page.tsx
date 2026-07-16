@@ -31,6 +31,8 @@ export default function OutfitsPage() {
   const accent    = isDark ? '#5C82A0' : '#355C7D'
   const accentDim = isDark ? 'rgba(92,130,160,0.12)' : 'rgba(53,92,125,0.07)'
   const goldAccent = '#F1B951'
+  const goldDim   = isDark ? 'rgba(241,185,81,0.14)' : 'rgba(241,185,81,0.10)'
+  const goldText  = isDark ? '#F1B951' : '#9C6B1F'
   const sageGradient = 'linear-gradient(135deg, #F1B951, #C98A3A)'
 
   useEffect(() => { loadData() }, [])
@@ -70,7 +72,7 @@ export default function OutfitsPage() {
       {/* Background */}
       <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
         <div style={{ position: 'absolute', top: '-100px', right: '-60px', width: '380px', height: '380px', borderRadius: '50%', background: isDark ? 'rgba(122,150,172,0.08)' : 'rgba(53,92,125,0.06)', filter: 'blur(90px)' }} />
-        <div style={{ position: 'absolute', bottom: '80px', left: '-80px', width: '300px', height: '300px', borderRadius: '50%', background: isDark ? 'rgba(241,185,81,0.05)' : 'rgba(241,185,81,0.08)', filter: 'blur(90px)' }} />
+        <div style={{ position: 'absolute', bottom: '80px', left: '-80px', width: '320px', height: '320px', borderRadius: '50%', background: isDark ? 'rgba(241,185,81,0.10)' : 'rgba(241,185,81,0.16)', filter: 'blur(90px)' }} />
         {!isDark && (
           <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.4 }} xmlns="http://www.w3.org/2000/svg">
             <defs><pattern id="odots" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="0.9" fill="#1D1D20" opacity="0.06" /></pattern></defs>
@@ -94,15 +96,24 @@ export default function OutfitsPage() {
           />
 
           {/* Gradient Overlay */}
-          <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, rgba(241,185,81,0.15) 0%, ${bg}cc 65%, ${bg} 100%)` }} />
+          <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, rgba(241,185,81,0.22) 0%, ${bg}cc 65%, ${bg} 100%)` }} />
 
           {/* Titel über Bild */}
           <div style={{ position: 'absolute' as const, bottom: '16px', left: '20px', zIndex: 2 }}>
-            <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: accent, marginBottom: '3px' }}>
+            <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: goldText, marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: goldAccent, display: 'inline-block' }} />
               {locale === 'de' ? 'Deine Looks' : 'Your Looks'}
             </p>
             <h1 style={{ fontSize: '28px', fontWeight: 800, color: text, letterSpacing: '-0.04em', lineHeight: 1 }}>Outfits</h1>
           </div>
+
+          {/* Favoriten-Badge oben rechts */}
+          {favCount > 0 && (
+            <div style={{ position: 'absolute', top: '14px', right: '20px', zIndex: 2, display: 'flex', alignItems: 'center', gap: '5px', background: 'rgba(255,255,255,0.9)', border: `1px solid ${goldAccent}`, borderRadius: '100px', padding: '5px 10px 5px 8px', backdropFilter: 'blur(6px)' }}>
+              <span style={{ fontSize: '11px', color: goldAccent }}>★</span>
+              <span style={{ fontSize: '11px', fontWeight: 600, color: '#1D1D20' }}>{favCount}</span>
+            </div>
+          )}
 
         </motion.div>
 
@@ -110,7 +121,7 @@ export default function OutfitsPage() {
         <div style={{ display: 'flex', gap: '6px', margin: '14px 20px 16px', padding: 0 }}>
           {(['all', 'favorites'] as const).map(f => (
             <button key={f} onClick={() => setFilter(f)}
-              style={{ padding: '8px 18px', borderRadius: '100px', border: `1px solid ${filter === f ? goldAccent : border}`, background: filter === f ? goldAccent : card, color: filter === f ? '#1D1D20' : muted, fontSize: '13px', fontWeight: filter === f ? 600 : 400, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", transition: 'all 0.15s' }}>
+              style={{ padding: '8px 18px', borderRadius: '100px', border: `1px solid ${filter === f ? goldAccent : border}`, background: filter === f ? sageGradient : card, color: filter === f ? '#1D1D20' : muted, fontSize: '13px', fontWeight: filter === f ? 600 : 400, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", transition: 'all 0.15s', boxShadow: filter === f ? '0 3px 10px rgba(241,185,81,0.35)' : 'none' }}>
               {f === 'all' ? (locale === 'de' ? 'Alle' : 'All') : (locale === 'de' ? 'Favoriten' : 'Favorites')}
             </button>
           ))}
@@ -127,9 +138,9 @@ export default function OutfitsPage() {
             <style>{`@keyframes shimmer{0%,100%{opacity:1}50%{opacity:0.4}}`}</style>
           </div>
         ) : displayed.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px 24px', border: `1px solid ${border}`, borderRadius: '20px', background: card, margin: '0 20px' }}>
-            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: accentDim, border: `1px solid ${border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="1.5"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+          <div style={{ textAlign: 'center', padding: '60px 24px', border: `1px solid ${goldAccent}`, borderRadius: '20px', background: card, margin: '0 20px' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: goldDim, border: `1px solid ${goldAccent}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={goldText} strokeWidth="1.5"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
             </div>
             <p style={{ fontSize: '16px', fontWeight: 700, color: text, marginBottom: '6px', letterSpacing: '-0.02em' }}>{t('outfits.empty')}</p>
             <p style={{ fontSize: '13px', color: muted, marginBottom: '20px' }}>{t('outfits.emptySub')}</p>
@@ -148,9 +159,9 @@ export default function OutfitsPage() {
                     initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ delay: i * 0.04 }}
-                    style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden' }}>
+                    style={{ background: card, border: `1px solid ${outfit.is_favorite ? goldAccent : border}`, borderRadius: '16px', overflow: 'hidden', boxShadow: outfit.is_favorite ? '0 4px 18px rgba(241,185,81,0.18)' : 'none' }}>
                     {/* Images */}
-                    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(outfitItems.length || 1, 4)}, 1fr)`, height: '180px', background: isDark ? '#221c14' : '#FDF3E0' }}>
+                    <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: `repeat(${Math.min(outfitItems.length || 1, 4)}, 1fr)`, height: '180px', background: isDark ? '#221c14' : '#FDF3E0' }}>
                       {outfitItems.map((item, j) => (
                         <div key={j} style={{ overflow: 'hidden' }}>
                           <img src={item.image_url} alt={item.name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
@@ -161,6 +172,11 @@ export default function OutfitsPage() {
                           <p style={{ fontSize: '12px', color: muted }}>No items</p>
                         </div>
                       )}
+                      {outfit.occasion && (
+                        <span style={{ position: 'absolute', top: '10px', left: '10px', background: 'rgba(255,255,255,0.92)', border: `1px solid ${goldAccent}`, color: goldText, fontSize: '10px', fontWeight: 600, padding: '4px 9px', borderRadius: '100px', textTransform: 'capitalize' as const }}>
+                          {outfit.occasion}
+                        </span>
+                      )}
                     </div>
                     {/* Info */}
                     <div style={{ padding: '12px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -170,7 +186,7 @@ export default function OutfitsPage() {
                       </div>
                       <div style={{ display: 'flex', gap: '5px', flexShrink: 0 }}>
                         <motion.button whileTap={{ scale: 0.88 }} onClick={() => toggleFavorite(outfit)}
-                          style={{ background: outfit.is_favorite ? 'rgba(241,185,81,0.15)' : 'transparent', border: `1px solid ${outfit.is_favorite ? goldAccent : border}`, borderRadius: '8px', padding: '6px 9px', cursor: 'pointer', fontSize: '13px', color: outfit.is_favorite ? goldAccent : muted, transition: 'all 0.15s' }}>
+                          style={{ background: outfit.is_favorite ? goldDim : 'transparent', border: `1px solid ${outfit.is_favorite ? goldAccent : border}`, borderRadius: '8px', padding: '6px 9px', cursor: 'pointer', fontSize: '13px', color: outfit.is_favorite ? goldAccent : muted, transition: 'all 0.15s' }}>
                           {outfit.is_favorite ? '★' : '☆'}
                         </motion.button>
                         <motion.button whileTap={{ scale: 0.88 }} onClick={() => deleteOutfit(outfit.id)}
