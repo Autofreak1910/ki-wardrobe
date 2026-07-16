@@ -210,6 +210,8 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
         setError(locale === 'de' ? 'Du hast deine 3 kostenlosen Versuche aufgebraucht. Upgrade auf Pro!' : 'You used your 3 free tries. Upgrade to Pro!')
       } else if (data.error === 'daily_limit') {
         setError(locale === 'de' ? 'Du hast heute bereits 2 Avatare erstellt. Morgen wieder!' : 'You already created 2 avatars today. Come back tomorrow!')
+      } else if (data.error === 'bad_selfie') {
+        setError(locale === 'de' ? 'Dein Foto eignet sich nicht gut für Try-On. Bitte nutze ein Ganzkörperfoto mit klarer Pose, gutem Licht und einfachem Hintergrund.' : 'Your photo isn\'t well suited for try-on. Please use a full-body photo with a clear pose, good lighting, and a plain background.')
       } else if (data.success) {
         setResult(data.imageUrl)
         await loadData()

@@ -35,7 +35,7 @@ console.log('garmentImage type:', typeof garmentImage, 'value:', garmentImage)
       }
     }
 
-    // Upload selfie to Supabase Storage
+  // Upload selfie to Supabase Storage
    const base64Data = personImage.replace(/^data:image\/\w+;base64,/, '')
 const buffer = Buffer.from(base64Data, 'base64')
     const fileName = `avatars/${user.id}/${Date.now()}.jpg`
@@ -47,6 +47,36 @@ const buffer = Buffer.from(base64Data, 'base64')
     if (uploadError) throw uploadError
 
   const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName)
+
+    // Selfie-Qualität prüfen bevor teure Generierung läuft
+    try {
+      const checkRes = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}` },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          max_tokens: 15,
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'text', text: 'Is this a clear, well-lit full-body photo of one person, standing straight, facing forward, with a plain uncluttered background, suitable for virtual clothing try-on? Reply with ONLY one word: "good" or "bad".' },
+              { type: 'image_url', image_url: { url: publicUrl } },
+            ],
+          }],
+        }),
+      })
+      const checkData = await checkRes.json()
+      const verdict = checkData.choices?.[0]?.message?.content?.toLowerCase().trim() ?? 'good'
+      if (verdict.includes('bad')) {
+        return NextResponse.json({
+          error: 'bad_selfie',
+          message: 'Dein Foto eignet sich nicht gut für Try-On. Bitte nutze ein Ganzkörperfoto mit klarer Pose, gutem Licht und einfachem Hintergrund.',
+        }, { status: 400 })
+      }
+    } catch (checkErr) {
+      console.error('Selfie quality check failed:', checkErr)
+      // Bei Fehler im Check einfach weitermachen, nicht blockieren
+    }
 
     const categoryMap: Record<string, string> = { tops: 'upper_body', hosen: 'lower_body', jacken: 'upper_body', acc: 'upper_body' }
     const garmentCategory = categoryMap[category] ?? 'upper_body'
