@@ -336,24 +336,29 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
           </div>
 
           {/* Stats */}
-<div style={{ display: 'flex', gap: '6px', overflowX: 'auto' as const, paddingBottom: '2px' }}>
-            {[
-              { label: locale === 'de' ? 'Kleidung' : 'Items', value: itemCount, max: isPremium ? null : 20 },
-              { label: locale === 'de' ? 'Outfits' : 'Outfits', value: todayOutfits, max: isPremium ? 15 : 3 },
-              { label: locale === 'de' ? 'Gespeichert' : 'Saved', value: outfitCount, max: isPremium ? null : 5 },
-              isPremium
-                ? { label: 'Try-On', value: tryOnToday, max: 2 }
-                : { label: 'Try-On', value: (3 - (profile?.avatar_tries_left ?? 3)), max: 3 },
-            ...(isPremium ? [{ label: locale === 'de' ? 'Multi-Upload' : 'Multi-upload', value: multiScansThisWeek, max: 3 }] : []),
-            ].map(stat => (
-          <div key={stat.label} style={{ background: card, border: `1px solid ${border}`, borderRadius: '12px', padding: '10px 10px', textAlign: 'center' as const, flexShrink: 0, minWidth: '64px' }}>
-                <p style={{ fontSize: '16px', fontWeight: 800, color: stat.max && stat.value >= stat.max ? '#ef4444' : text, letterSpacing: '-0.03em', marginBottom: '1px' }}>
-                  {stat.value}{stat.max ? `/${stat.max}` : ''}
-                </p>
-                <p style={{ fontSize: '9px', color: muted, fontWeight: 500, whiteSpace: 'nowrap' as const }}>{stat.label}</p>
-              </div>
-            ))}
-          </div>
+{(() => {
+  const statItems = [
+    { label: locale === 'de' ? 'Kleidung' : 'Items', value: itemCount, max: isPremium ? null : 20 },
+    { label: locale === 'de' ? 'Outfits' : 'Outfits', value: todayOutfits, max: isPremium ? 15 : 3 },
+    { label: locale === 'de' ? 'Gespeichert' : 'Saved', value: outfitCount, max: isPremium ? null : 5 },
+    isPremium
+      ? { label: 'Try-On', value: tryOnToday, max: 2 }
+      : { label: 'Try-On', value: (3 - (profile?.avatar_tries_left ?? 3)), max: 3 },
+    ...(isPremium ? [{ label: locale === 'de' ? 'Multi-Upload' : 'Multi-upload', value: multiScansThisWeek, max: 3 }] : []),
+  ]
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${statItems.length}, 1fr)`, gap: '6px' }}>
+      {statItems.map(stat => (
+        <div key={stat.label} style={{ background: card, border: `1px solid ${border}`, borderRadius: '12px', padding: '10px 6px', textAlign: 'center' as const, minWidth: 0 }}>
+          <p style={{ fontSize: '16px', fontWeight: 800, color: stat.max && stat.value >= stat.max ? '#ef4444' : text, letterSpacing: '-0.03em', marginBottom: '1px' }}>
+            {stat.value}{stat.max ? `/${stat.max}` : ''}
+          </p>
+          <p style={{ fontSize: '9px', color: muted, fontWeight: 500, whiteSpace: 'nowrap' as const, overflow: 'hidden', textOverflow: 'ellipsis' as const }}>{stat.label}</p>
+        </div>
+      ))}
+    </div>
+  )
+})()}
         </motion.div>
 
         <div style={{ padding: '0 20px' }}>
