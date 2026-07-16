@@ -144,15 +144,13 @@ const [error, setError] = useState<string | null>(null)
   const supabase = createClient()
   const isDark = theme === 'dark'
 
-  const bg       = isDark ? '#161616' : '#FDFCF9'
-  const card     = isDark ? '#1D1D20' : '#ffffff'
-  const border   = isDark ? '#2a2a2e' : '#EAE7E0'
-  const text     = isDark ? '#F5F3EE' : '#1D1D20'
-  const muted    = isDark ? '#9a978f' : '#8A8680'
-  const accent   = isDark ? '#5C82A0' : '#355C7D'
-  const accentDim = isDark ? 'rgba(92,130,160,0.12)' : 'rgba(53,92,125,0.07)'
-  const goldAccent = '#F1B951'
-  const sageGradient = 'linear-gradient(135deg, #7FA98E, #355C7D)'
+  const bg       = isDark ? '#080c18' : '#f0f4ff'
+  const card     = isDark ? '#0d1225' : '#ffffff'
+  const border   = isDark ? '#1a2540' : '#dde3f5'
+  const text     = isDark ? '#e8eeff' : '#0a1628'
+  const muted    = isDark ? '#4d6080' : '#6b7fa8'
+  const accent   = isDark ? '#4d7eff' : '#3b6bff'
+  const accentDim = isDark ? 'rgba(77,126,255,0.1)' : 'rgba(59,107,255,0.08)'
 
   useEffect(() => { loadData() }, [])
 
@@ -236,7 +234,7 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
   )
 
   return (
-    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' as const, background: bg, overflow: 'hidden', fontFamily: "'Poppins', 'Inter', sans-serif", position: 'relative' as const }}>
+    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' as const, background: bg, overflow: 'hidden', fontFamily: "'DM Sans', sans-serif", position: 'relative' as const }}>
 
       <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
         <div style={{ position: 'absolute', top: '-100px', right: '-60px', width: '380px', height: '380px', borderRadius: '50%', background: isDark ? 'rgba(77,126,255,0.06)' : 'rgba(59,107,255,0.1)', filter: 'blur(90px)' }} />
@@ -254,12 +252,12 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
             alt=""
             style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', position: 'absolute', inset: 0 }}
           />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(240,244,255,0.1) 0%, rgba(240,244,255,0.7) 70%, rgba(240,244,255,1) 100%)' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(241,185,81,0.06) 0%, rgba(253,252,249,0.75) 70%, rgba(253,252,249,1) 100%)' }} />
 
           {/* PRO Badge */}
           {isPremium ? (
-            <div style={{ position: 'absolute' as const, top: '16px', right: '18px', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '10px', padding: '6px 14px', boxShadow: '0 4px 12px rgba(251,191,36,0.4)', zIndex: 2 }}>
-              <p style={{ fontSize: '11px', fontWeight: 700, color: '#fff', letterSpacing: '0.04em' }}>✦ PRO</p>
+            <div style={{ position: 'absolute' as const, top: '16px', right: '18px', background: goldAccent, borderRadius: '10px', padding: '6px 14px', boxShadow: '0 4px 12px rgba(241,185,81,0.4)', zIndex: 2 }}>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: '#1D1D20', letterSpacing: '0.04em' }}>✦ PRO</p>
             </div>
           ) : (
             <div style={{ position: 'absolute' as const, top: '16px', right: '18px', background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '10px', padding: '6px 14px', zIndex: 2 }}>
@@ -277,6 +275,22 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
             {locale === 'de' ? 'Probiere Klamotten virtuell an deinem Foto an' : 'Try clothes on your photo virtually'}
           </p>
         </div>
+
+        {/* Info Box — kompakt, direkt nach Titel */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}
+          style={{ background: accentDim, border: `1px solid ${border}`, borderRadius: '14px', padding: '10px 16px', margin: '0 20px 14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' as const }}>
+            <span style={{ fontSize: '11px' }}>💡</span>
+            {[
+              locale === 'de' ? 'Ganzkörper' : 'Full body',
+              locale === 'de' ? 'Heller HG' : 'Light BG',
+              locale === 'de' ? 'Ein Teil' : 'One item',
+              locale === 'de' ? 'Gutes Licht' : 'Good light',
+            ].map((tip, i) => (
+              <span key={i} style={{ fontSize: '11px', color: muted, background: card, borderRadius: '100px', padding: '3px 8px', border: `1px solid ${border}` }}>{tip}</span>
+            ))}
+          </div>
+        </motion.div>
 
         {/* No tries left — upgrade */}
         <div style={{ padding: '0 20px' }}>
@@ -349,16 +363,14 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
                     {locale === 'de' ? 'Keine Kleidung im Schrank' : 'No clothes in wardrobe'}
                   </p>
                 ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
                     {items.filter(item => item.category !== 'schuhe').map(item => (
-                      <motion.div key={item.id} whileTap={{ scale: 0.96 }}
+                      <motion.div key={item.id} whileTap={{ scale: 0.95 }}
                         onClick={() => setSelectedItem(selectedItem?.id === item.id ? null : item)}
-                        style={{ background: card, borderRadius: '16px', overflow: 'hidden', border: `1.5px solid ${selectedItem?.id === item.id ? accent : border}`, cursor: 'pointer', position: 'relative' as const, padding: '6px', boxShadow: selectedItem?.id === item.id ? `0 4px 16px ${accent}25` : (isDark ? 'none' : '0 2px 8px rgba(29,29,32,0.04)') }}>
-                        <div style={{ borderRadius: '10px', overflow: 'hidden' }}>
-                          <img src={item.image_url} style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', display: 'block' }} />
-                        </div>
+                        style={{ borderRadius: '12px', overflow: 'hidden', border: `2px solid ${selectedItem?.id === item.id ? accent : border}`, cursor: 'pointer', position: 'relative' as const }}>
+                        <img src={item.image_url} style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', display: 'block' }} />
                         {selectedItem?.id === item.id && (
-                          <div style={{ position: 'absolute', top: '10px', right: '10px', background: accent, borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>✓</div>
+                          <div style={{ position: 'absolute', top: '4px', right: '4px', background: accent, borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: '#fff' }}>✓</div>
                         )}
                       </motion.div>
                     ))}
@@ -368,8 +380,23 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
               </div>
             </motion.div>
 
-            {/* Spacer für Sticky Button */}
-            <div style={{ height: '90px' }} />
+            {/* Generate Button */}
+            <div style={{ padding: '0 20px' }}>
+            <motion.button whileTap={{ scale: 0.97 }}
+              onClick={generateAvatar}
+              disabled={loading || !selfie || !selectedItem}
+              style={{ width: '100%', padding: '16px', background: `linear-gradient(135deg, ${accent}, #6b9fff)`, border: 'none', borderRadius: '16px', fontSize: '15px', fontWeight: 700, color: '#fff', cursor: loading ? 'wait' : 'pointer', fontFamily: "'DM Sans', sans-serif", marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: `0 4px 20px ${accent}40`, transition: 'all 0.2s', opacity: (!selfie || !selectedItem) ? 0.6 : 1 }}>
+              {loading ? (
+                <>
+                  <motion.span animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                    style={{ display: 'block', width: '18px', height: '18px', borderRadius: '50%', border: `2px solid ${border}`, borderTopColor: accent }} />
+                  {locale === 'de' ? 'KI generiert (~20 Sek)...' : 'AI generating (~20 sec)...'}
+                </>
+              ) : (
+                <>✦ {locale === 'de' ? 'Avatar generieren' : 'Generate avatar'}</>
+              )}
+            </motion.button>
+            </div>
 
             {/* Error */}
             {error && (
@@ -378,7 +405,7 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
                 <p style={{ fontSize: '13px', color: '#ef4444', fontWeight: 600 }}>{error}</p>
                 {error.includes('Upgrade') && (
                   <button onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
-                    style={{ marginTop: '8px', background: accent, border: 'none', borderRadius: '8px', padding: '8px 16px', color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+                    style={{ marginTop: '8px', background: accent, border: 'none', borderRadius: '8px', padding: '8px 16px', color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
                     ✦ Upgrade →
                   </button>
                 )}
@@ -409,7 +436,7 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
               window.open(result, '_blank')
             }
           }}
-          style={{ fontSize: '11px', fontWeight: 600, color: accent, background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+          style={{ fontSize: '11px', fontWeight: 600, color: accent, background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
           {locale === 'de' ? '↓ Speichern' : '↓ Save'}
         </button>
       </div>
@@ -454,7 +481,7 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
             }
             setSharing(false)
           }}
-          style={{ width: '100%', background: `linear-gradient(135deg, ${accent}, #6b9fff)`, border: 'none', borderRadius: '10px', padding: '12px', fontSize: '14px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          style={{ width: '100%', background: `linear-gradient(135deg, ${accent}, #6b9fff)`, border: 'none', borderRadius: '10px', padding: '12px', fontSize: '14px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
           {sharing ? (
             <>
               <motion.span animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
@@ -467,7 +494,7 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
         </motion.button>
         <button
           onClick={() => window.open(result, '_blank')}
-          style={{ width: '100%', background: accentDim, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px', fontSize: '13px', fontWeight: 600, color: accent, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+          style={{ width: '100%', background: accentDim, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px', fontSize: '13px', fontWeight: 600, color: accent, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
           🔗 {locale === 'de' ? 'In neuem Tab öffnen' : 'Open in new tab'}
         </button>
       </div>
@@ -477,43 +504,7 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
           </>
         )}
 
-        {/* Info Box — kompakt */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
-          style={{ background: accentDim, border: `1px solid ${border}`, borderRadius: '14px', padding: '10px 16px', margin: '0 0 8px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' as const }}>
-            <span style={{ fontSize: '11px' }}>💡</span>
-            {[
-              locale === 'de' ? 'Ganzkörper' : 'Full body',
-              locale === 'de' ? 'Heller HG' : 'Light BG',
-              locale === 'de' ? 'Ein Teil' : 'One item',
-              locale === 'de' ? 'Gutes Licht' : 'Good light',
-            ].map((tip, i) => (
-              <span key={i} style={{ fontSize: '11px', color: muted, background: card, borderRadius: '100px', padding: '3px 8px', border: `1px solid ${border}` }}>{tip}</span>
-            ))}
-          </div>
-        </motion.div>
-
       </main>
-
-      {/* Sticky Footer Button */}
-      <div style={{ position: 'fixed' as const, bottom: '76px', left: 0, right: 0, padding: '12px 20px', background: `linear-gradient(to top, ${bg} 60%, transparent)`, zIndex: 10 }}>
-        <div style={{ maxWidth: '560px', margin: '0 auto' }}>
-          <motion.button whileTap={{ scale: 0.97 }}
-            onClick={generateAvatar}
-            disabled={loading || !selfie || !selectedItem}
-            style={{ width: '100%', padding: '16px', background: sageGradient, border: 'none', borderRadius: '100px', fontSize: '15px', fontWeight: 700, color: '#fff', cursor: loading ? 'wait' : 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: '0 8px 24px rgba(53,92,125,0.3)', transition: 'all 0.2s', opacity: (!selfie || !selectedItem) ? 0.6 : 1 }}>
-            {loading ? (
-              <>
-                <motion.span animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                  style={{ display: 'block', width: '18px', height: '18px', borderRadius: '50%', border: `2px solid rgba(255,255,255,0.3)`, borderTopColor: '#fff' }} />
-                {locale === 'de' ? 'KI generiert (~20 Sek)...' : 'AI generating (~20 sec)...'}
-              </>
-            ) : (
-              <>✦ {locale === 'de' ? 'Avatar generieren' : 'Generate avatar'}</>
-            )}
-          </motion.button>
-        </div>
-      </div>
     </div>
   )
 }
