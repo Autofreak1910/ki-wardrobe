@@ -100,11 +100,11 @@ const [withdrawalConsent, setWithdrawalConsent] = useState(false)
   const supabase = createClient()
   const isDark = theme === 'dark'
 
-  const bg        = isDark ? '#17140C' : '#F2EFE7'
-  const card      = isDark ? '#221D12' : '#ffffff'
-  const border    = isDark ? '#3A3320' : '#E7E2D5'
-  const text      = isDark ? '#F5F0E3' : '#24211B'
-  const muted     = isDark ? '#A69B82' : '#8C8776'
+  const bg        = isDark ? '#161616' : '#F2EFE7'
+  const card      = isDark ? '#1D1D20' : '#ffffff'
+  const border    = isDark ? '#2a2a2e' : '#E7E2D5'
+  const text      = isDark ? '#F5F3EE' : '#24211B'
+  const muted     = isDark ? '#9a978f' : '#8C8776'
   const accent    = isDark ? '#E5B45B' : '#C9963C'
   const accentDim = isDark ? 'rgba(229,180,91,0.12)' : 'rgba(201,150,60,0.10)'
 const [todayOutfits, setTodayOutfits] = useState(0)
@@ -354,7 +354,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
         <div style={{ padding: '0 20px' }}>
 {/* Mein Plan */}
 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-  style={{ background: isPremium ? '#24211B' : card, border: `1px solid ${isPremium ? '#3A3320' : border}`, borderRadius: '16px', overflow: 'hidden', marginBottom: '12px', boxShadow: isPremium ? '0 4px 24px rgba(201,150,60,0.15)' : 'none' }}>
+  style={{ background: isPremium ? '#24211B' : card, border: `1px solid ${isPremium ? '#2a2a2e' : border}`, borderRadius: '16px', overflow: 'hidden', marginBottom: '12px', boxShadow: isPremium ? '0 4px 24px rgba(201,150,60,0.15)' : 'none' }}>
   <div style={{ padding: '10px 16px', borderBottom: `1px solid ${isPremium ? 'rgba(229,180,91,0.2)' : border}`, background: isPremium ? 'rgba(229,180,91,0.1)' : accentDim }}>
     <p style={{ fontSize: '10px', fontWeight: 700, color: isPremium ? '#E5B45B' : accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
       {locale === 'de' ? 'Mein Plan' : 'My Plan'}
@@ -364,7 +364,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <span style={{ fontSize: '18px' }}>{isPremium ? '✦' : '○'}</span>
-        <p style={{ fontSize: '16px', fontWeight: 800, color: isPremium ? '#F5F0E3' : text }}>
+        <p style={{ fontSize: '16px', fontWeight: 800, color: isPremium ? '#F5F3EE' : text }}>
           {isPremium ? 'KiWardrobe Pro' : 'KiWardrobe Free'}
         </p>
       </div>
@@ -378,7 +378,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
       )}
     </div>
 
-    <p style={{ fontSize: '12px', color: isPremium ? '#A69B82' : muted, marginBottom: '14px' }}>
+    <p style={{ fontSize: '12px', color: isPremium ? '#9a978f' : muted, marginBottom: '14px' }}>
       {isPremium
         ? (profile?.premium_until
             ? (locale === 'de'
@@ -397,8 +397,8 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
         { label: 'Style DNA', value: isPremium ? '✓' : '✗' },
       ].map((f, i) => (
         <div key={i} style={{ background: isPremium ? 'rgba(229,180,91,0.12)' : accentDim, borderRadius: '10px', padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p style={{ fontSize: '11px', color: isPremium ? '#A69B82' : muted }}>{f.label}</p>
-          <p style={{ fontSize: '12px', fontWeight: 700, color: isPremium ? '#F5F0E3' : text }}>{f.value}</p>
+          <p style={{ fontSize: '11px', color: isPremium ? '#9a978f' : muted }}>{f.label}</p>
+          <p style={{ fontSize: '12px', fontWeight: 700, color: isPremium ? '#F5F3EE' : text }}>{f.value}</p>
         </div>
       ))}
     </div>
@@ -770,7 +770,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
             const data = await res.json()
             if (data.url) window.location.href = data.url
           }}
-          style={{ width: '100%', padding: '15px', background: withdrawalConsent ? `linear-gradient(135deg, ${accent}, #E8B45E)` : (isDark ? '#221D12' : '#EDE7D8'), border: 'none', borderRadius: '14px', fontSize: '15px', fontWeight: 700, color: withdrawalConsent ? '#24211B' : muted, cursor: withdrawalConsent ? 'pointer' : 'not-allowed', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: withdrawalConsent ? `0 4px 20px ${accent}40` : 'none', marginBottom: '10px', transition: 'all 0.2s' }}>
+          style={{ width: '100%', padding: '15px', background: withdrawalConsent ? `linear-gradient(135deg, ${accent}, #E8B45E)` : (isDark ? '#1D1D20' : '#EDE7D8'), border: 'none', borderRadius: '14px', fontSize: '15px', fontWeight: 700, color: withdrawalConsent ? '#24211B' : muted, cursor: withdrawalConsent ? 'pointer' : 'not-allowed', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: withdrawalConsent ? `0 4px 20px ${accent}40` : 'none', marginBottom: '10px', transition: 'all 0.2s' }}>
           {locale === 'de' ? '✦ Für €4,99/Monat abonnieren' : '✦ Subscribe for €4.99/month'}
         </motion.button>
 
@@ -884,7 +884,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
             </label>
             <div style={{ display: 'flex', gap: '8px' }}>
               <input type="text" value={editUsername} onChange={e => setEditUsername(e.target.value)}
-                style={{ flex: 1, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 12px', fontSize: '14px', color: text, outline: 'none', fontFamily: "'Poppins', 'Inter', sans-serif", background: isDark ? '#17140C' : '#F7F4EC', minWidth: 0 }} />
+                style={{ flex: 1, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 12px', fontSize: '14px', color: text, outline: 'none', fontFamily: "'Poppins', 'Inter', sans-serif", background: isDark ? '#161616' : '#F7F4EC', minWidth: 0 }} />
               <motion.button whileTap={{ scale: 0.95 }} onClick={saveUsername} disabled={saving}
                 style={{ background: saved ? accent : 'transparent', border: `1px solid ${saved ? accent : border}`, borderRadius: '10px', padding: '10px 16px', fontSize: '13px', fontWeight: 600, color: saved ? '#24211B' : text, cursor: 'pointer', whiteSpace: 'nowrap' as const, transition: 'all 0.2s' }}>
                 {saved ? '✓' : saving ? '...' : locale === 'de' ? 'Speichern' : 'Save'}
@@ -897,7 +897,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
             <label style={{ fontSize: '11px', fontWeight: 600, color: muted, display: 'block', marginBottom: '8px', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>Email</label>
             <div style={{ display: 'flex', gap: '8px' }}>
               <input type="email" value={editEmail} onChange={e => setEditEmail(e.target.value)}
-                style={{ flex: 1, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 12px', fontSize: '14px', color: text, outline: 'none', fontFamily: "'Poppins', 'Inter', sans-serif", background: isDark ? '#17140C' : '#F7F4EC', minWidth: 0 }} />
+                style={{ flex: 1, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 12px', fontSize: '14px', color: text, outline: 'none', fontFamily: "'Poppins', 'Inter', sans-serif", background: isDark ? '#161616' : '#F7F4EC', minWidth: 0 }} />
               <motion.button whileTap={{ scale: 0.95 }} onClick={saveEmail}
                 style={{ background: savedEmail ? accent : 'transparent', border: `1px solid ${savedEmail ? accent : border}`, borderRadius: '10px', padding: '10px 16px', fontSize: '13px', fontWeight: 600, color: savedEmail ? '#24211B' : text, cursor: 'pointer', whiteSpace: 'nowrap' as const, transition: 'all 0.2s' }}>
                 {savedEmail ? '✓' : locale === 'de' ? 'Speichern' : 'Save'}
@@ -911,7 +911,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
             <div style={{ display: 'flex', gap: '8px' }}>
               <input type="number" value={editAge} onChange={e => setEditAge(e.target.value)}
                 placeholder="25" min="13" max="99"
-                style={{ flex: 1, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 12px', fontSize: '14px', color: text, outline: 'none', fontFamily: "'Poppins', 'Inter', sans-serif", background: isDark ? '#17140C' : '#F7F4EC', minWidth: 0 }} />
+                style={{ flex: 1, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 12px', fontSize: '14px', color: text, outline: 'none', fontFamily: "'Poppins', 'Inter', sans-serif", background: isDark ? '#161616' : '#F7F4EC', minWidth: 0 }} />
              <motion.button whileTap={{ scale: 0.95 }} onClick={saveAge}
                 style={{ background: savedAge ? accent : 'transparent', border: `1px solid ${savedAge ? accent : border}`, borderRadius: '10px', padding: '10px 16px', fontSize: '13px', fontWeight: 600, color: savedAge ? '#24211B' : text, cursor: 'pointer', whiteSpace: 'nowrap' as const, transition: 'all 0.2s' }}>
                 {savedAge ? '✓' : locale === 'de' ? 'Speichern' : 'Save'}
@@ -950,7 +950,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
         </p>
         <input type="text" value={deleteConfirmText} onChange={e => setDeleteConfirmText(e.target.value)}
           placeholder={locale === 'de' ? 'LÖSCHEN' : 'DELETE'}
-          style={{ width: '100%', border: `1.5px solid ${border}`, borderRadius: '10px', padding: '12px 14px', fontSize: '14px', color: text, outline: 'none', fontFamily: "'Poppins', 'Inter', sans-serif", background: isDark ? '#17140C' : '#F7F4EC', marginBottom: '16px', boxSizing: 'border-box' as const }}
+          style={{ width: '100%', border: `1.5px solid ${border}`, borderRadius: '10px', padding: '12px 14px', fontSize: '14px', color: text, outline: 'none', fontFamily: "'Poppins', 'Inter', sans-serif", background: isDark ? '#161616' : '#F7F4EC', marginBottom: '16px', boxSizing: 'border-box' as const }}
         />
 
         <motion.button whileTap={{ scale: 0.97 }}
@@ -958,7 +958,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
           onClick={handleDeleteAccount}
           style={{
             width: '100%', padding: '13px',
-            background: deleteConfirmText === (locale === 'de' ? 'LÖSCHEN' : 'DELETE') && !deleting ? '#ef4444' : (isDark ? '#221D12' : '#EDE7D8'),
+            background: deleteConfirmText === (locale === 'de' ? 'LÖSCHEN' : 'DELETE') && !deleting ? '#ef4444' : (isDark ? '#1D1D20' : '#EDE7D8'),
             border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 700,
             color: deleteConfirmText === (locale === 'de' ? 'LÖSCHEN' : 'DELETE') && !deleting ? '#fff' : muted,
             cursor: deleteConfirmText === (locale === 'de' ? 'LÖSCHEN' : 'DELETE') && !deleting ? 'pointer' : 'not-allowed',
