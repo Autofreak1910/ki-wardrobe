@@ -52,14 +52,15 @@ const [detectedItems, setDetectedItems] = useState<Array<{
   const supabase = createClient()
   const isDark = theme === 'dark'
 
-  const bg        = isDark ? '#080c18' : '#f0f4ff'
-  const card      = isDark ? '#0d1225' : '#ffffff'
-  const border    = isDark ? '#1a2540' : '#dde3f5'
-  const text      = isDark ? '#e8eeff' : '#0a1628'
-  const muted     = isDark ? '#4d6080' : '#6b7fa8'
-  const accent    = isDark ? '#4d7eff' : '#3b6bff'
-  const accentDim = isDark ? 'rgba(77,126,255,0.1)' : 'rgba(59,107,255,0.08)'
-  const secondary = isDark ? '#0f1a14' : '#e6f7f0'
+  const bg        = isDark ? '#161616' : '#FDFCF9'
+  const card      = isDark ? '#1D1D20' : '#ffffff'
+  const border    = isDark ? '#2a2a2e' : '#EAE7E0'
+  const text      = isDark ? '#F5F3EE' : '#1D1D20'
+  const muted     = isDark ? '#9a978f' : '#8A8680'
+  const accent    = isDark ? '#7A96AC' : '#4C677D'
+  const accentDim = isDark ? 'rgba(122,150,172,0.12)' : 'rgba(76,103,125,0.08)'
+  const secondary = isDark ? '#221c14' : '#FAF6EC'
+  const goldAccent = '#F1B951'
 
   useEffect(() => { loadItems() }, [])
 
@@ -410,7 +411,7 @@ await Promise.allSettled(toSave.map(async (item, i) => {
   const totalValue = items.reduce((sum, i) => sum + (i.purchase_price ?? 0), 0)
 
   return (
-    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' as const, background: bg, overflow: 'hidden', fontFamily: "'DM Sans', sans-serif", position: 'relative' as const }}>
+    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' as const, background: bg, overflow: 'hidden', fontFamily: "'Poppins', 'Inter', sans-serif", position: 'relative' as const }}>
 
       {/* Background */}
       <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
@@ -438,7 +439,7 @@ await Promise.allSettled(toSave.map(async (item, i) => {
               zIndex: 9997, background: accent, color: '#fff',
               padding: '12px 20px', borderRadius: '14px',
               fontSize: '13px', fontWeight: 600,
-              fontFamily: "'DM Sans', sans-serif",
+              fontFamily: "'Poppins', 'Inter', sans-serif",
               boxShadow: `0 4px 20px ${accent}50`,
               maxWidth: '320px', textAlign: 'center' as const,
             }}>
@@ -521,7 +522,7 @@ await Promise.allSettled(toSave.map(async (item, i) => {
               textAlign: 'center' as const, position: 'relative' as const,
             }}>
             {!isPremium && (
-              <span style={{ position: 'absolute' as const, top: '10px', right: '10px', fontSize: '9px', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '5px', padding: '2px 7px', boxShadow: '0 2px 6px rgba(251,191,36,0.4)' }}>PRO</span>
+              <span style={{ position: 'absolute' as const, top: '10px', right: '10px', fontSize: '9px', fontWeight: 700, color: '#fff', background: goldAccent, borderRadius: '5px', padding: '2px 7px', boxShadow: '0 2px 6px rgba(251,191,36,0.4)' }}>PRO</span>
             )}
             <div style={{ width: '48px', height: '48px', borderRadius: '16px', background: isPremium ? accentDim : 'rgba(251,191,36,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px', border: isPremium ? `1px solid ${border}` : '1px solid rgba(251,191,36,0.3)' }}>
               {multiAnalyzing ? (
@@ -586,7 +587,7 @@ await Promise.allSettled(toSave.map(async (item, i) => {
           {locale === 'de' ? 'Style DNA entdecken' : 'Discover your Style DNA'}
         </p>
         {!isPremium ? (
-          <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '5px', padding: '2px 7px', boxShadow: '0 2px 8px rgba(251,191,36,0.4)' }}>PRO</span>
+          <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: goldAccent, borderRadius: '5px', padding: '2px 7px', boxShadow: '0 2px 8px rgba(251,191,36,0.4)' }}>PRO</span>
         ) : (
           <span style={{ fontSize: '9px', fontWeight: 700, color: '#a855f7', background: 'rgba(168,85,247,0.2)', borderRadius: '5px', padding: '2px 7px', border: '1px solid rgba(168,85,247,0.3)' }}>✦ AKTIV</span>
         )}
@@ -662,7 +663,7 @@ await Promise.allSettled(toSave.map(async (item, i) => {
             const isOn = filter === cat
             return (
               <button key={cat} onClick={() => setFilter(cat)}
-                style={{ padding: '7px 14px', borderRadius: '100px', border: `1px solid ${isOn ? accent : border}`, background: isOn ? accent : card, color: isOn ? '#fff' : muted, fontSize: '12px', fontWeight: isOn ? 600 : 400, cursor: 'pointer', whiteSpace: 'nowrap' as const, fontFamily: "'DM Sans', sans-serif", flexShrink: 0, transition: 'all 0.15s', boxShadow: isOn ? '0 2px 10px rgba(14,164,114,0.3)' : 'none' }}>
+                style={{ padding: '7px 14px', borderRadius: '100px', border: `1px solid ${isOn ? accent : border}`, background: isOn ? accent : card, color: isOn ? '#fff' : muted, fontSize: '12px', fontWeight: isOn ? 600 : 400, cursor: 'pointer', whiteSpace: 'nowrap' as const, fontFamily: "'Poppins', 'Inter', sans-serif", flexShrink: 0, transition: 'all 0.15s', boxShadow: isOn ? '0 2px 10px rgba(14,164,114,0.3)' : 'none' }}>
                 {cat === 'all' ? `${t('wardrobe.all')} (${items.length})` : catLabels[cat]}
               </button>
             )
@@ -701,7 +702,7 @@ await Promise.allSettled(toSave.map(async (item, i) => {
             {filtered.length > 6 && (
               <motion.button whileTap={{ scale: 0.97 }}
                 onClick={() => setShowAll(v => !v)}
-                style={{ width: '100%', marginTop: '12px', padding: '12px', background: card, border: `1px solid ${border}`, borderRadius: '14px', fontSize: '13px', fontWeight: 600, color: accent, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                style={{ width: '100%', marginTop: '12px', padding: '12px', background: card, border: `1px solid ${border}`, borderRadius: '14px', fontSize: '13px', fontWeight: 600, color: accent, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                 {showAll
                   ? (locale === 'de' ? '▲ Weniger anzeigen' : '▲ Show less')
                   : `▼ ${locale === 'de' ? `Alle ${filtered.length} anzeigen` : `Show all ${filtered.length}`}`}
@@ -737,21 +738,21 @@ await Promise.allSettled(toSave.map(async (item, i) => {
                 <div style={{ flex: 1 }}>
                   <label style={{ fontSize: '11px', fontWeight: 600, color: muted, display: 'block', marginBottom: '6px', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>{t('wardrobe.purchaseDate')}</label>
                   <input type="date" value={editDate} onChange={e => setEditDate(e.target.value)}
-                    style={{ width: '100%', background: card, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 12px', fontSize: '13px', color: text, outline: 'none', fontFamily: "'DM Sans', sans-serif" }} />
+                    style={{ width: '100%', background: card, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 12px', fontSize: '13px', color: text, outline: 'none', fontFamily: "'Poppins', 'Inter', sans-serif" }} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={{ fontSize: '11px', fontWeight: 600, color: muted, display: 'block', marginBottom: '6px', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>{t('wardrobe.purchasePrice')}</label>
                   <input type="number" value={editPrice} onChange={e => setEditPrice(e.target.value)} placeholder="0.00"
-                    style={{ width: '100%', background: card, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 12px', fontSize: '13px', color: text, outline: 'none', fontFamily: "'DM Sans', sans-serif" }} />
+                    style={{ width: '100%', background: card, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 12px', fontSize: '13px', color: text, outline: 'none', fontFamily: "'Poppins', 'Inter', sans-serif" }} />
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button onClick={() => handleDelete(selectedItem.id)}
-                  style={{ flex: 1, padding: '13px', background: 'transparent', border: '1px solid rgba(239,68,68,0.4)', borderRadius: '12px', fontSize: '14px', color: '#ef4444', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", fontWeight: 600, letterSpacing: '-0.01em' }}>
+                  style={{ flex: 1, padding: '13px', background: 'transparent', border: '1px solid rgba(239,68,68,0.4)', borderRadius: '12px', fontSize: '14px', color: '#ef4444', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", fontWeight: 600, letterSpacing: '-0.01em' }}>
                   {t('wardrobe.delete')}
                 </button>
                 <button onClick={handleSaveDetails} disabled={saving}
-                  style={{ flex: 2, padding: '13px', background: `linear-gradient(135deg, ${accent}, #0891b2)`, border: 'none', borderRadius: '12px', fontSize: '14px', color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", fontWeight: 600, letterSpacing: '-0.01em', boxShadow: '0 4px 16px rgba(14,164,114,0.35)' }}>
+                  style={{ flex: 2, padding: '13px', background: `linear-gradient(135deg, ${accent}, #0891b2)`, border: 'none', borderRadius: '12px', fontSize: '14px', color: '#fff', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", fontWeight: 600, letterSpacing: '-0.01em', boxShadow: '0 4px 16px rgba(14,164,114,0.35)' }}>
                   {saving ? t('wardrobe.saving') : t('wardrobe.save')}
                 </button>
               </div>
@@ -868,12 +869,12 @@ await Promise.allSettled(toSave.map(async (item, i) => {
                     </div>
                     <div style={{ padding: '8px' }}>
                       <input value={item.name} onChange={e => updateDetectedItem(i, 'name', e.target.value)}
-                        style={{ width: '100%', fontSize: '12px', fontWeight: 700, color: text, border: 'none', background: 'transparent', outline: 'none', marginBottom: '4px', fontFamily: "'DM Sans', sans-serif", padding: 0 }} />
+                        style={{ width: '100%', fontSize: '12px', fontWeight: 700, color: text, border: 'none', background: 'transparent', outline: 'none', marginBottom: '4px', fontFamily: "'Poppins', 'Inter', sans-serif", padding: 0 }} />
                       <input value={item.color} onChange={e => updateDetectedItem(i, 'color', e.target.value)}
-                        style={{ width: '100%', fontSize: '11px', color: muted, border: 'none', background: 'transparent', outline: 'none', marginBottom: '4px', fontFamily: "'DM Sans', sans-serif", padding: 0 }} />
+                        style={{ width: '100%', fontSize: '11px', color: muted, border: 'none', background: 'transparent', outline: 'none', marginBottom: '4px', fontFamily: "'Poppins', 'Inter', sans-serif", padding: 0 }} />
                       <input value={item.brand ?? ''} onChange={e => updateDetectedItem(i, 'brand', e.target.value)}
                         placeholder={locale === 'de' ? 'Marke (optional)' : 'Brand (optional)'}
-                        style={{ width: '100%', fontSize: '11px', color: accent, border: 'none', background: 'transparent', outline: 'none', fontFamily: "'DM Sans', sans-serif", padding: 0 }} />
+                        style={{ width: '100%', fontSize: '11px', color: accent, border: 'none', background: 'transparent', outline: 'none', fontFamily: "'Poppins', 'Inter', sans-serif", padding: 0 }} />
                     </div>
                   </div>
                 ))}
@@ -884,7 +885,7 @@ await Promise.allSettled(toSave.map(async (item, i) => {
                   <motion.button whileTap={{ scale: 0.97 }}
                     onClick={saveMultiItems}
                     disabled={multiSaving || detectedItems.filter(it => it.included).length === 0}
-                    style={{ width: '100%', padding: '16px', borderRadius: '14px', border: 'none', background: multiSaving ? border : `linear-gradient(135deg, ${accent}, #6b9fff)`, color: '#fff', fontSize: '15px', fontWeight: 700, cursor: multiSaving ? 'wait' : 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: multiSaving ? 'none' : `0 6px 24px ${accent}40` }}>
+                    style={{ width: '100%', padding: '16px', borderRadius: '14px', border: 'none', background: multiSaving ? border : `linear-gradient(135deg, ${accent}, #6b9fff)`, color: '#fff', fontSize: '15px', fontWeight: 700, cursor: multiSaving ? 'wait' : 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: multiSaving ? 'none' : `0 6px 24px ${accent}40` }}>
                     {multiSaving
                       ? (locale === 'de' ? 'Speichere...' : 'Saving...')
                       : `${locale === 'de' ? 'Speichern' : 'Save'} (${detectedItems.filter(it => it.included).length})`}
@@ -898,4 +899,4 @@ await Promise.allSettled(toSave.map(async (item, i) => {
       </AnimatePresence>
     </div>
   )
-} 
+}
