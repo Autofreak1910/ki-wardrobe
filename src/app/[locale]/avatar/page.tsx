@@ -20,6 +20,67 @@ function getCategoryLabel(category: string): string {
   return map[category] ?? category
 }
 
+function createWatermarkedImage(imageUrl: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      canvas.width = img.naturalWidth
+      canvas.height = img.naturalHeight
+      const ctx = canvas.getContext('2d')!
+      ctx.drawImage(img, 0, 0)
+
+      const w = canvas.width
+      const h = canvas.height
+      const fontSize = Math.max(16, Math.round(w * 0.045))
+      ctx.font = `700 ${fontSize}px 'Poppins', sans-serif`
+      ctx.fillStyle = 'rgba(255,255,255,0.16)'
+      ctx.strokeStyle = 'rgba(0,0,0,0.08)'
+      ctx.lineWidth = 1
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.save()
+      ctx.translate(w / 2, h / 2)
+      ctx.rotate(-Math.PI / 8)
+      const stepY = fontSize * 4.2
+      const stepX = fontSize * 7.5
+      for (let y = -h; y < h * 2; y += stepY) {
+        for (let x = -w; x < w * 2; x += stepX) {
+          ctx.fillText('✦ KiWardrobe', x, y)
+          ctx.strokeText('✦ KiWardrobe', x, y)
+        }
+      }
+      ctx.restore()
+
+      const badgeW = Math.max(120, w * 0.32)
+      const badgeH = badgeW * 0.24
+      const pad = w * 0.03
+      ctx.fillStyle = 'rgba(0,0,0,0.45)'
+      const radius = badgeH / 2
+      const bx = w - badgeW - pad
+      const by = h - badgeH - pad
+      ctx.beginPath()
+      ctx.moveTo(bx + radius, by)
+      ctx.arcTo(bx + badgeW, by, bx + badgeW, by + badgeH, radius)
+      ctx.arcTo(bx + badgeW, by + badgeH, bx, by + badgeH, radius)
+      ctx.arcTo(bx, by + badgeH, bx, by, radius)
+      ctx.arcTo(bx, by, bx + badgeW, by, radius)
+      ctx.closePath()
+      ctx.fill()
+      ctx.fillStyle = '#F1B951'
+      ctx.font = `700 ${Math.round(badgeH * 0.42)}px 'Poppins', sans-serif`
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText('✦ KiWardrobe', bx + badgeW / 2, by + badgeH / 2 + 1)
+
+      resolve(canvas.toDataURL('image/jpeg', 0.94))
+    }
+    img.onerror = () => reject(new Error('watermark image load failed'))
+    img.src = imageUrl
+  })
+}
+
 async function createShareCard(selfieUrl: string, resultUrl: string, locale: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const selfieImg = new Image()
@@ -403,8 +464,8 @@ export default function AvatarPage() {
                       <button
                         onClick={async () => {
                           try {
-                            const response = await fetch(result)
-                            const blob = await response.blob()
+                            const watermarked = await createWatermarkedImage(result)
+                            const blob = await (await fetch(watermarked)).blob()
                             const url = URL.createObjectURL(blob)
                             const a = document.createElement('a')
                             a.href = url
@@ -419,19 +480,39 @@ export default function AvatarPage() {
                         {locale === 'de' ? '↓ Speichern' : '↓ Save'}
                       </button>
                     </div>
-                    <img
-                      src={result}
-                      style={{ width: '100%', display: 'block', maxHeight: '500px', objectFit: 'contain' }}
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none'
-                        const div = document.createElement('div')
-                        div.style.padding = '20px'
-                        div.style.textAlign = 'center'
-                        div.style.color = accent
-                        div.innerHTML = `<a href="${result}" target="_blank" style="color:${accent};font-weight:600">🔗 ${locale === 'de' ? 'Bild öffnen →' : 'Open image →'}</a>`
-                        e.currentTarget.parentNode?.appendChild(div)
-                      }}
-                    />
+
+                    {/* Umkleidekabinen-Rahmen */}
+                    <div style={{
+                      position: 'relative' as const,
+                      padding: '18px',
+                      background: isDark
+                        ? 'repeating-linear-gradient(90deg, #241318 0px, #241318 22px, #2E1A20 22px, #2E1A20 44px)'
+                        : 'repeating-linear-gradient(90deg, #7A2E3A 0px, #7A2E3A 22px, #8C3745 22px, #8C3745 44px)',
+                    }}>
+                      <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.35) 100%)', pointerEvents: 'none' as const }} />
+                      <div style={{ position: 'relative' as const, borderRadius: '10px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.35)' }}>
+                        <img
+                          src={result}
+                          style={{ width: '100%', display: 'block', maxHeight: '480px', objectFit: 'contain', background: isDark ? '#111' : '#fff' }}
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none'
+                            const div = document.createElement('div')
+                            div.style.padding = '20px'
+                            div.style.textAlign = 'center'
+                            div.style.color = accent
+                            div.innerHTML = `<a href="${result}" target="_blank" style="color:${accent};font-weight:600">🔗 ${locale === 'de' ? 'Bild öffnen →' : 'Open image →'}</a>`
+                            e.currentTarget.parentNode?.appendChild(div)
+                          }}
+                        />
+                        {/* Sichtbares Wasserzeichen-Badge */}
+                        <div style={{ position: 'absolute', bottom: '10px', right: '10px', background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', borderRadius: '100px', padding: '5px 12px', pointerEvents: 'none' as const }}>
+                          <p style={{ fontSize: '11px', fontWeight: 700, color: goldAccent, letterSpacing: '0.01em' }}>✦ KiWardrobe</p>
+                        </div>
+                      </div>
+                      <p style={{ position: 'relative' as const, textAlign: 'center' as const, fontSize: '10px', color: 'rgba(255,255,255,0.55)', marginTop: '10px', letterSpacing: '0.04em' }}>
+                        {locale === 'de' ? 'Kabine 1 · KiWardrobe Studio' : 'Fitting room 1 · KiWardrobe Studio'}
+                      </p>
+                    </div>
                     <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column' as const, gap: '8px' }}>
                       <motion.button whileTap={{ scale: 0.97 }}
                         onClick={async () => {
