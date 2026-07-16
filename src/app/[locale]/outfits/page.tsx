@@ -31,7 +31,7 @@ export default function OutfitsPage() {
   const accent    = isDark ? '#5C82A0' : '#355C7D'
   const accentDim = isDark ? 'rgba(92,130,160,0.12)' : 'rgba(53,92,125,0.07)'
   const goldAccent = '#F1B951'
-  const sageGradient = 'linear-gradient(135deg, #7FA98E, #355C7D)'
+  const sageGradient = 'linear-gradient(135deg, #F1B951, #C98A3A)'
 
   useEffect(() => { loadData() }, [])
 
@@ -106,7 +106,7 @@ export default function OutfitsPage() {
 
           {/* + Button oben rechts */}
           <motion.button whileTap={{ scale: 0.92 }} onClick={() => router.push('/' + locale + '/dresser')}
-            style={{ position: 'absolute' as const, bottom: '16px', right: '20px', width: '44px', height: '44px', borderRadius: '50%', background: sageGradient, border: 'none', fontSize: '22px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 16px rgba(53,92,125,0.4)', zIndex: 2 }}>
+            style={{ position: 'absolute' as const, bottom: '16px', right: '20px', width: '44px', height: '44px', borderRadius: '50%', background: sageGradient, border: 'none', fontSize: '22px', color: '#1D1D20', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 16px rgba(241,185,81,0.5)', zIndex: 2 }}>
             +
           </motion.button>
         </motion.div>
@@ -139,7 +139,7 @@ export default function OutfitsPage() {
             <p style={{ fontSize: '16px', fontWeight: 700, color: text, marginBottom: '6px', letterSpacing: '-0.02em' }}>{t('outfits.empty')}</p>
             <p style={{ fontSize: '13px', color: muted, marginBottom: '20px' }}>{t('outfits.emptySub')}</p>
             <motion.button whileTap={{ scale: 0.96 }} onClick={() => router.push('/' + locale + '/dresser')}
-              style={{ background: sageGradient, border: 'none', borderRadius: '10px', padding: '11px 22px', fontSize: '14px', fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: '0 4px 16px rgba(53,92,125,0.35)' }}>
+              style={{ background: sageGradient, border: 'none', borderRadius: '10px', padding: '11px 22px', fontSize: '14px', fontWeight: 600, color: '#1D1D20', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: '0 4px 16px rgba(241,185,81,0.4)' }}>
               {t('outfits.dressMe')}
             </motion.button>
           </div>
