@@ -73,108 +73,20 @@ function removeBlackBackground(imageUrl: string): Promise<string> {
       }
       const px = srcData.data
 
-      // Referenzfarbe des Hintergrunds aus den vier Ecken schaetzen (dort ist so gut wie nie Kleidung)
-      const corners = [0, (w - 1) * 4, (h - 1) * w * 4, ((h - 1) * w + w - 1) * 4]
-      let refR = 0, refG = 0, refB = 0
-      corners.forEach(i => { refR += px[i]; refG += px[i + 1]; refB += px[i + 2] })
-      refR /= 4; refG /= 4; refB /= 4
-
-      const DIST_THRESHOLD = 38
-      const colorDist = (i: number) => {
-        const dr = px[i] - refR, dg = px[i + 1] - refG, db = px[i + 2] - refB
-        return Math.sqrt(dr * dr + dg * dg + db * db)
-      }
-      const isBgPixel = (i: number) => {
-        const r = px[i], g = px[i + 1], b = px[i + 2]
-        return Math.max(r, g, b) < 42 && colorDist(i) < DIST_THRESHOLD
-      }
-
-      const mask = new Uint8Array(w * h)
-      const stack: number[] = []
-      for (let x = 0; x < w; x++) { stack.push(x); stack.push(x + (h - 1) * w) }
-      for (let y = 0; y < h; y++) { stack.push(y * w); stack.push(w - 1 + y * w) }
-
-      while (stack.length) {
-        const p = stack.pop() as number
-        if (p < 0 || p >= w * h || mask[p]) continue
-        const i = p * 4
-        if (!isBgPixel(i)) continue
-        mask[p] = 1
-        const x = p % w
-        const y = (p / w) | 0
-        if (x > 0) stack.push(p - 1)
-        if (x < w - 1) stack.push(p + 1)
-        if (y > 0) stack.push(p - w)
-        if (y < h - 1) stack.push(p + w)
-      }
-
-      // Sicherheitsmarge: Hintergrund-Maske um ~2px nach innen schrumpfen, damit duenne
-      // Koerperteile (Fuesse, Finger) am Rand nicht faelschlich mitentfernt werden.
-      const erode = (m: Uint8Array): Uint8Array => {
-        const r = new Uint8Array(m)
-        for (let x = 0; x < w; x++) {
-          for (let y = 0; y < h; y++) {
-            const p = x + y * w
-            if (!m[p]) continue
-            const left = x > 0 ? m[p - 1] : 1
-            const right = x < w - 1 ? m[p + 1] : 1
-            const up = y > 0 ? m[p - w] : 1
-            const down = y < h - 1 ? m[p + w] : 1
-            if (!(left && right && up && down)) r[p] = 0
-          }
-        }
-        return r
-      }
-      let eroded = erode(mask)
-      eroded = erode(eroded)
-
-      // Kleine, isolierte Loecher im Vordergrund (faelschlich als Hintergrund erkannt) wieder schliessen:
-      // ein Hintergrund-Pixel bleibt nur Hintergrund, wenn es an mindestens 3 der 4 Nachbarn ebenfalls Hintergrund ist
-      const cleaned = new Uint8Array(eroded)
-      for (let x = 1; x < w - 1; x++) {
-        for (let y = 1; y < h - 1; y++) {
-          const p = x + y * w
-          if (!eroded[p]) continue
-          const n = eroded[p - 1] + eroded[p + 1] + eroded[p - w] + eroded[p + w]
-          if (n < 3) cleaned[p] = 0
+      // Nur wirklich fast reines Schwarz einfaerben, alles andere bleibt exakt wie es ist.
+      // Kein Ausschneiden, keine Transparenz, keine Verbindungs-Logik -- kann also nichts "wegschneiden".
+      const bgR = 211, bgG = 201, bgB = 168 // #D3C9A8
+      for (let p = 0; p < px.length; p += 4) {
+        const r = px[p], g = px[p + 1], b = px[p + 2]
+        if (Math.max(r, g, b) < 18) {
+          px[p] = bgR; px[p + 1] = bgG; px[p + 2] = bgB
         }
       }
+      ctx.putImageData(srcData, 0, 0)
 
-      const out = ctx.createImageData(w, h)
-      const op = out.data
-      for (let p = 0; p < w * h; p++) {
-        const i = p * 4
-        if (cleaned[p]) {
-          op[i] = 0; op[i + 1] = 0; op[i + 2] = 0; op[i + 3] = 0
-        } else {
-          op[i] = px[i]; op[i + 1] = px[i + 1]; op[i + 2] = px[i + 2]; op[i + 3] = 255
-        }
-      }
-      for (let x = 1; x < w - 1; x++) {
-        for (let y = 1; y < h - 1; y++) {
-          const p = x + y * w
-          if (cleaned[p]) continue
-          const i = p * 4
-          const neighborsBg = cleaned[p - 1] + cleaned[p + 1] + cleaned[p - w] + cleaned[p + w]
-          if (neighborsBg > 0) op[i + 3] = Math.round(255 * (1 - neighborsBg / 5))
-        }
-      }
-      ctx.putImageData(out, 0, 0)
-
-      const finalCanvas = document.createElement('canvas')
-      finalCanvas.width = w
-      finalCanvas.height = h
-      const fctx = finalCanvas.getContext('2d')!
-      const grad = fctx.createRadialGradient(w / 2, h * 0.32, h * 0.1, w / 2, h * 0.5, h * 0.85)
-      grad.addColorStop(0, '#EFEAE0')
-      grad.addColorStop(1, '#D3C9A8')
-      fctx.fillStyle = grad
-      fctx.fillRect(0, 0, w, h)
-      fctx.drawImage(canvas, 0, 0)
-
-      resolve(finalCanvas.toDataURL('image/png'))
+      resolve(canvas.toDataURL('image/jpeg', 0.94))
     }
-    img.onerror = () => reject(new Error('bg removal image load failed'))
+    img.onerror = () => reject(new Error('bg recolor image load failed'))
     img.src = imageUrl
   })
 }
