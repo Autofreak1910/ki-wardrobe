@@ -74,7 +74,7 @@ export default function OutfitsPage() {
       {/* Background */}
       <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
         <div style={{ position: 'absolute', top: '-100px', right: '-60px', width: '380px', height: '380px', borderRadius: '50%', background: isDark ? 'rgba(122,150,172,0.08)' : 'rgba(53,92,125,0.06)', filter: 'blur(90px)' }} />
-        <div style={{ position: 'absolute', bottom: '80px', left: '-80px', width: '320px', height: '320px', borderRadius: '50%', background: isDark ? 'rgba(241,185,81,0.10)' : 'rgba(241,185,81,0.16)', filter: 'blur(90px)' }} />
+        <div style={{ position: 'absolute', bottom: '80px', left: '-80px', width: '320px', height: '320px', borderRadius: '50%', background: isDark ? 'rgba(122,150,172,0.06)' : 'rgba(53,92,125,0.05)', filter: 'blur(90px)' }} />
         {!isDark && (
           <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.4 }} xmlns="http://www.w3.org/2000/svg">
             <defs><pattern id="odots" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="0.9" fill="#1D1D20" opacity="0.06" /></pattern></defs>
@@ -98,12 +98,12 @@ export default function OutfitsPage() {
           />
 
           {/* Gradient Overlay */}
-          <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, rgba(241,185,81,0.22) 0%, ${bg}cc 65%, ${bg} 100%)` }} />
+          <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, rgba(29,29,32,0.06) 0%, ${bg}cc 65%, ${bg} 100%)` }} />
 
           {/* Titel über Bild */}
           <div style={{ position: 'absolute' as const, bottom: '16px', left: '20px', zIndex: 2 }}>
-            <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: goldText, marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: goldAccent, display: 'inline-block' }} />
+            <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: muted, marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: accent, display: 'inline-block' }} />
               {locale === 'de' ? 'Deine Looks' : 'Your Looks'}
             </p>
             <h1 style={{ fontSize: '28px', fontWeight: 800, color: text, letterSpacing: '-0.04em', lineHeight: 1 }}>Outfits</h1>
@@ -111,7 +111,7 @@ export default function OutfitsPage() {
 
           {/* Favoriten-Badge oben rechts */}
           {favCount > 0 && (
-            <div style={{ position: 'absolute', top: '14px', right: '20px', zIndex: 2, display: 'flex', alignItems: 'center', gap: '5px', background: 'rgba(255,255,255,0.9)', border: `1px solid ${goldAccent}`, borderRadius: '100px', padding: '5px 10px 5px 8px', backdropFilter: 'blur(6px)' }}>
+            <div style={{ position: 'absolute', top: '14px', right: '20px', zIndex: 2, display: 'flex', alignItems: 'center', gap: '5px', background: 'rgba(255,255,255,0.9)', border: `1px solid ${border}`, borderRadius: '100px', padding: '5px 10px 5px 8px', backdropFilter: 'blur(6px)' }}>
               <span style={{ fontSize: '11px', color: goldAccent }}>★</span>
               <span style={{ fontSize: '11px', fontWeight: 600, color: '#1D1D20' }}>{favCount}</span>
             </div>
@@ -140,14 +140,14 @@ export default function OutfitsPage() {
             <style>{`@keyframes shimmer{0%,100%{opacity:1}50%{opacity:0.4}}`}</style>
           </div>
         ) : displayed.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px 24px', border: `1px solid ${goldAccent}`, borderRadius: '20px', background: card, margin: '0 20px' }}>
-            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: goldDim, border: `1px solid ${goldAccent}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={goldText} strokeWidth="1.5"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+          <div style={{ textAlign: 'center', padding: '60px 24px', border: `1px solid ${border}`, borderRadius: '20px', background: card, margin: '0 20px' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: accentDim, border: `1px solid ${border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="1.5"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
             </div>
             <p style={{ fontSize: '16px', fontWeight: 700, color: text, marginBottom: '6px', letterSpacing: '-0.02em' }}>{t('outfits.empty')}</p>
             <p style={{ fontSize: '13px', color: muted, marginBottom: '20px' }}>{t('outfits.emptySub')}</p>
             <motion.button whileTap={{ scale: 0.96 }} onClick={() => router.push('/' + locale + '/dresser')}
-              style={{ background: sageGradient, border: 'none', borderRadius: '10px', padding: '11px 22px', fontSize: '14px', fontWeight: 600, color: '#1D1D20', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: '0 4px 16px rgba(241,185,81,0.4)' }}>
+              style={{ background: navyGradient, border: 'none', borderRadius: '10px', padding: '11px 22px', fontSize: '14px', fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: '0 4px 16px rgba(22,40,61,0.3)' }}>
               {t('outfits.dressMe')}
             </motion.button>
           </div>
@@ -161,9 +161,9 @@ export default function OutfitsPage() {
                     initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ delay: i * 0.04 }}
-                    style={{ background: card, border: `1px solid ${outfit.is_favorite ? goldAccent : border}`, borderRadius: '16px', overflow: 'hidden', boxShadow: outfit.is_favorite ? '0 4px 18px rgba(241,185,81,0.18)' : 'none' }}>
+                    style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden' }}>
                     {/* Images */}
-                    <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: `repeat(${Math.min(outfitItems.length || 1, 4)}, 1fr)`, height: '180px', background: isDark ? '#2B2210' : '#FBE9C6' }}>
+                    <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: `repeat(${Math.min(outfitItems.length || 1, 4)}, 1fr)`, height: '180px', background: isDark ? '#221c14' : '#F4EFE4' }}>
                       {outfitItems.map((item, j) => (
                         <div key={j} style={{ overflow: 'hidden' }}>
                           <img src={item.image_url} alt={item.name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
@@ -175,7 +175,7 @@ export default function OutfitsPage() {
                         </div>
                       )}
                       {outfit.occasion && (
-                        <span style={{ position: 'absolute', top: '10px', left: '10px', background: 'rgba(255,255,255,0.92)', border: `1px solid ${goldAccent}`, color: goldText, fontSize: '10px', fontWeight: 600, padding: '4px 9px', borderRadius: '100px', textTransform: 'capitalize' as const }}>
+                        <span style={{ position: 'absolute', top: '10px', left: '10px', background: 'rgba(255,255,255,0.92)', border: `1px solid ${border}`, color: text, fontSize: '10px', fontWeight: 600, padding: '4px 9px', borderRadius: '100px', textTransform: 'capitalize' as const }}>
                           {outfit.occasion}
                         </span>
                       )}
