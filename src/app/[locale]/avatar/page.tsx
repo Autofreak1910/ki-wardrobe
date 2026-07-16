@@ -75,17 +75,23 @@ function recolorBlackBackground(imageUrl: string): Promise<string> {
       const px = srcData.data
 
       // Nur wirklich fast reines Schwarz umfaerben, alles andere bleibt exakt wie es ist.
-      // Kein Ausschneiden, keine Transparenz -- kann also nichts "wegschneiden".
+      // Weicher Uebergang (Blend-Band) statt hartem Schnitt, damit keine JPEG-Kompressions-Halos entstehen.
       const bgR = 211, bgG = 201, bgB = 168 // #D3C9A8, helles Grau-Gold
+      const HARD = 18   // ab hier komplett umgefaerbt
+      const SOFT = 46   // ab hier komplett Original, dazwischen weich gemischt
       for (let p = 0; p < px.length; p += 4) {
         const r = px[p], g = px[p + 1], b = px[p + 2]
-        if (Math.max(r, g, b) < 18) {
-          px[p] = bgR; px[p + 1] = bgG; px[p + 2] = bgB
+        const lum = Math.max(r, g, b)
+        if (lum < SOFT) {
+          const t = lum <= HARD ? 1 : 1 - (lum - HARD) / (SOFT - HARD)
+          px[p] = Math.round(r + (bgR - r) * t)
+          px[p + 1] = Math.round(g + (bgG - g) * t)
+          px[p + 2] = Math.round(b + (bgB - b) * t)
         }
       }
       ctx.putImageData(srcData, 0, 0)
 
-      resolve(canvas.toDataURL('image/jpeg', 0.94))
+      resolve(canvas.toDataURL('image/png'))
     }
     img.onerror = () => reject(new Error('bg recolor image load failed'))
     img.src = imageUrl
