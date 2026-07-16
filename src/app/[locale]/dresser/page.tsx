@@ -53,7 +53,6 @@ function getGreeting(locale: string): string {
   const greetingsDe = ['Hey', 'Hi', 'Servus', 'Hallo', 'Na', 'Yo', 'Moin', 'Hey du', 'Was geht', 'Schön dich zu sehen', 'Da bist du ja', 'Let\'s go']
   const greetingsEn = ['Hey', 'Hi', 'Yo', 'Hello', 'Sup', 'What\'s up', 'Hey you', 'Good to see you', 'There you are', 'Let\'s go', 'Hiya', 'Welcome back']
   const pool = locale === 'de' ? greetingsDe : greetingsEn
-  // Deterministisch: gleiche Stunde (seit Epoch) = gleiche Begruessung, kein Zufall
   const hoursSinceEpoch = Math.floor(Date.now() / (1000 * 60 * 60))
   return pool[hoursSinceEpoch % pool.length]
 }
@@ -150,7 +149,6 @@ useEffect(() => {
   loadDailyFreeOutfit()
   loadStreak()
 
-  // Wardrobe neu laden wenn User zurückkommt (z.B. nach Upload)
   function onVisible() {
     if (document.visibilityState === 'visible') loadWardrobe()
   }
@@ -176,10 +174,8 @@ useEffect(() => {
     const seen = localStorage.getItem('kw_welcome_seen')
     if (!seen) {
       setShowUnlock(true)
-      // Schloss-Animation laeuft 2800ms — DANACH erst Tour freigeben
       setTimeout(() => {
         setShowUnlock(false)
-        // Kurze Pause nach dem Ausblenden, dann Tour freigeben
         setTimeout(() => setOnboardingReady(true), 600)
       }, 2800)
     }
@@ -232,7 +228,6 @@ async function loadStreak() {
   async function loadWardrobe() {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
-// Pruefe ob eingeladener User die Begruessung noch nicht gesehen hat (pro User-ID, nicht pro Browser)
     const welcomeSeenKey = 'kw_invited_welcome_seen_' + session.user.id
     if (!localStorage.getItem(welcomeSeenKey)) {
       try {
@@ -270,7 +265,6 @@ const { data: profile } = await supabase.from('profiles').select('username, prem
 
 async function fetchWeather() {
   setWeatherLoading(true)
-  // Wenn Wetter in Einstellungen deaktiviert: nichts tun
   if (localStorage.getItem('kw_weather_disabled') === 'true') {
     setWeather(null)
     setWeatherLoading(false)
@@ -281,14 +275,12 @@ async function fetchWeather() {
   setWeatherDisabled(false)
   try {
     let lat: number, lon: number
-    // Gecachte Koordinaten nutzen, falls vorhanden (kein erneutes Nachfragen)
     const cachedCoords = localStorage.getItem('kw_coords')
     if (cachedCoords) {
       const parsed = JSON.parse(cachedCoords)
       lat = parsed.lat
       lon = parsed.lon
     } else {
-      // Nur beim allerersten Mal nach Standort fragen
       const pos = await Promise.race([
         new Promise<GeolocationPosition>((resolve, reject) =>
           navigator.geolocation.getCurrentPosition(resolve, reject, {
@@ -303,18 +295,15 @@ async function fetchWeather() {
       ])
       lat = pos.coords.latitude
       lon = pos.coords.longitude
-      // Koordinaten cachen, damit wir nie wieder fragen muessen
       try { localStorage.setItem('kw_coords', JSON.stringify({ lat, lon })) } catch {}
     }
 
-    // Standort für Cron-Job speichern (für tägliches Auto-Outfit)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         supabase.from('profiles').update({ last_lat: lat, last_lon: lon }).eq('id', session.user.id)
       }
     })
 
-    // Parallel fetchen
     const [weatherRes, geoRes] = await Promise.all([
       fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode,is_day&timezone=auto`),
       fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`)
@@ -328,7 +317,6 @@ async function fetchWeather() {
     setWeather({ temp: Math.round(wd.current.temperature_2m), condition, icon, city })
 
   } catch (err: any) {
-    // Fallback: IP-basiertes Wetter ohne GPS
     try {
       const ipRes = await fetch('https://ipapi.co/json/')
       const ipData = await ipRes.json()
@@ -340,7 +328,6 @@ async function fetchWeather() {
 
       setWeather({ temp: Math.round(wd.current.temperature_2m), condition, icon, city: city || '' })
     } catch {
-      // Letzter Fallback
       setWeather({ temp: 18, condition: locale === 'de' ? 'Schönes Wetter' : 'Nice weather', icon: '🌤️', city: '' })
     }
   } finally {
@@ -354,7 +341,6 @@ async function fetchWeather() {
   }
 function getUsageCounts(): Record<string, { count: number; lastUsed: number }> {
   try {
-    // Counts werden aus dem rollenden Fenster der letzten 12 Generierungen berechnet
     const stored = localStorage.getItem('kw_usage_window')
     const window: string[][] = stored ? JSON.parse(stored) : []
     const counts: Record<string, { count: number; lastUsed: number }> = {}
@@ -378,14 +364,12 @@ function getBlockedNames(): string[] {
 
 function pushToBlockedHistory(ids: string[]) {
   try {
-    // Rollendes Fenster: speichere die letzten 12 Generierungen als Listen von Item-IDs
     const stored = localStorage.getItem('kw_usage_window')
     const window: string[][] = stored ? JSON.parse(stored) : []
     window.push(ids)
     const trimmed = window.slice(-12)
     localStorage.setItem('kw_usage_window', JSON.stringify(trimmed))
 
-    // Auch die letzten 2 fuer die harte Blockierung
     localStorage.setItem('kw_recent_outfit_history', JSON.stringify(trimmed.slice(-2)))
   } catch {}
 }
@@ -395,7 +379,6 @@ if (wardrobeItems.length < 3) return
   const { data: { session } } = await supabase.auth.getSession()
   if (!session?.user) return
 
-  // Outfit Tageslimit check (DB-basiert, pro User)
   const startOfDay = new Date()
   startOfDay.setHours(0, 0, 0, 0)
 const { count: todayCount, error: countError } = await supabase
@@ -431,7 +414,6 @@ setLoading(true); setSaved(false); setOutfit(null)
   const itemsToUse = filteredItems.length >= 2 ? filteredItems : wardrobeItems
   const weatherStr = weather ? `${weather.temp}°C, ${weather.condition}` : '18°C'
   try {
-    // keepalive sorgt dafuer dass der Request auch bei Tab-Wechsel/Backgrounding weiterlaeuft
     const res = await fetch('/api/generate-outfit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-locale': locale },
@@ -449,7 +431,6 @@ setLoading(true); setSaved(false); setOutfit(null)
             return a === b && !usedIds.has(i.id)
           })
           if (exactMatch) { usedIds.add(exactMatch.id); return exactMatch }
-          // Fallback nur falls kein exaktes Match - dann nimm das beste Teil-Match das noch nicht verwendet wurde
           const fuzzyMatch = wardrobeItems.find(i => {
             if (usedIds.has(i.id)) return false
             const a = (i.name ?? '').toLowerCase().trim()
@@ -462,7 +443,6 @@ setLoading(true); setSaved(false); setOutfit(null)
         return { items: o.items, reasoning: o.reasoning, vibe: o.vibe, itemObjects: matchedItems }
       })
 setOutfit({ outfits: mappedOutfits, active: 0 })
-     // Streak updaten
       try {
        const streakRes = await fetch('/api/update-streak', { 
           method: 'POST',
@@ -472,7 +452,6 @@ setOutfit({ outfits: mappedOutfits, active: 0 })
         if (streakData.streak) setStreak(streakData.streak)
         if (streakData.streakReward) setStreakReward(streakData.streakReward)
       } catch {}
-   // Falls Tab nicht aktiv: lokale Benachrichtigung dass Outfit fertig ist
    try {
      if (document.visibilityState === 'hidden' && 'Notification' in window && Notification.permission === 'granted') {
        const reg = await navigator.serviceWorker.getRegistration('/sw-push.js')
@@ -576,7 +555,6 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
 </motion.div>
   )}
 </AnimatePresence>
-{/* Push Notification Prompt */}
 <AnimatePresence>
   {showPushPrompt && (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -611,7 +589,6 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
     </motion.div>
   )}
 </AnimatePresence>
-{/* Welcome Invited User Animation */}
 <AnimatePresence>
   {showWelcomeInvited && (
     <motion.div
@@ -691,7 +668,6 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
     </motion.div>
   )}
 </AnimatePresence>
-{/* Referral Reward Animation */}
 <AnimatePresence>
   {showReferralReward && (
     <motion.div
@@ -764,7 +740,6 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
   )}
 </AnimatePresence>
 
-{/* Pro Welcome Animation */}
 <AnimatePresence>
   {showProWelcome && (
     <motion.div
@@ -781,7 +756,6 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
         overflow: 'hidden',
       }}>
 
-      {/* Animierter Farbverlauf-Glow im Hintergrund */}
       <motion.div
         animate={{ scale: [1, 1.3, 1], opacity: [0.4, 0.7, 0.4] }}
         transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
@@ -792,7 +766,6 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
         }}
       />
 
-      {/* Sterne-Konfetti, mehr und länger */}
       {[...Array(24)].map((_, i) => (
         <motion.div key={i}
           initial={{ opacity: 0, x: 0, y: 0, scale: 0 }}
@@ -802,7 +775,6 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
         />
       ))}
 
-      {/* PRO Badge mit Puls-Glow */}
       <motion.div style={{ position: 'relative' as const, marginBottom: '28px' }}>
         <motion.div
           animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0.8, 0.5] }}
@@ -889,7 +861,6 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
     </motion.div>
   )}
 </AnimatePresence>
-{/* Unlock Animation */}
 <AnimatePresence>
   {showUnlock && (
     <motion.div
@@ -906,7 +877,6 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
         WebkitBackdropFilter: 'blur(16px)',
       }}
     >
-      {/* Konfetti */}
       {[...Array(12)].map((_, i) => (
         <motion.div key={i}
           initial={{ opacity: 0, x: 0, y: 0, scale: 0 }}
@@ -916,7 +886,6 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
         />
       ))}
 
-      {/* Lock Icon */}
       <motion.div
         initial={{ scale: 0, rotate: -20 }}
         animate={{ scale: 1, rotate: 0 }}
@@ -929,7 +898,6 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
           marginBottom: '14px',
         }}
       >
-        {/* Schloss öffnet sich nach oben */}
         <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <motion.path
             initial={{ d: "M7 11V7a5 5 0 0110 0v4" }}
@@ -960,7 +928,6 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
   )}
 </AnimatePresence>
 
-      {/* Background glows */}
       <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
         <div style={{ position: 'absolute', top: '-120px', right: '-80px', width: '420px', height: '420px', borderRadius: '50%', background: isDark ? 'rgba(14,164,114,0.06)' : 'rgba(14,164,114,0.12)', filter: 'blur(90px)' }} />
         <div style={{ position: 'absolute', bottom: '60px', left: '-100px', width: '350px', height: '350px', borderRadius: '50%', background: isDark ? 'rgba(8,145,178,0.04)' : 'rgba(8,145,178,0.08)', filter: 'blur(90px)' }} />
@@ -982,21 +949,17 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
 
       <main ref={mainRef} style={{ flex: 1, overflowY: 'auto' as const, overflowX: 'hidden', maxWidth: '540px', width: '100%', margin: '0 auto', padding: '68px 0 112px', position: 'relative', zIndex: 1 }}>
 
-        {/* ── Hero Banner ── */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}
           style={{ position: 'relative' as const, height: '220px', marginBottom: '0', overflow: 'hidden' }}>
 
-          {/* Hintergrundbild — Outfit Flatlay */}
           <img
             src="https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800&q=80&auto=format&fit=crop"
             alt=""
             style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', position: 'absolute', inset: 0 }}
           />
-          {/* Gradient Overlay */}
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(240,244,255,0.1) 0%, rgba(240,244,255,0.6) 60%, rgba(240,244,255,1) 100%)' }} />
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(240,244,255,0.7) 0%, rgba(240,244,255,0) 60%)' }} />
 
-          {/* Begrüßung über Bild */}
           <div style={{ position: 'absolute' as const, bottom: '20px', left: '18px', zIndex: 2 }}>
             <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: accent, marginBottom: '4px' }}>
               {greeting}{username ? ',' : ''} {username ?? ''}
@@ -1007,7 +970,6 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
             <p style={{ fontSize: '11px', color: muted }}>{today}, {dateStr}</p>
           </div>
 
-          {/* Wetter Badge oben rechts */}
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}
             onClick={() => { if (weatherDisabled) router.push('/' + locale + '/profile?scrollTo=weather') }}
            style={{ position: 'absolute' as const, top: '16px', right: '18px', background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '16px', padding: '10px 14px', textAlign: 'center' as const, zIndex: 2, cursor: weatherDisabled ? 'pointer' : 'default', minWidth: '70px', boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}>
@@ -1026,9 +988,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
           </motion.div>
         </motion.div>
 
-        {/* Stats Row — alle 4 Kacheln einheitlich */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', margin: '12px 18px 14px', padding: 0 }}>
-          {/* Teile */}
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
             onClick={() => router.push('/' + locale + '/wardrobe')}
             style={{ background: card, border: `1px solid ${border}`, borderRadius: '18px', padding: '14px 6px', textAlign: 'center' as const, cursor: 'pointer', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', minHeight: '86px' }}>
@@ -1039,18 +999,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
             <p style={{ fontSize: '9px', color: muted, fontWeight: 600, lineHeight: 1.2 }}>{locale === 'de' ? 'Teile' : 'Items'}</p>
           </motion.div>
 
-          {/* Tagesoutfit */}
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }}
-            onClick={() => setDailyFreeOutfitExpanded(v => !v)}
-            style={{ background: dailyFreeOutfit ? accentDim : card, border: `1px solid ${dailyFreeOutfit ? accent + '40' : border}`, borderRadius: '18px', padding: '14px 6px', textAlign: 'center' as const, cursor: 'pointer', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', minHeight: '86px' }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={dailyFreeOutfit ? accent : muted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '6px' }}>
-              <rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8V21"/><path d="M3 8h18"/><path d="M7.5 8a2.5 2.5 0 010-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 010 5"/>
-            </svg>
-            <p style={{ fontSize: '9px', color: dailyFreeOutfit ? accent : muted, fontWeight: 700, lineHeight: 1.2 }}>{locale === 'de' ? 'Tages-outfit' : 'Daily outfit'}</p>
-          </motion.div>
-
-          {/* Streak */}
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}
             onClick={() => setShowStreakInfo(true)}
             style={{ background: streak >= 7 ? 'linear-gradient(135deg, rgba(249,115,22,0.12), rgba(239,68,68,0.06))' : card, border: `1px solid ${streak >= 7 ? 'rgba(249,115,22,0.3)' : border}`, borderRadius: '18px', padding: '14px 6px', textAlign: 'center' as const, cursor: 'pointer', opacity: streak === 0 ? 0.5 : 1, filter: streak === 0 ? 'grayscale(0.6)' : 'none', transition: 'all 0.3s', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', minHeight: '86px' }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={streak >= 7 ? '#c2410c' : text} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '6px' }}>
@@ -1060,7 +1009,15 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
             <p style={{ fontSize: '9px', color: muted, fontWeight: 600, lineHeight: 1.2 }}>{locale === 'de' ? 'Tage Streak' : 'Day Streak'}</p>
           </motion.div>
 
-          {/* Pro */}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}
+            onClick={() => setDailyFreeOutfitExpanded(v => !v)}
+            style={{ background: dailyFreeOutfit ? accentDim : card, border: `1px solid ${dailyFreeOutfit ? accent + '40' : border}`, borderRadius: '18px', padding: '14px 6px', textAlign: 'center' as const, cursor: 'pointer', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', minHeight: '86px' }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={dailyFreeOutfit ? accent : muted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '6px' }}>
+              <rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8V21"/><path d="M3 8h18"/><path d="M7.5 8a2.5 2.5 0 010-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 010 5"/>
+            </svg>
+            <p style={{ fontSize: '9px', color: dailyFreeOutfit ? accent : muted, fontWeight: 700, lineHeight: 1.2 }}>{locale === 'de' ? 'Tages-outfit' : 'Daily outfit'}</p>
+          </motion.div>
+
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.21 }}
             onClick={() => setShowProInfo(true)}
             style={{ background: isPremium ? 'linear-gradient(135deg, rgba(241,185,81,0.2), rgba(241,185,81,0.08))' : card, border: `1px solid ${isPremium ? 'rgba(241,185,81,0.4)' : border}`, borderRadius: '18px', padding: '14px 4px', textAlign: 'center' as const, cursor: 'pointer', boxShadow: isPremium ? '0 0 16px rgba(241,185,81,0.15)' : 'none', opacity: isPremium ? 1 : 0.6, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', minHeight: '86px' }}>
@@ -1088,7 +1045,6 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
     transition={{ duration: 0.4 }}
     style={{ marginBottom: '18px', border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden', background: card, boxShadow: isDark ? 'none' : '0 4px 24px rgba(10,46,30,0.08)' }}>
 
-    {/* Kompakte Zeile — immer sichtbar */}
     <motion.div whileTap={{ scale: 0.99 }}
       onClick={() => setDailyFreeOutfitExpanded(v => !v)}
       style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', cursor: 'pointer', background: accentDim, WebkitTapHighlightColor: 'transparent' }}>
@@ -1103,7 +1059,6 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
       <motion.span animate={{ rotate: dailyFreeOutfitExpanded ? 180 : 0 }} style={{ color: muted, fontSize: '13px', flexShrink: 0 }}>▾</motion.span>
     </motion.div>
 
-    {/* Ausgeklappter Inhalt */}
     <AnimatePresence>
       {dailyFreeOutfitExpanded && (
         <motion.div
@@ -1143,7 +1098,6 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
 {!hasItems ? (
   <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
 
-    {/* Occasion chips — ausgegraut */}
     <div style={{ marginBottom: '22px', opacity: 0.4, pointerEvents: 'none', userSelect: 'none' as const, filter: 'blur(1.5px)' }}>
       <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: muted, marginBottom: '10px' }}>
         {locale === 'de' ? 'Anlass' : 'Occasion'}
@@ -1157,7 +1111,6 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
       </div>
     </div>
 
-    {/* Category grid — ausgegraut */}
     <div style={{ marginBottom: '22px', opacity: 0.4, pointerEvents: 'none', userSelect: 'none' as const, filter: 'blur(1.5px)' }}>
       <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: muted, marginBottom: '10px' }}>
         {locale === 'de' ? 'Was soll ins Outfit?' : 'What to include?'}
@@ -1180,7 +1133,6 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
       </div>
     </div>
 
-    {/* Lock Banner statt Button */}
     <motion.div
       whileTap={{ scale: 0.98 }}
       onClick={() => router.push('/' + locale + '/wardrobe')}
@@ -1209,11 +1161,9 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
   </motion.div>
 ) : (
           <>
-            {/* ── Kompakte Settings Karte ── */}
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, duration: 0.4 }}
               style={{ background: card, border: `1px solid ${border}`, borderRadius: '18px', padding: '14px 16px', marginBottom: '16px' }}>
 
-              {/* Anlass */}
               <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', overflowX: 'auto' as const, paddingBottom: '2px' }}>
                 {occasions.map((occ) => {
                   const isOn = selected === occ
@@ -1227,10 +1177,8 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
                 })}
               </div>
 
-              {/* Divider */}
               <div style={{ height: '1px', background: border, marginBottom: '12px' }} />
 
-              {/* Kategorien + Wetter in einer Zeile */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
                 <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' as const, flex: 1 }}>
                   {categoryConfig.map((cat) => {
@@ -1245,7 +1193,6 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
                     )
                   })}
                 </div>
-                {/* Wetter Toggle kompakt */}
                 <motion.div whileTap={{ scale: 0.9 }}
                   onClick={() => { if (weatherDisabled) { router.push('/' + locale + '/profile?scrollTo=weather'); return } setWeatherAware(v => !v); setOutfit(null) }}
                   style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', flexShrink: 0, WebkitTapHighlightColor: 'transparent' }}>
@@ -1257,7 +1204,6 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
               </div>
             </motion.div>
 
-            {/* ── CTA Button ── */}
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24, duration: 0.4 }} style={{ marginBottom: '28px' }}>
               <motion.button ref={dressMeRef} onClick={generateOutfit} disabled={loading} whileTap={!loading ? { scale: 0.97 } : {}}
                 style={{ width: '100%', padding: '19px', borderRadius: '100px', border: 'none', background: loading ? (isDark ? '#0f1a14' : '#e6f7f0') : 'linear-gradient(135deg, #0ea472 0%, #0891b2 100%)', color: loading ? muted : '#fff', fontSize: '17px', fontWeight: 700, fontFamily: "'Poppins', 'Inter', sans-serif", cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', letterSpacing: '-0.02em', WebkitTapHighlightColor: 'transparent', transition: 'all 0.2s', boxShadow: loading ? 'none' : '0 6px 28px rgba(14,164,114,0.45)' }}>
@@ -1278,7 +1224,6 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
               </motion.button>
             </motion.div>
 
-            {/* ── Outfit Result ── */}
             <AnimatePresence mode="wait">
              {outfit && (
   <motion.div key="outfit"
@@ -1288,7 +1233,6 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
     transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
     style={{ border: `1px solid ${border}`, borderRadius: '20px', overflow: 'hidden', background: card, boxShadow: isDark ? 'none' : '0 4px 24px rgba(10,46,30,0.08)' }}>
 
-    {/* Header */}
     <div style={{ padding: '14px 18px', borderBottom: `1px solid ${border}`, background: accentDim }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
         <div>
@@ -1309,7 +1253,6 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
 )}
 </div>
 
-    {/* Active Outfit */}
     <AnimatePresence mode="wait">
       <motion.div key={outfit.active}
         initial={{ opacity: 0, x: 10 }}
@@ -1378,7 +1321,6 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
           </>
         )}
 
-      {/* Streak Reward Popup */}
       <AnimatePresence>
         {streakReward && (
           <motion.div
@@ -1410,7 +1352,6 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
         )}
       </AnimatePresence>
 
-      {/* Streak Info Modal */}
       <AnimatePresence>
         {showStreakInfo && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -1464,7 +1405,6 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
         )}
       </AnimatePresence>
 
-      {/* Pro Info Modal */}
       <AnimatePresence>
         {showProInfo && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -1475,7 +1415,6 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
               onClick={e => e.stopPropagation()}
               style={{ background: card, borderRadius: '28px', padding: '24px 20px', width: '100%', maxWidth: '400px', border: `1px solid ${isPremium ? 'rgba(251,191,36,0.3)' : border}`, maxHeight: '80vh', overflowY: 'auto' as const }}>
 
-              {/* Header */}
               <div style={{ textAlign: 'center' as const, marginBottom: '20px' }}>
                 <motion.p animate={isPremium ? { scale: [1, 1.15, 1] } : {}} transition={{ duration: 1.5, repeat: Infinity }}
                   style={{ fontSize: '40px', marginBottom: '8px' }}>{isPremium ? '💎' : '⭐'}</motion.p>
@@ -1489,7 +1428,6 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
                 )}
               </div>
 
-              {/* Feature Vergleich */}
               <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '8px', marginBottom: '20px' }}>
                 {[
                   { label: locale === 'de' ? 'Outfits/Tag' : 'Outfits/day', free: '3', pro: '15' },
@@ -1510,7 +1448,6 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
                 ))}
               </div>
 
-              {/* Spalten-Header */}
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', padding: '0 14px', marginBottom: '-4px' }}>
                 <p style={{ fontSize: '10px', color: muted, fontWeight: 600, minWidth: '50px', textAlign: 'center' as const }}>Free</p>
                 <p style={{ fontSize: '10px', color: '#f59e0b', fontWeight: 700, minWidth: '50px', textAlign: 'center' as const }}>Pro</p>
