@@ -57,7 +57,7 @@ function createWatermarkedImage(imageUrl: string): Promise<string> {
       ctx.font = `700 ${badgeFontSize}px 'Poppins', sans-serif`
       ctx.textAlign = 'right'
       ctx.textBaseline = 'bottom'
-      ctx.fillStyle = 'rgba(255,255,255,0.32)'
+      ctx.fillStyle = 'rgba(255,255,255,0.18)'
       ctx.shadowColor = 'rgba(0,0,0,0.35)'
       ctx.shadowBlur = 4
       ctx.fillText('✦ KiWardrobe', w - w * 0.03, h - h * 0.025)
@@ -494,7 +494,7 @@ export default function AvatarPage() {
                           }}
                         />
                         {/* Dezentes Wasserzeichen direkt aufs Bild */}
-                        <p style={{ position: 'absolute', bottom: '12px', right: '14px', fontSize: '13px', fontWeight: 700, color: 'rgba(255,255,255,0.32)', letterSpacing: '0.01em', pointerEvents: 'none' as const, textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>✦ KiWardrobe</p>
+                        <p style={{ position: 'absolute', bottom: '12px', right: '14px', fontSize: '13px', fontWeight: 700, color: 'rgba(255,255,255,0.18)', letterSpacing: '0.01em', pointerEvents: 'none' as const, textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>✦ KiWardrobe</p>
                       </div>
                       <p style={{ position: 'relative' as const, textAlign: 'center' as const, fontSize: '10px', color: 'rgba(255,255,255,0.55)', marginTop: '10px', letterSpacing: '0.04em' }}>
                         {locale === 'de' ? 'Kabine 1 · KiWardrobe Studio' : 'Fitting room 1 · KiWardrobe Studio'}
