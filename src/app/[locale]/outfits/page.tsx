@@ -23,15 +23,15 @@ export default function OutfitsPage() {
   const supabase = createClient()
   const isDark = theme === 'dark'
 
-const bg        = isDark ? '#161616' : '#FDFCF9'
-const card      = isDark ? '#1D1D20' : '#ffffff'
-const border    = isDark ? '#2a2a2e' : '#EAE7E0'
-const text      = isDark ? '#F5F3EE' : '#1D1D20'
-const muted     = isDark ? '#9a978f' : '#8A8680'
-const accent    = isDark ? '#5C82A0' : '#355C7D'
-const accentDim = isDark ? 'rgba(92,130,160,0.12)' : 'rgba(53,92,125,0.07)'
-const goldAccent = '#F1B951'
-const sageGradient = 'linear-gradient(135deg, #7FA98E, #355C7D)'
+  const bg        = isDark ? '#161616' : '#FDFCF9'
+  const card      = isDark ? '#1D1D20' : '#ffffff'
+  const border    = isDark ? '#2a2a2e' : '#EAE7E0'
+  const text      = isDark ? '#F5F3EE' : '#1D1D20'
+  const muted     = isDark ? '#9a978f' : '#8A8680'
+  const accent    = isDark ? '#5C82A0' : '#355C7D'
+  const accentDim = isDark ? 'rgba(92,130,160,0.12)' : 'rgba(53,92,125,0.07)'
+  const goldAccent = '#F1B951'
+  const sageGradient = 'linear-gradient(135deg, #7FA98E, #355C7D)'
 
   useEffect(() => { loadData() }, [])
 
@@ -69,11 +69,11 @@ const sageGradient = 'linear-gradient(135deg, #7FA98E, #355C7D)'
 
       {/* Background */}
       <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
-        <div style={{ position: 'absolute', top: '-100px', right: '-60px', width: '380px', height: '380px', borderRadius: '50%', background: isDark ? 'rgba(14,164,114,0.06)' : 'rgba(14,164,114,0.1)', filter: 'blur(90px)' }} />
-        <div style={{ position: 'absolute', bottom: '80px', left: '-80px', width: '300px', height: '300px', borderRadius: '50%', background: isDark ? 'rgba(8,145,178,0.04)' : 'rgba(8,145,178,0.07)', filter: 'blur(90px)' }} />
+        <div style={{ position: 'absolute', top: '-100px', right: '-60px', width: '380px', height: '380px', borderRadius: '50%', background: isDark ? 'rgba(122,150,172,0.08)' : 'rgba(53,92,125,0.06)', filter: 'blur(90px)' }} />
+        <div style={{ position: 'absolute', bottom: '80px', left: '-80px', width: '300px', height: '300px', borderRadius: '50%', background: isDark ? 'rgba(241,185,81,0.05)' : 'rgba(241,185,81,0.08)', filter: 'blur(90px)' }} />
         {!isDark && (
           <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.4 }} xmlns="http://www.w3.org/2000/svg">
-            <defs><pattern id="odots" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="0.9" fill="#0ea472" opacity="0.25" /></pattern></defs>
+            <defs><pattern id="odots" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="0.9" fill="#1D1D20" opacity="0.06" /></pattern></defs>
             <rect width="100%" height="100%" fill="url(#odots)" />
           </svg>
         )}
@@ -87,14 +87,14 @@ const sageGradient = 'linear-gradient(135deg, #7FA98E, #355C7D)'
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
           style={{ position: 'relative' as const, height: '180px', overflow: 'hidden', marginBottom: '0' }}>
 
-       <img
+          <img
             src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&q=80&auto=format&fit=crop"
             alt=""
             style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', position: 'absolute', inset: 0 }}
           />
 
           {/* Gradient Overlay */}
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(240,244,255,0.15) 0%, rgba(240,244,255,0.75) 65%, rgba(240,244,255,1) 100%)' }} />
+          <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, rgba(241,185,81,0.15) 0%, ${bg}cc 65%, ${bg} 100%)` }} />
 
           {/* Titel über Bild */}
           <div style={{ position: 'absolute' as const, bottom: '16px', left: '20px', zIndex: 2 }}>
@@ -155,7 +155,7 @@ const sageGradient = 'linear-gradient(135deg, #7FA98E, #355C7D)'
                     transition={{ delay: i * 0.04 }}
                     style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden' }}>
                     {/* Images */}
-                  <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(outfitItems.length || 1, 4)}, 1fr)`, height: '180px', background: isDark ? '#0a1510' : '#e6f7f0' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(outfitItems.length || 1, 4)}, 1fr)`, height: '180px', background: isDark ? '#221c14' : '#FAF6EC' }}>
                       {outfitItems.map((item, j) => (
                         <div key={j} style={{ overflow: 'hidden' }}>
                           <img src={item.image_url} alt={item.name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
@@ -175,7 +175,7 @@ const sageGradient = 'linear-gradient(135deg, #7FA98E, #355C7D)'
                       </div>
                       <div style={{ display: 'flex', gap: '5px', flexShrink: 0 }}>
                         <motion.button whileTap={{ scale: 0.88 }} onClick={() => toggleFavorite(outfit)}
-                          style={{ background: outfit.is_favorite ? accentDim : 'transparent', border: `1px solid ${outfit.is_favorite ? accent : border}`, borderRadius: '8px', padding: '6px 9px', cursor: 'pointer', fontSize: '13px', color: outfit.is_favorite ? accent : muted, transition: 'all 0.15s' }}>
+                          style={{ background: outfit.is_favorite ? 'rgba(241,185,81,0.15)' : 'transparent', border: `1px solid ${outfit.is_favorite ? goldAccent : border}`, borderRadius: '8px', padding: '6px 9px', cursor: 'pointer', fontSize: '13px', color: outfit.is_favorite ? goldAccent : muted, transition: 'all 0.15s' }}>
                           {outfit.is_favorite ? '★' : '☆'}
                         </motion.button>
                         <motion.button whileTap={{ scale: 0.88 }} onClick={() => deleteOutfit(outfit.id)}
