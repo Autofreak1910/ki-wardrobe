@@ -529,12 +529,13 @@ const card      = isDark ? '#1D1D20' : '#ffffff'
 const border    = isDark ? '#2a2a2e' : '#EAE7E0'
 const text      = isDark ? '#F5F3EE' : '#1D1D20'
 const muted     = isDark ? '#9a978f' : '#8A8680'
-const accent    = isDark ? '#7A96AC' : '#4C677D'
-const accentDim = isDark ? 'rgba(122,150,172,0.12)' : 'rgba(76,103,125,0.08)'
+const accent    = isDark ? '#5C82A0' : '#355C7D'
+const accentDim = isDark ? 'rgba(92,130,160,0.12)' : 'rgba(53,92,125,0.07)'
 const goldAccent = '#F1B951'
+const sageGradient = 'linear-gradient(135deg, #7FA98E, #355C7D)'
 
 return (
-    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' as const, background: bg, overflow: 'hidden', fontFamily: "'Poppins', 'Inter', sans-serif", position: 'relative' as const }}>
+    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' as const, background: bg, overflow: 'hidden', fontFamily: "'Poppins', 'Inter', sans-serif", position: 'relative' as const, backgroundImage: isDark ? 'none' : 'radial-gradient(circle, rgba(29,29,32,0.05) 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
 
 <WelcomeOverlay
   weatherRef={weatherRef}
@@ -567,7 +568,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
     <span style={{ fontSize: '20px' }}>🔒</span>
     <p style={{ fontSize: '13px', fontWeight: 700, color: text }}>{limitMsg}</p>
   </div>
-  <div style={{ background: `linear-gradient(135deg, ${accent}, #6d8fa3)`, borderRadius: '10px', padding: '10px', textAlign: 'center' as const }}>
+  <div style={{ background: sageGradient, borderRadius: '10px', padding: '10px', textAlign: 'center' as const }}>
     <p style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>
       {locale === 'de' ? '✦ Jetzt upgraden für €4,99/Mo' : '✦ Upgrade now for €4.99/mo'}
     </p>
@@ -598,7 +599,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
             await activatePushNotifications()
             setShowPushPrompt(false)
           }}
-          style={{ width: '100%', padding: '13px', background: `linear-gradient(135deg, ${accent}, #6d8fa3)`, border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", marginBottom: '8px' }}>
+          style={{ width: '100%', padding: '13px', background: sageGradient, border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", marginBottom: '8px' }}>
           {locale === 'de' ? '☀️ Ja, aktivieren' : '☀️ Yes, enable'}
         </motion.button>
 <button
@@ -922,7 +923,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
         transition={{ type: 'spring', damping: 10, stiffness: 200, delay: 0.1 }}
         style={{
           width: '110px', height: '110px', borderRadius: '32px',
-          background: `linear-gradient(135deg, ${accent}, #6d8fa3)`,
+          background: sageGradient,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           boxShadow: `0 0 80px ${accent}70, 0 0 40px ${accent}40`,
           marginBottom: '14px',
@@ -1178,7 +1179,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
       style={{
         width: '100%', padding: '18px',
         borderRadius: '100px', border: 'none',
-        background: `linear-gradient(135deg, ${accent}, #6d8fa3)`,
+        background: sageGradient,
         display: 'flex', alignItems: 'center',
         justifyContent: 'center', gap: '10px',
         cursor: 'pointer',
