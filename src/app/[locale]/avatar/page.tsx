@@ -252,11 +252,11 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
             alt=""
             style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', position: 'absolute', inset: 0 }}
           />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(241,185,81,0.06) 0%, rgba(253,252,249,0.75) 70%, rgba(253,252,249,1) 100%)' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(241,185,81,0.15) 0%, rgba(240,244,255,0.75) 65%, rgba(240,244,255,1) 100%)' }} />
 
           {/* PRO Badge */}
           {isPremium ? (
-            <div style={{ position: 'absolute' as const, top: '16px', right: '18px', background: goldAccent, borderRadius: '10px', padding: '6px 14px', boxShadow: '0 4px 12px rgba(241,185,81,0.4)', zIndex: 2 }}>
+            <div style={{ position: 'absolute' as const, top: '16px', right: '18px', background: '#F1B951', borderRadius: '10px', padding: '6px 14px', boxShadow: '0 4px 12px rgba(241,185,81,0.5)', zIndex: 2 }}>
               <p style={{ fontSize: '11px', fontWeight: 700, color: '#1D1D20', letterSpacing: '0.04em' }}>✦ PRO</p>
             </div>
           ) : (
@@ -267,30 +267,24 @@ setSelfie(canvas.toDataURL('image/jpeg', 0.9))
         </motion.div>
 
         {/* Title */}
-      <div style={{ padding: '12px 20px 0', marginBottom: '12px' }}>
-          <h1 style={{ fontSize: '24px', fontWeight: 800, color: text, letterSpacing: '-0.04em', marginBottom: '2px' }}>
-            Virtual Try-On
-          </h1>
-          <p style={{ fontSize: '12px', color: muted }}>
-            {locale === 'de' ? 'Probiere Klamotten virtuell an deinem Foto an' : 'Try clothes on your photo virtually'}
-          </p>
-        </div>
+    <h1 style={{ fontSize: '26px', fontWeight: 800, color: text, letterSpacing: '-0.03em', marginBottom: '4px' }}>
+                {locale === 'de' ? 'Virtual Try-On ✦' : 'Virtual Try-On ✦'}
+              </h1>
+              <p style={{ fontSize: '13px', color: muted, marginBottom: '12px' }}>
+                {locale === 'de' ? 'Probiere Klamotten virtuell an' : 'Try on clothes virtually'}
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' as const, marginBottom: '8px' }}>
+                <span style={{ fontSize: '11px' }}>💡</span>
+                {[
+                  locale === 'de' ? 'Ganzkörper' : 'Full body',
+                  locale === 'de' ? 'Heller HG' : 'Light BG',
+                  locale === 'de' ? 'Ein Teil' : 'One item',
+                  locale === 'de' ? 'Gutes Licht' : 'Good light',
+                ].map((tip, i) => (
+                  <span key={i} style={{ fontSize: '11px', color: muted, background: accentDim, borderRadius: '100px', padding: '3px 8px', border: `1px solid ${border}` }}>{tip}</span>
+                ))}
+              </div>
 
-        {/* Info Box — kompakt, direkt nach Titel */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}
-          style={{ background: accentDim, border: `1px solid ${border}`, borderRadius: '14px', padding: '10px 16px', margin: '0 20px 14px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' as const }}>
-            <span style={{ fontSize: '11px' }}>💡</span>
-            {[
-              locale === 'de' ? 'Ganzkörper' : 'Full body',
-              locale === 'de' ? 'Heller HG' : 'Light BG',
-              locale === 'de' ? 'Ein Teil' : 'One item',
-              locale === 'de' ? 'Gutes Licht' : 'Good light',
-            ].map((tip, i) => (
-              <span key={i} style={{ fontSize: '11px', color: muted, background: card, borderRadius: '100px', padding: '3px 8px', border: `1px solid ${border}` }}>{tip}</span>
-            ))}
-          </div>
-        </motion.div>
 
         {/* No tries left — upgrade */}
         <div style={{ padding: '0 20px' }}>
