@@ -1010,7 +1010,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
           {/* Wetter Badge oben rechts */}
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}
             onClick={() => { if (weatherDisabled) router.push('/' + locale + '/profile?scrollTo=weather') }}
-           style={{ position: 'absolute' as const, top: '16px', right: '18px', background: 'rgba(29,29,32,0.55)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '16px', padding: '10px 14px', textAlign: 'center' as const, zIndex: 2, cursor: weatherDisabled ? 'pointer' : 'default', minWidth: '70px', boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
+           style={{ position: 'absolute' as const, top: '16px', right: '18px', background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '16px', padding: '10px 14px', textAlign: 'center' as const, zIndex: 2, cursor: weatherDisabled ? 'pointer' : 'default', minWidth: '70px', boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}>
             {weatherDisabled ? (
               <><div style={{ fontSize: '20px' }}>🔒</div><p style={{ fontSize: '9px', color: muted, marginTop: '2px' }}>Wetter aus</p></>
             ) : weatherLoading ? (
@@ -1051,7 +1051,9 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}
             onClick={() => setShowStreakInfo(true)}
             style={{ background: streak >= 7 ? 'linear-gradient(135deg, rgba(249,115,22,0.12), rgba(239,68,68,0.06))' : card, border: `1px solid ${streak >= 7 ? 'rgba(249,115,22,0.3)' : border}`, borderRadius: '16px', padding: '12px 8px', textAlign: 'center' as const, cursor: 'pointer', opacity: streak === 0 ? 0.5 : 1, filter: streak === 0 ? 'grayscale(0.6)' : 'none', transition: 'all 0.3s' }}>
-            <p style={{ fontSize: '18px', lineHeight: 1, marginBottom: '2px' }}>🔥</p>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={streak >= 7 ? '#c2410c' : text} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '2px' }}>
+              <path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 11-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 002.5 2.5z"/>
+            </svg>
             <p style={{ fontSize: '18px', fontWeight: 800, color: streak >= 7 ? '#f97316' : text, letterSpacing: '-0.03em', lineHeight: 1 }}>{streak}</p>
             <p style={{ fontSize: '9px', color: muted, fontWeight: 600, marginTop: '2px' }}>{locale === 'de' ? 'Tage Streak' : 'Day Streak'}</p>
           </motion.div>
@@ -1060,8 +1062,12 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.21 }}
             onClick={() => setShowProInfo(true)}
             style={{ background: isPremium ? 'linear-gradient(135deg, rgba(251,191,36,0.2), rgba(245,158,11,0.1))' : card, border: `1px solid ${isPremium ? 'rgba(251,191,36,0.4)' : border}`, borderRadius: '16px', padding: '12px 8px', textAlign: 'center' as const, cursor: 'pointer', boxShadow: isPremium ? '0 0 16px rgba(251,191,36,0.2)' : 'none', opacity: isPremium ? 1 : 0.6 }}>
-            <motion.p animate={isPremium ? { scale: [1, 1.1, 1] } : {}} transition={{ duration: 2, repeat: Infinity }}
-              style={{ fontSize: '20px', lineHeight: 1, marginBottom: '2px' }}>{isPremium ? '💎' : '⭐'}</motion.p>
+            <motion.div animate={isPremium ? { scale: [1, 1.08, 1] } : {}} transition={{ duration: 2, repeat: Infinity }}
+              style={{ marginBottom: '2px' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isPremium ? '#b8860b' : muted} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto', display: 'block' }}>
+                <path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20"/><path d="M12 3l-3 6 3 12 3-12z"/>
+              </svg>
+            </motion.div>
             <p style={{ fontSize: '9px', color: isPremium ? '#f59e0b' : muted, fontWeight: 700 }}>
               {isPremium ? (locale === 'de' ? 'PRO-MITGLIED' : 'PRO MEMBER') : 'PRO'}
             </p>
@@ -1086,7 +1092,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
       style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', cursor: 'pointer', background: accentDim, WebkitTapHighlightColor: 'transparent' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '9px', minWidth: 0 }}>
        <span style={{ fontSize: '10px', fontWeight: 800, color: '#fff', background: accent, borderRadius: '100px', padding: '3px 9px', letterSpacing: '0.02em', flexShrink: 0 }}>
-          🎁 {locale === 'de' ? 'GRATIS' : 'FREE'}
+          {locale === 'de' ? 'GRATIS' : 'FREE'}
         </span>
         <p style={{ fontSize: '13px', fontWeight: 700, color: text, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
           {locale === 'de' ? 'Dein Tagesoutfit ist da ✦' : 'Your daily outfit is ready ✦'}
