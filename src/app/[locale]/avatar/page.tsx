@@ -53,26 +53,15 @@ function createWatermarkedImage(imageUrl: string): Promise<string> {
       }
       ctx.restore()
 
-      const badgeW = Math.max(120, w * 0.32)
-      const badgeH = badgeW * 0.24
-      const pad = w * 0.03
-      ctx.fillStyle = 'rgba(0,0,0,0.45)'
-      const radius = badgeH / 2
-      const bx = w - badgeW - pad
-      const by = h - badgeH - pad
-      ctx.beginPath()
-      ctx.moveTo(bx + radius, by)
-      ctx.arcTo(bx + badgeW, by, bx + badgeW, by + badgeH, radius)
-      ctx.arcTo(bx + badgeW, by + badgeH, bx, by + badgeH, radius)
-      ctx.arcTo(bx, by + badgeH, bx, by, radius)
-      ctx.arcTo(bx, by, bx + badgeW, by, radius)
-      ctx.closePath()
-      ctx.fill()
-      ctx.fillStyle = '#F1B951'
-      ctx.font = `700 ${Math.round(badgeH * 0.42)}px 'Poppins', sans-serif`
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.fillText('✦ KiWardrobe', bx + badgeW / 2, by + badgeH / 2 + 1)
+      const badgeFontSize = Math.max(14, Math.round(w * 0.032))
+      ctx.font = `700 ${badgeFontSize}px 'Poppins', sans-serif`
+      ctx.textAlign = 'right'
+      ctx.textBaseline = 'bottom'
+      ctx.fillStyle = 'rgba(255,255,255,0.32)'
+      ctx.shadowColor = 'rgba(0,0,0,0.35)'
+      ctx.shadowBlur = 4
+      ctx.fillText('✦ KiWardrobe', w - w * 0.03, h - h * 0.025)
+      ctx.shadowBlur = 0
 
       resolve(canvas.toDataURL('image/jpeg', 0.94))
     }
@@ -493,7 +482,7 @@ export default function AvatarPage() {
                       <div style={{ position: 'relative' as const, borderRadius: '10px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.35)' }}>
                         <img
                           src={result}
-                          style={{ width: '100%', display: 'block', maxHeight: '480px', objectFit: 'contain', background: isDark ? '#111' : '#fff' }}
+                          style={{ width: '100%', display: 'block', maxHeight: '480px', objectFit: 'contain', background: 'radial-gradient(ellipse at 50% 30%, #3a3f47 0%, #1c1e22 55%, #0d0e10 100%)' }}
                           onError={(e) => {
                             e.currentTarget.style.display = 'none'
                             const div = document.createElement('div')
@@ -504,10 +493,8 @@ export default function AvatarPage() {
                             e.currentTarget.parentNode?.appendChild(div)
                           }}
                         />
-                        {/* Sichtbares Wasserzeichen-Badge */}
-                        <div style={{ position: 'absolute', bottom: '10px', right: '10px', background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', borderRadius: '100px', padding: '5px 12px', pointerEvents: 'none' as const }}>
-                          <p style={{ fontSize: '11px', fontWeight: 700, color: goldAccent, letterSpacing: '0.01em' }}>✦ KiWardrobe</p>
-                        </div>
+                        {/* Dezentes Wasserzeichen direkt aufs Bild */}
+                        <p style={{ position: 'absolute', bottom: '12px', right: '14px', fontSize: '13px', fontWeight: 700, color: 'rgba(255,255,255,0.32)', letterSpacing: '0.01em', pointerEvents: 'none' as const, textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>✦ KiWardrobe</p>
                       </div>
                       <p style={{ position: 'relative' as const, textAlign: 'center' as const, fontSize: '10px', color: 'rgba(255,255,255,0.55)', marginTop: '10px', letterSpacing: '0.04em' }}>
                         {locale === 'de' ? 'Kabine 1 · KiWardrobe Studio' : 'Fitting room 1 · KiWardrobe Studio'}
