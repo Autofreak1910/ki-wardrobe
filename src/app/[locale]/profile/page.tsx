@@ -312,12 +312,12 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
             alt=""
             style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', position: 'absolute', inset: 0 }}
           />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(240,244,255,0.2) 0%, rgba(240,244,255,0.95) 100%)' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(240,244,255,0.1) 0%, rgba(240,244,255,0.95) 100%)' }} />
         </motion.div>
 
-        {/* Avatar + Name */}
+        {/* Avatar + Name + Stats */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-          style={{ padding: '0 20px', marginBottom: '16px', marginTop: '-20px', position: 'relative' as const, zIndex: 2 }}>
+          style={{ padding: '0 20px', marginBottom: '20px', marginTop: '-24px', position: 'relative' as const, zIndex: 2 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px' }}>
             <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: isPremium ? 'linear-gradient(135deg, #fbbf24, #f59e0b)' : `linear-gradient(135deg, ${accent}, #6b9fff)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px', fontWeight: 800, color: '#fff', flexShrink: 0, boxShadow: isPremium ? '0 4px 20px rgba(251,191,36,0.5)' : `0 4px 20px ${accent}50`, border: `3px solid ${card}` }}>
               {initial}
@@ -336,7 +336,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
           </div>
 
           {/* Stats */}
-<div style={{ display: 'flex', gap: '6px', overflowX: 'auto' as const, paddingBottom: '2px', paddingLeft: '0', paddingRight: '0' }}>
+<div style={{ display: 'flex', gap: '6px', overflowX: 'auto' as const, paddingBottom: '2px' }}>
             {[
               { label: locale === 'de' ? 'Kleidung' : 'Items', value: itemCount, max: isPremium ? null : 20 },
               { label: locale === 'de' ? 'Outfits' : 'Outfits', value: todayOutfits, max: isPremium ? 15 : 3 },
@@ -355,6 +355,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
             ))}
           </div>
         </motion.div>
+
         <div style={{ padding: '0 20px' }}>
 {/* Mein Plan */}
 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
@@ -657,6 +658,8 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
           <button onClick={() => setShowDeleteModal(true)} style={{ width: '100%', padding: '14px 16px', background: 'transparent', border: 'none', fontSize: '13px', color: muted, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", fontWeight: 500, textAlign: 'left' as const }}>
             {locale === 'de' ? 'Account löschen' : 'Delete account'}
           </button>
+        </div>
+
         </div>
 
        <p style={{ textAlign: 'center' as const, fontSize: '11px', color: muted, letterSpacing: '0.04em' }}>KiWardrobe · v1.0</p>
