@@ -57,15 +57,97 @@ function createWatermarkedImage(imageUrl: string): Promise<string> {
       ctx.font = `700 ${badgeFontSize}px 'Poppins', sans-serif`
       ctx.textAlign = 'right'
       ctx.textBaseline = 'bottom'
-      ctx.fillStyle = 'rgba(255,255,255,0.18)'
-      ctx.shadowColor = 'rgba(0,0,0,0.35)'
-      ctx.shadowBlur = 4
+      ctx.fillStyle = 'rgba(0,0,0,0.16)'
       ctx.fillText('✦ KiWardrobe', w - w * 0.03, h - h * 0.025)
-      ctx.shadowBlur = 0
 
       resolve(canvas.toDataURL('image/jpeg', 0.94))
     }
     img.onerror = () => reject(new Error('watermark image load failed'))
+    img.src = imageUrl
+  })
+}
+
+function removeBlackBackground(imageUrl: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => {
+      const w = img.naturalWidth
+      const h = img.naturalHeight
+      const canvas = document.createElement('canvas')
+      canvas.width = w
+      canvas.height = h
+      const ctx = canvas.getContext('2d')!
+      ctx.drawImage(img, 0, 0)
+
+      let srcData: ImageData
+      try {
+        srcData = ctx.getImageData(0, 0, w, h)
+      } catch {
+        resolve(imageUrl)
+        return
+      }
+      const px = srcData.data
+
+      const isDarkBg = (i: number) => {
+        const r = px[i], g = px[i + 1], b = px[i + 2]
+        return Math.max(r, g, b) < 32
+      }
+
+      const mask = new Uint8Array(w * h)
+      const stack: number[] = []
+      for (let x = 0; x < w; x++) { stack.push(x); stack.push(x + (h - 1) * w) }
+      for (let y = 0; y < h; y++) { stack.push(y * w); stack.push(w - 1 + y * w) }
+
+      while (stack.length) {
+        const p = stack.pop() as number
+        if (p < 0 || p >= w * h || mask[p]) continue
+        const i = p * 4
+        if (!isDarkBg(i)) continue
+        mask[p] = 1
+        const x = p % w
+        const y = (p / w) | 0
+        if (x > 0) stack.push(p - 1)
+        if (x < w - 1) stack.push(p + 1)
+        if (y > 0) stack.push(p - w)
+        if (y < h - 1) stack.push(p + w)
+      }
+
+      const out = ctx.createImageData(w, h)
+      const op = out.data
+      for (let p = 0; p < w * h; p++) {
+        const i = p * 4
+        if (mask[p]) {
+          op[i] = 0; op[i + 1] = 0; op[i + 2] = 0; op[i + 3] = 0
+        } else {
+          op[i] = px[i]; op[i + 1] = px[i + 1]; op[i + 2] = px[i + 2]; op[i + 3] = 255
+        }
+      }
+      for (let x = 1; x < w - 1; x++) {
+        for (let y = 1; y < h - 1; y++) {
+          const p = x + y * w
+          if (mask[p]) continue
+          const i = p * 4
+          const neighborsBg = mask[p - 1] + mask[p + 1] + mask[p - w] + mask[p + w]
+          if (neighborsBg > 0) op[i + 3] = Math.round(255 * (1 - neighborsBg / 5))
+        }
+      }
+      ctx.putImageData(out, 0, 0)
+
+      const finalCanvas = document.createElement('canvas')
+      finalCanvas.width = w
+      finalCanvas.height = h
+      const fctx = finalCanvas.getContext('2d')!
+      const grad = fctx.createRadialGradient(w / 2, h * 0.32, h * 0.1, w / 2, h * 0.5, h * 0.85)
+      grad.addColorStop(0, '#E9E4D8')
+      grad.addColorStop(1, '#C9C2B2')
+      fctx.fillStyle = grad
+      fctx.fillRect(0, 0, w, h)
+      fctx.drawImage(canvas, 0, 0)
+
+      resolve(finalCanvas.toDataURL('image/png'))
+    }
+    img.onerror = () => reject(new Error('bg removal image load failed'))
     img.src = imageUrl
   })
 }
@@ -178,6 +260,8 @@ export default function AvatarPage() {
   const [selectedItem, setSelectedItem] = useState<ClothingItem | null>(null)
   const [selfie, setSelfie] = useState<string | null>(null)
   const [result, setResult] = useState<string | null>(null)
+  const [processedResult, setProcessedResult] = useState<string | null>(null)
+  const [bgProcessing, setBgProcessing] = useState(false)
   const [loading, setLoading] = useState(false)
   const [pageLoading, setPageLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -200,6 +284,17 @@ export default function AvatarPage() {
   const sageGradient = 'linear-gradient(135deg, #7FA98E, #355C7D)'
 
   useEffect(() => { loadData() }, [])
+
+  useEffect(() => {
+    if (!result) { setProcessedResult(null); return }
+    let cancelled = false
+    setBgProcessing(true)
+    removeBlackBackground(result)
+      .then(url => { if (!cancelled) setProcessedResult(url) })
+      .catch(() => { if (!cancelled) setProcessedResult(null) })
+      .finally(() => { if (!cancelled) setBgProcessing(false) })
+    return () => { cancelled = true }
+  }, [result])
 
   async function loadData() {
     const { data: { session } } = await supabase.auth.getSession()
@@ -453,7 +548,7 @@ export default function AvatarPage() {
                       <button
                         onClick={async () => {
                           try {
-                            const watermarked = await createWatermarkedImage(result)
+                            const watermarked = await createWatermarkedImage(processedResult ?? result)
                             const blob = await (await fetch(watermarked)).blob()
                             const url = URL.createObjectURL(blob)
                             const a = document.createElement('a')
@@ -470,35 +565,30 @@ export default function AvatarPage() {
                       </button>
                     </div>
 
-                    {/* Umkleidekabinen-Rahmen */}
-                    <div style={{
-                      position: 'relative' as const,
-                      padding: '18px',
-                      background: isDark
-                        ? 'repeating-linear-gradient(90deg, #241318 0px, #241318 22px, #2E1A20 22px, #2E1A20 44px)'
-                        : 'repeating-linear-gradient(90deg, #7A2E3A 0px, #7A2E3A 22px, #8C3745 22px, #8C3745 44px)',
-                    }}>
-                      <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.35) 100%)', pointerEvents: 'none' as const }} />
-                      <div style={{ position: 'relative' as const, borderRadius: '10px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.35)' }}>
-                        <img
-                          src={result}
-                          style={{ width: '100%', display: 'block', maxHeight: '480px', objectFit: 'contain', background: 'radial-gradient(ellipse at 50% 30%, #3a3f47 0%, #1c1e22 55%, #0d0e10 100%)' }}
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none'
-                            const div = document.createElement('div')
-                            div.style.padding = '20px'
-                            div.style.textAlign = 'center'
-                            div.style.color = accent
-                            div.innerHTML = `<a href="${result}" target="_blank" style="color:${accent};font-weight:600">🔗 ${locale === 'de' ? 'Bild öffnen →' : 'Open image →'}</a>`
-                            e.currentTarget.parentNode?.appendChild(div)
-                          }}
-                        />
-                        {/* Dezentes Wasserzeichen direkt aufs Bild */}
-                        <p style={{ position: 'absolute', bottom: '12px', right: '14px', fontSize: '13px', fontWeight: 700, color: 'rgba(255,255,255,0.18)', letterSpacing: '0.01em', pointerEvents: 'none' as const, textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>✦ KiWardrobe</p>
-                      </div>
-                      <p style={{ position: 'relative' as const, textAlign: 'center' as const, fontSize: '10px', color: 'rgba(255,255,255,0.55)', marginTop: '10px', letterSpacing: '0.04em' }}>
-                        {locale === 'de' ? 'Kabine 1 · KiWardrobe Studio' : 'Fitting room 1 · KiWardrobe Studio'}
-                      </p>
+                    {/* Studio-Rahmen */}
+                    <div style={{ position: 'relative' as const, borderRadius: '10px', overflow: 'hidden' }}>
+                      <img
+                        src={processedResult ?? result}
+                        style={{ width: '100%', display: 'block', maxHeight: '480px', objectFit: 'contain', background: 'linear-gradient(180deg, #E9E4D8 0%, #C9C2B2 100%)' }}
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none'
+                          const div = document.createElement('div')
+                          div.style.padding = '20px'
+                          div.style.textAlign = 'center'
+                          div.style.color = accent
+                          div.innerHTML = `<a href="${result}" target="_blank" style="color:${accent};font-weight:600">🔗 ${locale === 'de' ? 'Bild öffnen →' : 'Open image →'}</a>`
+                          e.currentTarget.parentNode?.appendChild(div)
+                        }}
+                      />
+                      {bgProcessing && (
+                        <div style={{ position: 'absolute', top: '10px', left: '10px', background: 'rgba(0,0,0,0.5)', borderRadius: '100px', padding: '5px 11px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <motion.span animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
+                            style={{ display: 'block', width: '10px', height: '10px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff' }} />
+                          <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>{locale === 'de' ? 'Hintergrund wird entfernt…' : 'Removing background…'}</span>
+                        </div>
+                      )}
+                      {/* Dezentes Wasserzeichen direkt aufs Bild */}
+                      <p style={{ position: 'absolute', bottom: '12px', right: '14px', fontSize: '13px', fontWeight: 700, color: 'rgba(0,0,0,0.16)', letterSpacing: '0.01em' }}>✦ KiWardrobe</p>
                     </div>
                     <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column' as const, gap: '8px' }}>
                       <motion.button whileTap={{ scale: 0.97 }}
