@@ -34,6 +34,8 @@ export default function OutfitsPage() {
   const goldDim   = isDark ? 'rgba(241,185,81,0.14)' : 'rgba(241,185,81,0.10)'
   const goldText  = isDark ? '#F1B951' : '#9C6B1F'
   const sageGradient = 'linear-gradient(135deg, #F1B951, #C98A3A)'
+  const navyAccent   = isDark ? '#4A7099' : '#1F3B57'
+  const navyGradient = 'linear-gradient(135deg, #2C4E72, #16283D)'
 
   useEffect(() => { loadData() }, [])
 
@@ -121,7 +123,7 @@ export default function OutfitsPage() {
         <div style={{ display: 'flex', gap: '6px', margin: '14px 20px 16px', padding: 0 }}>
           {(['all', 'favorites'] as const).map(f => (
             <button key={f} onClick={() => setFilter(f)}
-              style={{ padding: '8px 18px', borderRadius: '100px', border: `1px solid ${filter === f ? goldAccent : border}`, background: filter === f ? sageGradient : card, color: filter === f ? '#1D1D20' : muted, fontSize: '13px', fontWeight: filter === f ? 600 : 400, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", transition: 'all 0.15s', boxShadow: filter === f ? '0 3px 10px rgba(241,185,81,0.35)' : 'none' }}>
+              style={{ padding: '8px 18px', borderRadius: '100px', border: `1px solid ${filter === f ? navyAccent : border}`, background: filter === f ? navyGradient : card, color: filter === f ? '#fff' : muted, fontSize: '13px', fontWeight: filter === f ? 600 : 400, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", transition: 'all 0.15s', boxShadow: filter === f ? '0 3px 10px rgba(22,40,61,0.35)' : 'none' }}>
               {f === 'all' ? (locale === 'de' ? 'Alle' : 'All') : (locale === 'de' ? 'Favoriten' : 'Favorites')}
             </button>
           ))}
