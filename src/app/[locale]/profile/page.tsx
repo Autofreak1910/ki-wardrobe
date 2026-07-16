@@ -302,18 +302,30 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
 
       <Navbar activePage="profile" />
 
-      <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '560px', width: '100%', margin: '0 auto', padding: '84px 20px 108px', position: 'relative', zIndex: 1 }}>
+      <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '560px', width: '100%', margin: '0 auto', padding: '68px 0 108px', position: 'relative', zIndex: 1 }}>
 
-        {/* Avatar */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} style={{ marginBottom: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
-          <div style={{ width: '50px', height: '50px', borderRadius: '14px', background: isPremium ? 'linear-gradient(135deg, #fbbf24, #f59e0b)' : `linear-gradient(135deg, ${accent}, #6b9fff)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 800, color: '#fff', flexShrink: 0, boxShadow: isPremium ? '0 4px 20px rgba(251,191,36,0.6), 0 0 40px rgba(251,191,36,0.2)' : `0 4px 20px ${accent}50` }}>
+        {/* Hero Banner */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          style={{ position: 'relative' as const, height: '160px', overflow: 'hidden', marginBottom: '0' }}>
+          <img
+            src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&q=80&auto=format&fit=crop"
+            alt=""
+            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', position: 'absolute', inset: 0 }}
+          />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(240,244,255,0.2) 0%, rgba(240,244,255,0.95) 100%)' }} />
+        </motion.div>
+
+        {/* Avatar + Name */}
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+          style={{ padding: '0 20px', marginBottom: '16px', marginTop: '-20px', position: 'relative' as const, zIndex: 2 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px' }}>
+            <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: isPremium ? 'linear-gradient(135deg, #fbbf24, #f59e0b)' : `linear-gradient(135deg, ${accent}, #6b9fff)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px', fontWeight: 800, color: '#fff', flexShrink: 0, boxShadow: isPremium ? '0 4px 20px rgba(251,191,36,0.5)' : `0 4px 20px ${accent}50`, border: `3px solid ${card}` }}>
               {initial}
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
-                <h1 style={{ fontSize: '20px', fontWeight: 800, color: text, letterSpacing: '-0.03em' }}>{profile?.username ?? 'User'}</h1>
-             {isPremium ? (
+                <h1 style={{ fontSize: '22px', fontWeight: 800, color: text, letterSpacing: '-0.03em' }}>{profile?.username ?? 'User'}</h1>
+                {isPremium ? (
                   <span style={{ fontSize: '10px', fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '6px', padding: '3px 8px', boxShadow: '0 2px 8px rgba(251,191,36,0.4)' }}>✦ PRO</span>
                 ) : (
                   <span style={{ fontSize: '10px', fontWeight: 700, color: muted, background: accentDim, border: `1px solid ${border}`, borderRadius: '6px', padding: '3px 8px' }}>FREE</span>
@@ -324,7 +336,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
           </div>
 
           {/* Stats */}
-<div style={{ display: 'flex', gap: '6px', overflowX: 'auto' as const, paddingBottom: '2px' }}>
+<div style={{ display: 'flex', gap: '6px', overflowX: 'auto' as const, paddingBottom: '2px', paddingLeft: '0', paddingRight: '0' }}>
             {[
               { label: locale === 'de' ? 'Kleidung' : 'Items', value: itemCount, max: isPremium ? null : 20 },
               { label: locale === 'de' ? 'Outfits' : 'Outfits', value: todayOutfits, max: isPremium ? 15 : 3 },
@@ -343,6 +355,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
             ))}
           </div>
         </motion.div>
+        <div style={{ padding: '0 20px' }}>
 {/* Mein Plan */}
 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
   style={{ background: isPremium ? 'linear-gradient(135deg, rgba(251,191,36,0.08), rgba(245,158,11,0.04))' : card, border: `1px solid ${isPremium ? 'rgba(251,191,36,0.3)' : border}`, borderRadius: '16px', overflow: 'hidden', marginBottom: '12px', boxShadow: isPremium ? '0 4px 24px rgba(251,191,36,0.1)' : 'none' }}>
