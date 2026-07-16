@@ -239,7 +239,7 @@ export default function AvatarPage() {
 
       <Navbar activePage="avatar" />
 
-      <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '560px', width: '100%', margin: '0 auto', padding: canGenerate ? '68px 0 150px' : '68px 0 108px', position: 'relative', zIndex: 1 }}>
+      <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '560px', width: '100%', margin: '0 auto', padding: '68px 0 24px', position: 'relative', zIndex: 1 }}>
 
         {/* Hero Banner */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}
@@ -486,9 +486,9 @@ export default function AvatarPage() {
 
       </main>
 
-      {/* Sticky Generate Bar — always visible while scrolling */}
+      {/* Sticky Generate Bar — always visible while scrolling (normal flex flow, no position:fixed) */}
       {canGenerate && (
-        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 30, background: isDark ? 'rgba(22,22,22,0.92)' : 'rgba(253,252,249,0.92)', backdropFilter: 'blur(14px)', borderTop: `1px solid ${border}`, padding: '12px 20px calc(12px + env(safe-area-inset-bottom))' }}>
+        <div style={{ flexShrink: 0, zIndex: 30, background: isDark ? 'rgba(22,22,22,0.96)' : 'rgba(253,252,249,0.96)', backdropFilter: 'blur(14px)', borderTop: `1px solid ${border}`, padding: '12px 20px calc(12px + env(safe-area-inset-bottom))', position: 'relative' }}>
           <div style={{ maxWidth: '560px', margin: '0 auto' }}>
             <motion.button whileTap={{ scale: 0.97 }}
               onClick={generateAvatar}
