@@ -108,14 +108,34 @@ function removeBlackBackground(imageUrl: string): Promise<string> {
         if (y < h - 1) stack.push(p + w)
       }
 
+      // Sicherheitsmarge: Hintergrund-Maske um ~2px nach innen schrumpfen, damit duenne
+      // Koerperteile (Fuesse, Finger) am Rand nicht faelschlich mitentfernt werden.
+      const erode = (m: Uint8Array): Uint8Array => {
+        const r = new Uint8Array(m)
+        for (let x = 0; x < w; x++) {
+          for (let y = 0; y < h; y++) {
+            const p = x + y * w
+            if (!m[p]) continue
+            const left = x > 0 ? m[p - 1] : 1
+            const right = x < w - 1 ? m[p + 1] : 1
+            const up = y > 0 ? m[p - w] : 1
+            const down = y < h - 1 ? m[p + w] : 1
+            if (!(left && right && up && down)) r[p] = 0
+          }
+        }
+        return r
+      }
+      let eroded = erode(mask)
+      eroded = erode(eroded)
+
       // Kleine, isolierte Loecher im Vordergrund (faelschlich als Hintergrund erkannt) wieder schliessen:
       // ein Hintergrund-Pixel bleibt nur Hintergrund, wenn es an mindestens 3 der 4 Nachbarn ebenfalls Hintergrund ist
-      const cleaned = new Uint8Array(mask)
+      const cleaned = new Uint8Array(eroded)
       for (let x = 1; x < w - 1; x++) {
         for (let y = 1; y < h - 1; y++) {
           const p = x + y * w
-          if (!mask[p]) continue
-          const n = mask[p - 1] + mask[p + 1] + mask[p - w] + mask[p + w]
+          if (!eroded[p]) continue
+          const n = eroded[p - 1] + eroded[p + 1] + eroded[p - w] + eroded[p + w]
           if (n < 3) cleaned[p] = 0
         }
       }
