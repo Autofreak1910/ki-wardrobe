@@ -222,6 +222,7 @@ export default function AvatarPage() {
 
   const isPremium = profile?.is_premium ?? false
   const triesLeft = profile?.avatar_tries_left ?? 0
+  const canGenerate = isPremium || triesLeft > 0
 
   if (pageLoading) return (
     <div style={{ height: '100dvh', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -238,7 +239,7 @@ export default function AvatarPage() {
 
       <Navbar activePage="avatar" />
 
-      <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '560px', width: '100%', margin: '0 auto', padding: '68px 0 108px', position: 'relative', zIndex: 1 }}>
+      <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '560px', width: '100%', margin: '0 auto', padding: canGenerate ? '68px 0 150px' : '68px 0 108px', position: 'relative', zIndex: 1 }}>
 
         {/* Hero Banner */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}
@@ -303,7 +304,7 @@ export default function AvatarPage() {
           )}
         </div>
 
-        {(isPremium || triesLeft > 0) && (
+        {canGenerate && (
           <>
             {/* Step 1 — Selfie */}
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
@@ -372,24 +373,6 @@ export default function AvatarPage() {
                 </div>
               </div>
             </motion.div>
-
-            {/* Generate Button */}
-            <div style={{ padding: '0 20px' }}>
-              <motion.button whileTap={{ scale: 0.97 }}
-                onClick={generateAvatar}
-                disabled={loading || !selfie || !selectedItem}
-                style={{ width: '100%', padding: '16px', background: sageGradient, border: 'none', borderRadius: '100px', fontSize: '15px', fontWeight: 700, color: '#fff', cursor: loading ? 'wait' : 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: '0 8px 24px rgba(53,92,125,0.3)', transition: 'all 0.2s', opacity: (!selfie || !selectedItem) ? 0.6 : 1 }}>
-                {loading ? (
-                  <>
-                    <motion.span animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                      style={{ display: 'block', width: '18px', height: '18px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff' }} />
-                    {locale === 'de' ? 'KI generiert (~20 Sek)...' : 'AI generating (~20 sec)...'}
-                  </>
-                ) : (
-                  <>✦ {locale === 'de' ? 'Avatar generieren' : 'Generate avatar'}</>
-                )}
-              </motion.button>
-            </div>
 
             {/* Error */}
             {error && (
@@ -502,6 +485,29 @@ export default function AvatarPage() {
         )}
 
       </main>
+
+      {/* Sticky Generate Bar — always visible while scrolling */}
+      {canGenerate && (
+        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 30, background: isDark ? 'rgba(22,22,22,0.92)' : 'rgba(253,252,249,0.92)', backdropFilter: 'blur(14px)', borderTop: `1px solid ${border}`, padding: '12px 20px calc(12px + env(safe-area-inset-bottom))' }}>
+          <div style={{ maxWidth: '560px', margin: '0 auto' }}>
+            <motion.button whileTap={{ scale: 0.97 }}
+              onClick={generateAvatar}
+              disabled={loading || !selfie || !selectedItem}
+              style={{ width: '100%', padding: '16px', background: sageGradient, border: 'none', borderRadius: '100px', fontSize: '15px', fontWeight: 700, color: '#fff', cursor: loading ? 'wait' : 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: '0 8px 24px rgba(53,92,125,0.3)', transition: 'all 0.2s', opacity: (!selfie || !selectedItem) ? 0.6 : 1 }}>
+              {loading ? (
+                <>
+                  <motion.span animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                    style={{ display: 'block', width: '18px', height: '18px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff' }} />
+                  {locale === 'de' ? 'KI generiert (~20 Sek)...' : 'AI generating (~20 sec)...'}
+                </>
+              ) : (
+                <>✦ {locale === 'de' ? 'Avatar generieren' : 'Generate avatar'}</>
+              )}
+            </motion.button>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }
