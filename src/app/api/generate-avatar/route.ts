@@ -60,9 +60,9 @@ const buffer = Buffer.from(base64Data, 'base64')
           garm_img: garmentImage,
           garment_des: garmentDescription || 'clothing item',
           category: garmentCategory,
-         is_checked: true,
-          denoise_steps: 40,
-          is_checked_crop: true,
+        is_checked: true,
+          is_checked_crop: false,
+          denoise_steps: 30,
         }
       }
     )
