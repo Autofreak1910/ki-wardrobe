@@ -524,16 +524,17 @@ const { count } = await supabase.from('outfits').select('*', { count: 'exact', h
   setSaved(true)
 }
 
-  const bg        = isDark ? '#080c18' : '#f0f4ff'
-const card      = isDark ? '#0d1225' : '#ffffff'
-const border    = isDark ? '#1a2540' : '#dde3f5'
-const text      = isDark ? '#e8eeff' : '#0a1628'
-const muted     = isDark ? '#4d6080' : '#6b7fa8'
-const accent    = isDark ? '#4d7eff' : '#3b6bff'
-const accentDim = isDark ? 'rgba(77,126,255,0.1)' : 'rgba(59,107,255,0.08)'
+  const bg        = isDark ? '#161616' : '#FDFCF9'
+const card      = isDark ? '#1D1D20' : '#ffffff'
+const border    = isDark ? '#2a2a2e' : '#EAE7E0'
+const text      = isDark ? '#F5F3EE' : '#1D1D20'
+const muted     = isDark ? '#9a978f' : '#8A8680'
+const accent    = isDark ? '#7A96AC' : '#4C677D'
+const accentDim = isDark ? 'rgba(122,150,172,0.12)' : 'rgba(76,103,125,0.08)'
+const goldAccent = '#F1B951'
 
 return (
-    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' as const, background: bg, overflow: 'hidden', fontFamily: "'DM Sans', sans-serif", position: 'relative' as const }}>
+    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' as const, background: bg, overflow: 'hidden', fontFamily: "'Poppins', 'Inter', sans-serif", position: 'relative' as const }}>
 
 <WelcomeOverlay
   weatherRef={weatherRef}
@@ -558,7 +559,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
   maxWidth: '340px',
   zIndex: 9997, background: card, border: `1px solid ${border}`,
   padding: '14px 18px', borderRadius: '18px',
-  fontFamily: "'DM Sans', sans-serif",
+  fontFamily: "'Poppins', 'Inter', sans-serif",
   boxShadow: `0 8px 32px rgba(0,0,0,0.25)`,
   cursor: 'pointer',
 }}>
@@ -566,7 +567,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
     <span style={{ fontSize: '20px' }}>🔒</span>
     <p style={{ fontSize: '13px', fontWeight: 700, color: text }}>{limitMsg}</p>
   </div>
-  <div style={{ background: `linear-gradient(135deg, ${accent}, #6b9fff)`, borderRadius: '10px', padding: '10px', textAlign: 'center' as const }}>
+  <div style={{ background: `linear-gradient(135deg, ${accent}, #6d8fa3)`, borderRadius: '10px', padding: '10px', textAlign: 'center' as const }}>
     <p style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>
       {locale === 'de' ? '✦ Jetzt upgraden für €4,99/Mo' : '✦ Upgrade now for €4.99/mo'}
     </p>
@@ -597,12 +598,12 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
             await activatePushNotifications()
             setShowPushPrompt(false)
           }}
-          style={{ width: '100%', padding: '13px', background: `linear-gradient(135deg, ${accent}, #6b9fff)`, border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", marginBottom: '8px' }}>
+          style={{ width: '100%', padding: '13px', background: `linear-gradient(135deg, ${accent}, #6d8fa3)`, border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", marginBottom: '8px' }}>
           {locale === 'de' ? '☀️ Ja, aktivieren' : '☀️ Yes, enable'}
         </motion.button>
 <button
           onClick={() => { localStorage.setItem('kw_push_prompt_seen', 'true'); setShowPushPrompt(false) }}
-          style={{ width: '100%', padding: '11px', background: 'transparent', border: 'none', fontSize: '13px', color: muted, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
+          style={{ width: '100%', padding: '11px', background: 'transparent', border: 'none', fontSize: '13px', color: muted, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
           {locale === 'de' ? 'Vielleicht später' : 'Maybe later'}
         </button>
       </motion.div>
@@ -657,33 +658,33 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
 
       <motion.p
         initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55, duration: 0.4 }}
-        style={{ fontSize: '13px', fontWeight: 700, color: '#a855f7', letterSpacing: '0.14em', textTransform: 'uppercase' as const, marginBottom: '12px', fontFamily: "'DM Sans', sans-serif" }}>
+        style={{ fontSize: '13px', fontWeight: 700, color: '#a855f7', letterSpacing: '0.14em', textTransform: 'uppercase' as const, marginBottom: '12px', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
         {locale === 'de' ? '✦ Willkommen bei KiWardrobe ✦' : '✦ Welcome to KiWardrobe ✦'}
       </motion.p>
 
       <motion.p
         initial={{ opacity: 0, y: 20, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ delay: 0.68, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        style={{ fontSize: '15px', fontWeight: 600, color: muted, fontFamily: "'DM Sans', sans-serif", marginBottom: '4px' }}>
+        style={{ fontSize: '15px', fontWeight: 600, color: muted, fontFamily: "'Poppins', 'Inter', sans-serif", marginBottom: '4px' }}>
         {locale === 'de' ? 'Du wurdest eingeladen von' : 'You were invited by'}
       </motion.p>
 
       <motion.p
         initial={{ opacity: 0, y: 16, scale: 0.92 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ delay: 0.78, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        style={{ fontSize: '32px', fontWeight: 800, color: text, letterSpacing: '-0.04em', fontFamily: "'DM Sans', sans-serif", marginBottom: '14px' }}>
+        style={{ fontSize: '32px', fontWeight: 800, color: text, letterSpacing: '-0.04em', fontFamily: "'Poppins', 'Inter', sans-serif", marginBottom: '14px' }}>
         <span style={{ background: 'linear-gradient(135deg, #a855f7, #6b9fff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{referrerName}</span>
       </motion.p>
 
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.95, type: 'spring', damping: 14 }}
-        style={{ background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '14px', padding: '10px 20px', marginBottom: '16px', boxShadow: '0 4px 20px rgba(251,191,36,0.4)' }}>
-        <p style={{ fontSize: '17px', fontWeight: 800, color: '#fff', fontFamily: "'DM Sans', sans-serif" }}>
+        style={{ background: goldAccent, borderRadius: '14px', padding: '10px 20px', marginBottom: '16px', boxShadow: '0 4px 20px rgba(251,191,36,0.4)' }}>
+        <p style={{ fontSize: '17px', fontWeight: 800, color: '#fff', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
           {locale === 'de' ? '🎁 14 Tage Pro gratis!' : '🎁 14 days Pro free!'}
         </p>
       </motion.div>
 
       <motion.p
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.1 }}
-        style={{ fontSize: '14px', color: muted, fontFamily: "'DM Sans', sans-serif", textAlign: 'center' as const, maxWidth: '280px', lineHeight: 1.6 }}>
+        style={{ fontSize: '14px', color: muted, fontFamily: "'Poppins', 'Inter', sans-serif", textAlign: 'center' as const, maxWidth: '280px', lineHeight: 1.6 }}>
         {locale === 'de' ? 'Lad deine Kleidung hoch und lass die KI dein perfektes Outfit zusammenstellen 🚀' : 'Upload your clothes and let the AI create your perfect outfit 🚀'}
       </motion.p>
     </motion.div>
@@ -737,25 +738,25 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
 
       <motion.p
         initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55, duration: 0.4 }}
-        style={{ fontSize: '13px', fontWeight: 700, color: '#10b981', letterSpacing: '0.14em', textTransform: 'uppercase' as const, marginBottom: '12px', fontFamily: "'DM Sans', sans-serif" }}>
+        style={{ fontSize: '13px', fontWeight: 700, color: '#10b981', letterSpacing: '0.14em', textTransform: 'uppercase' as const, marginBottom: '12px', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
         {locale === 'de' ? '✦ Einladung erfolgreich ✦' : '✦ Invite successful ✦'}
       </motion.p>
 
       <motion.p
         initial={{ opacity: 0, y: 20, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ delay: 0.68, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        style={{ fontSize: '15px', fontWeight: 600, color: muted, fontFamily: "'DM Sans', sans-serif", marginBottom: '4px' }}>
+        style={{ fontSize: '15px', fontWeight: 600, color: muted, fontFamily: "'Poppins', 'Inter', sans-serif", marginBottom: '4px' }}>
         {locale === 'de' ? 'Du hast' : 'You got'}
       </motion.p>
 
       <motion.p
         initial={{ opacity: 0, y: 16, scale: 0.92 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ delay: 0.78, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        style={{ fontSize: '40px', fontWeight: 800, color: text, letterSpacing: '-0.04em', fontFamily: "'DM Sans', sans-serif", marginBottom: '14px' }}>
+        style={{ fontSize: '40px', fontWeight: 800, color: text, letterSpacing: '-0.04em', fontFamily: "'Poppins', 'Inter', sans-serif", marginBottom: '14px' }}>
         +7 <span style={{ background: 'linear-gradient(135deg, #10b981, #0891b2)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{locale === 'de' ? 'Tage Pro' : 'days Pro'}</span>
       </motion.p>
 
       <motion.p
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.0 }}
-        style={{ fontSize: '15px', color: muted, fontFamily: "'DM Sans', sans-serif", textAlign: 'center' as const, maxWidth: '280px', lineHeight: 1.6 }}>
+        style={{ fontSize: '15px', color: muted, fontFamily: "'Poppins', 'Inter', sans-serif", textAlign: 'center' as const, maxWidth: '280px', lineHeight: 1.6 }}>
         {locale === 'de' ? 'Danke fürs Einladen! Lad weitere Freunde ein für noch mehr Gratis-Zeit 🚀' : 'Thanks for inviting! Invite more friends for even more free time 🚀'}
       </motion.p>
     </motion.div>
@@ -833,7 +834,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.55, duration: 0.4 }}
-        style={{ fontSize: '13px', fontWeight: 700, color: '#fbbf24', letterSpacing: '0.14em', textTransform: 'uppercase' as const, marginBottom: '12px', fontFamily: "'DM Sans', sans-serif" }}>
+        style={{ fontSize: '13px', fontWeight: 700, color: '#fbbf24', letterSpacing: '0.14em', textTransform: 'uppercase' as const, marginBottom: '12px', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
         {locale === 'de' ? '✦ Willkommen im Club ✦' : '✦ Welcome to the club ✦'}
       </motion.p>
 
@@ -841,7 +842,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
         initial={{ opacity: 0, y: 20, scale: 0.9 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ delay: 0.68, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        style={{ fontSize: '15px', fontWeight: 600, color: muted, letterSpacing: '-0.01em', fontFamily: "'DM Sans', sans-serif", marginBottom: '4px' }}>
+        style={{ fontSize: '15px', fontWeight: 600, color: muted, letterSpacing: '-0.01em', fontFamily: "'Poppins', 'Inter', sans-serif", marginBottom: '4px' }}>
         {locale === 'de' ? 'Du bist jetzt' : "You're now a"}
       </motion.p>
 
@@ -849,7 +850,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
         initial={{ opacity: 0, y: 16, scale: 0.92 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ delay: 0.78, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        style={{ fontSize: '38px', fontWeight: 800, color: text, letterSpacing: '-0.04em', fontFamily: "'DM Sans', sans-serif", marginBottom: '14px' }}>
+        style={{ fontSize: '38px', fontWeight: 800, color: text, letterSpacing: '-0.04em', fontFamily: "'Poppins', 'Inter', sans-serif", marginBottom: '14px' }}>
         KiWardrobe <span style={{ background: 'linear-gradient(135deg, #fbbf24, #f59e0b, #ec4899)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Pro</span>{locale === 'de' ? '' : ' User'}
       </motion.p>
 
@@ -857,7 +858,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.0 }}
-        style={{ fontSize: '15px', color: muted, fontFamily: "'DM Sans', sans-serif", textAlign: 'center' as const, maxWidth: '280px', lineHeight: 1.6, marginBottom: '12px' }}>
+        style={{ fontSize: '15px', color: muted, fontFamily: "'Poppins', 'Inter', sans-serif", textAlign: 'center' as const, maxWidth: '280px', lineHeight: 1.6, marginBottom: '12px' }}>
         {proWelcomeData?.fromInvite
           ? (locale === 'de' ? `Dein Freund hat dich eingeladen 🎁` : `Your friend invited you 🎁`)
           : (locale === 'de' ? '15 Outfits täglich · Unbegrenzt Kleidung · Style DNA 🚀' : '15 outfits daily · Unlimited items · Style DNA 🚀')}
@@ -869,7 +870,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 1.15 }}
           style={{ background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.3)', borderRadius: '12px', padding: '10px 20px', marginBottom: '16px' }}>
-          <p style={{ fontSize: '13px', fontWeight: 700, color: '#fbbf24', fontFamily: "'DM Sans', sans-serif", textAlign: 'center' as const }}>
+          <p style={{ fontSize: '13px', fontWeight: 700, color: '#fbbf24', fontFamily: "'Poppins', 'Inter', sans-serif", textAlign: 'center' as const }}>
             {locale === 'de' ? `✦ Pro aktiv bis ${proWelcomeData.until}` : `✦ Pro active until ${proWelcomeData.until}`}
           </p>
         </motion.div>
@@ -881,7 +882,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
         transition={{ delay: 1.3 }}
         whileTap={{ scale: 0.97 }}
         onClick={() => setShowProWelcome(false)}
-        style={{ background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', border: 'none', borderRadius: '14px', padding: '14px 32px', fontSize: '15px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: '0 6px 24px rgba(251,191,36,0.4)' }}>
+        style={{ background: goldAccent, border: 'none', borderRadius: '14px', padding: '14px 32px', fontSize: '15px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: '0 6px 24px rgba(251,191,36,0.4)' }}>
         {locale === 'de' ? "Los geht's! ✦" : "Let's go! ✦"}
       </motion.button>
     </motion.div>
@@ -921,7 +922,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
         transition={{ type: 'spring', damping: 10, stiffness: 200, delay: 0.1 }}
         style={{
           width: '110px', height: '110px', borderRadius: '32px',
-          background: `linear-gradient(135deg, ${accent}, #6b9fff)`,
+          background: `linear-gradient(135deg, ${accent}, #6d8fa3)`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           boxShadow: `0 0 80px ${accent}70, 0 0 40px ${accent}40`,
           marginBottom: '14px',
@@ -942,7 +943,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5, duration: 0.4 }}
-        style={{ fontSize: '26px', fontWeight: 800, color: text, letterSpacing: '-0.04em', fontFamily: "'DM Sans', sans-serif", marginBottom: '8px' }}
+        style={{ fontSize: '26px', fontWeight: 800, color: text, letterSpacing: '-0.04em', fontFamily: "'Poppins', 'Inter', sans-serif", marginBottom: '8px' }}
       >
         {locale === 'de' ? 'Entsperrt! 🎉' : 'Unlocked! 🎉'}
       </motion.p>
@@ -950,7 +951,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.7 }}
-        style={{ fontSize: '15px', color: muted, fontFamily: "'DM Sans', sans-serif", textAlign: 'center' as const, maxWidth: '260px', lineHeight: 1.5 }}
+        style={{ fontSize: '15px', color: muted, fontFamily: "'Poppins', 'Inter', sans-serif", textAlign: 'center' as const, maxWidth: '260px', lineHeight: 1.5 }}
       >
         {locale === 'de' ? 'Dein Stylist ist bereit — lass uns loslegen!' : 'Your stylist is ready — let\'s go!'}
       </motion.p>
@@ -1177,7 +1178,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
       style={{
         width: '100%', padding: '18px',
         borderRadius: '100px', border: 'none',
-        background: `linear-gradient(135deg, ${accent}, #6b9fff)`,
+        background: `linear-gradient(135deg, ${accent}, #6d8fa3)`,
         display: 'flex', alignItems: 'center',
         justifyContent: 'center', gap: '10px',
         cursor: 'pointer',
@@ -1187,7 +1188,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
         <path d="M7 11V7a5 5 0 0110 0v4"/>
       </svg>
-      <span style={{ fontSize: '16px', fontWeight: 700, color: '#fff', letterSpacing: '-0.01em', fontFamily: "'DM Sans', sans-serif" }}>
+      <span style={{ fontSize: '16px', fontWeight: 700, color: '#fff', letterSpacing: '-0.01em', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
         {locale === 'de' ? 'Kleidung hochladen →' : 'Upload clothes →'}
       </span>
     </motion.div>
@@ -1210,7 +1211,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
                   return (
                     <motion.button key={occ} whileTap={{ scale: 0.92 }}
                       onClick={() => { setSelected(occ); setOutfit(null); setSaved(false) }}
-                      style={{ padding: '7px 14px', borderRadius: '100px', border: `1px solid ${isOn ? accent : border}`, background: isOn ? accent : 'transparent', color: isOn ? '#fff' : muted, fontSize: '13px', fontWeight: isOn ? 600 : 400, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer', whiteSpace: 'nowrap' as const, flexShrink: 0, WebkitTapHighlightColor: 'transparent' }}>
+                      style={{ padding: '7px 14px', borderRadius: '100px', border: `1px solid ${isOn ? accent : border}`, background: isOn ? accent : 'transparent', color: isOn ? '#fff' : muted, fontSize: '13px', fontWeight: isOn ? 600 : 400, fontFamily: "'Poppins', 'Inter', sans-serif", cursor: 'pointer', whiteSpace: 'nowrap' as const, flexShrink: 0, WebkitTapHighlightColor: 'transparent' }}>
                       {t('dresser.occasions.' + occ)}
                     </motion.button>
                   )
@@ -1229,7 +1230,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
                     return (
                       <motion.button key={cat.key} whileTap={{ scale: 0.92 }}
                         onClick={() => toggleCategory(cat.key)}
-                        style={{ padding: '5px 10px', borderRadius: '100px', border: `1px solid ${isOn ? accent : border}`, background: isOn ? accentDim : 'transparent', color: isOn ? accent : muted, fontSize: '11px', fontWeight: isOn ? 700 : 400, cursor: 'pointer', opacity: exists ? 1 : 0.35, WebkitTapHighlightColor: 'transparent', fontFamily: "'DM Sans', sans-serif" }}>
+                        style={{ padding: '5px 10px', borderRadius: '100px', border: `1px solid ${isOn ? accent : border}`, background: isOn ? accentDim : 'transparent', color: isOn ? accent : muted, fontSize: '11px', fontWeight: isOn ? 700 : 400, cursor: 'pointer', opacity: exists ? 1 : 0.35, WebkitTapHighlightColor: 'transparent', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
                         {locale === 'de' ? cat.labelDe : cat.labelEn}
                       </motion.button>
                     )
@@ -1250,7 +1251,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
             {/* ── CTA Button ── */}
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24, duration: 0.4 }} style={{ marginBottom: '28px' }}>
               <motion.button ref={dressMeRef} onClick={generateOutfit} disabled={loading} whileTap={!loading ? { scale: 0.97 } : {}}
-                style={{ width: '100%', padding: '19px', borderRadius: '100px', border: 'none', background: loading ? (isDark ? '#0f1a14' : '#e6f7f0') : 'linear-gradient(135deg, #0ea472 0%, #0891b2 100%)', color: loading ? muted : '#fff', fontSize: '17px', fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', letterSpacing: '-0.02em', WebkitTapHighlightColor: 'transparent', transition: 'all 0.2s', boxShadow: loading ? 'none' : '0 6px 28px rgba(14,164,114,0.45)' }}>
+                style={{ width: '100%', padding: '19px', borderRadius: '100px', border: 'none', background: loading ? (isDark ? '#0f1a14' : '#e6f7f0') : 'linear-gradient(135deg, #0ea472 0%, #0891b2 100%)', color: loading ? muted : '#fff', fontSize: '17px', fontWeight: 700, fontFamily: "'Poppins', 'Inter', sans-serif", cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', letterSpacing: '-0.02em', WebkitTapHighlightColor: 'transparent', transition: 'all 0.2s', boxShadow: loading ? 'none' : '0 6px 28px rgba(14,164,114,0.45)' }}>
                 {loading ? (
                   <>
                     <motion.span animate={{ rotate: 360 }} transition={{ duration: 0.7, repeat: Infinity, ease: 'linear' }}
@@ -1286,7 +1287,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
           <p style={{ fontSize: '16px', fontWeight: 800, color: text, letterSpacing: '-0.03em' }}>{t('dresser.occasions.' + selected)}</p>
         </div>
         <motion.button whileTap={{ scale: 0.91 }} onClick={saveOutfit}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '8px 14px', borderRadius: '100px', border: `1px solid ${saved ? accent : border}`, background: saved ? accent : 'transparent', color: saved ? '#fff' : text, fontSize: '12px', fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer', transition: 'all 0.15s' }}>
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '8px 14px', borderRadius: '100px', border: `1px solid ${saved ? accent : border}`, background: saved ? accent : 'transparent', color: saved ? '#fff' : text, fontSize: '12px', fontWeight: 600, fontFamily: "'Poppins', 'Inter', sans-serif", cursor: 'pointer', transition: 'all 0.15s' }}>
           {saved ? `✓ ${t('dresser.saved')}` : `♡ ${t('dresser.save')}`}
         </motion.button>
       </div>
@@ -1346,7 +1347,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
       background: accentDim,
       border: `1px solid ${accent}40`,
       display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px',
-      cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
+      cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif",
       WebkitTapHighlightColor: 'transparent',
     }}>
 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1392,7 +1393,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
                 {locale === 'de' ? 'Weiter so — bleib dran! 💪' : 'Keep it up — stay consistent! 💪'}
               </p>
               <motion.button whileTap={{ scale: 0.97 }} onClick={() => setStreakReward(null)}
-                style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: 'linear-gradient(135deg, #f97316, #ef4444)', color: '#fff', fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: '0 6px 24px rgba(249,115,22,0.4)' }}>
+                style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: 'linear-gradient(135deg, #f97316, #ef4444)', color: '#fff', fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: '0 6px 24px rgba(249,115,22,0.4)' }}>
                 {locale === 'de' ? '🎉 Eingelöst!' : '🎉 Claimed!'}
               </motion.button>
             </motion.div>
@@ -1446,7 +1447,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
               </div>
 
               <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowStreakInfo(false)}
-                style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: streak >= 1 ? 'linear-gradient(135deg, #f97316, #ef4444)' : accent, color: '#fff', fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
+                style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: streak >= 1 ? 'linear-gradient(135deg, #f97316, #ef4444)' : accent, color: '#fff', fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
                 {locale === 'de' ? 'Weiter so! 🔥' : 'Keep it up! 🔥'}
               </motion.button>
             </motion.div>
@@ -1508,12 +1509,12 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
 
               {isPremium ? (
                 <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowProInfo(false)}
-                  style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', color: '#fff', fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", marginTop: '8px' }}>
+                  style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: goldAccent, color: '#fff', fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", marginTop: '8px' }}>
                   {locale === 'de' ? '✦ Pro aktiv — weiter so!' : '✦ Pro active — keep it up!'}
                 </motion.button>
               ) : (
                 <motion.button whileTap={{ scale: 0.97 }} onClick={() => { setShowProInfo(false); setShowUpgrade(true) }}
-                  style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', color: '#fff', fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", marginTop: '8px', boxShadow: '0 6px 24px rgba(251,191,36,0.4)' }}>
+                  style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: goldAccent, color: '#fff', fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", marginTop: '8px', boxShadow: '0 6px 24px rgba(251,191,36,0.4)' }}>
                   {locale === 'de' ? '✦ Jetzt upgraden — €4,99/Monat' : '✦ Upgrade now — €4.99/month'}
                 </motion.button>
               )}
