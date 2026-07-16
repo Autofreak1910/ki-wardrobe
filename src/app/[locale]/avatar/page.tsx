@@ -33,32 +33,16 @@ function createWatermarkedImage(imageUrl: string): Promise<string> {
 
       const w = canvas.width
       const h = canvas.height
-      const fontSize = Math.max(16, Math.round(w * 0.045))
+      const fontSize = Math.max(20, Math.round(w * 0.09))
       ctx.font = `700 ${fontSize}px 'Poppins', sans-serif`
-      ctx.fillStyle = 'rgba(255,255,255,0.16)'
-      ctx.strokeStyle = 'rgba(0,0,0,0.08)'
-      ctx.lineWidth = 1
+      ctx.fillStyle = 'rgba(0,0,0,0.10)'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
       ctx.save()
       ctx.translate(w / 2, h / 2)
-      ctx.rotate(-Math.PI / 8)
-      const stepY = fontSize * 4.2
-      const stepX = fontSize * 7.5
-      for (let y = -h; y < h * 2; y += stepY) {
-        for (let x = -w; x < w * 2; x += stepX) {
-          ctx.fillText('✦ KiWardrobe', x, y)
-          ctx.strokeText('✦ KiWardrobe', x, y)
-        }
-      }
+      ctx.rotate(-18 * Math.PI / 180)
+      ctx.fillText('✦ KiWardrobe', 0, 0)
       ctx.restore()
-
-      const badgeFontSize = Math.max(14, Math.round(w * 0.032))
-      ctx.font = `700 ${badgeFontSize}px 'Poppins', sans-serif`
-      ctx.textAlign = 'right'
-      ctx.textBaseline = 'bottom'
-      ctx.fillStyle = 'rgba(0,0,0,0.16)'
-      ctx.fillText('✦ KiWardrobe', w - w * 0.03, h - h * 0.025)
 
       resolve(canvas.toDataURL('image/jpeg', 0.94))
     }
@@ -89,9 +73,20 @@ function removeBlackBackground(imageUrl: string): Promise<string> {
       }
       const px = srcData.data
 
-      const isDarkBg = (i: number) => {
+      // Referenzfarbe des Hintergrunds aus den vier Ecken schaetzen (dort ist so gut wie nie Kleidung)
+      const corners = [0, (w - 1) * 4, (h - 1) * w * 4, ((h - 1) * w + w - 1) * 4]
+      let refR = 0, refG = 0, refB = 0
+      corners.forEach(i => { refR += px[i]; refG += px[i + 1]; refB += px[i + 2] })
+      refR /= 4; refG /= 4; refB /= 4
+
+      const DIST_THRESHOLD = 38
+      const colorDist = (i: number) => {
+        const dr = px[i] - refR, dg = px[i + 1] - refG, db = px[i + 2] - refB
+        return Math.sqrt(dr * dr + dg * dg + db * db)
+      }
+      const isBgPixel = (i: number) => {
         const r = px[i], g = px[i + 1], b = px[i + 2]
-        return Math.max(r, g, b) < 32
+        return Math.max(r, g, b) < 42 && colorDist(i) < DIST_THRESHOLD
       }
 
       const mask = new Uint8Array(w * h)
@@ -103,7 +98,7 @@ function removeBlackBackground(imageUrl: string): Promise<string> {
         const p = stack.pop() as number
         if (p < 0 || p >= w * h || mask[p]) continue
         const i = p * 4
-        if (!isDarkBg(i)) continue
+        if (!isBgPixel(i)) continue
         mask[p] = 1
         const x = p % w
         const y = (p / w) | 0
@@ -113,11 +108,23 @@ function removeBlackBackground(imageUrl: string): Promise<string> {
         if (y < h - 1) stack.push(p + w)
       }
 
+      // Kleine, isolierte Loecher im Vordergrund (faelschlich als Hintergrund erkannt) wieder schliessen:
+      // ein Hintergrund-Pixel bleibt nur Hintergrund, wenn es an mindestens 3 der 4 Nachbarn ebenfalls Hintergrund ist
+      const cleaned = new Uint8Array(mask)
+      for (let x = 1; x < w - 1; x++) {
+        for (let y = 1; y < h - 1; y++) {
+          const p = x + y * w
+          if (!mask[p]) continue
+          const n = mask[p - 1] + mask[p + 1] + mask[p - w] + mask[p + w]
+          if (n < 3) cleaned[p] = 0
+        }
+      }
+
       const out = ctx.createImageData(w, h)
       const op = out.data
       for (let p = 0; p < w * h; p++) {
         const i = p * 4
-        if (mask[p]) {
+        if (cleaned[p]) {
           op[i] = 0; op[i + 1] = 0; op[i + 2] = 0; op[i + 3] = 0
         } else {
           op[i] = px[i]; op[i + 1] = px[i + 1]; op[i + 2] = px[i + 2]; op[i + 3] = 255
@@ -126,9 +133,9 @@ function removeBlackBackground(imageUrl: string): Promise<string> {
       for (let x = 1; x < w - 1; x++) {
         for (let y = 1; y < h - 1; y++) {
           const p = x + y * w
-          if (mask[p]) continue
+          if (cleaned[p]) continue
           const i = p * 4
-          const neighborsBg = mask[p - 1] + mask[p + 1] + mask[p - w] + mask[p + w]
+          const neighborsBg = cleaned[p - 1] + cleaned[p + 1] + cleaned[p - w] + cleaned[p + w]
           if (neighborsBg > 0) op[i + 3] = Math.round(255 * (1 - neighborsBg / 5))
         }
       }
@@ -139,8 +146,8 @@ function removeBlackBackground(imageUrl: string): Promise<string> {
       finalCanvas.height = h
       const fctx = finalCanvas.getContext('2d')!
       const grad = fctx.createRadialGradient(w / 2, h * 0.32, h * 0.1, w / 2, h * 0.5, h * 0.85)
-      grad.addColorStop(0, '#E9E4D8')
-      grad.addColorStop(1, '#C9C2B2')
+      grad.addColorStop(0, '#EFEAE0')
+      grad.addColorStop(1, '#D3C9A8')
       fctx.fillStyle = grad
       fctx.fillRect(0, 0, w, h)
       fctx.drawImage(canvas, 0, 0)
@@ -587,8 +594,8 @@ export default function AvatarPage() {
                           <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>{locale === 'de' ? 'Hintergrund wird entfernt…' : 'Removing background…'}</span>
                         </div>
                       )}
-                      {/* Dezentes Wasserzeichen direkt aufs Bild */}
-                      <p style={{ position: 'absolute', bottom: '12px', right: '14px', fontSize: '13px', fontWeight: 700, color: 'rgba(0,0,0,0.16)', letterSpacing: '0.01em' }}>✦ KiWardrobe</p>
+                      {/* Wasserzeichen mittig, damit es nicht einfach weggeschnitten werden kann */}
+                      <p style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-18deg)', fontSize: '22px', fontWeight: 700, color: 'rgba(0,0,0,0.10)', letterSpacing: '0.02em', whiteSpace: 'nowrap' as const, pointerEvents: 'none' as const }}>✦ KiWardrobe</p>
                     </div>
                     <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column' as const, gap: '8px' }}>
                       <motion.button whileTap={{ scale: 0.97 }}
