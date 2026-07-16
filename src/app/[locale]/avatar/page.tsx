@@ -239,7 +239,7 @@ export default function AvatarPage() {
 
       <Navbar activePage="avatar" />
 
-      <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '560px', width: '100%', margin: '0 auto', padding: '68px 0 24px', position: 'relative', zIndex: 1 }}>
+      <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '560px', width: '100%', margin: '0 auto', padding: canGenerate ? '68px 0 170px' : '68px 0 24px', position: 'relative', zIndex: 1 }}>
 
         {/* Hero Banner */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}
@@ -486,10 +486,11 @@ export default function AvatarPage() {
 
       </main>
 
-      {/* Sticky Generate Bar — always visible while scrolling (normal flex flow, no position:fixed) */}
+      {/* Sticky Generate Bar — floats just above the bottom nav, always visible while scrolling */}
       {canGenerate && (
-        <div style={{ flexShrink: 0, zIndex: 30, background: isDark ? 'rgba(22,22,22,0.96)' : 'rgba(253,252,249,0.96)', backdropFilter: 'blur(14px)', borderTop: `1px solid ${border}`, padding: '12px 20px calc(12px + env(safe-area-inset-bottom))', position: 'relative' }}>
-          <div style={{ maxWidth: '560px', margin: '0 auto' }}>
+        <div style={{ position: 'fixed', bottom: 'calc(80px + env(safe-area-inset-bottom))', left: 0, right: 0, zIndex: 40, pointerEvents: 'none' }}>
+          <div style={{ maxWidth: '560px', margin: '0 auto', padding: '0 20px', pointerEvents: 'auto' }}>
+            <div style={{ background: isDark ? 'rgba(22,22,22,0.96)' : 'rgba(253,252,249,0.96)', backdropFilter: 'blur(14px)', border: `1px solid ${border}`, borderRadius: '20px', padding: '10px', boxShadow: '0 8px 28px rgba(0,0,0,0.14)' }}>
             <motion.button whileTap={{ scale: 0.97 }}
               onClick={generateAvatar}
               disabled={loading || !selfie || !selectedItem}
@@ -504,6 +505,7 @@ export default function AvatarPage() {
                 <>✦ {locale === 'de' ? 'Avatar generieren' : 'Generate avatar'}</>
               )}
             </motion.button>
+            </div>
           </div>
         </div>
       )}
