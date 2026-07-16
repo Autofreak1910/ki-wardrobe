@@ -161,7 +161,7 @@ export default function OutfitsPage() {
                     transition={{ delay: i * 0.04 }}
                     style={{ background: card, border: `1px solid ${outfit.is_favorite ? goldAccent : border}`, borderRadius: '16px', overflow: 'hidden', boxShadow: outfit.is_favorite ? '0 4px 18px rgba(241,185,81,0.18)' : 'none' }}>
                     {/* Images */}
-                    <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: `repeat(${Math.min(outfitItems.length || 1, 4)}, 1fr)`, height: '180px', background: 'limegreen' }}>
+                    <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: `repeat(${Math.min(outfitItems.length || 1, 4)}, 1fr)`, height: '180px', background: isDark ? '#2B2210' : '#FBE9C6' }}>
                       {outfitItems.map((item, j) => (
                         <div key={j} style={{ overflow: 'hidden' }}>
                           <img src={item.image_url} alt={item.name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
