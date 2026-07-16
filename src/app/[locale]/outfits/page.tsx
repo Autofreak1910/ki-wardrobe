@@ -104,18 +104,13 @@ export default function OutfitsPage() {
             <h1 style={{ fontSize: '28px', fontWeight: 800, color: text, letterSpacing: '-0.04em', lineHeight: 1 }}>Outfits</h1>
           </div>
 
-          {/* + Button oben rechts */}
-          <motion.button whileTap={{ scale: 0.92 }} onClick={() => router.push('/' + locale + '/dresser')}
-            style={{ position: 'absolute' as const, bottom: '16px', right: '20px', width: '44px', height: '44px', borderRadius: '50%', background: sageGradient, border: 'none', fontSize: '22px', color: '#1D1D20', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 16px rgba(241,185,81,0.5)', zIndex: 2 }}>
-            +
-          </motion.button>
         </motion.div>
 
         {/* Filter tabs */}
         <div style={{ display: 'flex', gap: '6px', margin: '14px 20px 16px', padding: 0 }}>
           {(['all', 'favorites'] as const).map(f => (
             <button key={f} onClick={() => setFilter(f)}
-              style={{ padding: '8px 18px', borderRadius: '100px', border: `1px solid ${filter === f ? accent : border}`, background: filter === f ? accent : card, color: filter === f ? '#fff' : muted, fontSize: '13px', fontWeight: filter === f ? 600 : 400, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", transition: 'all 0.15s' }}>
+              style={{ padding: '8px 18px', borderRadius: '100px', border: `1px solid ${filter === f ? goldAccent : border}`, background: filter === f ? goldAccent : card, color: filter === f ? '#1D1D20' : muted, fontSize: '13px', fontWeight: filter === f ? 600 : 400, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", transition: 'all 0.15s' }}>
               {f === 'all' ? (locale === 'de' ? 'Alle' : 'All') : (locale === 'de' ? 'Favoriten' : 'Favorites')}
             </button>
           ))}
@@ -155,7 +150,7 @@ export default function OutfitsPage() {
                     transition={{ delay: i * 0.04 }}
                     style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden' }}>
                     {/* Images */}
-                    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(outfitItems.length || 1, 4)}, 1fr)`, height: '180px', background: isDark ? '#221c14' : '#FAF6EC' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(outfitItems.length || 1, 4)}, 1fr)`, height: '180px', background: isDark ? '#221c14' : '#FDF3E0' }}>
                       {outfitItems.map((item, j) => (
                         <div key={j} style={{ overflow: 'hidden' }}>
                           <img src={item.image_url} alt={item.name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
