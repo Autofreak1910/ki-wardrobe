@@ -163,10 +163,10 @@ function handleOnboardingDone() {
           <motion.div
             key={pathname}
             custom={direction}
-            initial={{ x: direction === 0 ? 0 : direction * 56, opacity: 0 }}
+            initial={{ x: direction === 0 ? 0 : direction * 24, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
-            exit={{ x: direction === 0 ? 0 : -direction * 56, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 420, damping: 32, mass: 0.7 }}
+            exit={{ x: direction === 0 ? 0 : -direction * 24, opacity: 0 }}
+            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
             style={{ height: '100%' }}
           >
             {children}
