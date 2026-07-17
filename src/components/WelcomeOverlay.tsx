@@ -9,12 +9,36 @@ type Rect = { top: number; left: number; width: number; height: number }
 
 const STEPS = [
   {
+    refKey: 'statsRef' as const,
+    titleDe: '📊 Deine Übersicht',
+    titleEn: '📊 Your Overview',
+    descDe: 'Auf einen Blick: wie viele Teile du hochgeladen hast, dein Tage-Streak, dein kostenloses Tages-Outfit und dein Pro-Status.',
+    descEn: 'At a glance: how many items you\'ve uploaded, your day streak, your free daily outfit, and your Pro status.',
+    tooltipPos: 'below' as const,
+  },
+  {
+    refKey: 'occasionRef' as const,
+    titleDe: '🎉 Anlass wählen',
+    titleEn: '🎉 Choose the Occasion',
+    descDe: 'Casual, Arbeit, Date oder Party — die KI stylt dein Outfit passend zum ausgewählten Anlass.',
+    descEn: 'Casual, work, date, or party — the AI styles your outfit to match the selected occasion.',
+    tooltipPos: 'below' as const,
+  },
+  {
     refKey: 'categoryRef' as const,
     titleDe: '👕 Kategorien wählen',
     titleEn: '👕 Choose Categories',
     descDe: 'Tippe an was du anziehen willst — Outfit wird genau daran angepasst.',
     descEn: 'Tap what you want to wear — outfit gets customized to your choice.',
     tooltipPos: 'below' as const,
+  },
+  {
+    refKey: 'weatherToggleRef' as const,
+    titleDe: '🌤️ Wetter berücksichtigen',
+    titleEn: '🌤️ Factor in the Weather',
+    descDe: 'Standardmäßig AN: die KI checkt automatisch das aktuelle Wetter an deinem Standort und stylt entsprechend — z. B. keine Jacke bei Sonne, wärmer bei Kälte. Ausschalten heißt: die KI ignoriert das Wetter komplett.',
+    descEn: 'On by default: the AI automatically checks the current weather at your location and styles accordingly — e.g. no jacket in sunshine, warmer when it\'s cold. Turning it off means the AI ignores the weather entirely.',
+    tooltipPos: 'above' as const,
   },
   {
     refKey: 'dressMeRef' as const,
@@ -28,13 +52,16 @@ const STEPS = [
 
 interface Props {
   categoryRef: RefObject<HTMLDivElement | null>
+  weatherToggleRef: RefObject<HTMLDivElement | null>
+  statsRef: RefObject<HTMLDivElement | null>
+  occasionRef: RefObject<HTMLDivElement | null>
   dressMeRef: RefObject<HTMLButtonElement | null>
   itemCount: number
   userId: string | null
   ready?: boolean
 }
 
-export default function WelcomeOverlay({ categoryRef, dressMeRef, itemCount, userId, ready = false }: Props) {
+export default function WelcomeOverlay({ categoryRef, weatherToggleRef, statsRef, occasionRef, dressMeRef, itemCount, userId, ready = false }: Props) {
   const [show, setShow] = useState(false)
   const [step, setStep] = useState(0)
   const [rect, setRect] = useState<Rect | null>(null)
@@ -48,7 +75,7 @@ export default function WelcomeOverlay({ categoryRef, dressMeRef, itemCount, use
   const muted  = isDark ? '#9a978f' : '#8C8776'
   const accent = isDark ? '#5C82A0' : '#355C7D'
 
-const refs = { categoryRef, dressMeRef }
+const refs = { categoryRef, weatherToggleRef, statsRef, occasionRef, dressMeRef }
 
 useEffect(() => {
   if (itemCount < 3 || !ready || !userId) return
@@ -211,12 +238,12 @@ useEffect(() => {
                     style={{ flex: 1, background: `linear-gradient(135deg, #7FA98E, ${accent})`, border: 'none', borderRadius: '12px', padding: '11px', fontSize: '14px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: `0 4px 16px ${accent}40`, letterSpacing: '-0.01em' }}>
                     {isLast ? (locale === 'de' ? "Los geht's 🚀" : "Let's go 🚀") : (locale === 'de' ? 'Weiter →' : 'Next →')}
                   </motion.button>
-                </div> 
+                </div>
               </div>
             </motion.div>
-          )} 
+          )}
         </>
       )}
     </AnimatePresence>
   )
-} 
+}

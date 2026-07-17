@@ -128,6 +128,8 @@ const [username, setUsername] = useState<string>(stylistCache?.username ?? '')
   const weatherRef = useRef<HTMLDivElement>(null)
 const categoryRef = useRef<HTMLDivElement>(null)
 const weatherToggleRef = useRef<HTMLDivElement>(null)
+const statsRef = useRef<HTMLDivElement>(null)
+const occasionRef = useRef<HTMLDivElement>(null)
 const dressMeRef = useRef<HTMLButtonElement>(null)
 const [showUnlock, setShowUnlock] = useState(false)
 const [onboardingReady, setOnboardingReady] = useState(false)
@@ -555,9 +557,10 @@ return (
     <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' as const, background: bg, overflow: 'hidden', fontFamily: "'Poppins', 'Inter', sans-serif", position: 'relative' as const, backgroundImage: isDark ? 'none' : 'radial-gradient(circle, rgba(29,29,32,0.05) 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
 
 <WelcomeOverlay
-  weatherRef={weatherRef}
   categoryRef={categoryRef}
   weatherToggleRef={weatherToggleRef}
+  statsRef={statsRef}
+  occasionRef={occasionRef}
   dressMeRef={dressMeRef}
   itemCount={wardrobeItems.length}
   userId={userId}
@@ -1026,7 +1029,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
           </motion.div>
         </motion.div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', margin: '12px 18px 14px', padding: 0 }}>
+        <div ref={statsRef} style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', margin: '12px 18px 14px', padding: 0 }}>
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
             onClick={() => router.push('/' + locale + '/wardrobe')}
             style={{ background: card, border: `1px solid ${border}`, borderRadius: '18px', padding: '14px 6px', textAlign: 'center' as const, cursor: 'pointer', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', minHeight: '86px' }}>
@@ -1222,7 +1225,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, duration: 0.4 }}
               style={{ background: card, border: `1px solid ${border}`, borderRadius: '18px', padding: '14px 16px', marginBottom: '16px' }}>
 
-              <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', overflowX: 'auto' as const, paddingBottom: '2px' }}>
+              <div ref={occasionRef} style={{ display: 'flex', gap: '6px', marginBottom: '12px', overflowX: 'auto' as const, paddingBottom: '2px' }}>
                 {occasions.map((occ) => {
                   const isOn = selected === occ
                   return (
@@ -1251,7 +1254,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
                     )
                   })}
                 </div>
-                <motion.div whileTap={{ scale: 0.9 }}
+                <motion.div ref={weatherToggleRef} whileTap={{ scale: 0.9 }}
                   onClick={() => { if (weatherDisabled) { router.push('/' + locale + '/profile?scrollTo=weather'); return } setWeatherAware(v => !v); setOutfit(null) }}
                   style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', flexShrink: 0, WebkitTapHighlightColor: 'transparent' }}>
                   <span style={{ fontSize: '16px' }}>{weatherDisabled ? '🔒' : weatherAware ? '🌤️' : '🌤️'}</span>
