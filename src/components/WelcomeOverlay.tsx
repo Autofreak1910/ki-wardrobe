@@ -211,7 +211,7 @@ useEffect(() => {
                     style={{ flex: 1, background: `linear-gradient(135deg, #7FA98E, ${accent})`, border: 'none', borderRadius: '12px', padding: '11px', fontSize: '14px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: `0 4px 16px ${accent}40`, letterSpacing: '-0.01em' }}>
                     {isLast ? (locale === 'de' ? "Los geht's 🚀" : "Let's go 🚀") : (locale === 'de' ? 'Weiter →' : 'Next →')}
                   </motion.button>
-                </div>
+                </div> 
               </div>
             </motion.div>
           )} 
