@@ -25,11 +25,13 @@ console.log('garmentImage type:', typeof garmentImage, 'value:', garmentImage)
         return NextResponse.json({ error: 'limit_reached' }, { status: 403 })
       }
     } else {
-      const today = new Date().toISOString().split('T')[0]
+      // Sauberer UTC-Tagesanfang mit explizitem 'Z', statt einem mehrdeutigen naiven Zeitstempel
+      const startOfDayUTC = new Date()
+      startOfDayUTC.setUTCHours(0, 0, 0, 0)
       const { count } = await supabase.from('avatar_results')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id)
-        .gte('created_at', today + 'T00:00:00') as any
+        .gte('created_at', startOfDayUTC.toISOString()) as any
    if ((count ?? 0) >= 2) {
         return NextResponse.json({ error: 'daily_limit' }, { status: 403 })
       }
@@ -121,10 +123,12 @@ const resultFileName = `results/${user.id}/${Date.now()}.jpg`
 await supabase.storage.from('avatars').upload(resultFileName, Buffer.from(imgBuffer), { contentType: 'image/jpeg', upsert: true })
 const { data: { publicUrl: savedUrl } } = supabase.storage.from('avatars').getPublicUrl(resultFileName)
 
- // Save result
+ // Save result -- created_at wird jetzt explizit gesetzt, damit sich der Tages-Zaehler
+ // niemals auf einen (evtl. fehlenden) DB-Standardwert verlassen muss.
     const { error: insertError } = await supabase.from('avatar_results').insert({
       user_id: user.id,
       image_url: savedUrl,
+      created_at: new Date().toISOString(),
     })
     console.log('avatar_results insert error:', insertError)
 
