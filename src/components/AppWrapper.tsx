@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
@@ -76,7 +76,6 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
-  const prevIndexRef = useRef(0)
  useEffect(() => {
     const isAppPage = TAB_ORDER.some(t => pathname.includes(t))
     if (!isAppPage) { setShowSplash(false); return }
@@ -136,9 +135,6 @@ function handleOnboardingDone() {
   }
 
   const activePage = getActivePage(pathname)
-  const currentIndex = activePage ? NAV_ORDER.indexOf(activePage) : prevIndexRef.current
-  const direction = currentIndex > prevIndexRef.current ? 1 : currentIndex < prevIndexRef.current ? -1 : 0
-  prevIndexRef.current = currentIndex
 
   return (
     <>
@@ -159,14 +155,13 @@ function handleOnboardingDone() {
         */}
         {activePage && <Navbar activePage={activePage} />}
 
-        <AnimatePresence mode="popLayout" initial={false} custom={direction}>
+        <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={pathname}
-            custom={direction}
-            initial={{ x: direction === 0 ? 0 : direction * 24, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: direction === 0 ? 0 : -direction * 24, opacity: 0 }}
-            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.12, ease: 'easeOut' }}
             style={{ height: '100%' }}
           >
             {children}
