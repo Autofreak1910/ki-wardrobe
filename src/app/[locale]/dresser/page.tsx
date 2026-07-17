@@ -85,7 +85,13 @@ function parseWeatherCode(code: number, isDay: boolean): { icon: string; conditi
   if (code <= 86) return { icon: '🌨️', condition: 'Schneeschauer' }
   return { icon: '⛈️', condition: 'Gewitter' }
 }
-
+function getNextWeekResetLabel(locale: string): string {
+  const now = new Date()
+  const day = now.getUTCDay()
+  const diffToNextMonday = day === 0 ? 1 : 8 - day
+  const nextMonday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + diffToNextMonday, 0, 0, 0, 0))
+  return nextMonday.toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
+}
 function getWeekStartUTC(): Date {
   const now = new Date()
   const day = now.getUTCDay() // 0 = So, 1 = Mo, ... 6 = Sa
@@ -435,9 +441,16 @@ if (countError) console.error('Count error:', countError)
 
 const WEEKLY_LIMIT = isPremium ? 14 : 3
 if ((weekCount ?? 0) >= WEEKLY_LIMIT) {
-  setLimitMsg(locale === 'de'
-    ? `Wochenlimit erreicht — ${WEEKLY_LIMIT}/${WEEKLY_LIMIT} Outfits`
-    : `Weekly limit reached — ${WEEKLY_LIMIT}/${WEEKLY_LIMIT} outfits`)
+  if (isPremium) {
+    const resetLabel = getNextWeekResetLabel(locale)
+    setLimitMsg(locale === 'de'
+      ? `Wochenlimit erreicht — wird am ${resetLabel} zurückgesetzt`
+      : `Weekly limit reached — resets on ${resetLabel}`)
+  } else {
+    setLimitMsg(locale === 'de'
+      ? `Wochenlimit erreicht — ${WEEKLY_LIMIT}/${WEEKLY_LIMIT} Outfits`
+      : `Weekly limit reached — ${WEEKLY_LIMIT}/${WEEKLY_LIMIT} outfits`)
+  }
   setTimeout(() => setLimitMsg(null), 4000)
   return
 }
@@ -577,7 +590,9 @@ return (
   initial={{ opacity: 0, y: -20 }}
   animate={{ opacity: 1, y: 0 }}
   exit={{ opacity: 0, y: -20 }}
-onClick={() => router.push('/' + locale + '/profile' + (isPremium ? '' : '?upgrade=true'))}
+onClick={() => {
+  if (isPremium) { setLimitMsg(null) } else { router.push('/' + locale + '/profile?upgrade=true') }
+}}
  style={{
   position: 'fixed', top: '80px',
   left: '16px', right: '16px',
@@ -593,13 +608,13 @@ onClick={() => router.push('/' + locale + '/profile' + (isPremium ? '' : '?upgra
     <span style={{ fontSize: '20px' }}>🔒</span>
     <p style={{ fontSize: '13px', fontWeight: 700, color: text }}>{limitMsg}</p>
   </div>
-  <div style={{ background: sageGradient, borderRadius: '10px', padding: '10px', textAlign: 'center' as const }}>
-    <p style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>
-      {isPremium
-        ? (locale === 'de' ? '✦ +10 Outfits für €2 dazukaufen' : '✦ Buy +10 outfits for €2')
-        : (locale === 'de' ? '✦ Jetzt upgraden für €4,99/Mo' : '✦ Upgrade now for €4.99/mo')}
-    </p>
-  </div>
+<div style={{ background: sageGradient, borderRadius: '10px', padding: '10px', textAlign: 'center' as const }}>
+  <p style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>
+    {isPremium
+      ? (locale === 'de' ? '✦ Dein Gratis-Tagesoutfit ist aber noch da!' : '✦ Your free daily outfit is still there!')
+      : (locale === 'de' ? '✦ Jetzt upgraden für €4,99/Mo' : '✦ Upgrade now for €4.99/mo')}
+  </p>
+</div>
 </motion.div>
   )}
 </AnimatePresence>
@@ -1311,13 +1326,7 @@ onClick={() => router.push('/' + locale + '/profile' + (isPremium ? '' : '?upgra
           {saved ? `✓ ${t('dresser.saved')}` : `♡ ${t('dresser.save')}`}
         </motion.button>
       </div>
-{outfit.outfits.length < 3 && (
-  <p style={{ fontSize: '11px', color: muted, marginBottom: '8px', textAlign: 'center' as const }}>
-    {locale === 'de'
-      ? `💡 Lade mehr Kleidung hoch für bis zu 3 Outfit-Vorschläge`
-      : `💡 Upload more clothes for up to 3 outfit suggestions`}
-  </p>
-)}
+
 </div>
 
     <AnimatePresence mode="wait">
@@ -1352,36 +1361,6 @@ onClick={() => router.push('/' + locale + '/profile' + (isPremium ? '' : '?upgra
         )}
       </motion.div>
     </AnimatePresence>
-{outfit.outfits.length < 3 && (
-  <motion.button
-    initial={{ opacity: 0, y: 6 }}
-    animate={{ opacity: 1, y: 0 }}
-    whileTap={{ scale: 0.98 }}
-    onClick={() => router.push('/' + locale + '/wardrobe')}
-    style={{
-      margin: '0 18px 12px',
-      width: 'calc(100% - 36px)',
-      padding: '12px 14px',
-      borderRadius: '12px',
-      background: accentDim,
-      border: `1px solid ${accent}40`,
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px',
-      cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif",
-      WebkitTapHighlightColor: 'transparent',
-    }}>
-<div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-      <span style={{ fontSize: '16px' }}>👕</span>
-      <p style={{ fontSize: '12px', color: accent, fontWeight: 600, textAlign: 'left' as const }}>
-        {locale === 'de'
-          ? `Tipp: Hier tippen, um mehr Klamotten für bis zu 3 Vorschläge hochzuladen!`
-          : `Tip: Tap here to upload more clothes for up to 3 suggestions!`}
-      </p>
-    </div>
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-      <polyline points="9 18 15 12 9 6"/>
-    </svg>
-  </motion.button>
-)}
 </motion.div>
 )}
             </AnimatePresence>
