@@ -10,10 +10,15 @@ import { motion, AnimatePresence } from 'framer-motion'
 type Outfit = { id: string; name: string; occasion: string; item_ids: string[]; is_favorite: boolean; created_at: string }
 type ClothingItem = { id: string; image_url: string; name?: string; color: string; category: string }
 
+// Modul-Level-Cache -- ueberlebt einen Seitenwechsel (Komponente wird neu gemounted,
+// aber dieses Objekt bleibt im Speicher). Beim zweiten Besuch sofort Daten da,
+// kein Skeleton-Flackern mehr, waehrend im Hintergrund still nachgeladen wird.
+let outfitsCache: { outfits: Outfit[]; items: ClothingItem[] } | null = null
+
 export default function OutfitsPage() {
-  const [outfits, setOutfits] = useState<Outfit[]>([])
-  const [items, setItems] = useState<ClothingItem[]>([])
-  const [loading, setLoading] = useState(true)
+  const [outfits, setOutfits] = useState<Outfit[]>(outfitsCache?.outfits ?? [])
+  const [items, setItems] = useState<ClothingItem[]>(outfitsCache?.items ?? [])
+  const [loading, setLoading] = useState(!outfitsCache)
   const [filter, setFilter] = useState<'all' | 'favorites'>('all')
   const { theme } = useTheme()
   const t = useTranslations()
@@ -47,17 +52,26 @@ export default function OutfitsPage() {
     ])
     if (outfitsRes.data) setOutfits(outfitsRes.data)
     if (itemsRes.data) setItems(itemsRes.data)
+    outfitsCache = { outfits: outfitsRes.data ?? [], items: itemsRes.data ?? [] }
     setLoading(false)
   }
 
   async function toggleFavorite(outfit: Outfit) {
     await supabase.from('outfits').update({ is_favorite: !outfit.is_favorite }).eq('id', outfit.id)
-    setOutfits(prev => prev.map(o => o.id === outfit.id ? { ...o, is_favorite: !o.is_favorite } : o))
+    setOutfits(prev => {
+      const next = prev.map(o => o.id === outfit.id ? { ...o, is_favorite: !o.is_favorite } : o)
+      if (outfitsCache) outfitsCache = { ...outfitsCache, outfits: next }
+      return next
+    })
   }
 
   async function deleteOutfit(id: string) {
     await supabase.from('outfits').delete().eq('id', id)
-    setOutfits(prev => prev.filter(o => o.id !== id))
+    setOutfits(prev => {
+      const next = prev.filter(o => o.id !== id)
+      if (outfitsCache) outfitsCache = { ...outfitsCache, outfits: next }
+      return next
+    })
   }
 
   function getItemsForOutfit(outfit: Outfit) {
