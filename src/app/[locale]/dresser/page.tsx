@@ -784,7 +784,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.4 }}
       style={{
-        position: 'fixed', inset: 0, zIndex: 9999,
+        position: 'fixed', inset: 0, zIndex: 999999,
         display: 'flex', flexDirection: 'column' as const,
         alignItems: 'center', justifyContent: 'center',
         background: isDark ? 'rgba(8,12,24,0.97)' : 'rgba(240,244,255,0.97)',
