@@ -104,6 +104,7 @@ const [weatherAware, setWeatherAware] = useState(true)
   const [weatherDisabled, setWeatherDisabled] = useState(false)
 const [username, setUsername] = useState<string>('')
   const [isPremium, setIsPremium] = useState(false)
+  const [premiumLoading, setPremiumLoading] = useState(true)
   const [premiumUntil, setPremiumUntil] = useState<string | null>(null)
   const [showProInfo, setShowProInfo] = useState(false)
   const { theme } = useTheme()
@@ -114,6 +115,7 @@ const [username, setUsername] = useState<string>('')
   const [limitMsg, setLimitMsg] = useState<string | null>(null)
   const isDark = theme === 'dark'
   const mainRef = useRef<HTMLElement>(null)
+  const checkingReferrerRef = useRef(false)
   const weatherRef = useRef<HTMLDivElement>(null)
 const categoryRef = useRef<HTMLDivElement>(null)
 const weatherToggleRef = useRef<HTMLDivElement>(null)
@@ -229,22 +231,27 @@ async function loadStreak() {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
     const welcomeSeenKey = 'kw_invited_welcome_seen_' + session.user.id
-    if (!localStorage.getItem(welcomeSeenKey)) {
+    if (!localStorage.getItem(welcomeSeenKey) && !checkingReferrerRef.current) {
+      checkingReferrerRef.current = true
       try {
         const { data: refName } = await supabase.rpc('get_referrer_username', { p_user_id: session.user.id })
         if (refName) {
-          localStorage.setItem(welcomeSeenKey, 'true')
           setReferrerName(refName)
           const justFinished = localStorage.getItem('kw_onboarding_just_finished') === 'true'
           const delay = justFinished ? 500 : 1500
           if (justFinished) localStorage.removeItem('kw_onboarding_just_finished')
-          setTimeout(() => setShowWelcomeInvited(true), delay)
+          setTimeout(() => {
+            localStorage.setItem(welcomeSeenKey, 'true')
+            setShowWelcomeInvited(true)
+          }, delay)
           setTimeout(() => setShowWelcomeInvited(false), delay + 5500)
         } else {
           localStorage.setItem(welcomeSeenKey, 'true')
         }
       } catch (err) {
         console.error('Referrer lookup failed:', err)
+      } finally {
+        checkingReferrerRef.current = false
       }
     }
 
@@ -260,6 +267,7 @@ const { data: profile } = await supabase.from('profiles').select('username, prem
     }
     const { data: stillPremium } = await supabase.rpc('check_and_expire_premium', { p_user_id: session.user.id })
     setIsPremium(stillPremium ?? false)
+    setPremiumLoading(false)
 
 }
 
@@ -1009,28 +1017,48 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
             <p style={{ fontSize: '9px', color: muted, fontWeight: 600, lineHeight: 1.2 }}>{locale === 'de' ? 'Tage Streak' : 'Day Streak'}</p>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}
-            onClick={() => setDailyFreeOutfitExpanded(v => !v)}
-            style={{ background: dailyFreeOutfit ? accentDim : card, border: `1px solid ${dailyFreeOutfit ? accent + '40' : border}`, borderRadius: '18px', padding: '14px 6px', textAlign: 'center' as const, cursor: 'pointer', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', minHeight: '86px' }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={dailyFreeOutfit ? accent : muted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '6px' }}>
-              <rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8V21"/><path d="M3 8h18"/><path d="M7.5 8a2.5 2.5 0 010-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 010 5"/>
-            </svg>
-            <p style={{ fontSize: '9px', color: dailyFreeOutfit ? accent : muted, fontWeight: 700, lineHeight: 1.2 }}>{locale === 'de' ? 'Tages-outfit' : 'Daily outfit'}</p>
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.21 }}
-            onClick={() => setShowProInfo(true)}
-            style={{ background: isPremium ? 'linear-gradient(135deg, rgba(241,185,81,0.2), rgba(241,185,81,0.08))' : card, border: `1px solid ${isPremium ? 'rgba(241,185,81,0.4)' : border}`, borderRadius: '18px', padding: '14px 4px', textAlign: 'center' as const, cursor: 'pointer', boxShadow: isPremium ? '0 0 16px rgba(241,185,81,0.15)' : 'none', opacity: isPremium ? 1 : 0.6, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', minHeight: '86px' }}>
-            <motion.div animate={isPremium ? { scale: [1, 1.08, 1] } : {}} transition={{ duration: 2, repeat: Infinity }}
-              style={{ marginBottom: '6px' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isPremium ? '#b8860b' : muted} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20"/><path d="M12 3l-3 6 3 12 3-12z"/>
-              </svg>
+          {dailyFreeOutfitLoading ? (
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}
+              style={{ background: card, border: `1px solid ${border}`, borderRadius: '18px', padding: '14px 6px', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', minHeight: '86px', gap: '6px' }}>
+              <motion.div animate={{ opacity: [0.4, 0.9, 0.4] }} transition={{ duration: 1.3, repeat: Infinity }}
+                style={{ width: '20px', height: '20px', borderRadius: '6px', background: border }} />
+              <motion.div animate={{ opacity: [0.4, 0.9, 0.4] }} transition={{ duration: 1.3, repeat: Infinity, delay: 0.15 }}
+                style={{ width: '38px', height: '8px', borderRadius: '4px', background: border }} />
             </motion.div>
-            <p style={{ fontSize: '9px', color: isPremium ? '#b8860b' : muted, fontWeight: 700, lineHeight: 1.2 }}>
-              {isPremium ? (locale === 'de' ? 'PRO-MITGLIED' : 'PRO MEMBER') : 'PRO'}
-            </p>
-          </motion.div>
+          ) : (
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}
+              onClick={() => setDailyFreeOutfitExpanded(v => !v)}
+              style={{ background: dailyFreeOutfit ? accentDim : card, border: `1px solid ${dailyFreeOutfit ? accent + '40' : border}`, borderRadius: '18px', padding: '14px 6px', textAlign: 'center' as const, cursor: 'pointer', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', minHeight: '86px' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={dailyFreeOutfit ? accent : muted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '6px' }}>
+                <rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8V21"/><path d="M3 8h18"/><path d="M7.5 8a2.5 2.5 0 010-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 010 5"/>
+              </svg>
+              <p style={{ fontSize: '9px', color: dailyFreeOutfit ? accent : muted, fontWeight: 700, lineHeight: 1.2 }}>{locale === 'de' ? 'Tages-outfit' : 'Daily outfit'}</p>
+            </motion.div>
+          )}
+
+          {premiumLoading ? (
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.21 }}
+              style={{ background: card, border: `1px solid ${border}`, borderRadius: '18px', padding: '14px 4px', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', minHeight: '86px', gap: '6px' }}>
+              <motion.div animate={{ opacity: [0.4, 0.9, 0.4] }} transition={{ duration: 1.3, repeat: Infinity }}
+                style={{ width: '20px', height: '20px', borderRadius: '6px', background: border }} />
+              <motion.div animate={{ opacity: [0.4, 0.9, 0.4] }} transition={{ duration: 1.3, repeat: Infinity, delay: 0.15 }}
+                style={{ width: '30px', height: '8px', borderRadius: '4px', background: border }} />
+            </motion.div>
+          ) : (
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.21 }}
+              onClick={() => setShowProInfo(true)}
+              style={{ background: isPremium ? 'linear-gradient(135deg, rgba(241,185,81,0.2), rgba(241,185,81,0.08))' : card, border: `1px solid ${isPremium ? 'rgba(241,185,81,0.4)' : border}`, borderRadius: '18px', padding: '14px 4px', textAlign: 'center' as const, cursor: 'pointer', boxShadow: isPremium ? '0 0 16px rgba(241,185,81,0.15)' : 'none', opacity: isPremium ? 1 : 0.6, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', minHeight: '86px' }}>
+              <motion.div animate={isPremium ? { scale: [1, 1.08, 1] } : {}} transition={{ duration: 2, repeat: Infinity }}
+                style={{ marginBottom: '6px' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isPremium ? '#b8860b' : muted} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20"/><path d="M12 3l-3 6 3 12 3-12z"/>
+                </svg>
+              </motion.div>
+              <p style={{ fontSize: '9px', color: isPremium ? '#b8860b' : muted, fontWeight: 700, lineHeight: 1.2 }}>
+                {isPremium ? (locale === 'de' ? 'PRO-MITGLIED' : 'PRO MEMBER') : 'PRO'}
+              </p>
+            </motion.div>
+          )}
         </div>
 
         <div style={{ padding: '0 18px' }}>
