@@ -18,6 +18,17 @@ function getCategoryLabel(category: string): string {
   }
   return map[category] ?? category
 }
+function getMonthStartUTC(): Date {
+  const now = new Date()
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0))
+}
+
+function getWeekStartUTC(): Date {
+  const now = new Date()
+  const day = now.getUTCDay()
+  const diffToMonday = (day === 0 ? -6 : 1) - day
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + diffToMonday, 0, 0, 0, 0))
+}
 
 function createWatermarkedImage(imageUrl: string): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -241,23 +252,29 @@ export default function AvatarPage() {
     return () => { cancelled = true }
   }, [result])
 
-  async function loadData() {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
-    const [profileRes, itemsRes] = await Promise.all([
-      supabase.from('profiles').select('*').eq('id', session.user.id).single(),
-      supabase.from('clothing_items').select('*').eq('user_id', session.user.id)
-    ])
-    let freshProfile: any = null
-    if (profileRes.data) {
-      const { data: stillPremium } = await supabase.rpc('check_and_expire_premium', { p_user_id: session.user.id })
-      freshProfile = { ...profileRes.data, is_premium: stillPremium ?? false }
-      setProfile(freshProfile)
-    }
-    if (itemsRes.data) setItems(itemsRes.data)
-    avatarCache = { profile: freshProfile, items: itemsRes.data ?? [] }
-    setPageLoading(false)
+async function loadData() {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
+  const [profileRes, itemsRes] = await Promise.all([
+    supabase.from('profiles').select('*').eq('id', session.user.id).single(),
+    supabase.from('clothing_items').select('*').eq('user_id', session.user.id)
+  ])
+  let freshProfile: any = null
+  if (profileRes.data) {
+    const { data: stillPremium } = await supabase.rpc('check_and_expire_premium', { p_user_id: session.user.id })
+    const periodStart = stillPremium ? getWeekStartUTC() : getMonthStartUTC()
+    const { count } = await supabase.from('avatar_results')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', session.user.id)
+      .gte('created_at', periodStart.toISOString()) as any
+    const LIMIT = stillPremium ? 6 : 2
+    freshProfile = { ...profileRes.data, is_premium: stillPremium ?? false, used_this_period: count ?? 0, period_limit: LIMIT }
+    setProfile(freshProfile)
   }
+  if (itemsRes.data) setItems(itemsRes.data)
+  avatarCache = { profile: freshProfile, items: itemsRes.data ?? [] }
+  setPageLoading(false)
+}
 
   function handleSelfie(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -295,11 +312,11 @@ export default function AvatarPage() {
         })
       })
       const data = await res.json()
-      if (data.error === 'limit_reached') {
-        setError(locale === 'de' ? 'Du hast deine 3 kostenlosen Versuche aufgebraucht. Upgrade auf Pro!' : 'You used your 3 free tries. Upgrade to Pro!')
-      } else if (data.error === 'daily_limit') {
-        setError(locale === 'de' ? 'Du hast heute bereits 2 Avatare erstellt. Morgen wieder!' : 'You already created 2 avatars today. Come back tomorrow!')
-      } else if (data.error === 'bad_selfie') {
+   if (data.error === 'monthly_limit') {
+  setError(locale === 'de' ? 'Du hast deine 2 kostenlosen Avatare diesen Monat aufgebraucht. Upgrade auf Pro!' : 'You used your 2 free avatars this month. Upgrade to Pro!')
+} else if (data.error === 'weekly_limit') {
+  setError(locale === 'de' ? 'Du hast diese Woche bereits 6 Avatare erstellt. Nächste Woche wieder!' : 'You already created 6 avatars this week. Come back next week!')
+} else if (data.error === 'bad_selfie') {
         setError(locale === 'de' ? 'Dein Foto eignet sich nicht gut für Try-On. Bitte nutze ein Ganzkörperfoto mit klarer Pose, gutem Licht und einfachem Hintergrund.' : "Your photo isn't well suited for try-on. Please use a full-body photo with a clear pose, good lighting, and a plain background.")
       } else if (data.success) {
         setResult(data.imageUrl)
@@ -312,10 +329,11 @@ export default function AvatarPage() {
     }
     setLoading(false)
   }
-
-  const isPremium = profile?.is_premium ?? false
-  const triesLeft = profile?.avatar_tries_left ?? 0
-  const canGenerate = isPremium || triesLeft > 0
+const isPremium = profile?.is_premium ?? false
+const usedThisPeriod = profile?.used_this_period ?? 0
+const periodLimit = profile?.period_limit ?? (isPremium ? 6 : 2)
+const triesLeft = periodLimit - usedThisPeriod
+const canGenerate = triesLeft > 0
 
   if (pageLoading) return (
     <div style={{ height: '100dvh', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -343,15 +361,15 @@ export default function AvatarPage() {
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(241,185,81,0.18) 0%, rgba(253,252,249,0.8) 65%, rgba(253,252,249,1) 100%)' }} />
 
           {/* PRO Badge */}
-          {isPremium ? (
-            <div style={{ position: 'absolute' as const, top: '16px', right: '18px', background: goldAccent, borderRadius: '10px', padding: '6px 14px', boxShadow: '0 4px 12px rgba(241,185,81,0.5)', zIndex: 2 }}>
-              <p style={{ fontSize: '11px', fontWeight: 700, color: '#1D1D20', letterSpacing: '0.04em' }}>✦ PRO</p>
-            </div>
-          ) : (
-            <div style={{ position: 'absolute' as const, top: '16px', right: '18px', background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '10px', padding: '6px 14px', zIndex: 2 }}>
-              <p style={{ fontSize: '11px', fontWeight: 700, color: '#fff' }}>{triesLeft}/3 {locale === 'de' ? 'übrig' : 'left'}</p>
-            </div>
-          )}
+      {isPremium ? (
+  <div style={{ position: 'absolute' as const, top: '16px', right: '18px', background: goldAccent, borderRadius: '10px', padding: '6px 14px', boxShadow: '0 4px 12px rgba(241,185,81,0.5)', zIndex: 2 }}>
+    <p style={{ fontSize: '11px', fontWeight: 700, color: '#1D1D20', letterSpacing: '0.04em' }}>✦ PRO · {triesLeft}/{periodLimit} {locale === 'de' ? 'diese Woche' : 'this week'}</p>
+  </div>
+) : (
+  <div style={{ position: 'absolute' as const, top: '16px', right: '18px', background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '10px', padding: '6px 14px', zIndex: 2 }}>
+    <p style={{ fontSize: '11px', fontWeight: 700, color: '#fff' }}>{triesLeft}/{periodLimit} {locale === 'de' ? 'diesen Monat' : 'this month'}</p>
+  </div>
+)}
         </motion.div>
 
         {/* Title + Tips */}
@@ -386,7 +404,7 @@ export default function AvatarPage() {
                 {locale === 'de' ? 'Keine Versuche mehr' : 'No tries left'}
               </p>
               <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', marginBottom: '16px' }}>
-                {locale === 'de' ? 'Upgrade auf Pro für 2 Avatare täglich' : 'Upgrade to Pro for 2 avatars daily'}
+              {locale === 'de' ? 'Upgrade auf Pro für 6 Avatare pro Woche' : 'Upgrade to Pro for 6 avatars per week'}
               </p>
               <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '12px', padding: '12px' }}>
                 <p style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>✦ Pro für €4,99/Mo →</p>

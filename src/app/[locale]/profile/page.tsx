@@ -8,6 +8,17 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 type Profile = { id: string; username: string; is_premium: boolean; age?: string; country?: string; created_at: string; email?: string; gender?: string; style_preferences?: string[]; budget_range?: string; referral_code?: string; premium_until?: string; invites_this_month?: number; bonus_month_claimed_this_period?: boolean; avatar_tries_left?: number }
 
+function getWeekStartUTC(): Date {
+  const now = new Date()
+  const day = now.getUTCDay()
+  const diffToMonday = (day === 0 ? -6 : 1) - day
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + diffToMonday, 0, 0, 0, 0))
+}
+function getMonthStartUTC(): Date {
+  const now = new Date()
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0))
+}
+
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4)
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
@@ -112,8 +123,9 @@ const [withdrawalConsent, setWithdrawalConsent] = useState(false)
   const accentDim = isDark ? 'rgba(92,130,160,0.12)' : 'rgba(53,92,125,0.07)'
   const gold      = isDark ? '#E5B45B' : '#C9963C'
   const goldDim   = isDark ? 'rgba(229,180,91,0.12)' : 'rgba(201,150,60,0.10)'
-const [todayOutfits, setTodayOutfits] = useState(0)
-const [tryOnToday, setTryOnToday] = useState(0)
+const [weekOutfits, setWeekOutfits] = useState(0)
+const [weekAvatarCount, setWeekAvatarCount] = useState(0)
+const [monthAvatarCount, setMonthAvatarCount] = useState(0)
 const [multiScansThisWeek, setMultiScansThisWeek] = useState(0)
 const [totalInvitesSuccessful, setTotalInvitesSuccessful] = useState(0)
 const [showInviteStats, setShowInviteStats] = useState(false)
@@ -149,20 +161,20 @@ useEffect(() => {
 async function loadProfile() {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
-    const startOfDay = new Date()
-    startOfDay.setHours(0, 0, 0, 0)
-const weekAgo = new Date()
-    weekAgo.setDate(weekAgo.getDate() - 7)
-  const [profileRes, itemsRes, outfitsRes, todayOutfitsRes, tryOnRes, multiScanRes] = await Promise.all([
+    const weekStart = getWeekStartUTC()
+    const monthStart = getMonthStartUTC()
+  const [profileRes, itemsRes, outfitsRes, weekOutfitsRes, weekAvatarRes, monthAvatarRes, multiScanRes] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', session.user.id).single(),
       supabase.from('clothing_items').select('id').eq('user_id', session.user.id),
       supabase.from('outfits').select('id').eq('user_id', session.user.id),
-      supabase.from('outfit_generations').select('id', { count: 'exact', head: true }).eq('user_id', session.user.id).gte('created_at', startOfDay.toISOString()),
-      supabase.from('avatar_results').select('id', { count: 'exact', head: true }).eq('user_id', session.user.id).gte('created_at', startOfDay.toISOString()),
-      supabase.from('multi_scan_generations').select('id', { count: 'exact', head: true }).eq('user_id', session.user.id).gte('created_at', weekAgo.toISOString()),
+      supabase.from('outfit_generations').select('id', { count: 'exact', head: true }).eq('user_id', session.user.id).gte('created_at', weekStart.toISOString()),
+      supabase.from('avatar_results').select('id', { count: 'exact', head: true }).eq('user_id', session.user.id).gte('created_at', weekStart.toISOString()),
+      supabase.from('avatar_results').select('id', { count: 'exact', head: true }).eq('user_id', session.user.id).gte('created_at', monthStart.toISOString()),
+  supabase.from('multi_scan_generations').select('id', { count: 'exact', head: true }).eq('user_id', session.user.id).gte('created_at', weekStart.toISOString()),
     ])
-  setTodayOutfits(todayOutfitsRes.count ?? 0)
-  setTryOnToday(tryOnRes.count ?? 0)
+  setWeekOutfits(weekOutfitsRes.count ?? 0)
+  setWeekAvatarCount(weekAvatarRes.count ?? 0)
+  setMonthAvatarCount(monthAvatarRes.count ?? 0)
   setMultiScansThisWeek(multiScanRes.count ?? 0)
 
 if (profileRes.data?.referral_code) {
@@ -374,15 +386,15 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
     </p>
 
     {(() => {
-      const statItems = [
-        { label: locale === 'de' ? 'Kleidung' : 'Items', value: itemCount, max: isPremium ? null : 20 },
-        { label: locale === 'de' ? 'Outfits' : 'Outfits', value: todayOutfits, max: isPremium ? 15 : 3 },
-        { label: locale === 'de' ? 'Gespeichert' : 'Saved', value: outfitCount, max: isPremium ? null : 5 },
-        isPremium
-          ? { label: 'Try-On', value: tryOnToday, max: 2 }
-          : { label: 'Try-On', value: (3 - (profile?.avatar_tries_left ?? 3)), max: 3 },
-        ...(isPremium ? [{ label: locale === 'de' ? 'Multi-Upload' : 'Multi-upload', value: multiScansThisWeek, max: 3 }] : []),
-      ]
+    const statItems = [
+  { label: locale === 'de' ? 'Kleidung' : 'Items', value: itemCount, max: isPremium ? null : 20 },
+  { label: locale === 'de' ? 'Outfits/Woche' : 'Outfits/week', value: weekOutfits, max: isPremium ? 14 : 3 },
+  { label: locale === 'de' ? 'Gespeichert' : 'Saved', value: outfitCount, max: isPremium ? null : 5 },
+  isPremium
+    ? { label: 'Try-On', value: weekAvatarCount, max: 6 }
+    : { label: 'Try-On', value: monthAvatarCount, max: 2 },
+  ...(isPremium ? [{ label: locale === 'de' ? 'Multi-Upload' : 'Multi-upload', value: multiScansThisWeek, max: 3 }] : []),
+]
       return (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', marginBottom: daysLeft !== null && daysLeft <= 3 ? '14px' : '0' }}>
           {statItems.map(stat => (
@@ -677,11 +689,11 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
             <p style={{ fontSize: '11px', color: muted, marginBottom: '12px' }}>{locale === 'de' ? 'für immer kostenlos' : 'free forever'}</p>
             <div style={{ height: '1px', background: border, marginBottom: '12px' }} />
             {[
-            { title: locale === 'de' ? '3 Outfits pro Tag' : '3 outfits per day', sub: '' },
+          { title: locale === 'de' ? '3 Outfits pro Woche' : '3 outfits per week', sub: '' },
 { title: locale === 'de' ? 'Max. 20 Kleidungsstücke' : 'Max. 20 items', sub: '' },
 { title: locale === 'de' ? 'Max. 5 Outfits speichern' : 'Max. 5 saved outfits', sub: '' },
 { title: locale === 'de' ? 'Basis KI-Styling' : 'Basic AI styling', sub: '' },
-{ title: locale === 'de' ? '3 Virtual Try-Ons' : '3 virtual try-ons', sub: locale === 'de' ? 'einmalig, gesamt' : 'one-time, total' },
+{ title: locale === 'de' ? '2 Virtual Try-Ons' : '2 virtual try-ons', sub: locale === 'de' ? 'pro Monat' : 'per month' },
 { title: locale === 'de' ? 'Kein Schrank-Scan' : 'No closet scan', sub: '' },
 { title: locale === 'de' ? 'Kein Mehrfach-Upload' : 'No multi-upload', sub: '' },
             ].map((f, i) => (
@@ -720,10 +732,10 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
               <p style={{ fontSize: '11px', color: 'rgba(36,33,27,0.7)', marginBottom: '12px' }}>{locale === 'de' ? 'pro Monat · kündbar' : 'per month'}</p>
               <div style={{ height: '1px', background: 'rgba(36,33,27,0.2)', marginBottom: '12px' }} />
             {[
-                { title: '15 Outfits', sub: locale === 'de' ? 'pro Tag · 5× mehr' : 'per day · 5× more' },
+               { title: '14 Outfits', sub: locale === 'de' ? 'pro Woche' : 'per week' },
                 { title: locale === 'de' ? 'Unbegrenzt Kleidung' : 'Unlimited items', sub: '' },
                 { title: locale === 'de' ? 'Unbegrenzt speichern' : 'Unlimited saved', sub: '' },
-                { title: locale === 'de' ? '2× Virtual Try-On' : '2× Virtual Try-On', sub: locale === 'de' ? 'pro Tag' : 'per day' },
+             { title: locale === 'de' ? '6× Virtual Try-On' : '6× Virtual Try-On', sub: locale === 'de' ? 'pro Woche' : 'per week' },
               { title: 'Style DNA', sub: locale === 'de' ? 'KI Stil-Analyse' : 'AI style analysis' },
           { title: locale === 'de' ? 'Schrank-Scan ✦' : 'Closet scan ✦', sub: locale === 'de' ? '3× pro Woche · ganzer Schrank' : '3× per week · whole closet' },
 { title: locale === 'de' ? 'Mehrfach-Upload ✦' : 'Multi-upload ✦', sub: locale === 'de' ? 'Bis zu 10 Fotos auf einmal' : 'Up to 10 photos at once' },

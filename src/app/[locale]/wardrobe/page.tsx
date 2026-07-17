@@ -191,13 +191,15 @@ async function handleMultiUpload(e: React.ChangeEvent<HTMLInputElement>) {
   const { data: { session } } = await supabase.auth.getSession()
   if (!session?.user) return
 
-  const weekAgo = new Date()
-  weekAgo.setDate(weekAgo.getDate() - 7)
-  const { count: weeklyCount } = await supabase
-    .from('multi_scan_generations')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', session.user.id)
-    .gte('created_at', weekAgo.toISOString())
+const now = new Date()
+const day = now.getUTCDay()
+const diffToMonday = (day === 0 ? -6 : 1) - day
+const weekStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + diffToMonday, 0, 0, 0, 0))
+const { count: weeklyCount } = await supabase
+  .from('multi_scan_generations')
+  .select('*', { count: 'exact', head: true })
+  .eq('user_id', session.user.id)
+  .gte('created_at', weekStart.toISOString())
 
   if ((weeklyCount ?? 0) >= 3) {
     setLimitMsg(locale === 'de' ? 'Max. 3× Mehrfach-Upload pro Woche!' : 'Max. 3× multi-upload per week!')
