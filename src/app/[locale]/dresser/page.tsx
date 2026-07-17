@@ -1256,7 +1256,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
 
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24, duration: 0.4 }} style={{ marginBottom: '28px' }}>
               <motion.button ref={dressMeRef} onClick={generateOutfit} disabled={loading} whileTap={!loading ? { scale: 0.97 } : {}}
-                style={{ width: '100%', padding: '19px', borderRadius: '100px', border: 'none', background: loading ? (isDark ? '#0f1a14' : '#e6f7f0') : 'linear-gradient(135deg, #0ea472 0%, #0891b2 100%)', color: loading ? muted : '#fff', fontSize: '17px', fontWeight: 700, fontFamily: "'Poppins', 'Inter', sans-serif", cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', letterSpacing: '-0.02em', WebkitTapHighlightColor: 'transparent', transition: 'all 0.2s', boxShadow: loading ? 'none' : '0 6px 28px rgba(14,164,114,0.45)' }}>
+                style={{ width: '100%', padding: '19px', borderRadius: '100px', border: 'none', background: loading ? (isDark ? '#0f1a14' : '#e6f7f0') : sageGradient, color: loading ? muted : '#fff', fontSize: '15px', fontWeight: 700, fontFamily: "'Poppins', 'Inter', sans-serif", cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', WebkitTapHighlightColor: 'transparent', transition: 'all 0.2s', boxShadow: loading ? 'none' : '0 8px 24px rgba(53,92,125,0.3)' }}>
                 {loading ? (
                   <>
                     <motion.span animate={{ rotate: 360 }} transition={{ duration: 0.7, repeat: Infinity, ease: 'linear' }}
