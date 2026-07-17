@@ -6,7 +6,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useTheme } from '@/context/ThemeContext'
 import { useTranslations, useLocale } from 'next-intl'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export default function LoginPage() {
  const [email, setEmail] = useState('')
@@ -21,6 +21,10 @@ export default function LoginPage() {
   const t = useTranslations('auth')
   const locale = useLocale()
   const isDark = theme === 'dark'
+  const [showEmailCodeModal, setShowEmailCodeModal] = useState(false)
+const [otpEmail, setOtpEmail] = useState('')
+const [otpLoading, setOtpLoading] = useState(false)
+const [otpError, setOtpError] = useState('')
 
   const bg     = isDark ? '#161616' : '#F2EFE7'
   const card   = isDark ? '#1D1D20' : '#ffffff'
@@ -37,7 +41,13 @@ export default function LoginPage() {
     if (error) { setError(error.message); setLoading(false) }
     else { router.push('/' + locale + '/dresser') }
   }
-
+async function sendOtpCode() {
+  if (!otpEmail) { setOtpError(locale === 'de' ? 'Bitte Email eingeben' : 'Please enter your email'); return }
+  setOtpLoading(true); setOtpError('')
+  const { error } = await supabase.auth.signInWithOtp({ email: otpEmail, options: { shouldCreateUser: false } })
+  if (error) { setOtpError(error.message); setOtpLoading(false) }
+  else { router.push('/' + locale + '/auth/verify?email=' + encodeURIComponent(otpEmail)) }
+}
   function switchLocale(nl: string) {
     const s = pathname.split('/')
     s[1] = nl
@@ -164,16 +174,8 @@ export default function LoginPage() {
 </div>
 
 <motion.button whileTap={{ scale: 0.98 }}
-    onClick={async () => {
-      if (!email) { setError(locale === 'de' ? 'Bitte Email eingeben' : 'Please enter your email'); return }
-      setLoading(true); setError('')
-      const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } })
-      if (error) { setError(error.message) }
-    else { router.push('/' + locale + '/auth/verify?email=' + encodeURIComponent(email)) }
-      setLoading(false)
-    }}
-    disabled={loading}
-    style={{ width: '100%', background: 'transparent', border: `1.5px solid ${border}`, borderRadius: '14px', padding: '14px', fontSize: '14px', fontWeight: 600, color: text, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s', marginBottom: '12px' }}>
+    onClick={() => { setOtpEmail(email); setOtpError(''); setShowEmailCodeModal(true) }}
+    style={{ width: '100%', background: 'transparent', border: `1.5px solid ${border}`, borderRadius: '14px', padding: '14px', fontSize: '14px', fontWeight: 600, color: text, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s', marginBottom: '12px' }}>
     ✉️ {locale === 'de' ? 'Code per Email senden' : 'Send code by email'}
 </motion.button>
 
@@ -188,6 +190,54 @@ export default function LoginPage() {
       </motion.div>
 
       <p style={{ marginTop: '20px', fontSize: '11px', color: muted, position: 'relative', zIndex: 1 }}>
+        <AnimatePresence>
+  {showEmailCodeModal && (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      onClick={() => { if (!otpLoading) setShowEmailCodeModal(false) }}
+      style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+      <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
+        transition={{ type: 'spring', damping: 24, stiffness: 280 }}
+        onClick={e => e.stopPropagation()}
+        style={{ width: '100%', maxWidth: '380px', background: card, border: `1px solid ${border}`, borderRadius: '24px', padding: '28px 24px' }}>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+          <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '20px', fontWeight: 500, color: text }}>
+            {locale === 'de' ? 'Code per Email' : 'Code by email'}
+          </h2>
+          <button onClick={() => setShowEmailCodeModal(false)}
+            style={{ background: isDark ? '#161616' : '#F7F4EC', border: `1px solid ${border}`, borderRadius: '10px', width: '32px', height: '32px', cursor: 'pointer', fontSize: '14px', color: muted }}>✕</button>
+        </div>
+
+        <p style={{ fontSize: '13px', color: muted, marginBottom: '20px', lineHeight: 1.6 }}>
+          {locale === 'de'
+            ? 'Gib deine Email ein — wir schicken dir einen Anmeldecode.'
+            : "Enter your email — we'll send you a login code."}
+        </p>
+
+        {otpError && (
+          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#ef4444', fontSize: '13px', padding: '10px 14px', borderRadius: '10px', marginBottom: '16px' }}>
+            {otpError}
+          </div>
+        )}
+
+        <label style={{ fontSize: '12px', fontWeight: 600, color: muted, display: 'block', marginBottom: '7px', letterSpacing: '0.04em', textTransform: 'uppercase' as const }}>
+          {t('email')}
+        </label>
+        <input type="email" value={otpEmail} onChange={e => setOtpEmail(e.target.value)}
+          placeholder="deine@email.com"
+          autoFocus
+          onKeyDown={e => e.key === 'Enter' && sendOtpCode()}
+          style={{ width: '100%', background: isDark ? '#161616' : '#F7F4EC', border: `1.5px solid ${border}`, borderRadius: '12px', padding: '13px 16px', fontSize: '14px', color: text, outline: 'none', boxSizing: 'border-box' as const, fontFamily: "'Poppins', 'Inter', sans-serif", marginBottom: '20px' }}
+        />
+
+        <motion.button whileTap={{ scale: 0.98 }} onClick={sendOtpCode} disabled={otpLoading}
+          style={{ width: '100%', background: otpLoading ? (isDark ? '#1D1D20' : '#EDE7D8') : sageGradient, border: otpLoading ? `1px solid ${border}` : 'none', borderRadius: '14px', padding: '15px', fontSize: '15px', fontWeight: 700, color: otpLoading ? muted : '#fff', cursor: otpLoading ? 'not-allowed' : 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+          {otpLoading ? t('loading') : (locale === 'de' ? 'Code senden' : 'Send code')}
+        </motion.button>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
         KiWardrobe · Made with ♥
       </p>
     </div>
