@@ -6,6 +6,7 @@ import { useLocale } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
+const DRESSING_ROOM_BG_URL = 'https://images.unsplash.com/photo-1672137233327-37b0c1049e77?w=1200&q=80&auto=format&fit=crop'
 
 type ClothingItem = { id: string; image_url: string; category: string; color: string; name?: string; brand?: string }
 function getCategoryLabel(category: string): string {
@@ -62,151 +63,73 @@ function createWatermarkedImage(imageUrl: string): Promise<string> {
 }
 
 
-function recolorBlackBackground(imageUrl: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
-    img.onload = () => {
-      const w = img.naturalWidth
-      const h = img.naturalHeight
-      const canvas = document.createElement('canvas')
-      canvas.width = w
-      canvas.height = h
-      const ctx = canvas.getContext('2d')!
-      ctx.drawImage(img, 0, 0)
 
-      let srcData: ImageData
-      try {
-        srcData = ctx.getImageData(0, 0, w, h)
-      } catch {
-        resolve(imageUrl)
-        return
-      }
-      const px = srcData.data
-
-      // Nur wirklich fast reines Schwarz umfaerben, alles andere bleibt exakt wie es ist.
-      // Weicher Uebergang (Blend-Band) statt hartem Schnitt, damit keine JPEG-Kompressions-Halos entstehen.
-      const bgR = 211, bgG = 201, bgB = 168 // #D3C9A8, helles Grau-Gold
-      const HARD = 18   // ab hier komplett umgefaerbt
-      const SOFT = 46   // ab hier komplett Original, dazwischen weich gemischt
-      for (let p = 0; p < px.length; p += 4) {
-        const r = px[p], g = px[p + 1], b = px[p + 2]
-        const lum = Math.max(r, g, b)
-        if (lum < SOFT) {
-          const t = lum <= HARD ? 1 : 1 - (lum - HARD) / (SOFT - HARD)
-          px[p] = Math.round(r + (bgR - r) * t)
-          px[p + 1] = Math.round(g + (bgG - g) * t)
-          px[p + 2] = Math.round(b + (bgB - b) * t)
-        }
-      }
-      ctx.putImageData(srcData, 0, 0)
-
-      resolve(canvas.toDataURL('image/png'))
-    }
-    img.onerror = () => reject(new Error('bg recolor image load failed'))
-    img.src = imageUrl
+async function cutoutPersonFromResult(imageUrl: string): Promise<string> {
+  const res = await fetch('/api/remove-background', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ imageUrl }),
   })
+  const data = await res.json()
+  if (data.success && data.imageUrl) return data.imageUrl
+  throw new Error('cutout failed')
 }
 
-async function createShareCard(selfieUrl: string, resultUrl: string, locale: string): Promise<string> {
+function compositeOnDressingRoom(subjectUrl: string, bgUrl: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    const selfieImg = new Image()
-    const resultImg = new Image()
-    selfieImg.crossOrigin = 'anonymous'
-    resultImg.crossOrigin = 'anonymous'
-
+    const bgImg = new Image()
+    const subjImg = new Image()
+    bgImg.crossOrigin = 'anonymous'
+    subjImg.crossOrigin = 'anonymous'
     let loaded = 0
-    function onBothLoaded() {
+    function onBoth() {
       loaded++
       if (loaded < 2) return
-
-      const W = 1080
-      const H = 1350
+      const W = 1080, H = 1440
       const canvas = document.createElement('canvas')
       canvas.width = W
       canvas.height = H
       const ctx = canvas.getContext('2d')!
 
-      const bgGrad = ctx.createLinearGradient(0, 0, 0, H)
-      bgGrad.addColorStop(0, '#1D1D20')
-      bgGrad.addColorStop(1, '#355C7D')
-      ctx.fillStyle = bgGrad
+      // Hintergrund im "cover"-Modus einpassen
+      const bgRatio = bgImg.naturalWidth / bgImg.naturalHeight
+      const boxRatio = W / H
+      let sx = 0, sy = 0, sw = bgImg.naturalWidth, sh = bgImg.naturalHeight
+      if (bgRatio > boxRatio) { sw = bgImg.naturalHeight * boxRatio; sx = (bgImg.naturalWidth - sw) / 2 }
+      else { sh = bgImg.naturalWidth / boxRatio; sy = (bgImg.naturalHeight - sh) / 2 }
+      ctx.drawImage(bgImg, sx, sy, sw, sh, 0, 0, W, H)
+
+      // Leicht abdunkeln, damit die Person besser abhebt
+      ctx.fillStyle = 'rgba(0,0,0,0.06)'
       ctx.fillRect(0, 0, W, H)
 
-      ctx.fillStyle = '#ffffff'
-      ctx.font = 'bold 52px sans-serif'
-      ctx.textAlign = 'center'
-      ctx.fillText('KiWardrobe', W / 2, 90)
-      ctx.font = '28px sans-serif'
-      ctx.fillStyle = '#F1B951'
-      ctx.fillText(locale === 'de' ? '✦ Virtual Try-On' : '✦ Virtual Try-On', W / 2, 130)
+      // Person unten zentriert einfuegen
+      const margin = 40
+      const maxH = H - margin * 1.4
+      const scale = Math.min(maxH / subjImg.naturalHeight, (W - 100) / subjImg.naturalWidth)
+      const dw = subjImg.naturalWidth * scale
+      const dh = subjImg.naturalHeight * scale
+      const dx = (W - dw) / 2
+      const dy = H - margin - dh
 
-      const imgTop = 170
-      const imgHeight = H - imgTop - 160
-      const gap = 16
-      const halfW = (W - gap - 80) / 2
-      const leftX = 40
-      const rightX = leftX + halfW + gap
+      // Weicher Schatten fuer mehr Tiefe
+      ctx.save()
+      ctx.filter = 'blur(12px)'
+      ctx.fillStyle = 'rgba(0,0,0,0.18)'
+      ctx.beginPath()
+      ctx.ellipse(dx + dw / 2, dy + dh - 6, dw * 0.32, 14, 0, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.restore()
 
-      function drawCover(img: HTMLImageElement, x: number, y: number, w: number, h: number) {
-        const imgRatio = img.width / img.height
-        const boxRatio = w / h
-        let sx = 0, sy = 0, sw = img.width, sh = img.height
-        if (imgRatio > boxRatio) {
-          sw = img.height * boxRatio
-          sx = (img.width - sw) / 2
-        } else {
-          sh = img.width / boxRatio
-          sy = (img.height - sh) / 2
-        }
-        ctx.save()
-        const radius = 24
-        ctx.beginPath()
-        ctx.moveTo(x + radius, y)
-        ctx.arcTo(x + w, y, x + w, y + h, radius)
-        ctx.arcTo(x + w, y + h, x, y + h, radius)
-        ctx.arcTo(x, y + h, x, y, radius)
-        ctx.arcTo(x, y, x + w, y, radius)
-        ctx.closePath()
-        ctx.clip()
-        ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h)
-        ctx.restore()
-      }
-
-      drawCover(selfieImg, leftX, imgTop, halfW, imgHeight)
-      drawCover(resultImg, rightX, imgTop, halfW, imgHeight)
-
-      ctx.fillStyle = 'rgba(0,0,0,0.55)'
-      ctx.fillRect(leftX, imgTop + imgHeight - 50, halfW, 50)
-      ctx.fillRect(rightX, imgTop + imgHeight - 50, halfW, 50)
-      ctx.fillStyle = '#ffffff'
-      ctx.font = 'bold 24px sans-serif'
-      ctx.fillText(locale === 'de' ? 'VORHER' : 'BEFORE', leftX + halfW / 2, imgTop + imgHeight - 16)
-      ctx.fillText(locale === 'de' ? 'NACHHER' : 'AFTER', rightX + halfW / 2, imgTop + imgHeight - 16)
-
-      ctx.fillStyle = '#F1B951'
-      ctx.font = 'bold 40px sans-serif'
-      ctx.fillText('→', W / 2, imgTop + imgHeight / 2 + 14)
-
-      ctx.fillStyle = '#c9c5bb'
-      ctx.font = '24px sans-serif'
-      ctx.fillText(
-        locale === 'de' ? 'Probier deine Klamotten virtuell an ✦' : 'Try on your clothes virtually ✦',
-        W / 2, H - 90
-      )
-      ctx.fillStyle = '#F1B951'
-      ctx.font = 'bold 26px sans-serif'
-      ctx.fillText('kiwardrobe-app.vercel.app', W / 2, H - 50)
-
+      ctx.drawImage(subjImg, dx, dy, dw, dh)
       resolve(canvas.toDataURL('image/jpeg', 0.92))
     }
-
-    selfieImg.onload = onBothLoaded
-    resultImg.onload = onBothLoaded
-    selfieImg.onerror = () => reject(new Error('selfie load failed'))
-    resultImg.onerror = () => reject(new Error('result load failed'))
-    selfieImg.src = selfieUrl
-    resultImg.src = resultUrl
+    bgImg.onload = onBoth
+    subjImg.onload = onBoth
+    bgImg.onerror = () => reject(new Error('background load failed'))
+    subjImg.onerror = () => reject(new Error('subject load failed'))
+    bgImg.src = bgUrl
+    subjImg.src = subjectUrl
   })
 }
 
@@ -243,16 +166,21 @@ const [sharing, setSharing] = useState(false)
   const goldAccent = '#F1B951'
   const sageGradient = 'linear-gradient(135deg, #7FA98E, #355C7D)'
 
-  useEffect(() => { loadData() }, [])
-
-  useEffect(() => {
-    if (!result) { setProcessedResult(null); return }
-    let cancelled = false
-    recolorBlackBackground(result)
-      .then(url => { if (!cancelled) setProcessedResult(url) })
-      .catch(() => { if (!cancelled) setProcessedResult(null) })
-    return () => { cancelled = true }
-  }, [result])
+useEffect(() => {
+  if (!result) { setProcessedResult(null); return }
+  let cancelled = false
+  ;(async () => {
+    try {
+      const cutout = await cutoutPersonFromResult(result)
+      const composed = await compositeOnDressingRoom(cutout, DRESSING_ROOM_BG_URL)
+      if (!cancelled) setProcessedResult(composed)
+    } catch (err) {
+      console.error('Dressing room composite failed, falling back to raw result:', err)
+      if (!cancelled) setProcessedResult(null)
+    }
+  })()
+  return () => { cancelled = true }
+}, [result])
 
 async function loadData() {
   const { data: { session } } = await supabase.auth.getSession()
@@ -572,7 +500,7 @@ const canGenerate = triesLeft > 0
                           if (!selfie || !result) return
                           setSharing(true)
                           try {
-                            const cardDataUrl = await createShareCard(selfie, result, locale)
+                           const cardDataUrl = await createShareCard(selfie, processedResult ?? result, locale)
                             const blob = await (await fetch(cardDataUrl)).blob()
                             const file = new File([blob], 'kiwardrobe-vorher-nachher.jpg', { type: 'image/jpeg' })
                             if (navigator.share && navigator.canShare?.({ files: [file] })) {
