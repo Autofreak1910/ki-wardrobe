@@ -94,7 +94,7 @@ export default function OutfitsPage() {
       <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '800px', width: '100%', margin: '0 auto', padding: '68px 0 108px', position: 'relative', zIndex: 1 }}>
 
         {/* Hero Banner mit Outfit-Collage */}
-        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
           style={{ position: 'relative' as const, height: '180px', overflow: 'hidden', marginBottom: '0' }}>
 
           <img
@@ -164,9 +164,9 @@ export default function OutfitsPage() {
                 const outfitItems = getItemsForOutfit(outfit)
                 return (
                   <motion.div key={outfit.id}
-                    initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.22, delay: Math.min(i * 0.02, 0.1) }}
+                    transition={{ duration: 0.3, delay: Math.min(i * 0.04, 0.16) }}
                     style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden' }}>
                     {/* Images */}
                     <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: `repeat(${Math.min(outfitItems.length || 1, 4)}, 1fr)`, height: '180px', background: isDark ? '#221c14' : '#F4EFE4' }}>
