@@ -244,6 +244,6 @@ useEffect(() => {
           )}
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence> 
   )
 }
