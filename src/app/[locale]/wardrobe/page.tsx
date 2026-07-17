@@ -465,9 +465,6 @@ await Promise.allSettled(toSave.map(async (item, i) => {
 
           {/* Text über dem Bild */}
           <div style={{ position: 'absolute' as const, bottom: '20px', left: '20px', zIndex: 2 }}>
-            <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: isDark ? 'rgba(159,225,203,0.8)' : accent, marginBottom: '4px' }}>
-              {locale === 'de' ? 'Dein Kleiderschrank' : 'Your Wardrobe'}
-            </p>
             <h1 style={{ fontSize: '28px', fontWeight: 800, color: text, letterSpacing: '-0.04em', lineHeight: 1.1, textShadow: isDark ? 'none' : '0 1px 8px rgba(255,255,255,0.8)' }}>
               {locale === 'de' ? 'Dein' : 'Your'}
             </h1>
@@ -586,7 +583,9 @@ await Promise.allSettled(toSave.map(async (item, i) => {
     <div style={{ position: 'relative', zIndex: 1 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
         <p style={{ fontSize: '13px', fontWeight: 700, color: 'rgba(255,255,255,0.9)', letterSpacing: '0.02em' }}>
-          {locale === 'de' ? 'Style DNA entdecken' : 'Discover your Style DNA'}
+          {isPremium
+            ? (locale === 'de' ? 'Deine Style DNA' : 'Your Style DNA')
+            : (locale === 'de' ? 'Style DNA entdecken' : 'Discover your Style DNA')}
         </p>
         {!isPremium ? (
           <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: goldAccent, borderRadius: '5px', padding: '2px 7px', boxShadow: '0 2px 8px rgba(251,191,36,0.4)' }}>PRO</span>
