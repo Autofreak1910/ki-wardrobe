@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import SplashScreen from './SplashScreen'
 import OnboardingCarousel from './OnboardingCarousel'
@@ -132,7 +133,24 @@ function handleOnboardingDone() {
         transition: 'opacity 0.3s ease',
         height: '100%',
       }}>
-        {children}
+        {/*
+          Nur Opacity wird animiert, bewusst kein x/y/scale (= kein transform).
+          Jede Seite rendert ihre eigene position:fixed Navbar -- ein transformiertes
+          Eltern-Element wuerde die Navbar waehrend der Animation aus der Spur werfen.
+          Reines Cross-Fade ist trotzdem spuerbar "fluessiger" als der harte Schnitt vorher.
+        */}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={pathname}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.16, ease: 'easeInOut' }}
+            style={{ height: '100%' }}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </>
   )
