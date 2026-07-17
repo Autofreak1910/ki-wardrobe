@@ -6,7 +6,6 @@ import { useTranslations, useLocale } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import Navbar from '@/components/Navbar'
 
 type Outfit = { id: string; name: string; occasion: string; item_ids: string[]; is_favorite: boolean; created_at: string }
 type ClothingItem = { id: string; image_url: string; name?: string; color: string; category: string }
@@ -77,7 +76,6 @@ export default function OutfitsPage() {
         <div style={{ position: 'absolute', bottom: '80px', left: '-80px', width: '320px', height: '320px', borderRadius: '50%', background: isDark ? 'rgba(122,150,172,0.06)' : 'rgba(53,92,125,0.05)', filter: 'blur(90px)' }} />
       </div>
 
-      <Navbar activePage="outfits" />
 
       <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '800px', width: '100%', margin: '0 auto', padding: '68px 0 108px', position: 'relative', zIndex: 1 }}>
 
