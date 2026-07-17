@@ -334,31 +334,6 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
               <p style={{ fontSize: '12px', color: muted }}>{locale === 'de' ? 'Dabei seit' : 'Member since'} {memberSince}</p>
             </div>
           </div>
-
-          {/* Stats */}
-{(() => {
-  const statItems = [
-    { label: locale === 'de' ? 'Kleidung' : 'Items', value: itemCount, max: isPremium ? null : 20 },
-    { label: locale === 'de' ? 'Outfits' : 'Outfits', value: todayOutfits, max: isPremium ? 15 : 3 },
-    { label: locale === 'de' ? 'Gespeichert' : 'Saved', value: outfitCount, max: isPremium ? null : 5 },
-    isPremium
-      ? { label: 'Try-On', value: tryOnToday, max: 2 }
-      : { label: 'Try-On', value: (3 - (profile?.avatar_tries_left ?? 3)), max: 3 },
-    ...(isPremium ? [{ label: locale === 'de' ? 'Multi-Upload' : 'Multi-upload', value: multiScansThisWeek, max: 3 }] : []),
-  ]
-  return (
-    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${statItems.length}, 1fr)`, gap: '6px' }}>
-      {statItems.map(stat => (
-        <div key={stat.label} style={{ background: card, border: `1px solid ${border}`, borderRadius: '12px', padding: '10px 6px', textAlign: 'center' as const, minWidth: 0 }}>
-          <p style={{ fontSize: '16px', fontWeight: 800, color: stat.max && stat.value >= stat.max ? '#ef4444' : text, letterSpacing: '-0.03em', marginBottom: '1px' }}>
-            {stat.value}{stat.max ? `/${stat.max}` : ''}
-          </p>
-          <p style={{ fontSize: '9px', color: muted, fontWeight: 500, whiteSpace: 'nowrap' as const, overflow: 'hidden', textOverflow: 'ellipsis' as const }}>{stat.label}</p>
-        </div>
-      ))}
-    </div>
-  )
-})()}
         </motion.div>
 
         <div style={{ padding: '0 20px' }}>
@@ -398,20 +373,29 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
         : (locale === 'de' ? 'Kostenlos für immer' : 'Free forever')}
     </p>
 
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginBottom: daysLeft !== null && daysLeft <= 3 ? '14px' : '0' }}>
-     {[
-        { label: locale === 'de' ? 'Outfits/Tag' : 'Outfits/day', value: isPremium ? '15' : '3' },
-        { label: locale === 'de' ? 'Kleidung' : 'Items', value: isPremium ? '∞' : '20' },
-        { label: locale === 'de' ? 'Speichern' : 'Saved', value: isPremium ? '∞' : '5' },
-       { label: locale === 'de' ? 'Try-On' : 'Try-On', value: isPremium ? (locale === 'de' ? '2/Tag' : '2/day') : (locale === 'de' ? '3 gesamt' : '3 total') },
-        { label: 'Style DNA', value: isPremium ? '✓' : '✗' },
-      ].map((f, i) => (
-        <div key={i} style={{ background: isPremium ? 'rgba(229,180,91,0.12)' : accentDim, borderRadius: '10px', padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p style={{ fontSize: '11px', color: isPremium ? '#9a978f' : muted }}>{f.label}</p>
-          <p style={{ fontSize: '12px', fontWeight: 700, color: isPremium ? '#F5F3EE' : text }}>{f.value}</p>
+    {(() => {
+      const statItems = [
+        { label: locale === 'de' ? 'Kleidung' : 'Items', value: itemCount, max: isPremium ? null : 20 },
+        { label: locale === 'de' ? 'Outfits' : 'Outfits', value: todayOutfits, max: isPremium ? 15 : 3 },
+        { label: locale === 'de' ? 'Gespeichert' : 'Saved', value: outfitCount, max: isPremium ? null : 5 },
+        isPremium
+          ? { label: 'Try-On', value: tryOnToday, max: 2 }
+          : { label: 'Try-On', value: (3 - (profile?.avatar_tries_left ?? 3)), max: 3 },
+        ...(isPremium ? [{ label: locale === 'de' ? 'Multi-Upload' : 'Multi-upload', value: multiScansThisWeek, max: 3 }] : []),
+      ]
+      return (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', marginBottom: daysLeft !== null && daysLeft <= 3 ? '14px' : '0' }}>
+          {statItems.map(stat => (
+            <div key={stat.label} style={{ background: isPremium ? 'rgba(229,180,91,0.12)' : accentDim, borderRadius: '10px', padding: '8px 6px', textAlign: 'center' as const, minWidth: 0 }}>
+              <p style={{ fontSize: '14px', fontWeight: 800, color: stat.max && stat.value >= stat.max ? '#ef4444' : (isPremium ? '#F5F3EE' : text), letterSpacing: '-0.02em', marginBottom: '1px' }}>
+                {stat.value}{stat.max ? `/${stat.max}` : ''}
+              </p>
+              <p style={{ fontSize: '9px', color: isPremium ? '#9a978f' : muted, fontWeight: 500, whiteSpace: 'nowrap' as const, overflow: 'hidden', textOverflow: 'ellipsis' as const }}>{stat.label}</p>
+            </div>
+          ))}
         </div>
-      ))}
-    </div>
+      )
+    })()}
 
     {isPremium && daysLeft !== null && daysLeft <= 3 && (
       <div style={{ background: isDark ? 'rgba(239,68,68,0.1)' : '#fef2f2', border: `1px solid ${isDark ? 'rgba(239,68,68,0.2)' : '#fecaca'}`, borderRadius: '12px', padding: '12px 14px' }}>
