@@ -75,8 +75,8 @@ const tabs = [
   ]
 
   const activeIndex = tabs.findIndex(t => t.page === activePage)
-  const PILL = 64
-  const NAV_H = 88
+  const PILL = 60
+  const NAV_H = 72
 
   // Start bubbleX at -999 so it's hidden until positioned correctly
   const bubbleX = useMotionValue(-999)
@@ -94,9 +94,13 @@ const tabs = [
 
   function getIndex(clientX: number) {
     if (!navRef.current) return 0
+    const width = navRef.current.offsetWidth
+    if (!width) return currentActiveIndex.current
     const left = navRef.current.getBoundingClientRect().left
-    const w = navRef.current.offsetWidth / tabs.length
-    return Math.max(0, Math.min(tabs.length - 1, Math.floor((clientX - left) / w)))
+    const w = width / tabs.length
+    const idx = Math.floor((clientX - left) / w)
+    if (Number.isNaN(idx)) return currentActiveIndex.current
+    return Math.max(0, Math.min(tabs.length - 1, idx))
   }
 
   function snap(index: number, stretch = false) {
@@ -215,8 +219,15 @@ useEffect(() => {
     snap(currentActiveIndex.current)
   }
 const accent    = isDark ? '#4d7eff' : '#3b6bff'
+const gold      = '#F1B951'
+const goldDeep  = '#C9963C'
 const navBg     = isDark ? 'rgba(8,12,24,0.93)' : 'rgba(240,244,255,0.93)'
 const navBorder = isDark ? '#1a2540' : '#dde3f5'
+// Schwebende Pill-Navbar (dunkel, unabhaengig vom Farbschema, wie im DKB-Referenzbild)
+const pillBg     = 'rgba(15,17,24,0.92)'
+const pillBorder = 'rgba(255,255,255,0.08)'
+const pillMuted  = 'rgba(255,255,255,0.45)'
+const pillMutedDim = 'rgba(255,255,255,0.25)'
 
   return (
     <>
@@ -255,7 +266,7 @@ const navBorder = isDark ? '#1a2540' : '#dde3f5'
         </div>
       </nav>
 
-      {/* Mobile */}
+      {/* Mobile — schwebende Pill-Navbar */}
       <div
         ref={navRef}
         className="mobile-nav"
@@ -267,18 +278,21 @@ const navBorder = isDark ? '#1a2540' : '#dde3f5'
         onMouseUp={onDragEnd}
         onMouseLeave={onLeave}
         style={{
-          position: 'fixed', bottom: 0, left: 0, right: 0,
+          position: 'fixed',
+          bottom: 'calc(14px + env(safe-area-inset-bottom))',
+          left: '14px', right: '14px',
           height: `${NAV_H}px`,
-          background: navBg,
-          backdropFilter: 'blur(40px)', WebkitBackdropFilter: 'blur(40px)',
-          borderTop: `1px solid ${navBorder}`,
+          background: pillBg,
+          backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)',
+          border: `1px solid ${pillBorder}`,
+          borderRadius: '100px',
+          boxShadow: '0 12px 40px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2)',
           display: 'flex', alignItems: 'center',
           zIndex: 100,
-          paddingBottom: 'env(safe-area-inset-bottom)',
           touchAction: 'none', userSelect: 'none',
         }}
       >
-        {/* Liquid Glass Bubble — only shown after mount + positioned */}
+        {/* Bubble — jetzt in Gold */}
      <motion.div
           style={{
             position: 'absolute',
@@ -290,17 +304,11 @@ const navBorder = isDark ? '#1a2540' : '#dde3f5'
             height: PILL,
             scale: bubbleScale,
            borderRadius: '50%',
-background: isDark
-  ? 'radial-gradient(circle at 35% 30%, rgba(77,126,255,0.45) 0%, rgba(59,107,255,0.2) 55%, rgba(77,126,255,0.08) 100%)'
-  : 'radial-gradient(circle at 35% 30%, rgba(255,255,255,0.98) 0%, rgba(59,107,255,0.25) 55%, rgba(100,150,255,0.15) 100%)',
+background: `radial-gradient(circle at 35% 30%, ${gold} 0%, ${goldDeep} 65%, rgba(201,150,60,0.5) 100%)`,
 backdropFilter: 'blur(16px)',
 WebkitBackdropFilter: 'blur(16px)',
-border: isDark
-  ? '1px solid rgba(77,126,255,0.45)'
-  : '1px solid rgba(255,255,255,0.9)',
-boxShadow: isDark
-  ? '0 4px 28px rgba(77,126,255,0.3), inset 0 1px 0 rgba(255,255,255,0.12)'
-  : '0 4px 28px rgba(59,107,255,0.2), inset 0 1.5px 0 rgba(255,255,255,0.98), inset 0 -1px 0 rgba(59,107,255,0.1)',
+border: '1px solid rgba(241,185,81,0.6)',
+boxShadow: '0 4px 24px rgba(241,185,81,0.45), inset 0 1px 0 rgba(255,255,255,0.25)',
 pointerEvents: 'none',
           }}
         />
@@ -309,7 +317,7 @@ pointerEvents: 'none',
           <motion.button
             onClick={() => router.push('/' + locale + '/admin')}
             style={{
-              position: 'absolute', top: '8px', right: '8px',
+              position: 'absolute', top: '-30px', right: '8px',
               background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
               border: 'none', borderRadius: '8px', padding: '4px 8px',
               fontSize: '10px', fontWeight: 700, color: '#fff',
@@ -325,7 +333,7 @@ pointerEvents: 'none',
             animate={{ opacity: 1, scale: 1 }}
             transition={{ type: 'spring', damping: 12, delay: 0.3 }}
             style={{
-              position: 'absolute', top: '8px', right: '10px',
+              position: 'absolute', top: '-30px', right: '10px',
               background: 'linear-gradient(135deg, #f97316, #ef4444)',
               borderRadius: '10px', padding: '3px 8px',
               display: 'flex', alignItems: 'center', gap: '3px',
@@ -344,12 +352,14 @@ pointerEvents: 'none',
           return (
             <motion.button
               key={item.page}
-              onClick={() => !isDragging && router.push('/' + locale + '/' + item.page)}
-              animate={{ scale: isHighlighted ? 1.08 : 1 }}
+              // Navigation laeuft zentral ueber onDragEnd (unten) -- kein eigenes onClick mehr,
+              // sonst feuern zwei router.push() bei einem einfachen Tap gegeneinander.
+              whileHover={{ scale: isDragging ? 1 : 1.12 }}
+              animate={{ scale: isHighlighted ? 1.1 : 1 }}
               transition={SPRING}
               style={{
                 display: 'flex', flexDirection: 'column' as const,
-                alignItems: 'center', justifyContent: 'center', gap: '3px',
+                alignItems: 'center', justifyContent: 'center', gap: '2px',
                 background: 'none', border: 'none',
                 cursor: 'pointer', flex: 1, height: `${NAV_H}px`,
                 position: 'relative' as const, zIndex: 1,
@@ -358,7 +368,7 @@ pointerEvents: 'none',
               }}
             >
               <motion.span
-                animate={{ color: isHighlighted ? (isDark ? accent : '#0a2e1e') : isDark ? '#2a4a35' : '#b8d4c4' }}
+                animate={{ color: isHighlighted ? '#1a1408' : pillMuted }}
                 transition={{ duration: 0.15 }}
                 style={{ display: 'flex' }}
               >
@@ -366,12 +376,12 @@ pointerEvents: 'none',
               </motion.span>
               <motion.span
                 animate={{
-                  color: isHighlighted ? (isDark ? accent : '#0a2e1e') : isDark ? '#2a4a35' : '#b8d4c4',
+                  color: isHighlighted ? '#1a1408' : pillMutedDim,
                   fontWeight: isHighlighted ? 700 : 400,
-                  opacity: isHighlighted ? 1 : 0.55,
+                  opacity: isHighlighted ? 1 : 0.8,
                 }}
                 transition={{ duration: 0.15 }}
-                style={{ fontSize: '10px', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em' }}
+                style={{ fontSize: '9px', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em' }}
               >
                 {item.label}
               </motion.span>
