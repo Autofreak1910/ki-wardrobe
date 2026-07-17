@@ -86,6 +86,12 @@ function parseWeatherCode(code: number, isDay: boolean): { icon: string; conditi
   return { icon: '⛈️', condition: 'Gewitter' }
 }
 
+function getWeekStartUTC(): Date {
+  const now = new Date()
+  const day = now.getUTCDay() // 0 = So, 1 = Mo, ... 6 = Sa
+  const diffToMonday = (day === 0 ? -6 : 1) - day
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + diffToMonday, 0, 0, 0, 0))
+}
 // Modul-Level-Cache -- ueberlebt Seitenwechsel, kein Skeleton-Flackern mehr bei erneutem Besuch
 let stylistCache: {
   wardrobeItems: ClothingItem[]
@@ -419,24 +425,22 @@ if (wardrobeItems.length < 3) return
   const { data: { session } } = await supabase.auth.getSession()
   if (!session?.user) return
 
-  const startOfDay = new Date()
-  startOfDay.setHours(0, 0, 0, 0)
-const { count: todayCount, error: countError } = await supabase
+const weekStart = getWeekStartUTC()
+const { count: weekCount, error: countError } = await supabase
     .from('outfit_generations')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', session.user.id)
-    .gte('created_at', startOfDay.toISOString())
+    .gte('created_at', weekStart.toISOString())
 if (countError) console.error('Count error:', countError)
-  console.log('Today count:', todayCount)
 
-  const DAILY_LIMIT = isPremium ? 15 : 3
-  if ((todayCount ?? 0) >= DAILY_LIMIT) {
-    setLimitMsg(locale === 'de'
-      ? `Tageslimit erreicht — ${DAILY_LIMIT}/${DAILY_LIMIT} Outfits`
-      : `Daily limit reached — ${DAILY_LIMIT}/${DAILY_LIMIT} outfits`)
-    setTimeout(() => setLimitMsg(null), 4000)
-    return
-  }
+const WEEKLY_LIMIT = isPremium ? 14 : 3
+if ((weekCount ?? 0) >= WEEKLY_LIMIT) {
+  setLimitMsg(locale === 'de'
+    ? `Wochenlimit erreicht — ${WEEKLY_LIMIT}/${WEEKLY_LIMIT} Outfits`
+    : `Weekly limit reached — ${WEEKLY_LIMIT}/${WEEKLY_LIMIT} outfits`)
+  setTimeout(() => setLimitMsg(null), 4000)
+  return
+}
 
 const { error: insertError } = await supabase.from('outfit_generations').insert({ user_id: session.user.id })
   if (insertError) console.error('Insert error:', insertError)
@@ -874,9 +878,9 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.0 }}
         style={{ fontSize: '15px', color: muted, fontFamily: "'Poppins', 'Inter', sans-serif", textAlign: 'center' as const, maxWidth: '280px', lineHeight: 1.6, marginBottom: '12px' }}>
-        {proWelcomeData?.fromInvite
-          ? (locale === 'de' ? `Dein Freund hat dich eingeladen 🎁` : `Your friend invited you 🎁`)
-          : (locale === 'de' ? '15 Outfits täglich · Unbegrenzt Kleidung · Style DNA 🚀' : '15 outfits daily · Unlimited items · Style DNA 🚀')}
+     {proWelcomeData?.fromInvite
+  ? (locale === 'de' ? `Dein Freund hat dich eingeladen 🎁` : `Your friend invited you 🎁`)
+  : (locale === 'de' ? '14 Outfits/Woche · Unbegrenzt Kleidung · Style DNA 🚀' : '14 outfits/week · Unlimited items · Style DNA 🚀')}
       </motion.p>
 
       {proWelcomeData?.until && (
@@ -1491,10 +1495,10 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
 
               <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '8px', marginBottom: '20px' }}>
                 {[
-                  { label: locale === 'de' ? 'Outfits/Tag' : 'Outfits/day', free: '3', pro: '15' },
-                  { label: locale === 'de' ? 'Kleidungsstücke' : 'Clothing items', free: 'Max. 20', pro: '∞' },
-                  { label: locale === 'de' ? 'Outfits speichern' : 'Save outfits', free: 'Max. 5', pro: '∞' },
-                  { label: 'Virtual Try-On', free: locale === 'de' ? '3 gesamt' : '3 total', pro: '2/Tag' },
+                { label: locale === 'de' ? 'Outfits/Woche' : 'Outfits/week', free: '3', pro: '14' },
+{ label: locale === 'de' ? 'Kleidungsstücke' : 'Clothing items', free: 'Max. 20', pro: '∞' },
+{ label: locale === 'de' ? 'Outfits speichern' : 'Save outfits', free: 'Max. 5', pro: '∞' },
+{ label: 'Virtual Try-On', free: locale === 'de' ? '2/Monat' : '2/month', pro: '6/' + (locale === 'de' ? 'Woche' : 'week') },
                   { label: 'Style DNA', free: '✗', pro: '✓' },
                   { label: locale === 'de' ? 'Mehrfach-Upload' : 'Multi-upload', free: '✗', pro: '✓' },
                   { label: locale === 'de' ? 'Schrank-Scan' : 'Closet scan', free: '✗', pro: '3×/' + (locale === 'de' ? 'Woche' : 'week') },
@@ -1514,17 +1518,17 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
                 <p style={{ fontSize: '10px', color: '#f59e0b', fontWeight: 700, minWidth: '50px', textAlign: 'center' as const }}>Pro</p>
               </div>
 
-              {isPremium ? (
-                <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowProInfo(false)}
-                  style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: goldAccent, color: '#fff', fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", marginTop: '8px' }}>
-                  {locale === 'de' ? '✦ Pro aktiv — weiter so!' : '✦ Pro active — keep it up!'}
-                </motion.button>
-              ) : (
-                <motion.button whileTap={{ scale: 0.97 }} onClick={() => { setShowProInfo(false); setShowUpgrade(true) }}
-                  style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: goldAccent, color: '#fff', fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", marginTop: '8px', boxShadow: '0 6px 24px rgba(251,191,36,0.4)' }}>
-                  {locale === 'de' ? '✦ Jetzt upgraden — €4,99/Monat' : '✦ Upgrade now — €4.99/month'}
-                </motion.button>
-              )}
+            {isPremium ? (
+  <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowProInfo(false)}
+    style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: goldAccent, color: '#fff', fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", marginTop: '8px' }}>
+    {locale === 'de' ? '✦ Pro aktiv — weiter so!' : '✦ Pro active — keep it up!'}
+  </motion.button>
+) : (
+  <motion.button whileTap={{ scale: 0.97 }} onClick={() => { setShowProInfo(false); router.push('/' + locale + '/profile?upgrade=true') }}
+    style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: goldAccent, color: '#fff', fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", marginTop: '8px', boxShadow: '0 6px 24px rgba(251,191,36,0.4)' }}>
+    {locale === 'de' ? '✦ Jetzt upgraden — €4,99/Monat' : '✦ Upgrade now — €4.99/month'}
+  </motion.button>
+)}
             </motion.div>
           </motion.div>
         )}
