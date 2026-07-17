@@ -49,13 +49,14 @@ const router = useRouter()
   const locale = useLocale()
   const isDark = theme === 'dark'
 
-  const bg        = isDark ? '#080c18' : '#f0f4ff'
-  const card      = isDark ? '#0d1225' : '#ffffff'
-  const border    = isDark ? '#1a2540' : '#dde3f5'
-  const text      = isDark ? '#e8eeff' : '#0a1628'
-  const muted     = isDark ? '#4d6080' : '#6b7fa8'
-  const accent    = isDark ? '#4d7eff' : '#3b6bff'
-  const secondary = isDark ? '#0d1225' : '#f0f4ff'
+  const bg        = isDark ? '#161616' : '#F2EFE7'
+  const card      = isDark ? '#1D1D20' : '#ffffff'
+  const border    = isDark ? '#2a2a2e' : '#E7E2D5'
+  const text      = isDark ? '#F5F3EE' : '#24211B'
+  const muted     = isDark ? '#9a978f' : '#8C8776'
+  const accent    = isDark ? '#5C82A0' : '#355C7D'
+  const secondary = isDark ? '#221D12' : '#F7F4EC'
+  const sageGradient = 'linear-gradient(135deg, #7FA98E, #355C7D)'
 
   const selectedCountry = countries.find(c => c.code === country)
 function parseGermanDate(dateStr: string): Date | null {
@@ -148,24 +149,24 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
   }
 
   const inputStyle = {
-    width: '100%', background: isDark ? '#080c18' : '#f8faff',
+    width: '100%', background: isDark ? '#161616' : '#F7F4EC',
     border: `1.5px solid ${border}`, borderRadius: '12px',
     padding: '13px 16px', fontSize: '14px', color: text,
     outline: 'none', boxSizing: 'border-box' as const,
-    fontFamily: "'DM Sans', sans-serif", transition: 'border-color 0.2s',
+    fontFamily: "'Poppins', 'Inter', sans-serif", transition: 'border-color 0.2s',
   }
 
   const totalSteps = 4
 
   return (
-    <div style={{ minHeight: '100dvh', background: bg, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', fontFamily: "'DM Sans', sans-serif", padding: '24px', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ minHeight: '100dvh', background: bg, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', fontFamily: "'Poppins', 'Inter', sans-serif", padding: '24px', position: 'relative', overflow: 'hidden' }}>
 
       <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-        <div style={{ position: 'absolute', top: '-100px', right: '-80px', width: '400px', height: '400px', borderRadius: '50%', background: isDark ? 'rgba(77,126,255,0.08)' : 'rgba(59,107,255,0.1)', filter: 'blur(80px)' }} />
-        <div style={{ position: 'absolute', bottom: '-80px', left: '-80px', width: '350px', height: '350px', borderRadius: '50%', background: isDark ? 'rgba(77,126,255,0.05)' : 'rgba(59,107,255,0.07)', filter: 'blur(80px)' }} />
+        <div style={{ position: 'absolute', top: '-100px', right: '-80px', width: '400px', height: '400px', borderRadius: '50%', background: isDark ? 'rgba(92,130,160,0.08)' : 'rgba(53,92,125,0.1)', filter: 'blur(80px)' }} />
+        <div style={{ position: 'absolute', bottom: '-80px', left: '-80px', width: '350px', height: '350px', borderRadius: '50%', background: isDark ? 'rgba(201,150,60,0.06)' : 'rgba(201,150,60,0.08)', filter: 'blur(80px)' }} />
         {!isDark && (
           <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.4 }} xmlns="http://www.w3.org/2000/svg">
-            <defs><pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="0.9" fill="#3b6bff" opacity="0.2" /></pattern></defs>
+            <defs><pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="0.9" fill="#355C7D" opacity="0.2" /></pattern></defs>
             <rect width="100%" height="100%" fill="url(#dots)" />
           </svg>
         )}
@@ -182,7 +183,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
         <div style={{ width: '68px', height: '68px', borderRadius: '20px', overflow: 'hidden', margin: '0 auto 14px', boxShadow: `0 8px 32px ${accent}40` }}>
           <img src="/icon-512.png" alt="KiWardrobe" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
-        <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '26px', fontWeight: 400, color: text, marginBottom: '14px', letterSpacing: '-0.02em' }}>
+        <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: '26px', fontWeight: 500, color: text, marginBottom: '14px', letterSpacing: '-0.02em' }}>
           Ki<em style={{ color: accent }}>Wardrobe</em>
         </h1>
 
@@ -211,7 +212,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
           {/* Step 1 */}
           {step === 1 && (
             <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}>
-              <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '26px', fontWeight: 400, color: text, marginBottom: '6px', letterSpacing: '-0.02em' }}>
+              <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '26px', fontWeight: 500, color: text, marginBottom: '6px', letterSpacing: '-0.02em' }}>
                 {locale === 'de' ? 'Konto erstellen' : 'Create account'}
               </h2>
               <p style={{ color: muted, fontSize: '14px', marginBottom: '24px' }}>
@@ -297,7 +298,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
                     setStep(2)
                   }
                 }}
-                style={{ width: '100%', background: checkingEmail ? (isDark ? '#0d1225' : '#e8eeff') : `linear-gradient(135deg, ${accent}, #6b9fff)`, border: 'none', borderRadius: '14px', padding: '15px', fontSize: '15px', fontWeight: 700, color: checkingEmail ? muted : '#fff', cursor: checkingEmail ? 'wait' : 'pointer', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em', boxShadow: checkingEmail ? 'none' : `0 4px 20px ${accent}40` }}>
+                style={{ width: '100%', background: checkingEmail ? (isDark ? '#1D1D20' : '#EDE7D8') : sageGradient, border: 'none', borderRadius: '14px', padding: '15px', fontSize: '15px', fontWeight: 700, color: checkingEmail ? muted : '#fff', cursor: checkingEmail ? 'wait' : 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", letterSpacing: '-0.01em', boxShadow: checkingEmail ? 'none' : `0 4px 20px ${accent}40` }}>
                 {checkingEmail ? (locale === 'de' ? 'Prüfe...' : 'Checking...') : (locale === 'de' ? 'Weiter' : 'Next') + ' →'}
               </motion.button>
             </motion.div>
@@ -306,7 +307,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
  {/* Step 2 */}
           {step === 2 && (
             <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}>
-              <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '26px', fontWeight: 400, color: text, marginBottom: '6px', letterSpacing: '-0.02em' }}>
+              <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '26px', fontWeight: 500, color: text, marginBottom: '6px', letterSpacing: '-0.02em' }}>
                 {locale === 'de' ? 'Wann hast du Geburtstag?' : 'When were you born?'}
               </h2>
               <p style={{ color: muted, fontSize: '14px', marginBottom: '24px' }}>
@@ -345,7 +346,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
                     if (computedAge < 16) { setError(locale === 'de' ? 'Du musst mindestens 16 Jahre alt sein, um KiWardrobe zu nutzen' : 'You must be at least 16 years old to use KiWardrobe'); return }
                     setError(''); setStep(3)
                   }}
-                  style={{ flex: 1, background: `linear-gradient(135deg, ${accent}, #6b9fff)`, border: 'none', borderRadius: '12px', padding: '14px', fontSize: '15px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em', boxShadow: `0 4px 20px ${accent}40` }}>
+                  style={{ flex: 1, background: sageGradient, border: 'none', borderRadius: '12px', padding: '14px', fontSize: '15px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", letterSpacing: '-0.01em', boxShadow: `0 4px 20px ${accent}40` }}>
                   {locale === 'de' ? 'Weiter' : 'Next'} →
                 </motion.button>
               </div>
@@ -355,7 +356,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
           {/* Step 3 */}
           {step === 3 && (
             <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}>
-              <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '26px', fontWeight: 400, color: text, marginBottom: '6px', letterSpacing: '-0.02em' }}>
+              <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '26px', fontWeight: 500, color: text, marginBottom: '6px', letterSpacing: '-0.02em' }}>
                 {locale === 'de' ? 'Woher kommst du?' : 'Where are you from?'}
               </h2>
               <p style={{ color: muted, fontSize: '14px', marginBottom: '20px' }}>
@@ -366,7 +367,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '7px', marginBottom: '20px', maxHeight: '260px', overflowY: 'auto' as const }}>
                 {countries.map(c => (
                   <motion.button key={c.code} whileTap={{ scale: 0.95 }} onClick={() => { setCountry(c.code); setError('') }}
-                    style={{ padding: '10px 12px', borderRadius: '10px', border: `1.5px solid ${country === c.code ? accent : border}`, background: country === c.code ? `rgba(${isDark ? '77,126,255' : '59,107,255'},0.1)` : secondary, color: country === c.code ? accent : text, fontSize: '13px', fontWeight: country === c.code ? 600 : 400, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.12s' }}>
+                    style={{ padding: '10px 12px', borderRadius: '10px', border: `1.5px solid ${country === c.code ? accent : border}`, background: country === c.code ? (isDark ? 'rgba(92,130,160,0.12)' : 'rgba(53,92,125,0.08)') : secondary, color: country === c.code ? accent : text, fontSize: '13px', fontWeight: country === c.code ? 600 : 400, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.12s' }}>
                     <span style={{ fontSize: '18px' }}>{c.flag}</span>
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{c.name}</span>
                   </motion.button>
@@ -377,7 +378,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
                 <button onClick={() => setStep(2)} style={{ width: '48px', flexShrink: 0, padding: '14px', background: secondary, border: `1px solid ${border}`, borderRadius: '12px', fontSize: '16px', color: muted, cursor: 'pointer' }}>←</button>
                 <motion.button whileTap={{ scale: 0.97 }}
                   onClick={() => { if (country) { setError(''); setStep(4) } else setError(locale === 'de' ? 'Bitte Land wählen' : 'Please select country') }}
-                  style={{ flex: 1, background: `linear-gradient(135deg, ${accent}, #6b9fff)`, border: 'none', borderRadius: '12px', padding: '14px', fontSize: '15px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em', boxShadow: `0 4px 20px ${accent}40` }}>
+                  style={{ flex: 1, background: sageGradient, border: 'none', borderRadius: '12px', padding: '14px', fontSize: '15px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", letterSpacing: '-0.01em', boxShadow: `0 4px 20px ${accent}40` }}>
                   {locale === 'de' ? 'Weiter' : 'Next'} →
                 </motion.button>
               </div>
@@ -387,7 +388,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
           {/* Step 4 - Style */}
           {step === 4 && (
             <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}>
-              <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '26px', fontWeight: 400, color: text, marginBottom: '6px', letterSpacing: '-0.02em' }}>
+              <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '26px', fontWeight: 500, color: text, marginBottom: '6px', letterSpacing: '-0.02em' }}>
                 {locale === 'de' ? 'Dein Style' : 'Your Style'}
               </h2>
               <p style={{ color: muted, fontSize: '14px', marginBottom: '20px' }}>
@@ -406,7 +407,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
                   { value: 'diverse', labelDe: '⚧ Divers', labelEn: '⚧ Other' },
                 ].map(g => (
                   <motion.button key={g.value} whileTap={{ scale: 0.95 }} onClick={() => setGender(g.value)}
-                    style={{ padding: '12px 8px', borderRadius: '12px', border: `1.5px solid ${gender === g.value ? accent : border}`, background: gender === g.value ? `rgba(${isDark ? '77,126,255' : '59,107,255'},0.1)` : secondary, color: gender === g.value ? accent : text, fontSize: '13px', fontWeight: gender === g.value ? 700 : 500, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'all 0.15s' }}>
+                    style={{ padding: '12px 8px', borderRadius: '12px', border: `1.5px solid ${gender === g.value ? accent : border}`, background: gender === g.value ? (isDark ? 'rgba(92,130,160,0.12)' : 'rgba(53,92,125,0.08)') : secondary, color: gender === g.value ? accent : text, fontSize: '13px', fontWeight: gender === g.value ? 700 : 500, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", transition: 'all 0.15s' }}>
                     {locale === 'de' ? g.labelDe : g.labelEn}
                   </motion.button>
                 ))}
@@ -429,7 +430,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
                   return (
                     <motion.button key={s.value} whileTap={{ scale: 0.95 }}
                       onClick={() => setStylePrefs(prev => isOn ? prev.filter(x => x !== s.value) : [...prev, s.value])}
-                      style={{ padding: '10px 12px', borderRadius: '12px', border: `1.5px solid ${isOn ? accent : border}`, background: isOn ? `rgba(${isDark ? '77,126,255' : '59,107,255'},0.1)` : secondary, color: isOn ? accent : text, fontSize: '13px', fontWeight: isOn ? 700 : 500, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'all 0.15s', textAlign: 'left' as const }}>
+                      style={{ padding: '10px 12px', borderRadius: '12px', border: `1.5px solid ${isOn ? accent : border}`, background: isOn ? (isDark ? 'rgba(92,130,160,0.12)' : 'rgba(53,92,125,0.08)') : secondary, color: isOn ? accent : text, fontSize: '13px', fontWeight: isOn ? 700 : 500, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", transition: 'all 0.15s', textAlign: 'left' as const }}>
                       {s.label}
                     </motion.button>
                   )
@@ -447,7 +448,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
                   { value: 'high', label: '> €200' },
                 ].map(b => (
                   <motion.button key={b.value} whileTap={{ scale: 0.95 }} onClick={() => setBudgetRange(b.value)}
-                    style={{ padding: '12px 8px', borderRadius: '12px', border: `1.5px solid ${budgetRange === b.value ? accent : border}`, background: budgetRange === b.value ? `rgba(${isDark ? '77,126,255' : '59,107,255'},0.1)` : secondary, color: budgetRange === b.value ? accent : text, fontSize: '13px', fontWeight: budgetRange === b.value ? 700 : 500, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'all 0.15s' }}>
+                    style={{ padding: '12px 8px', borderRadius: '12px', border: `1.5px solid ${budgetRange === b.value ? accent : border}`, background: budgetRange === b.value ? (isDark ? 'rgba(92,130,160,0.12)' : 'rgba(53,92,125,0.08)') : secondary, color: budgetRange === b.value ? accent : text, fontSize: '13px', fontWeight: budgetRange === b.value ? 700 : 500, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", transition: 'all 0.15s' }}>
                     {b.label}
                   </motion.button>
                 ))}
@@ -470,7 +471,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
                   return (
                     <motion.button key={s.value} whileTap={{ scale: 0.95 }}
                       onClick={() => setFavoriteShops(prev => isOn ? prev.filter(x => x !== s.value) : [...prev, s.value])}
-                      style={{ padding: '10px 8px', borderRadius: '12px', border: `1.5px solid ${isOn ? accent : border}`, background: isOn ? `rgba(${isDark ? '77,126,255' : '59,107,255'},0.1)` : secondary, color: isOn ? accent : text, fontSize: '12px', fontWeight: isOn ? 700 : 500, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'all 0.15s' }}>
+                      style={{ padding: '10px 8px', borderRadius: '12px', border: `1.5px solid ${isOn ? accent : border}`, background: isOn ? (isDark ? 'rgba(92,130,160,0.12)' : 'rgba(53,92,125,0.08)') : secondary, color: isOn ? accent : text, fontSize: '12px', fontWeight: isOn ? 700 : 500, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", transition: 'all 0.15s' }}>
                       {s.label}
                     </motion.button>
                   )
@@ -512,7 +513,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
                     handleRegister()
                   }}
                   disabled={loading || !agbAccepted}
-                  style={{ flex: 1, background: (loading || !agbAccepted) ? secondary : `linear-gradient(135deg, ${accent}, #6b9fff)`, border: (loading || !agbAccepted) ? `1px solid ${border}` : 'none', borderRadius: '12px', padding: '14px', fontSize: '15px', fontWeight: 700, color: (loading || !agbAccepted) ? muted : '#fff', cursor: (loading || !agbAccepted) ? 'not-allowed' : 'pointer', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em', boxShadow: (loading || !agbAccepted) ? 'none' : `0 4px 20px ${accent}40`, transition: 'all 0.2s' }}>
+                  style={{ flex: 1, background: (loading || !agbAccepted) ? secondary : sageGradient, border: (loading || !agbAccepted) ? `1px solid ${border}` : 'none', borderRadius: '12px', padding: '14px', fontSize: '15px', fontWeight: 700, color: (loading || !agbAccepted) ? muted : '#fff', cursor: (loading || !agbAccepted) ? 'not-allowed' : 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", letterSpacing: '-0.01em', boxShadow: (loading || !agbAccepted) ? 'none' : `0 4px 20px ${accent}40`, transition: 'all 0.2s' }}>
                   {loading ? '...' : locale === 'de' ? 'Konto erstellen 🎉' : 'Create account 🎉'}
                 </motion.button>
               </div>
@@ -539,7 +540,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
               <div style={{ width: '36px', height: '4px', background: border, borderRadius: '2px', margin: '0 auto 16px' }} />
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '22px', fontWeight: 400, color: text }}>
+                <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '22px', fontWeight: 500, color: text }}>
                   {showLegalModal === 'agb' ? 'AGB' : (locale === 'de' ? 'Datenschutz' : 'Privacy Policy')}
                 </h2>
                 <button onClick={() => setShowLegalModal(null)} style={{ background: card, border: `1px solid ${border}`, borderRadius: '10px', width: '32px', height: '32px', cursor: 'pointer', fontSize: '14px', color: muted }}>✕</button>
@@ -593,7 +594,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
               )}
 
               <button onClick={() => setShowLegalModal(null)}
-                style={{ width: '100%', padding: '14px', background: `linear-gradient(135deg, ${accent}, #6b9fff)`, border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", marginTop: '8px' }}>
+                style={{ width: '100%', padding: '14px', background: sageGradient, border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", marginTop: '8px' }}>
                 {locale === 'de' ? 'Verstanden' : 'Got it'}
               </button>
             </motion.div>
