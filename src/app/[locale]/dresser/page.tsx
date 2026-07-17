@@ -1527,4 +1527,4 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
       </main>
     </div>
   )
-} 
+}  
