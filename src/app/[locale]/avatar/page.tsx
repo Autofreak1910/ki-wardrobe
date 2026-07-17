@@ -6,7 +6,6 @@ import { useLocale } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import Navbar from '@/components/Navbar'
 
 type ClothingItem = { id: string; image_url: string; category: string; color: string; name?: string; brand?: string }
 function getCategoryLabel(category: string): string {
@@ -314,7 +313,6 @@ export default function AvatarPage() {
 
   if (pageLoading) return (
     <div style={{ height: '100dvh', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <Navbar activePage="avatar" />
     </div>
   )
 
@@ -325,7 +323,6 @@ export default function AvatarPage() {
         <div style={{ position: 'absolute', top: '-100px', right: '-60px', width: '380px', height: '380px', borderRadius: '50%', background: isDark ? 'rgba(92,130,160,0.08)' : 'rgba(53,92,125,0.06)', filter: 'blur(90px)' }} />
       </div>
 
-      <Navbar activePage="avatar" />
 
       <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '560px', width: '100%', margin: '0 auto', padding: canGenerate ? '68px 0 170px' : '68px 0 24px', position: 'relative', zIndex: 1 }}>
 

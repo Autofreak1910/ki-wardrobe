@@ -6,7 +6,6 @@ import { useTranslations, useLocale } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import Navbar from '@/components/Navbar'
 
 const categories = ['all', 'tops', 'hosen', 'jacken', 'schuhe', 'acc'] as const
 
@@ -425,7 +424,6 @@ await Promise.allSettled(toSave.map(async (item, i) => {
         )}
       </div>
 
-      <Navbar activePage="wardrobe" />
 
       {/* Limit Banner */}
       <AnimatePresence>
@@ -474,13 +472,13 @@ await Promise.allSettled(toSave.map(async (item, i) => {
             </h1>
           </div>
 
-          {/* Teile-Badge oben rechts */}
+          {/* Teile-Badge oben rechts — Glas-Look wie das Wetter-Badge auf Stylist */}
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-            style={{ position: 'absolute' as const, top: '16px', right: '16px', background: isDark ? 'rgba(10,22,40,0.85)' : 'rgba(255,255,255,0.9)', backdropFilter: 'blur(12px)', border: `1px solid ${border}`, borderRadius: '16px', padding: '10px 14px', textAlign: 'center' as const, zIndex: 2 }}>
-            <p style={{ fontSize: '20px', fontWeight: 800, color: text, letterSpacing: '-0.04em', lineHeight: 1 }}>
-              {items.length}{!isPremium && <span style={{ fontSize: '12px', color: muted }}>/20</span>}
+            style={{ position: 'absolute' as const, top: '16px', right: '18px', background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '16px', padding: '10px 14px', textAlign: 'center' as const, zIndex: 2, minWidth: '70px', boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}>
+            <p style={{ fontSize: '20px', fontWeight: 800, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1 }}>
+              {items.length}{!isPremium && <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)' }}>/20</span>}
             </p>
-            <p style={{ fontSize: '10px', color: muted, fontWeight: 600, marginTop: '2px' }}>{t('wardrobe.pieces')}</p>
+            <p style={{ fontSize: '9px', color: 'rgba(255,255,255,0.85)', fontWeight: 600, marginTop: '2px' }}>{t('wardrobe.pieces')}</p>
           </motion.div>
         </motion.div>
 
@@ -617,7 +615,7 @@ await Promise.allSettled(toSave.map(async (item, i) => {
             <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
               style={{ background: card, border: `1px solid ${border}`, borderRadius: '14px', padding: '16px', marginBottom: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
-                <motion.span animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                <motion.span animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
                   style={{ display: 'block', width: '18px', height: '18px', borderRadius: '50%', border: `2px solid ${border}`, borderTopColor: '#a855f7', flexShrink: 0 }} />
                 <span style={{ fontSize: '13px', fontWeight: 600, color: text }}>
                   {locale === 'de' ? 'KI scannt deinen Schrank...' : 'AI scanning your closet...'}
@@ -851,7 +849,7 @@ await Promise.allSettled(toSave.map(async (item, i) => {
                     {detectedItems.filter(it => it.included).length} {locale === 'de' ? 'von' : 'of'} {detectedItems.length} {locale === 'de' ? 'ausgewählt' : 'selected'}
                   </p>
                 </div>
-                <button onClick={() => { setMultiMode(false); setDetectedItems([]); setMultiOriginalImage(null) }}
+                <button onClick={() => { setMultiMode(false); setDetectedItems([]) }}
                   style={{ background: card, border: `1px solid ${border}`, borderRadius: '10px', width: '36px', height: '36px', cursor: 'pointer', fontSize: '16px', color: muted }}>✕</button>
               </div>
 

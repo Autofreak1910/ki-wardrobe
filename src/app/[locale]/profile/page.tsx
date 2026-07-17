@@ -6,7 +6,6 @@ import { useLocale } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import Navbar from '@/components/Navbar'
 type Profile = { id: string; username: string; is_premium: boolean; age?: string; country?: string; created_at: string; email?: string; gender?: string; style_preferences?: string[]; budget_range?: string; referral_code?: string; premium_until?: string; invites_this_month?: number; bonus_month_claimed_this_period?: boolean; avatar_tries_left?: number }
 
 function urlBase64ToUint8Array(base64String: string) {
@@ -275,7 +274,6 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
 
   if (loading) return (
     <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' as const, background: bg, overflow: 'hidden' }}>
-      <Navbar activePage="profile" />
       <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '560px', width: '100%', margin: '0 auto', padding: '84px 20px 108px' }}>
         {[180, 80, 140].map((h, i) => (
           <div key={i} style={{ height: h, borderRadius: '14px', background: card, border: `1px solid ${border}`, marginBottom: '10px', animation: 'shimmer 1.5s infinite' }} />
@@ -292,7 +290,6 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
         <div style={{ position: 'absolute', top: '-100px', right: '-60px', width: '380px', height: '380px', borderRadius: '50%', background: isDark ? 'rgba(229,180,91,0.08)' : 'rgba(201,150,60,0.10)', filter: 'blur(90px)' }} />
       </div>
 
-      <Navbar activePage="profile" />
 
       <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '560px', width: '100%', margin: '0 auto', padding: '68px 0 108px', position: 'relative', zIndex: 1 }}>
 
