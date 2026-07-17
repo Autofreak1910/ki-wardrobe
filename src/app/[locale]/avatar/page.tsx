@@ -343,33 +343,35 @@ export default function AvatarPage() {
     setResult(null)
     setGenProgress(0)
 
-    const messages = locale === 'de' ? [
-      'Foto wird hochgeladen...',
-      'Hintergrund wird entfernt...',
-      'Foto wird geprüft...',
-      'KI zieht dir das Outfit an...',
-      'Falten werden geglättet...',
-      'Farben werden abgestimmt...',
-      'Licht wird angepasst...',
-      'Letzte Details...',
-      'Fast fertig...',
+const steps = locale === 'de' ? [
+      { at: 0,  label: 'Foto wird hochgeladen...' },
+      { at: 12, label: 'Hintergrund wird entfernt...' },
+      { at: 25, label: 'Foto wird geprüft...' },
+      { at: 38, label: 'KI zieht dir das Outfit an...' },
+      { at: 52, label: 'Falten werden geglättet...' },
+      { at: 64, label: 'Farben werden abgestimmt...' },
+      { at: 76, label: 'Licht wird angepasst...' },
+      { at: 87, label: 'Letzte Details...' },
+      { at: 94, label: 'Fast fertig...' },
     ] : [
-      'Uploading photo...',
-      'Removing background...',
-      'Checking photo quality...',
-      'AI is dressing you...',
-      'Smoothing out wrinkles...',
-      'Matching the colors...',
-      'Adjusting the lighting...',
-      'Final touches...',
-      'Almost there...',
+      { at: 0,  label: 'Uploading photo...' },
+      { at: 12, label: 'Removing background...' },
+      { at: 25, label: 'Checking photo quality...' },
+      { at: 38, label: 'AI is dressing you...' },
+      { at: 52, label: 'Smoothing out wrinkles...' },
+      { at: 64, label: 'Matching the colors...' },
+      { at: 76, label: 'Adjusting the lighting...' },
+      { at: 87, label: 'Final touches...' },
+      { at: 94, label: 'Almost there...' },
     ]
-    let msgIndex = 0
-    setGenStep(messages[0])
+    setGenStep(steps[0].label)
     const interval = setInterval(() => {
-      setGenProgress(p => Math.min(p + Math.random() * 4 + 2, 95))
-      msgIndex = Math.min(msgIndex + 1, messages.length - 1)
-      setGenStep(messages[msgIndex])
+      setGenProgress(p => {
+        const next = Math.min(p + Math.random() * 2.5 + 1, 95)
+        const current = [...steps].reverse().find(s => next >= s.at)
+        if (current) setGenStep(current.label)
+        return next
+      })
     }, 1800)
 
     try {
