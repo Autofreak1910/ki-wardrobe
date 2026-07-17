@@ -62,8 +62,6 @@ function createWatermarkedImage(imageUrl: string): Promise<string> {
   })
 }
 
-
-
 async function cutoutPersonFromResult(imageUrl: string): Promise<string> {
   const res = await fetch('/api/remove-background', {
     method: 'POST',
@@ -133,6 +131,108 @@ function compositeOnDressingRoom(subjectUrl: string, bgUrl: string): Promise<str
   })
 }
 
+async function createShareCard(selfieUrl: string, resultUrl: string, locale: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const selfieImg = new Image()
+    const resultImg = new Image()
+    selfieImg.crossOrigin = 'anonymous'
+    resultImg.crossOrigin = 'anonymous'
+
+    let loaded = 0
+    function onBothLoaded() {
+      loaded++
+      if (loaded < 2) return
+
+      const W = 1080
+      const H = 1350
+      const canvas = document.createElement('canvas')
+      canvas.width = W
+      canvas.height = H
+      const ctx = canvas.getContext('2d')!
+
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, H)
+      bgGrad.addColorStop(0, '#1D1D20')
+      bgGrad.addColorStop(1, '#355C7D')
+      ctx.fillStyle = bgGrad
+      ctx.fillRect(0, 0, W, H)
+
+      ctx.fillStyle = '#ffffff'
+      ctx.font = 'bold 52px sans-serif'
+      ctx.textAlign = 'center'
+      ctx.fillText('KiWardrobe', W / 2, 90)
+      ctx.font = '28px sans-serif'
+      ctx.fillStyle = '#F1B951'
+      ctx.fillText(locale === 'de' ? '✦ Virtual Try-On' : '✦ Virtual Try-On', W / 2, 130)
+
+      const imgTop = 170
+      const imgHeight = H - imgTop - 160
+      const gap = 16
+      const halfW = (W - gap - 80) / 2
+      const leftX = 40
+      const rightX = leftX + halfW + gap
+
+      function drawCover(img: HTMLImageElement, x: number, y: number, w: number, h: number) {
+        const imgRatio = img.width / img.height
+        const boxRatio = w / h
+        let sx = 0, sy = 0, sw = img.width, sh = img.height
+        if (imgRatio > boxRatio) {
+          sw = img.height * boxRatio
+          sx = (img.width - sw) / 2
+        } else {
+          sh = img.width / boxRatio
+          sy = (img.height - sh) / 2
+        }
+        ctx.save()
+        const radius = 24
+        ctx.beginPath()
+        ctx.moveTo(x + radius, y)
+        ctx.arcTo(x + w, y, x + w, y + h, radius)
+        ctx.arcTo(x + w, y + h, x, y + h, radius)
+        ctx.arcTo(x, y + h, x, y, radius)
+        ctx.arcTo(x, y, x + w, y, radius)
+        ctx.closePath()
+        ctx.clip()
+        ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h)
+        ctx.restore()
+      }
+
+      drawCover(selfieImg, leftX, imgTop, halfW, imgHeight)
+      drawCover(resultImg, rightX, imgTop, halfW, imgHeight)
+
+      ctx.fillStyle = 'rgba(0,0,0,0.55)'
+      ctx.fillRect(leftX, imgTop + imgHeight - 50, halfW, 50)
+      ctx.fillRect(rightX, imgTop + imgHeight - 50, halfW, 50)
+      ctx.fillStyle = '#ffffff'
+      ctx.font = 'bold 24px sans-serif'
+      ctx.fillText(locale === 'de' ? 'VORHER' : 'BEFORE', leftX + halfW / 2, imgTop + imgHeight - 16)
+      ctx.fillText(locale === 'de' ? 'NACHHER' : 'AFTER', rightX + halfW / 2, imgTop + imgHeight - 16)
+
+      ctx.fillStyle = '#F1B951'
+      ctx.font = 'bold 40px sans-serif'
+      ctx.fillText('→', W / 2, imgTop + imgHeight / 2 + 14)
+
+      ctx.fillStyle = '#c9c5bb'
+      ctx.font = '24px sans-serif'
+      ctx.fillText(
+        locale === 'de' ? 'Probier deine Klamotten virtuell an ✦' : 'Try on your clothes virtually ✦',
+        W / 2, H - 90
+      )
+      ctx.fillStyle = '#F1B951'
+      ctx.font = 'bold 26px sans-serif'
+      ctx.fillText('kiwardrobe-app.vercel.app', W / 2, H - 50)
+
+      resolve(canvas.toDataURL('image/jpeg', 0.92))
+    }
+
+    selfieImg.onload = onBothLoaded
+    resultImg.onload = onBothLoaded
+    selfieImg.onerror = () => reject(new Error('selfie load failed'))
+    resultImg.onerror = () => reject(new Error('result load failed'))
+    selfieImg.src = selfieUrl
+    resultImg.src = resultUrl
+  })
+}
+
 // Modul-Level-Cache -- ueberlebt Seitenwechsel, kein Blank-Screen mehr beim erneuten Besuch
 let avatarCache: { profile: any; items: ClothingItem[] } | null = null
 
@@ -146,7 +246,7 @@ export default function AvatarPage() {
   const [loading, setLoading] = useState(false)
   const [pageLoading, setPageLoading] = useState(!avatarCache)
   const [error, setError] = useState<string | null>(null)
-const [sharing, setSharing] = useState(false)
+  const [sharing, setSharing] = useState(false)
   const [genStep, setGenStep] = useState('')
   const [genProgress, setGenProgress] = useState(0)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -166,45 +266,52 @@ const [sharing, setSharing] = useState(false)
   const goldAccent = '#F1B951'
   const sageGradient = 'linear-gradient(135deg, #7FA98E, #355C7D)'
 
-useEffect(() => {
-  if (!result) { setProcessedResult(null); return }
-  let cancelled = false
-  ;(async () => {
-    try {
-      const cutout = await cutoutPersonFromResult(result)
-      const composed = await compositeOnDressingRoom(cutout, DRESSING_ROOM_BG_URL)
-      if (!cancelled) setProcessedResult(composed)
-    } catch (err) {
-      console.error('Dressing room composite failed, falling back to raw result:', err)
-      if (!cancelled) setProcessedResult(null)
-    }
-  })()
-  return () => { cancelled = true }
-}, [result])
+  useEffect(() => { loadData() }, [])
 
-async function loadData() {
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
-  const [profileRes, itemsRes] = await Promise.all([
-    supabase.from('profiles').select('*').eq('id', session.user.id).single(),
-    supabase.from('clothing_items').select('*').eq('user_id', session.user.id)
-  ])
-  let freshProfile: any = null
-  if (profileRes.data) {
-    const { data: stillPremium } = await supabase.rpc('check_and_expire_premium', { p_user_id: session.user.id })
-    const periodStart = stillPremium ? getWeekStartUTC() : getMonthStartUTC()
-    const { count } = await supabase.from('avatar_results')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', session.user.id)
-      .gte('created_at', periodStart.toISOString()) as any
-    const LIMIT = stillPremium ? 6 : 2
-    freshProfile = { ...profileRes.data, is_premium: stillPremium ?? false, used_this_period: count ?? 0, period_limit: LIMIT }
-    setProfile(freshProfile)
+  useEffect(() => {
+    if (!result) { setProcessedResult(null); return }
+    let cancelled = false
+    ;(async () => {
+      try {
+        const cutout = await cutoutPersonFromResult(result)
+        const composed = await compositeOnDressingRoom(cutout, DRESSING_ROOM_BG_URL)
+        if (!cancelled) setProcessedResult(composed)
+      } catch (err) {
+        console.error('Dressing room composite failed, falling back to raw result:', err)
+        if (!cancelled) setProcessedResult(null)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [result])
+
+  async function loadData() {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
+      const [profileRes, itemsRes] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', session.user.id).single(),
+        supabase.from('clothing_items').select('*').eq('user_id', session.user.id)
+      ])
+      let freshProfile: any = null
+      if (profileRes.data) {
+        const { data: stillPremium } = await supabase.rpc('check_and_expire_premium', { p_user_id: session.user.id })
+        const periodStart = stillPremium ? getWeekStartUTC() : getMonthStartUTC()
+        const { count } = await supabase.from('avatar_results')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', session.user.id)
+          .gte('created_at', periodStart.toISOString()) as any
+        const LIMIT = stillPremium ? 6 : 2
+        freshProfile = { ...profileRes.data, is_premium: stillPremium ?? false, used_this_period: count ?? 0, period_limit: LIMIT }
+        setProfile(freshProfile)
+      }
+      if (itemsRes.data) setItems(itemsRes.data)
+      avatarCache = { profile: freshProfile, items: itemsRes.data ?? [] }
+    } catch (err) {
+      console.error('loadData failed:', err)
+    } finally {
+      setPageLoading(false)
+    }
   }
-  if (itemsRes.data) setItems(itemsRes.data)
-  avatarCache = { profile: freshProfile, items: itemsRes.data ?? [] }
-  setPageLoading(false)
-}
 
   function handleSelfie(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -225,7 +332,7 @@ async function loadData() {
     reader.readAsDataURL(file)
   }
 
-async function generateAvatar() {
+  async function generateAvatar() {
     if (!selfie || !selectedItem) return
     setLoading(true)
     setError(null)
@@ -277,11 +384,11 @@ async function generateAvatar() {
     setLoading(false)
     setGenProgress(0)
   }
-const isPremium = profile?.is_premium ?? false
-const usedThisPeriod = profile?.used_this_period ?? 0
-const periodLimit = profile?.period_limit ?? (isPremium ? 6 : 2)
-const triesLeft = periodLimit - usedThisPeriod
-const canGenerate = triesLeft > 0
+  const isPremium = profile?.is_premium ?? false
+  const usedThisPeriod = profile?.used_this_period ?? 0
+  const periodLimit = profile?.period_limit ?? (isPremium ? 6 : 2)
+  const triesLeft = periodLimit - usedThisPeriod
+  const canGenerate = triesLeft > 0
 
   if (pageLoading) return (
     <div style={{ height: '100dvh', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -309,15 +416,15 @@ const canGenerate = triesLeft > 0
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(241,185,81,0.18) 0%, rgba(253,252,249,0.8) 65%, rgba(253,252,249,1) 100%)' }} />
 
           {/* PRO Badge */}
-      {isPremium ? (
-  <div style={{ position: 'absolute' as const, top: '16px', right: '18px', background: goldAccent, borderRadius: '10px', padding: '6px 14px', boxShadow: '0 4px 12px rgba(241,185,81,0.5)', zIndex: 2 }}>
-    <p style={{ fontSize: '11px', fontWeight: 700, color: '#1D1D20', letterSpacing: '0.04em' }}>✦ PRO · {triesLeft}/{periodLimit} {locale === 'de' ? 'diese Woche' : 'this week'}</p>
-  </div>
-) : (
-  <div style={{ position: 'absolute' as const, top: '16px', right: '18px', background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '10px', padding: '6px 14px', zIndex: 2 }}>
-    <p style={{ fontSize: '11px', fontWeight: 700, color: '#fff' }}>{triesLeft}/{periodLimit} {locale === 'de' ? 'diesen Monat' : 'this month'}</p>
-  </div>
-)}
+          {isPremium ? (
+            <div style={{ position: 'absolute' as const, top: '16px', right: '18px', background: goldAccent, borderRadius: '10px', padding: '6px 14px', boxShadow: '0 4px 12px rgba(241,185,81,0.5)', zIndex: 2 }}>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: '#1D1D20', letterSpacing: '0.04em' }}>✦ PRO · {triesLeft}/{periodLimit} {locale === 'de' ? 'diese Woche' : 'this week'}</p>
+            </div>
+          ) : (
+            <div style={{ position: 'absolute' as const, top: '16px', right: '18px', background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '10px', padding: '6px 14px', zIndex: 2 }}>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: '#fff' }}>{triesLeft}/{periodLimit} {locale === 'de' ? 'diesen Monat' : 'this month'}</p>
+            </div>
+          )}
         </motion.div>
 
         {/* Title + Tips */}
@@ -500,7 +607,7 @@ const canGenerate = triesLeft > 0
                           if (!selfie || !result) return
                           setSharing(true)
                           try {
-                           const cardDataUrl = await createShareCard(selfie, processedResult ?? result, locale)
+                            const cardDataUrl = await createShareCard(selfie, processedResult ?? result, locale)
                             const blob = await (await fetch(cardDataUrl)).blob()
                             const file = new File([blob], 'kiwardrobe-vorher-nachher.jpg', { type: 'image/jpeg' })
                             if (navigator.share && navigator.canShare?.({ files: [file] })) {
@@ -553,7 +660,7 @@ const canGenerate = triesLeft > 0
         <div style={{ position: 'fixed', bottom: 'calc(80px + env(safe-area-inset-bottom))', left: 0, right: 0, zIndex: 40, pointerEvents: 'none' }}>
           <div style={{ maxWidth: '560px', margin: '0 auto', padding: '0 20px', pointerEvents: 'auto' }}>
             <div style={{ background: isDark ? 'rgba(22,22,22,0.96)' : 'rgba(253,252,249,0.96)', backdropFilter: 'blur(14px)', border: `1px solid ${border}`, borderRadius: '20px', padding: '10px', boxShadow: '0 8px 28px rgba(0,0,0,0.14)' }}>
-         <motion.button whileTap={{ scale: 0.97 }}
+            <motion.button whileTap={{ scale: 0.97 }}
               onClick={generateAvatar}
               disabled={loading || !selfie || !selectedItem}
               style={{ width: '100%', padding: loading ? '10px 16px' : '16px', background: sageGradient, border: 'none', borderRadius: loading ? '18px' : '100px', fontSize: '15px', fontWeight: 700, color: '#fff', cursor: loading ? 'wait' : 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: '0 8px 24px rgba(53,92,125,0.3)', transition: 'all 0.2s', opacity: (!selfie || !selectedItem) ? 0.6 : 1 }}>
