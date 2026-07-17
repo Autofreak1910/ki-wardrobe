@@ -214,7 +214,7 @@ useEffect(() => {
                 </div>
               </div>
             </motion.div>
-          )}
+          )} 
         </>
       )}
     </AnimatePresence>
