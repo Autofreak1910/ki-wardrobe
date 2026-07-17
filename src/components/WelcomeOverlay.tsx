@@ -9,14 +9,6 @@ type Rect = { top: number; left: number; width: number; height: number }
 
 const STEPS = [
   {
-    refKey: 'weatherRef' as const,
-    titleDe: '🌤 Echtes Wetter',
-    titleEn: '🌤 Real Weather',
-    descDe: 'Dein Standort, echte Temperatur — die KI wählt automatisch wetterpassende Outfits für dich.',
-    descEn: 'Your location, real temperature — AI picks weather-appropriate outfits automatically.',
-    tooltipPos: 'below' as const,
-  },
-{
     refKey: 'categoryRef' as const,
     titleDe: '👕 Kategorien wählen',
     titleEn: '👕 Choose Categories',
@@ -25,33 +17,23 @@ const STEPS = [
     tooltipPos: 'below' as const,
   },
   {
-    refKey: 'weatherToggleRef' as const,
-    titleDe: '🌤 Wetter an oder aus?',
-    titleEn: '🌤 Weather on or off?',
-    descDe: 'Mit Wetter AN stylt die KI passend zur Temperatur — keine Jacke bei 30°, warm bei Kälte. AUS heißt: Die KI nimmt genau das, was du auswählst.',
-    descEn: 'With weather ON the AI styles for the temperature — no jacket at 30°, warm when cold. OFF means the AI uses exactly what you select.',
-    tooltipPos: 'below' as const,
-  },
-  {
     refKey: 'dressMeRef' as const,
     titleDe: '✦ Dress Me',
     titleEn: '✦ Dress Me',
-    descDe: 'Drück diesen Button — deine KI erstellt sofort ein perfektes Outfit, passend zum Anlass und Wetter!',
+    descDe: 'Drück diesen Button — deine KI erstellt sofort ein perfektes Outfit, passend zum Anlass!',
     descEn: 'Press this button — your AI instantly creates a perfect outfit!',
     tooltipPos: 'above' as const,
   },
 ]
 
 interface Props {
-  weatherRef: RefObject<HTMLDivElement | null>
   categoryRef: RefObject<HTMLDivElement | null>
-  weatherToggleRef: RefObject<HTMLDivElement | null>
   dressMeRef: RefObject<HTMLButtonElement | null>
   itemCount: number
   ready?: boolean
 }
 
-export default function WelcomeOverlay({ weatherRef, categoryRef, weatherToggleRef, dressMeRef, itemCount, ready = false }: Props) {
+export default function WelcomeOverlay({ categoryRef, dressMeRef, itemCount, ready = false }: Props) {
   const [show, setShow] = useState(false)
   const [step, setStep] = useState(0)
   const [rect, setRect] = useState<Rect | null>(null)
@@ -59,13 +41,13 @@ export default function WelcomeOverlay({ weatherRef, categoryRef, weatherToggleR
   const locale = useLocale()
   const isDark = theme === 'dark'
 
-  const card   = isDark ? '#0d1225' : '#ffffff'
-  const border = isDark ? '#1a2540' : '#dde3f5'
-  const text   = isDark ? '#e8eeff' : '#0a1628'
-  const muted  = isDark ? '#4d6080' : '#6b7fa8'
-  const accent = isDark ? '#4d7eff' : '#3b6bff'
+  const card   = isDark ? '#1D1D20' : '#ffffff'
+  const border = isDark ? '#2a2a2e' : '#E7E2D5'
+  const text   = isDark ? '#F5F3EE' : '#24211B'
+  const muted  = isDark ? '#9a978f' : '#8C8776'
+  const accent = isDark ? '#5C82A0' : '#355C7D'
 
-const refs = { weatherRef, categoryRef, weatherToggleRef, dressMeRef }
+const refs = { categoryRef, dressMeRef }
 
 useEffect(() => {
   if (itemCount < 3 || !ready) return
@@ -212,20 +194,20 @@ useEffect(() => {
                   ))}
                 </div>
 
-                <h3 style={{ fontSize: '16px', fontWeight: 800, color: text, marginBottom: '7px', letterSpacing: '-0.02em', fontFamily: "'DM Sans', sans-serif" }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 800, color: text, marginBottom: '7px', letterSpacing: '-0.02em', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
                   {locale === 'de' ? current.titleDe : current.titleEn}
                 </h3>
-                <p style={{ fontSize: '13px', color: muted, lineHeight: 1.6, marginBottom: '16px', fontFamily: "'DM Sans', sans-serif" }}>
+                <p style={{ fontSize: '13px', color: muted, lineHeight: 1.6, marginBottom: '16px', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
                   {locale === 'de' ? current.descDe : current.descEn}
                 </p>
 
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                   <button onClick={(e) => { e.stopPropagation(); finish() }}
-                    style={{ fontSize: '12px', color: muted, background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", padding: '4px 0', whiteSpace: 'nowrap' as const }}>
+                    style={{ fontSize: '12px', color: muted, background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", padding: '4px 0', whiteSpace: 'nowrap' as const }}>
                     {locale === 'de' ? 'Überspringen' : 'Skip'}
                   </button>
                   <motion.button whileTap={{ scale: 0.96 }} onClick={(e) => { e.stopPropagation(); next() }}
-                    style={{ flex: 1, background: `linear-gradient(135deg, ${accent}, #6b9fff)`, border: 'none', borderRadius: '12px', padding: '11px', fontSize: '14px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: `0 4px 16px ${accent}40`, letterSpacing: '-0.01em' }}>
+                    style={{ flex: 1, background: `linear-gradient(135deg, #7FA98E, ${accent})`, border: 'none', borderRadius: '12px', padding: '11px', fontSize: '14px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: `0 4px 16px ${accent}40`, letterSpacing: '-0.01em' }}>
                     {isLast ? (locale === 'de' ? "Los geht's 🚀" : "Let's go 🚀") : (locale === 'de' ? 'Weiter →' : 'Next →')}
                   </motion.button>
                 </div>
