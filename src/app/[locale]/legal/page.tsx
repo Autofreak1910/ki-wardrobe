@@ -15,27 +15,34 @@ const searchParams = useSearchParams()
   const { theme } = useTheme()
   const isDark = theme === 'dark'
 
+  const bg      = isDark ? '#161616' : '#F2EFE7'
+  const card    = isDark ? '#1D1D20' : '#ffffff'
+  const border  = isDark ? '#2a2a2e' : '#E7E2D5'
+  const text    = isDark ? '#F5F3EE' : '#24211B'
+  const muted   = isDark ? '#9a978f' : '#8C8776'
+  const secondary = isDark ? '#221D12' : '#F7F4EC'
+
   return (
-  <div className="app-container" style={{ height: '100vh', display: 'flex', flexDirection: 'column' as const, background: 'var(--bg)', fontFamily: "'DM Sans', sans-serif", overflow: 'hidden' }}>
+  <div className="app-container" style={{ height: '100vh', display: 'flex', flexDirection: 'column' as const, background: bg, fontFamily: "'Poppins', 'Inter', sans-serif", overflow: 'hidden' }}>
       <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '600px', width: '100%', margin: '0 auto', padding: '32px 16px 40px 16px' }}>
 
-        <button onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: 'var(--text-secondary)', fontFamily: "'DM Sans', sans-serif", padding: '0', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <button onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: muted, fontFamily: "'Poppins', 'Inter', sans-serif", padding: '0', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '6px' }}>
           ← {locale === 'de' ? 'Zurück' : 'Back'}
         </button>
 
         {/* Tab Switch */}
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', background: 'var(--bg-secondary)', borderRadius: '12px', padding: '4px' }}>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', background: secondary, borderRadius: '12px', padding: '4px' }}>
           {(['impressum', 'datenschutz', 'agb'] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
-              style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: tab === t ? 'var(--bg-card)' : 'transparent', color: tab === t ? 'var(--text)' : 'var(--text-secondary)', fontSize: '12px', fontWeight: tab === t ? 600 : 400, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: tab === t ? '0 1px 4px rgba(0,0,0,0.1)' : 'none', transition: 'all 0.2s' }}>
+              style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: tab === t ? card : 'transparent', color: tab === t ? text : muted, fontSize: '12px', fontWeight: tab === t ? 600 : 400, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: tab === t ? '0 1px 4px rgba(0,0,0,0.1)' : 'none', transition: 'all 0.2s' }}>
               {t === 'impressum' ? 'Impressum' : t === 'datenschutz' ? 'Datenschutz' : 'AGB'}
             </button>
           ))}
         </div>
 
         {tab === 'impressum' && (
-          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '24px' }}>
-            <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '24px', fontWeight: 400, color: 'var(--text)', marginBottom: '20px' }}>Impressum</h1>
+          <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', padding: '24px' }}>
+            <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: '24px', fontWeight: 500, color: text, marginBottom: '20px' }}>Impressum</h1>
 
             {[
               { title: 'Angaben gemäß § 5 TMG', content: 'Luca Darvas\nBernd-Rosemeyer-Straße 14\n85551 Kirchheim bei München\nDeutschland' },
@@ -44,16 +51,16 @@ const searchParams = useSearchParams()
               { title: 'Haftungsausschluss', content: 'Die Inhalte dieser App wurden mit größtmöglicher Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte können wir jedoch keine Gewähr übernehmen.' },
             ].map(section => (
               <div key={section.title} style={{ marginBottom: '20px' }}>
-                <h3 style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' as const, letterSpacing: '0.08em', marginBottom: '8px' }}>{section.title}</h3>
-                <p style={{ fontSize: '14px', color: 'var(--text)', lineHeight: 1.7, whiteSpace: 'pre-line' as const }}>{section.content}</p>
+                <h3 style={{ fontSize: '13px', fontWeight: 600, color: muted, textTransform: 'uppercase' as const, letterSpacing: '0.08em', marginBottom: '8px' }}>{section.title}</h3>
+                <p style={{ fontSize: '14px', color: text, lineHeight: 1.7, whiteSpace: 'pre-line' as const }}>{section.content}</p>
               </div>
             ))}
           </div>
         )}
 
         {tab === 'datenschutz' && (
-          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '24px' }}>
-            <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '24px', fontWeight: 400, color: 'var(--text)', marginBottom: '20px' }}>Datenschutzerklärung</h1>
+          <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', padding: '24px' }}>
+            <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: '24px', fontWeight: 500, color: text, marginBottom: '20px' }}>Datenschutzerklärung</h1>
 
             {[
               { title: 'Verantwortlicher', content: 'Luca Darvas\nBernd-Rosemeyer-Straße 14\n85551 Kirchheim bei München\nE-Mail: support.kiwardrobe@gmail.com' },
@@ -70,16 +77,16 @@ const searchParams = useSearchParams()
               { title: 'Cookies', content: 'Wir verwenden nur technisch notwendige Cookies für die Authentifizierung. Keine Werbe-Cookies, kein Tracking durch Dritte zu Werbezwecken.' },
  ].map(section => (
               <div key={section.title} style={{ marginBottom: '20px' }}>
-                <h3 style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' as const, letterSpacing: '0.08em', marginBottom: '8px' }}>{section.title}</h3>
-                <p style={{ fontSize: '14px', color: 'var(--text)', lineHeight: 1.7, whiteSpace: 'pre-line' as const }}>{section.content}</p>
+                <h3 style={{ fontSize: '13px', fontWeight: 600, color: muted, textTransform: 'uppercase' as const, letterSpacing: '0.08em', marginBottom: '8px' }}>{section.title}</h3>
+                <p style={{ fontSize: '14px', color: text, lineHeight: 1.7, whiteSpace: 'pre-line' as const }}>{section.content}</p>
               </div>
             ))}
           </div>
         )}
 
         {tab === 'agb' && (
-          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '24px' }}>
-            <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '24px', fontWeight: 400, color: 'var(--text)', marginBottom: '20px' }}>Allgemeine Geschäftsbedingungen</h1>
+          <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', padding: '24px' }}>
+            <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: '24px', fontWeight: 500, color: text, marginBottom: '20px' }}>Allgemeine Geschäftsbedingungen</h1>
 
             {[
               { title: '1. Geltungsbereich', content: 'Diese AGB gelten für die Nutzung der App KiWardrobe, betrieben von Luca Darvas, Bernd-Rosemeyer-Straße 14, 85551 Kirchheim bei München ("Anbieter"). Mit der Registrierung erkennst du diese AGB an.' },
@@ -97,8 +104,8 @@ const searchParams = useSearchParams()
               { title: '13. Schlussbestimmungen', content: 'Es gilt deutsches Recht. Sollte eine Bestimmung dieser AGB unwirksam sein, bleibt die Wirksamkeit der übrigen Bestimmungen unberührt.\n\nKontakt: support.kiwardrobe@gmail.com' },
             ].map(section => (
               <div key={section.title} style={{ marginBottom: '20px' }}>
-                <h3 style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' as const, letterSpacing: '0.08em', marginBottom: '8px' }}>{section.title}</h3>
-                <p style={{ fontSize: '14px', color: 'var(--text)', lineHeight: 1.7, whiteSpace: 'pre-line' as const }}>{section.content}</p>
+                <h3 style={{ fontSize: '13px', fontWeight: 600, color: muted, textTransform: 'uppercase' as const, letterSpacing: '0.08em', marginBottom: '8px' }}>{section.title}</h3>
+                <p style={{ fontSize: '14px', color: text, lineHeight: 1.7, whiteSpace: 'pre-line' as const }}>{section.content}</p>
               </div>
             ))}
           </div>
