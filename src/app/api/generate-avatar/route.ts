@@ -130,7 +130,11 @@ const { data: { publicUrl: savedUrl } } = supabase.storage.from('avatars').getPu
       image_url: savedUrl,
       created_at: new Date().toISOString(),
     })
-    console.log('avatar_results insert error:', insertError)
+    if (insertError) {
+      console.error('avatar_results insert FAILED:', JSON.stringify(insertError))
+    } else {
+      console.log('avatar_results insert OK')
+    }
 
     // Decrement free tries
     if (!profile.is_premium) {
@@ -139,7 +143,13 @@ const { data: { publicUrl: savedUrl } } = supabase.storage.from('avatars').getPu
       }).eq('id', user.id)
     }
 
-  return NextResponse.json({ success: true, imageUrl: savedUrl })
+  return NextResponse.json({
+    success: true,
+    imageUrl: savedUrl,
+    // Nur zur Fehlersuche -- zeigt direkt in der Netzwerk-Antwort, falls das Speichern
+    // des Ergebnisses (fuer die Try-On-Zaehlung) im Hintergrund fehlschlaegt.
+    _debugSaveError: insertError ? insertError.message ?? String(insertError) : null,
+  })
   } catch (err: any) {
     console.error(err)
     return NextResponse.json({ error: err.message }, { status: 500 })
