@@ -14,18 +14,58 @@ export default function RegisterPage() {
   const router = useRouter()
   const supabase = createClient()
 
+  async function notifyReferrerIfAny() {
+    try {
+      const params = new URLSearchParams(window.location.search)
+      const refCode = params.get('ref')
+      if (!refCode) return
+
+      // Wer hat diesen Code? -- Referrer-Profil anhand des Codes finden.
+      const { data: referrer } = await supabase
+        .from('profiles')
+        .select('id, username')
+        .eq('referral_code', refCode)
+        .single()
+
+      if (!referrer?.id) return
+
+      // Push an den Einlader schicken, ueber den bestehenden Send-Endpoint.
+      await fetch('/api/send-push-to-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: referrer.id,
+          title: '🎉 Neue Einladung!',
+          body: username
+            ? `${username} hat sich über deinen Link angemeldet!`
+            : 'Jemand hat sich über deinen Link angemeldet!',
+          url: '/de/dresser?referral_reward=true',
+        }),
+      })
+    } catch (err) {
+      // Push-Fehler duerfen die Registrierung selbst nie blockieren.
+      console.error('Referrer push notification failed:', err)
+    }
+  }
+
   async function handleRegister() {
     setLoading(true)
     setError('')
+    const params = new URLSearchParams(window.location.search)
+    const refCode = params.get('ref')
     const redirectTo = window.location.origin + '/auth/callback'
     const { error } = await supabase.auth.signUp({
       email, password,
-      options: { data: { username }, emailRedirectTo: redirectTo },
+      options: {
+        data: { username, ...(refCode ? { referral_code: refCode } : {}) },
+        emailRedirectTo: redirectTo,
+      },
     })
     if (error) {
       setError(error.message)
       setLoading(false)
     } else {
+      await notifyReferrerIfAny()
       router.push('/dresser')
     }
   }
