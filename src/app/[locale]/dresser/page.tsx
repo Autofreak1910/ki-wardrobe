@@ -86,25 +86,35 @@ function parseWeatherCode(code: number, isDay: boolean): { icon: string; conditi
   return { icon: '⛈️', condition: 'Gewitter' }
 }
 
+// Modul-Level-Cache -- ueberlebt Seitenwechsel, kein Skeleton-Flackern mehr bei erneutem Besuch
+let stylistCache: {
+  wardrobeItems: ClothingItem[]
+  username: string
+  isPremium: boolean
+  premiumUntil: string | null
+  dailyFreeOutfit: { id: string; reasoning: string; vibe?: string; itemObjects: ClothingItem[] } | null
+  streak: number
+} | null = null
+
 export default function DresserPage() {
   const [selected, setSelected] = useState<string>('casual')
   const [loading, setLoading] = useState(false)
 const [outfit, setOutfit] = useState<OutfitGroup | null>(null)
-const [dailyFreeOutfit, setDailyFreeOutfit] = useState<{ id: string; reasoning: string; vibe?: string; itemObjects: ClothingItem[] } | null>(null)
-const [dailyFreeOutfitLoading, setDailyFreeOutfitLoading] = useState(true)
+const [dailyFreeOutfit, setDailyFreeOutfit] = useState<{ id: string; reasoning: string; vibe?: string; itemObjects: ClothingItem[] } | null>(stylistCache?.dailyFreeOutfit ?? null)
+const [dailyFreeOutfitLoading, setDailyFreeOutfitLoading] = useState(!stylistCache)
 const [dailyFreeOutfitExpanded, setDailyFreeOutfitExpanded] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [wardrobeItems, setWardrobeItems] = useState<ClothingItem[]>([])
-  const [hasItems, setHasItems] = useState(true)
+  const [wardrobeItems, setWardrobeItems] = useState<ClothingItem[]>(stylistCache?.wardrobeItems ?? [])
+  const [hasItems, setHasItems] = useState(stylistCache ? stylistCache.wardrobeItems.length >= 3 : true)
  const [activeCategories, setActiveCategories] = useState<string[]>(['tops', 'hosen', 'jacken', 'schuhe'])
 const [weatherAware, setWeatherAware] = useState(true)
   const [weather, setWeather] = useState<Weather | null>(null)
   const [weatherLoading, setWeatherLoading] = useState(true)
   const [weatherDisabled, setWeatherDisabled] = useState(false)
-const [username, setUsername] = useState<string>('')
-  const [isPremium, setIsPremium] = useState(false)
-  const [premiumLoading, setPremiumLoading] = useState(true)
-  const [premiumUntil, setPremiumUntil] = useState<string | null>(null)
+const [username, setUsername] = useState<string>(stylistCache?.username ?? '')
+  const [isPremium, setIsPremium] = useState(stylistCache?.isPremium ?? false)
+  const [premiumLoading, setPremiumLoading] = useState(!stylistCache)
+  const [premiumUntil, setPremiumUntil] = useState<string | null>(stylistCache?.premiumUntil ?? null)
   const [showProInfo, setShowProInfo] = useState(false)
   const { theme } = useTheme()
   const t = useTranslations()
@@ -133,7 +143,7 @@ const [referrerName, setReferrerName] = useState('')
  const today = days[new Date().getDay()]
   const dateStr = new Date().toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-GB', { day: 'numeric', month: 'long' })
 const [greeting, setGreeting] = useState('')
-  const [streak, setStreak] = useState(0)
+  const [streak, setStreak] = useState(stylistCache?.streak ?? 0)
   const [streakReward, setStreakReward] = useState<{ days: number; milestone: number } | null>(null)
   const [showStreakInfo, setShowStreakInfo] = useState(false)
 useEffect(() => {
@@ -162,6 +172,7 @@ async function loadDailyFreeOutfit() {
     const res = await fetch('/api/daily-outfit')
     const data = await res.json()
     setDailyFreeOutfit(data.outfit ?? null)
+    stylistCache = { ...(stylistCache ?? { wardrobeItems: [], username: '', isPremium: false, premiumUntil: null, streak: 0 }), dailyFreeOutfit: data.outfit ?? null }
   } catch (err) {
     console.error('Daily free outfit load failed:', err)
   } finally {
@@ -223,7 +234,10 @@ async function loadStreak() {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) return
     const { data } = await supabase.from('profiles').select('current_streak, last_outfit_date').eq('id', session.user.id).single()
-    if (data?.current_streak !== undefined) setStreak(data.current_streak ?? 0)
+    if (data?.current_streak !== undefined) {
+      setStreak(data.current_streak ?? 0)
+      stylistCache = { ...(stylistCache ?? { wardrobeItems: [], username: '', isPremium: false, premiumUntil: null, dailyFreeOutfit: null }), streak: data.current_streak ?? 0 }
+    }
   }
 
   async function loadWardrobe() {
@@ -268,6 +282,16 @@ const { data: profile } = await supabase.from('profiles').select('username, prem
     setIsPremium(stillPremium ?? false)
     setPremiumLoading(false)
 
+    stylistCache = {
+      wardrobeItems: data ?? [],
+      username: profile?.username ?? '',
+      isPremium: stillPremium ?? false,
+      premiumUntil: (profile?.premium_until && new Date(profile.premium_until) > new Date())
+        ? new Date(profile.premium_until).toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+        : null,
+      dailyFreeOutfit: stylistCache?.dailyFreeOutfit ?? null,
+      streak: stylistCache?.streak ?? 0,
+    }
 }
 
 async function fetchWeather() {
@@ -955,7 +979,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
 
       <main ref={mainRef} style={{ flex: 1, overflowY: 'auto' as const, overflowX: 'hidden', maxWidth: '540px', width: '100%', margin: '0 auto', padding: '68px 0 112px', position: 'relative', zIndex: 1 }}>
 
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
           style={{ position: 'relative' as const, height: '220px', marginBottom: '0', overflow: 'hidden' }}>
 
           <img

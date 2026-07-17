@@ -199,15 +199,18 @@ async function createShareCard(selfieUrl: string, resultUrl: string, locale: str
   })
 }
 
+// Modul-Level-Cache -- ueberlebt Seitenwechsel, kein Blank-Screen mehr beim erneuten Besuch
+let avatarCache: { profile: any; items: ClothingItem[] } | null = null
+
 export default function AvatarPage() {
-  const [profile, setProfile] = useState<any>(null)
-  const [items, setItems] = useState<ClothingItem[]>([])
+  const [profile, setProfile] = useState<any>(avatarCache?.profile ?? null)
+  const [items, setItems] = useState<ClothingItem[]>(avatarCache?.items ?? [])
   const [selectedItem, setSelectedItem] = useState<ClothingItem | null>(null)
   const [selfie, setSelfie] = useState<string | null>(null)
   const [result, setResult] = useState<string | null>(null)
   const [processedResult, setProcessedResult] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [pageLoading, setPageLoading] = useState(true)
+  const [pageLoading, setPageLoading] = useState(!avatarCache)
   const [error, setError] = useState<string | null>(null)
   const [sharing, setSharing] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -245,11 +248,14 @@ export default function AvatarPage() {
       supabase.from('profiles').select('*').eq('id', session.user.id).single(),
       supabase.from('clothing_items').select('*').eq('user_id', session.user.id)
     ])
+    let freshProfile: any = null
     if (profileRes.data) {
       const { data: stillPremium } = await supabase.rpc('check_and_expire_premium', { p_user_id: session.user.id })
-      setProfile({ ...profileRes.data, is_premium: stillPremium ?? false })
+      freshProfile = { ...profileRes.data, is_premium: stillPremium ?? false }
+      setProfile(freshProfile)
     }
     if (itemsRes.data) setItems(itemsRes.data)
+    avatarCache = { profile: freshProfile, items: itemsRes.data ?? [] }
     setPageLoading(false)
   }
 
@@ -327,7 +333,7 @@ export default function AvatarPage() {
       <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '560px', width: '100%', margin: '0 auto', padding: canGenerate ? '68px 0 170px' : '68px 0 24px', position: 'relative', zIndex: 1 }}>
 
         {/* Hero Banner */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
           style={{ position: 'relative' as const, height: '140px', marginBottom: '0', overflow: 'hidden' }}>
           <img
             src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80&auto=format&fit=crop"

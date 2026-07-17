@@ -15,8 +15,11 @@ type ClothingItem = {
   season: string[]; purchase_date?: string; purchase_price?: number; created_at: string
 }
 
+// Modul-Level-Cache -- ueberlebt Seitenwechsel, kein leeres Grid mehr beim erneuten Besuch
+let wardrobeCache: { items: ClothingItem[]; isPremium: boolean } | null = null
+
 export default function WardrobePage() {
-  const [items, setItems] = useState<ClothingItem[]>([])
+  const [items, setItems] = useState<ClothingItem[]>(wardrobeCache?.items ?? [])
   const [filter, setFilter] = useState('all')
   const [showAll, setShowAll] = useState(false)
   const [sort, setSort] = useState('newest')
@@ -30,7 +33,7 @@ export default function WardrobePage() {
   const [editPrice, setEditPrice] = useState('')
   const [saving, setSaving] = useState(false)
 const [limitMsg, setLimitMsg] = useState<string | null>(null)
-  const [isPremium, setIsPremium] = useState(false)
+  const [isPremium, setIsPremium] = useState(wardrobeCache?.isPremium ?? false)
   const [dna, setDna] = useState<any>(null)
   const [dnaLoading, setDnaLoading] = useState(false)
   const [showDna, setShowDna] = useState(false)
@@ -70,6 +73,7 @@ const [detectedItems, setDetectedItems] = useState<Array<{
     if (data) setItems(data)
 const { data: stillPremium } = await supabase.rpc('check_and_expire_premium', { p_user_id: session.user.id })
     setIsPremium(stillPremium ?? false)
+    wardrobeCache = { items: data ?? [], isPremium: stillPremium ?? false }
   }
 async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -449,7 +453,7 @@ await Promise.allSettled(toSave.map(async (item, i) => {
       <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '900px', width: '100%', margin: '0 auto', padding: '68px 0 108px', position: 'relative', zIndex: 1 }}>
 
         {/* Hero Banner — Walk-in Closet */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
           style={{ position: 'relative' as const, marginBottom: '20px', borderRadius: '0 0 28px 28px', overflow: 'hidden', height: '200px', marginLeft: '-0px', marginRight: '-0px' }}>
 
    <img
@@ -683,7 +687,7 @@ await Promise.allSettled(toSave.map(async (item, i) => {
               {(showAll ? filtered : filtered.slice(0, 6)).map((item, i) => (
                 <motion.div key={item.id}
                   initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.03, duration: 0.3 }}
+                  transition={{ delay: Math.min(i * 0.03, 0.16), duration: 0.3 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => openItem(item)}
                   style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden', cursor: 'pointer' }}>
