@@ -247,7 +247,7 @@ async function loadStreak() {
     if (!localStorage.getItem(welcomeSeenKey) && !checkingReferrerRef.current) {
       checkingReferrerRef.current = true
       try {
-        const { data: refName } = await supabase.rpc('get_referrer_username', { p_user_id: session.user.id })
+        const { data: refName, error: refErr } = await supabase.rpc('get_referrer_username', { p_user_id: session.user.id })
         if (refName) {
           setReferrerName(refName)
           const justFinished = localStorage.getItem('kw_onboarding_just_finished') === 'true'
@@ -258,8 +258,13 @@ async function loadStreak() {
             setShowWelcomeInvited(true)
           }, delay)
           setTimeout(() => setShowWelcomeInvited(false), delay + 5500)
-        } else {
+        } else if (!refErr) {
+          // Nur als "gesehen" markieren wenn die Abfrage wirklich sauber durchlief
+          // und es einfach keinen Referrer gab -- nicht bei einem Datenbank-Fehler,
+          // sonst haengt sich das faelschlich fest und das Popup zeigt sich nie mehr.
           localStorage.setItem(welcomeSeenKey, 'true')
+        } else {
+          console.error('Referrer RPC failed, will retry next visit:', refErr)
         }
       } catch (err) {
         console.error('Referrer lookup failed:', err)
