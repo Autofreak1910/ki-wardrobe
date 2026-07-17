@@ -10,13 +10,14 @@ export default function OnboardingCarousel({ onDone }: { onDone: () => void }) {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
 
-  const bg     = isDark ? '#080c18' : '#f0f4ff'
-  const card   = isDark ? '#0d1225' : '#ffffff'
-  const border = isDark ? '#1a2540' : '#dde3f5'
-  const text   = isDark ? '#e8eeff' : '#0a1628'
-  const muted  = isDark ? '#4d6080' : '#6b7fa8'
-  const accent = isDark ? '#4d7eff' : '#3b6bff'
-  const accentDim = isDark ? 'rgba(77,126,255,0.1)' : 'rgba(59,107,255,0.08)'
+  const bg     = isDark ? '#161616' : '#F2EFE7'
+  const card   = isDark ? '#1D1D20' : '#ffffff'
+  const border = isDark ? '#2a2a2e' : '#E7E2D5'
+  const text   = isDark ? '#F5F3EE' : '#24211B'
+  const muted  = isDark ? '#9a978f' : '#8C8776'
+  const accent = isDark ? '#5C82A0' : '#355C7D'
+  const accentDim = isDark ? 'rgba(92,130,160,0.12)' : 'rgba(53,92,125,0.07)'
+  const gold   = isDark ? '#E5B45B' : '#C9963C'
 
  const locale = useLocale()
   const totalSlides = 5
@@ -35,9 +36,9 @@ function next() {
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: bg, display: 'flex', flexDirection: 'column' as const, fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: bg, display: 'flex', flexDirection: 'column' as const, fontFamily: "'Poppins', 'Inter', sans-serif" }}>
 
-      <button onClick={onDone} style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 10, background: 'transparent', border: 'none', fontSize: '13px', color: muted, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", padding: '8px 12px' }}>
+      <button onClick={onDone} style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 10, background: 'transparent', border: 'none', fontSize: '13px', color: muted, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", padding: '8px 12px' }}>
         {locale === 'de' ? 'Überspringen' : 'Skip'}
       </button>
 
@@ -48,7 +49,7 @@ function next() {
             <motion.div key={0} drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.6} onDragEnd={handleDragEnd}
               initial={{ opacity: 0, x: 60 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -60 }} transition={{ duration: 0.3 }}
               style={{ width: '100%', maxWidth: '380px', padding: '0 24px', cursor: 'grab' }}>
-              <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '24px', padding: '20px', marginBottom: '28px', boxShadow: '0 8px 32px rgba(59,107,255,0.1)' }}>
+              <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '24px', padding: '20px', marginBottom: '28px', boxShadow: isDark ? 'none' : '0 8px 32px rgba(53,92,125,0.1)' }}>
                 <p style={{ fontSize: '10px', fontWeight: 700, color: accent, textTransform: 'uppercase' as const, letterSpacing: '0.08em', marginBottom: '10px' }}>{locale === 'de' ? 'Dein Schrank' : 'Your Wardrobe'}</p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
                   {['👕', '👖', '🧥', '👟', '👔', '🩳'].map((e, i) => (
@@ -58,7 +59,7 @@ function next() {
               </div>
               <div style={{ textAlign: 'center' as const }}>
                 <p style={{ fontSize: '32px', marginBottom: '12px' }}>📸</p>
-                <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '23px', fontWeight: 400, color: text, marginBottom: '10px', letterSpacing: '-0.02em' }}>
+                <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '23px', fontWeight: 500, color: text, marginBottom: '10px', letterSpacing: '-0.02em' }}>
                   {locale === 'de' ? 'Schrank digitalisieren' : 'Digitize your wardrobe'}
                 </h2>
                 <p style={{ fontSize: '14px', color: muted, lineHeight: 1.6 }}>
@@ -74,10 +75,10 @@ function next() {
             <motion.div key={1} drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.6} onDragEnd={handleDragEnd}
               initial={{ opacity: 0, x: 60 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -60 }} transition={{ duration: 0.3 }}
               style={{ width: '100%', maxWidth: '380px', padding: '0 24px', cursor: 'grab' }}>
-              <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '24px', padding: '18px', marginBottom: '28px', boxShadow: '0 8px 32px rgba(59,107,255,0.1)' }}>
+              <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '24px', padding: '18px', marginBottom: '28px', boxShadow: isDark ? 'none' : '0 8px 32px rgba(53,92,125,0.1)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                   <p style={{ fontSize: '10px', fontWeight: 700, color: accent, textTransform: 'uppercase' as const, letterSpacing: '0.08em' }}>{locale === 'de' ? 'Heutiges Outfit' : "Today's Outfit"}</p>
-                  <span style={{ fontSize: '11px', color: muted }}>☀️ 18°C</span>
+                  <span style={{ fontSize: '11px', color: muted }}>✦</span>
                 </div>
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
                   {['🧥', '👕', '👖'].map((e, i) => (
@@ -90,7 +91,7 @@ function next() {
               </div>
               <div style={{ textAlign: 'center' as const }}>
                 <p style={{ fontSize: '32px', marginBottom: '12px' }}>✨</p>
-                <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '23px', fontWeight: 400, color: text, marginBottom: '10px', letterSpacing: '-0.02em' }}>
+                <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '23px', fontWeight: 500, color: text, marginBottom: '10px', letterSpacing: '-0.02em' }}>
                   {locale === 'de' ? 'KI-Stylist, jeden Tag' : 'AI stylist, every day'}
                 </h2>
                 <p style={{ fontSize: '14px', color: muted, lineHeight: 1.6 }}>
@@ -106,11 +107,11 @@ function next() {
             <motion.div key={2} drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.6} onDragEnd={handleDragEnd}
               initial={{ opacity: 0, x: 60 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -60 }} transition={{ duration: 0.3 }}
               style={{ width: '100%', maxWidth: '380px', padding: '0 24px', cursor: 'grab' }}>
-              <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '24px', padding: '18px', marginBottom: '28px', boxShadow: '0 8px 32px rgba(59,107,255,0.1)' }}>
+              <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '24px', padding: '18px', marginBottom: '28px', boxShadow: isDark ? 'none' : '0 8px 32px rgba(53,92,125,0.1)' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '10px', alignItems: 'center' }}>
                   <div style={{ aspectRatio: '3/4', background: accentDim, borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px' }}>🤳</div>
                   <span style={{ color: accent, fontSize: '20px', fontWeight: 700 }}>→</span>
-                  <div style={{ aspectRatio: '3/4', background: `linear-gradient(135deg, ${accent}, #6b9fff)`, borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px' }}>🧍</div>
+                  <div style={{ aspectRatio: '3/4', background: `linear-gradient(135deg, #7FA98E, ${accent})`, borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px' }}>🧍</div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px' }}>
                   <p style={{ fontSize: '10px', color: muted, flex: 1, textAlign: 'center' as const }}>{locale === 'de' ? 'Selfie' : 'Selfie'}</p>
@@ -119,7 +120,7 @@ function next() {
               </div>
               <div style={{ textAlign: 'center' as const }}>
                 <p style={{ fontSize: '32px', marginBottom: '12px' }}>🪞</p>
-                <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '23px', fontWeight: 400, color: text, marginBottom: '10px', letterSpacing: '-0.02em' }}>
+                <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '23px', fontWeight: 500, color: text, marginBottom: '10px', letterSpacing: '-0.02em' }}>
                   {locale === 'de' ? 'Virtual Try-On' : 'Virtual Try-On'}
                 </h2>
                 <p style={{ fontSize: '14px', color: muted, lineHeight: 1.6 }}>
@@ -135,7 +136,7 @@ function next() {
             <motion.div key={3} drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.6} onDragEnd={handleDragEnd}
               initial={{ opacity: 0, x: 60 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -60 }} transition={{ duration: 0.3 }}
               style={{ width: '100%', maxWidth: '380px', padding: '0 24px', cursor: 'grab' }}>
-              <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '22px', fontWeight: 400, color: text, marginBottom: '6px', letterSpacing: '-0.02em', textAlign: 'center' as const }}>
+              <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '22px', fontWeight: 500, color: text, marginBottom: '6px', letterSpacing: '-0.02em', textAlign: 'center' as const }}>
                 {locale === 'de' ? 'Free oder Pro' : 'Free or Pro'}
               </h2>
               <p style={{ fontSize: '13px', color: muted, textAlign: 'center' as const, marginBottom: '18px' }}>
@@ -156,8 +157,8 @@ function next() {
                     </div>
                   ))}
                 </div>
-                <div style={{ background: `linear-gradient(160deg, ${accent}, #6b9fff)`, borderRadius: '18px', padding: '16px 12px', position: 'relative' as const }}>
-                  <p style={{ fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.8)', letterSpacing: '0.08em', marginBottom: '10px' }}>PRO ✦</p>
+                <div style={{ background: `linear-gradient(160deg, ${gold}, #C9963C)`, borderRadius: '18px', padding: '16px 12px', position: 'relative' as const }}>
+                  <p style={{ fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.85)', letterSpacing: '0.08em', marginBottom: '10px' }}>PRO ✦</p>
                   {[
                     locale === 'de' ? '15 Outfits/Tag' : '15 outfits/day',
                     locale === 'de' ? 'Unbegrenzt Kleidung' : 'Unlimited items',
@@ -178,7 +179,7 @@ function next() {
             <motion.div key={4} drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.6} onDragEnd={handleDragEnd}
               initial={{ opacity: 0, x: 60 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -60 }} transition={{ duration: 0.3 }}
               style={{ width: '100%', maxWidth: '380px', padding: '0 24px', cursor: 'grab' }}>
-              <div style={{ background: `linear-gradient(135deg, ${accent}, #6b9fff)`, borderRadius: '24px', padding: '24px 20px', marginBottom: '28px', textAlign: 'center' as const, boxShadow: `0 8px 32px ${accent}40` }}>
+              <div style={{ background: `linear-gradient(135deg, ${gold}, #C9963C)`, borderRadius: '24px', padding: '24px 20px', marginBottom: '28px', textAlign: 'center' as const, boxShadow: `0 8px 32px ${gold}40` }}>
                 <p style={{ fontSize: '40px', marginBottom: '10px' }}>🎁</p>
                 <p style={{ fontSize: '15px', fontWeight: 800, color: '#fff', marginBottom: '6px' }}>
                   {locale === 'de' ? '+14 Tage Pro gratis' : '+14 days Pro free'}
@@ -188,7 +189,7 @@ function next() {
                 </p>
               </div>
               <div style={{ textAlign: 'center' as const }}>
-                <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '23px', fontWeight: 400, color: text, marginBottom: '10px', letterSpacing: '-0.02em' }}>
+                <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '23px', fontWeight: 500, color: text, marginBottom: '10px', letterSpacing: '-0.02em' }}>
                   {locale === 'de' ? 'Freunde einladen' : 'Invite friends'}
                 </h2>
                 <p style={{ fontSize: '14px', color: muted, lineHeight: 1.6 }}>
@@ -218,7 +219,7 @@ function next() {
             <button onClick={back} style={{ width: '48px', flexShrink: 0, padding: '14px', background: card, border: `1px solid ${border}`, borderRadius: '14px', fontSize: '16px', color: muted, cursor: 'pointer' }}>←</button>
           )}
           <motion.button whileTap={{ scale: 0.97 }} onClick={next}
-            style={{ flex: 1, padding: '16px', background: `linear-gradient(135deg, ${accent}, #6b9fff)`, border: 'none', borderRadius: '14px', fontSize: '15px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: `0 4px 20px ${accent}40` }}>
+            style={{ flex: 1, padding: '16px', background: `linear-gradient(135deg, #7FA98E, ${accent})`, border: 'none', borderRadius: '14px', fontSize: '15px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: `0 4px 20px ${accent}40` }}>
             {isLast ? (locale === 'de' ? "Los geht's! 🎉" : "Let's go! 🎉") : (locale === 'de' ? 'Weiter' : 'Next')}
           </motion.button>
         </div>
