@@ -72,12 +72,16 @@ async function disablePush(): Promise<boolean> {
   }
 }
 
+// Modul-Level-Cache -- bleibt beim Seitenwechsel im Speicher, kein Skeleton-Aufblitzen
+// bei jedem erneuten Besuch. Wird nach jedem echten Laden aktualisiert.
+let profileCache: { profile: Profile; itemCount: number; outfitCount: number } | null = null
+
 export default function ProfilePage() {
-  const [profile, setProfile] = useState<Profile | null>(null)
-  const [itemCount, setItemCount] = useState(0)
-  const [outfitCount, setOutfitCount] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [editUsername, setEditUsername] = useState('')
+  const [profile, setProfile] = useState<Profile | null>(profileCache?.profile ?? null)
+  const [itemCount, setItemCount] = useState(profileCache?.itemCount ?? 0)
+  const [outfitCount, setOutfitCount] = useState(profileCache?.outfitCount ?? 0)
+  const [loading, setLoading] = useState(!profileCache)
+  const [editUsername, setEditUsername] = useState(profileCache?.profile?.username ?? '')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [editEmail, setEditEmail] = useState('')
@@ -177,6 +181,13 @@ if (profileRes.data?.referral_code) {
 setEditAge(profileRes.data?.age ?? '')
     setItemCount(itemsRes.data?.length ?? 0)
     setOutfitCount(outfitsRes.data?.length ?? 0)
+    if (profileRes.data) {
+      profileCache = {
+        profile: { ...profileRes.data, email: session.user.email },
+        itemCount: itemsRes.data?.length ?? 0,
+        outfitCount: outfitsRes.data?.length ?? 0,
+      }
+    }
     setLoading(false)
   }
 
