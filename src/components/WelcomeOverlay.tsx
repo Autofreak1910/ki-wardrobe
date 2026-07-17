@@ -239,11 +239,11 @@ useEffect(() => {
                     {isLast ? (locale === 'de' ? "Los geht's 🚀" : "Let's go 🚀") : (locale === 'de' ? 'Weiter →' : 'Next →')}
                   </motion.button>
                 </div>
-              </div>
+              </div> 
             </motion.div>
           )}
         </>
       )}
-    </AnimatePresence> 
+    </AnimatePresence>  
   )
 } 
