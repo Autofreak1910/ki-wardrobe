@@ -4,51 +4,70 @@ import Replicate from 'replicate'
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
-
-
 const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN })
+
+function getMonthStartUTC(): Date {
+  const now = new Date()
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0))
+}
+
+function getWeekStartUTC(): Date {
+  const now = new Date()
+  const day = now.getUTCDay()
+  const diffToMonday = (day === 0 ? -6 : 1) - day
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + diffToMonday, 0, 0, 0, 0))
+}
 
 export async function POST(req: Request) {
   try {
     const supabase = await createClient()
- const { data: { user }, error: userError } = await supabase.auth.getUser()
-if (!user || userError) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-const { personImage, garmentImage, garmentDescription, category } = await req.json()
-console.log('garmentImage type:', typeof garmentImage, 'value:', garmentImage)
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (!user || userError) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const { personImage, garmentImage, garmentDescription, category } = await req.json()
+    console.log('garmentImage type:', typeof garmentImage, 'value:', garmentImage)
 
-    // Check limits
-    const { data: profile } = await supabase.from('profiles').select('is_premium, avatar_tries_left').eq('id', user.id).single()
+    // Check limits -- ueber die RPC, damit ein abgelaufenes Premium korrekt als abgelaufen erkannt wird,
+    // genau wie ueberall sonst in der App (Dresser, Profil, Avatar-Frontend).
+    const { data: profile } = await supabase.from('profiles').select('is_premium').eq('id', user.id).single()
     if (!profile) return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
 
-    if (!profile.is_premium) {
-      if ((profile.avatar_tries_left ?? 0) <= 0) {
-        return NextResponse.json({ error: 'limit_reached' }, { status: 403 })
-      }
-    } else {
-      // Sauberer UTC-Tagesanfang mit explizitem 'Z', statt einem mehrdeutigen naiven Zeitstempel
-      const startOfDayUTC = new Date()
-      startOfDayUTC.setUTCHours(0, 0, 0, 0)
+    const { data: stillPremium } = await supabase.rpc('check_and_expire_premium', { p_user_id: user.id })
+    const isPremium = stillPremium ?? false
+
+    if (!isPremium) {
+      // Free: 2 Avatare pro Kalendermonat
+      const monthStart = getMonthStartUTC()
       const { count } = await supabase.from('avatar_results')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id)
-        .gte('created_at', startOfDayUTC.toISOString()) as any
-   if ((count ?? 0) >= 2) {
-        return NextResponse.json({ error: 'daily_limit' }, { status: 403 })
+        .gte('created_at', monthStart.toISOString()) as any
+      if ((count ?? 0) >= 2) {
+        return NextResponse.json({ error: 'monthly_limit' }, { status: 403 })
+      }
+    } else {
+      // Pro: 6 Avatare pro Woche (Reset Montag 00:00 UTC)
+      const weekStart = getWeekStartUTC()
+      const { count } = await supabase.from('avatar_results')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .gte('created_at', weekStart.toISOString()) as any
+      if ((count ?? 0) >= 6) {
+        return NextResponse.json({ error: 'weekly_limit' }, { status: 403 })
       }
     }
 
-  // Upload selfie to Supabase Storage
-   const base64Data = personImage.replace(/^data:image\/\w+;base64,/, '')
-const buffer = Buffer.from(base64Data, 'base64')
+    // Upload selfie to Supabase Storage
+    const base64Data = personImage.replace(/^data:image\/\w+;base64,/, '')
+    const buffer = Buffer.from(base64Data, 'base64')
     const fileName = `avatars/${user.id}/${Date.now()}.jpg`
-    
+
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('avatars')
       .upload(fileName, buffer, { contentType: 'image/jpeg', upsert: true })
-    
+
     if (uploadError) throw uploadError
 
-const { data: { publicUrl: originalPublicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName)
+    const { data: { publicUrl: originalPublicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName)
 
     // Hintergrund vom Selfie entfernen für bessere Try-On-Qualität
     let publicUrl = originalPublicUrl
@@ -108,7 +127,7 @@ const { data: { publicUrl: originalPublicUrl } } = supabase.storage.from('avatar
           garm_img: garmentImage,
           garment_des: garmentDescription || 'clothing item',
           category: garmentCategory,
-        is_checked: true,
+          is_checked: true,
           is_checked_crop: false,
           denoise_steps: 30,
         }
@@ -117,14 +136,14 @@ const { data: { publicUrl: originalPublicUrl } } = supabase.storage.from('avatar
 
     const imageUrl = Array.isArray(output) ? output[0] : output
     // Download und in Supabase speichern
-const imgResponse = await fetch(imageUrl as string)
-const imgBuffer = await imgResponse.arrayBuffer()
-const resultFileName = `results/${user.id}/${Date.now()}.jpg`
-await supabase.storage.from('avatars').upload(resultFileName, Buffer.from(imgBuffer), { contentType: 'image/jpeg', upsert: true })
-const { data: { publicUrl: savedUrl } } = supabase.storage.from('avatars').getPublicUrl(resultFileName)
+    const imgResponse = await fetch(imageUrl as string)
+    const imgBuffer = await imgResponse.arrayBuffer()
+    const resultFileName = `results/${user.id}/${Date.now()}.jpg`
+    await supabase.storage.from('avatars').upload(resultFileName, Buffer.from(imgBuffer), { contentType: 'image/jpeg', upsert: true })
+    const { data: { publicUrl: savedUrl } } = supabase.storage.from('avatars').getPublicUrl(resultFileName)
 
- // Save result -- created_at wird jetzt explizit gesetzt, damit sich der Tages-Zaehler
- // niemals auf einen (evtl. fehlenden) DB-Standardwert verlassen muss.
+    // Save result -- created_at wird jetzt explizit gesetzt, damit sich der Zaehler
+    // niemals auf einen (evtl. fehlenden) DB-Standardwert verlassen muss.
     const { error: insertError } = await supabase.from('avatar_results').insert({
       user_id: user.id,
       image_url: savedUrl,
@@ -136,20 +155,13 @@ const { data: { publicUrl: savedUrl } } = supabase.storage.from('avatars').getPu
       console.log('avatar_results insert OK')
     }
 
-    // Decrement free tries
-    if (!profile.is_premium) {
-      await supabase.from('profiles').update({
-        avatar_tries_left: (profile.avatar_tries_left ?? 0) - 1
-      }).eq('id', user.id)
-    }
-
-  return NextResponse.json({
-    success: true,
-    imageUrl: savedUrl,
-    // Nur zur Fehlersuche -- zeigt direkt in der Netzwerk-Antwort, falls das Speichern
-    // des Ergebnisses (fuer die Try-On-Zaehlung) im Hintergrund fehlschlaegt.
-    _debugSaveError: insertError ? insertError.message ?? String(insertError) : null,
-  })
+    return NextResponse.json({
+      success: true,
+      imageUrl: savedUrl,
+      // Nur zur Fehlersuche -- zeigt direkt in der Netzwerk-Antwort, falls das Speichern
+      // des Ergebnisses (fuer die Try-On-Zaehlung) im Hintergrund fehlschlaegt.
+      _debugSaveError: insertError ? insertError.message ?? String(insertError) : null,
+    })
   } catch (err: any) {
     console.error(err)
     return NextResponse.json({ error: err.message }, { status: 500 })
