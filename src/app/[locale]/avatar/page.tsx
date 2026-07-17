@@ -243,6 +243,7 @@ export default function AvatarPage() {
   const [selfie, setSelfie] = useState<string | null>(null)
   const [result, setResult] = useState<string | null>(null)
   const [processedResult, setProcessedResult] = useState<string | null>(null)
+  const [compositing, setCompositing] = useState(false)
   const [loading, setLoading] = useState(false)
   const [pageLoading, setPageLoading] = useState(!avatarCache)
   const [error, setError] = useState<string | null>(null)
@@ -269,8 +270,9 @@ export default function AvatarPage() {
   useEffect(() => { loadData() }, [])
 
   useEffect(() => {
-    if (!result) { setProcessedResult(null); return }
+    if (!result) { setProcessedResult(null); setCompositing(false); return }
     let cancelled = false
+    setCompositing(true)
     ;(async () => {
       try {
         const cutout = await cutoutPersonFromResult(result)
@@ -279,6 +281,8 @@ export default function AvatarPage() {
       } catch (err) {
         console.error('Dressing room composite failed, falling back to raw result:', err)
         if (!cancelled) setProcessedResult(null)
+      } finally {
+        if (!cancelled) setCompositing(false)
       }
     })()
     return () => { cancelled = true }
@@ -339,15 +343,34 @@ export default function AvatarPage() {
     setResult(null)
     setGenProgress(0)
 
-    const steps = [
-      { at: 0,     pct: 8,  label: locale === 'de' ? 'Foto wird hochgeladen...' : 'Uploading photo...' },
-      { at: 1500,  pct: 22, label: locale === 'de' ? 'Hintergrund wird entfernt...' : 'Removing background...' },
-      { at: 4000,  pct: 38, label: locale === 'de' ? 'Foto wird geprüft...' : 'Checking photo quality...' },
-      { at: 6000,  pct: 55, label: locale === 'de' ? 'KI zieht dir das Outfit an...' : 'AI is dressing you...' },
-      { at: 14000, pct: 82, label: locale === 'de' ? 'Letzte Details...' : 'Final touches...' },
-      { at: 19000, pct: 94, label: locale === 'de' ? 'Fast fertig...' : 'Almost done...' },
+    const messages = locale === 'de' ? [
+      'Foto wird hochgeladen...',
+      'Hintergrund wird entfernt...',
+      'Foto wird geprüft...',
+      'KI zieht dir das Outfit an...',
+      'Falten werden geglättet...',
+      'Farben werden abgestimmt...',
+      'Licht wird angepasst...',
+      'Letzte Details...',
+      'Fast fertig...',
+    ] : [
+      'Uploading photo...',
+      'Removing background...',
+      'Checking photo quality...',
+      'AI is dressing you...',
+      'Smoothing out wrinkles...',
+      'Matching the colors...',
+      'Adjusting the lighting...',
+      'Final touches...',
+      'Almost there...',
     ]
-    const timers = steps.map(s => setTimeout(() => { setGenStep(s.label); setGenProgress(s.pct) }, s.at))
+    let msgIndex = 0
+    setGenStep(messages[0])
+    const interval = setInterval(() => {
+      setGenProgress(p => Math.min(p + Math.random() * 4 + 2, 95))
+      msgIndex = Math.min(msgIndex + 1, messages.length - 1)
+      setGenStep(messages[msgIndex])
+    }, 1800)
 
     try {
       const res = await fetch('/api/generate-avatar', {
@@ -361,7 +384,7 @@ export default function AvatarPage() {
         })
       })
       const data = await res.json()
-      timers.forEach(clearTimeout)
+      clearInterval(interval)
       setGenProgress(100)
       setGenStep(locale === 'de' ? 'Fertig!' : 'Done!')
 
@@ -378,7 +401,7 @@ export default function AvatarPage() {
         setError(locale === 'de' ? 'Fehler beim Generieren' : 'Error generating')
       }
     } catch {
-      timers.forEach(clearTimeout)
+      clearInterval(interval)
       setError(locale === 'de' ? 'Fehler beim Generieren' : 'Error generating')
     }
     setLoading(false)
@@ -585,21 +608,33 @@ export default function AvatarPage() {
                     </div>
 
                     <div style={{ position: 'relative' as const, borderRadius: '10px', overflow: 'hidden' }}>
-                      <img
-                        src={processedResult ?? result}
-                        style={{ width: '100%', display: 'block', maxHeight: '480px', objectFit: 'contain' }}
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none'
-                          const div = document.createElement('div')
-                          div.style.padding = '20px'
-                          div.style.textAlign = 'center'
-                          div.style.color = accent
-                          div.innerHTML = `<a href="${result}" target="_blank" style="color:${accent};font-weight:600">🔗 ${locale === 'de' ? 'Bild öffnen →' : 'Open image →'}</a>`
-                          e.currentTarget.parentNode?.appendChild(div)
-                        }}
-                      />
-                      {/* Wasserzeichen mittig, damit es nicht einfach weggeschnitten werden kann */}
-                      <p style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-18deg)', fontSize: '22px', fontWeight: 700, color: 'rgba(0,0,0,0.10)', letterSpacing: '0.02em', whiteSpace: 'nowrap' as const, pointerEvents: 'none' as const }}>✦ KiWardrobe</p>
+                      {compositing ? (
+                        <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', height: '360px', gap: '14px', background: isDark ? '#0f1a14' : '#f4f1ea' }}>
+                          <motion.span animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                            style={{ display: 'block', width: '34px', height: '34px', borderRadius: '50%', border: `3px solid ${border}`, borderTopColor: accent }} />
+                          <p style={{ fontSize: '13px', color: muted, fontWeight: 600 }}>
+                            {locale === 'de' ? 'Du wirst in die Umkleide gestellt...' : 'Placing you in the fitting room...'}
+                          </p>
+                        </div>
+                      ) : (
+                        <>
+                          <img
+                            src={processedResult ?? result}
+                            style={{ width: '100%', display: 'block', maxHeight: '480px', objectFit: 'contain' }}
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none'
+                              const div = document.createElement('div')
+                              div.style.padding = '20px'
+                              div.style.textAlign = 'center'
+                              div.style.color = accent
+                              div.innerHTML = `<a href="${result}" target="_blank" style="color:${accent};font-weight:600">🔗 ${locale === 'de' ? 'Bild öffnen →' : 'Open image →'}</a>`
+                              e.currentTarget.parentNode?.appendChild(div)
+                            }}
+                          />
+                          {/* Wasserzeichen mittig, damit es nicht einfach weggeschnitten werden kann */}
+                          <p style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-18deg)', fontSize: '22px', fontWeight: 700, color: 'rgba(0,0,0,0.10)', letterSpacing: '0.02em', whiteSpace: 'nowrap' as const, pointerEvents: 'none' as const }}>✦ KiWardrobe</p>
+                        </>
+                      )}
                     </div>
                     <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column' as const, gap: '8px' }}>
                       <motion.button whileTap={{ scale: 0.97 }}
@@ -668,7 +703,7 @@ export default function AvatarPage() {
                 <div style={{ width: '100%' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                     <span style={{ fontSize: '13px', fontWeight: 600 }}>{genStep}</span>
-                    <span style={{ fontSize: '13px', fontWeight: 700 }}>{genProgress}%</span>
+                    <span style={{ fontSize: '13px', fontWeight: 700 }}>{Math.round(genProgress)}%</span>
                   </div>
                   <div style={{ height: '5px', background: 'rgba(255,255,255,0.25)', borderRadius: '3px', overflow: 'hidden' }}>
                     <motion.div animate={{ width: `${genProgress}%` }} transition={{ duration: 0.4 }}
