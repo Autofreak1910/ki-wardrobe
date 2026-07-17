@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useTheme } from '@/context/ThemeContext'
 import { useLocale } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
@@ -59,10 +60,12 @@ async function handleSubmit() {
 
 return (
     <div className="app-container" style={{ height: '100vh', display: 'flex', flexDirection: 'column' as const, background: bg, fontFamily: "'Poppins', 'Inter', sans-serif", overflow: 'hidden' }}>
-      <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '600px', width: '100%', margin: '0 auto', padding: '32px 16px 40px 16px' }}>
+      <motion.main initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '600px', width: '100%', margin: '0 auto', padding: '32px 16px 40px 16px' }}>
 
         {/* Header */}
-        <div style={{ marginBottom: '28px' }}>
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          style={{ marginBottom: '28px' }}>
           <button onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: muted, fontFamily: "'Poppins', 'Inter', sans-serif", padding: '0', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>
             ← {locale === 'de' ? 'Zurück' : 'Back'}
           </button>
@@ -72,11 +75,15 @@ return (
           <p style={{ fontSize: '14px', color: muted }}>
             {locale === 'de' ? 'Deine Meinung hilft uns die App zu verbessern' : 'Your feedback helps us improve the app'}
           </p>
-        </div>
+        </motion.div>
 
+        <AnimatePresence mode="wait">
         {sent ? (
-          <div style={{ textAlign: 'center', padding: '48px 24px', background: card, border: `1px solid ${border}`, borderRadius: '20px' }}>
-            <div style={{ fontSize: '56px', marginBottom: '16px' }}>🎉</div>
+          <motion.div key="sent" initial={{ opacity: 0, scale: 0.94, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+            style={{ textAlign: 'center', padding: '48px 24px', background: card, border: `1px solid ${border}`, borderRadius: '20px' }}>
+            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.15, type: 'spring', damping: 10, stiffness: 200 }}
+              style={{ fontSize: '56px', marginBottom: '16px' }}>🎉</motion.div>
             <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '24px', fontWeight: 500, color: text, marginBottom: '8px' }}>
               {locale === 'de' ? 'Danke!' : 'Thank you!'}
             </h2>
@@ -87,11 +94,12 @@ return (
               style={{ background: navyGradient, border: 'none', borderRadius: '12px', padding: '13px 28px', fontSize: '14px', fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
               {locale === 'de' ? 'Zurück zum Profil' : 'Back to Profile'}
             </button>
-          </div>
+          </motion.div>
         ) : (
-          <>
+          <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
             {/* Type Selection */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '20px' }}>
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '20px' }}>
               {types.map(t => (
                 <button key={t.key} onClick={() => setType(t.key)}
                   style={{ padding: '14px', borderRadius: '14px', border: type === t.key ? 'none' : `1px solid ${border}`, background: type === t.key ? navyGradient : card, color: type === t.key ? '#fff' : text, fontSize: '14px', fontWeight: 500, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.15s' }}>
@@ -99,10 +107,11 @@ return (
                   {t.label}
                 </button>
               ))}
-            </div>
+            </motion.div>
 
             {/* Message */}
-            <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', padding: '20px', marginBottom: '16px' }}>
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', padding: '20px', marginBottom: '16px' }}>
               <label style={{ fontSize: '13px', fontWeight: 500, color: text, display: 'block', marginBottom: '8px' }}>
                 {locale === 'de' ? 'Deine Nachricht' : 'Your message'} *
               </label>
@@ -115,10 +124,11 @@ return (
                 onFocus={e => e.target.style.borderColor = accent}
                 onBlur={e => e.target.style.borderColor = border}
               />
-            </div>
+            </motion.div>
 
    {/* Antwort gewünscht? */}
-            <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', padding: '20px', marginBottom: '16px' }}>
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', padding: '20px', marginBottom: '16px' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
                 <input type="checkbox" checked={wantsReply} onChange={e => setWantsReply(e.target.checked)}
                   style={{ width: '20px', height: '20px', flexShrink: 0, accentColor: accent, cursor: 'pointer' }} />
@@ -126,10 +136,11 @@ return (
                   {locale === 'de' ? 'Ich möchte eine Antwort erhalten' : 'I would like to receive a reply'}
                 </span>
               </label>
-            </div>
+            </motion.div>
 
             {/* Email — nur relevant wenn Antwort gewünscht */}
-            <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', padding: '20px', marginBottom: '24px', opacity: wantsReply ? 1 : 0.5 }}>
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', padding: '20px', marginBottom: '24px', opacity: wantsReply ? 1 : 0.5 }}>
               <label style={{ fontSize: '13px', fontWeight: 500, color: text, display: 'block', marginBottom: '8px' }}>
                 {locale === 'de' ? 'Email für Antwort' : 'Email for reply'} {wantsReply && '*'}
               </label>
@@ -143,15 +154,18 @@ return (
               <p style={{ fontSize: '11px', color: muted, marginTop: '6px' }}>
                 {locale === 'de' ? 'Wir antworten von: support.kiwardrobe@gmail.com' : 'We reply from: support.kiwardrobe@gmail.com'}
               </p>
-            </div>
+            </motion.div>
 
-            <button onClick={handleSubmit} disabled={loading || !message.trim()}
+            <motion.button initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.34, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              whileTap={{ scale: 0.97 }}
+              onClick={handleSubmit} disabled={loading || !message.trim()}
               style={{ width: '100%', background: !message.trim() ? (isDark ? '#1D1D20' : '#EDE7D8') : navyGradient, border: !message.trim() ? `1px solid ${border}` : 'none', borderRadius: '12px', padding: '15px', fontSize: '15px', fontWeight: 600, color: !message.trim() ? muted : '#fff', cursor: !message.trim() ? 'not-allowed' : 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
               {loading ? '...' : locale === 'de' ? 'Feedback senden ✦' : 'Send feedback ✦'}
-            </button>
-          </>
+            </motion.button>
+          </motion.div>
         )}
-      </main>
+        </AnimatePresence>
+      </motion.main>
     </div>
   )
 }
