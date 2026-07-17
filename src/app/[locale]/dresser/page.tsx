@@ -1235,7 +1235,7 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
               <div style={{ height: '1px', background: border, marginBottom: '12px' }} />
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-                <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' as const, flex: 1 }}>
+                <div ref={categoryRef} style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' as const, flex: 1 }}>
                   {categoryConfig.map((cat) => {
                     const isOn = activeCategories.includes(cat.key)
                     const exists = wardrobeItems.some(item => item.category === cat.key)
