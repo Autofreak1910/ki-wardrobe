@@ -17,12 +17,13 @@ export default function ForgotPasswordPage() {
   const locale = useLocale()
   const isDark = theme === 'dark'
 
-  const bg     = isDark ? '#080c18' : '#f0f4ff'
-  const card   = isDark ? '#0d1225' : '#ffffff'
-  const border = isDark ? '#1a2540' : '#dde3f5'
-  const text   = isDark ? '#e8eeff' : '#0a1628'
-  const muted  = isDark ? '#4d6080' : '#6b7fa8'
-  const accent = isDark ? '#4d7eff' : '#3b6bff'
+  const bg     = isDark ? '#161616' : '#F2EFE7'
+  const card   = isDark ? '#1D1D20' : '#ffffff'
+  const border = isDark ? '#2a2a2e' : '#E7E2D5'
+  const text   = isDark ? '#F5F3EE' : '#24211B'
+  const muted  = isDark ? '#9a978f' : '#8C8776'
+  const accent = isDark ? '#5C82A0' : '#355C7D'
+  const sageGradient = 'linear-gradient(135deg, #7FA98E, #355C7D)'
 
   async function handleReset() {
     if (!email) { setError(locale === 'de' ? 'Bitte Email eingeben' : 'Please enter your email'); return }
@@ -36,14 +37,14 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div style={{ minHeight: '100dvh', background: bg, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', fontFamily: "'DM Sans', sans-serif", padding: '24px' }}>
+    <div style={{ minHeight: '100dvh', background: bg, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', fontFamily: "'Poppins', 'Inter', sans-serif", padding: '24px' }}>
 
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
         style={{ textAlign: 'center', marginBottom: '24px' }}>
         <div style={{ width: '64px', height: '64px', borderRadius: '18px', overflow: 'hidden', margin: '0 auto 14px', boxShadow: `0 8px 32px ${accent}40` }}>
           <img src="/icon-512.png" alt="KiWardrobe" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
-        <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '24px', fontWeight: 400, color: text, letterSpacing: '-0.02em' }}>
+        <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: '24px', fontWeight: 500, color: text, letterSpacing: '-0.02em' }}>
           Ki<em style={{ color: accent }}>Wardrobe</em>
         </h1>
       </motion.div>
@@ -55,7 +56,7 @@ export default function ForgotPasswordPage() {
           <>
             <div style={{ textAlign: 'center' as const, marginBottom: '20px' }}>
               <p style={{ fontSize: '40px', marginBottom: '12px' }}>📧</p>
-              <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '22px', fontWeight: 400, color: text, marginBottom: '10px' }}>
+              <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '22px', fontWeight: 500, color: text, marginBottom: '10px' }}>
                 {locale === 'de' ? 'Email gesendet!' : 'Email sent!'}
               </h2>
               <p style={{ fontSize: '14px', color: muted, lineHeight: 1.6 }}>
@@ -70,7 +71,7 @@ export default function ForgotPasswordPage() {
           </>
         ) : (
           <>
-            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '24px', fontWeight: 400, color: text, marginBottom: '6px', letterSpacing: '-0.02em' }}>
+            <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '24px', fontWeight: 500, color: text, marginBottom: '6px', letterSpacing: '-0.02em' }}>
               {locale === 'de' ? 'Passwort zurücksetzen' : 'Reset password'}
             </h2>
             <p style={{ color: muted, fontSize: '14px', marginBottom: '24px' }}>
@@ -92,12 +93,12 @@ export default function ForgotPasswordPage() {
               <input type="email" value={email} onChange={e => setEmail(e.target.value)}
                 placeholder="deine@email.com"
                 onKeyDown={e => e.key === 'Enter' && handleReset()}
-                style={{ width: '100%', background: isDark ? '#080c18' : '#f8faff', border: `1.5px solid ${border}`, borderRadius: '12px', padding: '13px 16px', fontSize: '14px', color: text, outline: 'none', boxSizing: 'border-box' as const, fontFamily: "'DM Sans', sans-serif" }}
+                style={{ width: '100%', background: isDark ? '#161616' : '#F7F4EC', border: `1.5px solid ${border}`, borderRadius: '12px', padding: '13px 16px', fontSize: '14px', color: text, outline: 'none', boxSizing: 'border-box' as const, fontFamily: "'Poppins', 'Inter', sans-serif" }}
               />
             </div>
 
             <motion.button whileTap={{ scale: 0.98 }} onClick={handleReset} disabled={loading}
-              style={{ width: '100%', background: loading ? (isDark ? '#0d1225' : '#e8eeff') : `linear-gradient(135deg, ${accent} 0%, #6b9fff 100%)`, border: 'none', borderRadius: '14px', padding: '15px', fontSize: '15px', fontWeight: 700, color: loading ? muted : '#fff', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: "'DM Sans', sans-serif", marginBottom: '16px' }}>
+              style={{ width: '100%', background: loading ? (isDark ? '#1D1D20' : '#EDE7D8') : sageGradient, border: 'none', borderRadius: '14px', padding: '15px', fontSize: '15px', fontWeight: 700, color: loading ? muted : '#fff', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", marginBottom: '16px' }}>
               {loading ? (locale === 'de' ? 'Sende...' : 'Sending...') : (locale === 'de' ? 'Link senden' : 'Send link')}
             </motion.button>
 
