@@ -223,7 +223,9 @@ export default function AvatarPage() {
   const [loading, setLoading] = useState(false)
   const [pageLoading, setPageLoading] = useState(!avatarCache)
   const [error, setError] = useState<string | null>(null)
-  const [sharing, setSharing] = useState(false)
+const [sharing, setSharing] = useState(false)
+  const [genStep, setGenStep] = useState('')
+  const [genProgress, setGenProgress] = useState(0)
   const fileRef = useRef<HTMLInputElement>(null)
   const { theme } = useTheme()
   const locale = useLocale()
@@ -295,11 +297,23 @@ async function loadData() {
     reader.readAsDataURL(file)
   }
 
-  async function generateAvatar() {
+async function generateAvatar() {
     if (!selfie || !selectedItem) return
     setLoading(true)
     setError(null)
     setResult(null)
+    setGenProgress(0)
+
+    const steps = [
+      { at: 0,     pct: 8,  label: locale === 'de' ? 'Foto wird hochgeladen...' : 'Uploading photo...' },
+      { at: 1500,  pct: 22, label: locale === 'de' ? 'Hintergrund wird entfernt...' : 'Removing background...' },
+      { at: 4000,  pct: 38, label: locale === 'de' ? 'Foto wird geprüft...' : 'Checking photo quality...' },
+      { at: 6000,  pct: 55, label: locale === 'de' ? 'KI zieht dir das Outfit an...' : 'AI is dressing you...' },
+      { at: 14000, pct: 82, label: locale === 'de' ? 'Letzte Details...' : 'Final touches...' },
+      { at: 19000, pct: 94, label: locale === 'de' ? 'Fast fertig...' : 'Almost done...' },
+    ]
+    const timers = steps.map(s => setTimeout(() => { setGenStep(s.label); setGenProgress(s.pct) }, s.at))
+
     try {
       const res = await fetch('/api/generate-avatar', {
         method: 'POST',
@@ -312,11 +326,15 @@ async function loadData() {
         })
       })
       const data = await res.json()
-   if (data.error === 'monthly_limit') {
-  setError(locale === 'de' ? 'Du hast deine 2 kostenlosen Avatare diesen Monat aufgebraucht. Upgrade auf Pro!' : 'You used your 2 free avatars this month. Upgrade to Pro!')
-} else if (data.error === 'weekly_limit') {
-  setError(locale === 'de' ? 'Du hast diese Woche bereits 6 Avatare erstellt. Nächste Woche wieder!' : 'You already created 6 avatars this week. Come back next week!')
-} else if (data.error === 'bad_selfie') {
+      timers.forEach(clearTimeout)
+      setGenProgress(100)
+      setGenStep(locale === 'de' ? 'Fertig!' : 'Done!')
+
+      if (data.error === 'monthly_limit') {
+        setError(locale === 'de' ? 'Du hast deine 2 kostenlosen Avatare diesen Monat aufgebraucht. Upgrade auf Pro!' : 'You used your 2 free avatars this month. Upgrade to Pro!')
+      } else if (data.error === 'weekly_limit') {
+        setError(locale === 'de' ? 'Du hast diese Woche bereits 6 Avatare erstellt. Nächste Woche wieder!' : 'You already created 6 avatars this week. Come back next week!')
+      } else if (data.error === 'bad_selfie') {
         setError(locale === 'de' ? 'Dein Foto eignet sich nicht gut für Try-On. Bitte nutze ein Ganzkörperfoto mit klarer Pose, gutem Licht und einfachem Hintergrund.' : "Your photo isn't well suited for try-on. Please use a full-body photo with a clear pose, good lighting, and a plain background.")
       } else if (data.success) {
         setResult(data.imageUrl)
@@ -325,9 +343,11 @@ async function loadData() {
         setError(locale === 'de' ? 'Fehler beim Generieren' : 'Error generating')
       }
     } catch {
+      timers.forEach(clearTimeout)
       setError(locale === 'de' ? 'Fehler beim Generieren' : 'Error generating')
     }
     setLoading(false)
+    setGenProgress(0)
   }
 const isPremium = profile?.is_premium ?? false
 const usedThisPeriod = profile?.used_this_period ?? 0
@@ -605,18 +625,25 @@ const canGenerate = triesLeft > 0
         <div style={{ position: 'fixed', bottom: 'calc(80px + env(safe-area-inset-bottom))', left: 0, right: 0, zIndex: 40, pointerEvents: 'none' }}>
           <div style={{ maxWidth: '560px', margin: '0 auto', padding: '0 20px', pointerEvents: 'auto' }}>
             <div style={{ background: isDark ? 'rgba(22,22,22,0.96)' : 'rgba(253,252,249,0.96)', backdropFilter: 'blur(14px)', border: `1px solid ${border}`, borderRadius: '20px', padding: '10px', boxShadow: '0 8px 28px rgba(0,0,0,0.14)' }}>
-            <motion.button whileTap={{ scale: 0.97 }}
+         <motion.button whileTap={{ scale: 0.97 }}
               onClick={generateAvatar}
               disabled={loading || !selfie || !selectedItem}
-              style={{ width: '100%', padding: '16px', background: sageGradient, border: 'none', borderRadius: '100px', fontSize: '15px', fontWeight: 700, color: '#fff', cursor: loading ? 'wait' : 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: '0 8px 24px rgba(53,92,125,0.3)', transition: 'all 0.2s', opacity: (!selfie || !selectedItem) ? 0.6 : 1 }}>
+              style={{ width: '100%', padding: loading ? '10px 16px' : '16px', background: sageGradient, border: 'none', borderRadius: loading ? '18px' : '100px', fontSize: '15px', fontWeight: 700, color: '#fff', cursor: loading ? 'wait' : 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: '0 8px 24px rgba(53,92,125,0.3)', transition: 'all 0.2s', opacity: (!selfie || !selectedItem) ? 0.6 : 1 }}>
               {loading ? (
-                <>
-                  <motion.span animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                    style={{ display: 'block', width: '18px', height: '18px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff' }} />
-                  {locale === 'de' ? 'KI generiert (~20 Sek)...' : 'AI generating (~20 sec)...'}
-                </>
+                <div style={{ width: '100%' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 600 }}>{genStep}</span>
+                    <span style={{ fontSize: '13px', fontWeight: 700 }}>{genProgress}%</span>
+                  </div>
+                  <div style={{ height: '5px', background: 'rgba(255,255,255,0.25)', borderRadius: '3px', overflow: 'hidden' }}>
+                    <motion.div animate={{ width: `${genProgress}%` }} transition={{ duration: 0.4 }}
+                      style={{ height: '100%', background: '#fff', borderRadius: '3px' }} />
+                  </div>
+                </div>
               ) : (
-                <>✦ {locale === 'de' ? 'Avatar generieren' : 'Generate avatar'}</>
+                <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                  ✦ {locale === 'de' ? 'Avatar generieren' : 'Generate avatar'}
+                </span>
               )}
             </motion.button>
             </div>

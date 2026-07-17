@@ -577,7 +577,7 @@ return (
   initial={{ opacity: 0, y: -20 }}
   animate={{ opacity: 1, y: 0 }}
   exit={{ opacity: 0, y: -20 }}
-onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
+onClick={() => router.push('/' + locale + '/profile' + (isPremium ? '' : '?upgrade=true'))}
  style={{
   position: 'fixed', top: '80px',
   left: '16px', right: '16px',
@@ -595,7 +595,9 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
   </div>
   <div style={{ background: sageGradient, borderRadius: '10px', padding: '10px', textAlign: 'center' as const }}>
     <p style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>
-      {locale === 'de' ? '✦ Jetzt upgraden für €4,99/Mo' : '✦ Upgrade now for €4.99/mo'}
+      {isPremium
+        ? (locale === 'de' ? '✦ +10 Outfits für €2 dazukaufen' : '✦ Buy +10 outfits for €2')
+        : (locale === 'de' ? '✦ Jetzt upgraden für €4,99/Mo' : '✦ Upgrade now for €4.99/mo')}
     </p>
   </div>
 </motion.div>
