@@ -1,14 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import SplashScreen from './SplashScreen'
 import OnboardingCarousel from './OnboardingCarousel'
 import WelcomeAnimation from './WelcomeAnimation'
+import Navbar from './Navbar'
 
 const TAB_ORDER = ['dresser', 'wardrobe', 'outfits', 'profile']
+
+// Reihenfolge der Tabs in der Navbar -- fuer die Richtung des Slide (links/rechts)
+const NAV_ORDER = ['dresser', 'wardrobe', 'avatar', 'outfits', 'profile']
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4)
@@ -56,6 +60,13 @@ async function setupPushNotifications() {
   }
 }
 
+function getActivePage(pathname: string): string | null {
+  for (const tab of NAV_ORDER) {
+    if (pathname.includes(tab)) return tab
+  }
+  return null
+}
+
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
  const [showSplash, setShowSplash] = useState(true)
   const [showOnboarding, setShowOnboarding] = useState(false)
@@ -65,6 +76,7 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
+  const prevIndexRef = useRef(0)
  useEffect(() => {
     const isAppPage = TAB_ORDER.some(t => pathname.includes(t))
     if (!isAppPage) { setShowSplash(false); return }
@@ -123,6 +135,11 @@ function handleOnboardingDone() {
     setShowWelcome(false)
   }
 
+  const activePage = getActivePage(pathname)
+  const currentIndex = activePage ? NAV_ORDER.indexOf(activePage) : prevIndexRef.current
+  const direction = currentIndex > prevIndexRef.current ? 1 : currentIndex < prevIndexRef.current ? -1 : 0
+  prevIndexRef.current = currentIndex
+
   return (
     <>
      {showSplash && <SplashScreen onDone={handleSplashDone} isPremium={isPremium} />}
@@ -132,20 +149,24 @@ function handleOnboardingDone() {
         opacity: showSplash ? 0 : 1,
         transition: 'opacity 0.3s ease',
         height: '100%',
+        position: 'relative' as const,
+        overflow: 'hidden',
       }}>
         {/*
-          Nur Opacity wird animiert, bewusst kein x/y/scale (= kein transform).
-          Jede Seite rendert ihre eigene position:fixed Navbar -- ein transformiertes
-          Eltern-Element wuerde die Navbar waehrend der Animation aus der Spur werfen.
-          Reines Cross-Fade ist trotzdem spuerbar "fluessiger" als der harte Schnitt vorher.
+          Navbar sitzt jetzt HIER, ausserhalb des animierten Bereichs -- bleibt beim
+          Seitenwechsel absolut ruhig stehen, unabhaengig davon wie stark der Inhalt
+          darunter rutscht/federt. Einzelne Seiten rendern KEINE eigene <Navbar/> mehr.
         */}
-        <AnimatePresence mode="wait" initial={false}>
+        {activePage && <Navbar activePage={activePage} />}
+
+        <AnimatePresence mode="popLayout" initial={false} custom={direction}>
           <motion.div
             key={pathname}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.16, ease: 'easeInOut' }}
+            custom={direction}
+            initial={{ x: direction === 0 ? 0 : direction * 56, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: direction === 0 ? 0 : -direction * 56, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 420, damping: 32, mass: 0.7 }}
             style={{ height: '100%' }}
           >
             {children}
