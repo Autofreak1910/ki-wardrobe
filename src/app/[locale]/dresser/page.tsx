@@ -144,6 +144,7 @@ const [referrerName, setReferrerName] = useState('')
   const dateStr = new Date().toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-GB', { day: 'numeric', month: 'long' })
 const [greeting, setGreeting] = useState('')
   const [streak, setStreak] = useState(stylistCache?.streak ?? 0)
+  const [userId, setUserId] = useState<string | null>(null)
   const [streakReward, setStreakReward] = useState<{ days: number; milestone: number } | null>(null)
   const [showStreakInfo, setShowStreakInfo] = useState(false)
 useEffect(() => {
@@ -182,8 +183,8 @@ async function loadDailyFreeOutfit() {
 
 
 useEffect(() => {
-  if (wardrobeItems.length >= 3) {
-    const seen = localStorage.getItem('kw_welcome_seen')
+  if (wardrobeItems.length >= 3 && userId) {
+    const seen = localStorage.getItem('kw_welcome_seen_' + userId)
     if (!seen) {
       setShowUnlock(true)
       setTimeout(() => {
@@ -192,7 +193,7 @@ useEffect(() => {
       }, 2800)
     }
   }
-}, [wardrobeItems.length])
+}, [wardrobeItems.length, userId])
 
 function checkProWelcomePending() {
   const pending = localStorage.getItem('kw_pro_welcome_pending')
@@ -243,6 +244,7 @@ async function loadStreak() {
   async function loadWardrobe() {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
+    setUserId(session.user.id)
     const welcomeSeenKey = 'kw_invited_welcome_seen_' + session.user.id
     if (!localStorage.getItem(welcomeSeenKey) && !checkingReferrerRef.current) {
       checkingReferrerRef.current = true
@@ -558,6 +560,7 @@ return (
   weatherToggleRef={weatherToggleRef}
   dressMeRef={dressMeRef}
   itemCount={wardrobeItems.length}
+  userId={userId}
   ready={onboardingReady && !weatherLoading}
 />
 
@@ -1527,4 +1530,4 @@ onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
       </main>
     </div>
   )
-}  
+}

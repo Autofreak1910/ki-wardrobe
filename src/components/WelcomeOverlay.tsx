@@ -30,10 +30,11 @@ interface Props {
   categoryRef: RefObject<HTMLDivElement | null>
   dressMeRef: RefObject<HTMLButtonElement | null>
   itemCount: number
+  userId: string | null
   ready?: boolean
 }
 
-export default function WelcomeOverlay({ categoryRef, dressMeRef, itemCount, ready = false }: Props) {
+export default function WelcomeOverlay({ categoryRef, dressMeRef, itemCount, userId, ready = false }: Props) {
   const [show, setShow] = useState(false)
   const [step, setStep] = useState(0)
   const [rect, setRect] = useState<Rect | null>(null)
@@ -50,12 +51,12 @@ export default function WelcomeOverlay({ categoryRef, dressMeRef, itemCount, rea
 const refs = { categoryRef, dressMeRef }
 
 useEffect(() => {
-  if (itemCount < 3 || !ready) return
-  const seen = localStorage.getItem('kw_welcome_seen')
+  if (itemCount < 3 || !ready || !userId) return
+  const seen = localStorage.getItem('kw_welcome_seen_' + userId)
   if (!seen) {
     setShow(true)
   }
-}, [itemCount, ready])
+}, [itemCount, ready, userId])
 
   useEffect(() => {
     if (!show) return
@@ -84,7 +85,7 @@ useEffect(() => {
   }
 
   function finish() {
-    localStorage.setItem('kw_welcome_seen', 'true')
+    if (userId) localStorage.setItem('kw_welcome_seen_' + userId, 'true')
     setShow(false)
   }
 
