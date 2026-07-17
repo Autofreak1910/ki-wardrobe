@@ -359,18 +359,18 @@ export default function AvatarPage() {
           <h1 style={{ fontSize: '24px', fontWeight: 800, color: text, letterSpacing: '-0.04em', marginBottom: '2px' }}>
             Virtual Try-On
           </h1>
-          <p style={{ fontSize: '12px', color: muted, marginBottom: '12px' }}>
+          <p style={{ fontSize: '14px', color: text, fontWeight: 500, marginBottom: '12px' }}>
             {locale === 'de' ? 'Probiere Klamotten virtuell an deinem Foto an' : 'Try clothes on your photo virtually'}
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' as const }}>
-            <span style={{ fontSize: '11px' }}>💡</span>
+            <span style={{ fontSize: '12px' }}>💡</span>
             {[
               locale === 'de' ? 'Ganzkörper' : 'Full body',
               locale === 'de' ? 'Heller HG' : 'Light BG',
               locale === 'de' ? 'Ein Teil' : 'One item',
               locale === 'de' ? 'Gutes Licht' : 'Good light',
             ].map((tip, i) => (
-              <span key={i} style={{ fontSize: '11px', color: muted, background: accentDim, borderRadius: '100px', padding: '3px 8px', border: `1px solid ${border}` }}>{tip}</span>
+              <span key={i} style={{ fontSize: '12px', fontWeight: 600, color: accent, background: accentDim, borderRadius: '100px', padding: '4px 10px', border: `1px solid ${accent}30` }}>{tip}</span>
             ))}
           </div>
         </div>
@@ -400,7 +400,7 @@ export default function AvatarPage() {
             {/* Step 1 — Selfie */}
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
               style={{ background: 'transparent', marginBottom: '12px', padding: '0 20px' }}>
-              <p style={{ fontSize: '10px', fontWeight: 700, color: muted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>
+              <p style={{ fontSize: '11px', fontWeight: 800, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>
                 {locale === 'de' ? 'Schritt 1 · Dein Foto' : 'Step 1 · Your Photo'}
               </p>
               <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '20px', overflow: 'hidden', boxShadow: isDark ? 'none' : '0 2px 8px rgba(29,29,32,0.04)' }}>
@@ -436,7 +436,7 @@ export default function AvatarPage() {
             {/* Step 2 — Kleidung wählen */}
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
               style={{ background: 'transparent', marginBottom: '12px', padding: '0 20px' }}>
-              <p style={{ fontSize: '10px', fontWeight: 700, color: muted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>
+              <p style={{ fontSize: '11px', fontWeight: 800, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>
                 {locale === 'de' ? 'Schritt 2 · Kleidung wählen' : 'Step 2 · Choose clothing'}
               </p>
               <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '20px', overflow: 'hidden', boxShadow: isDark ? 'none' : '0 2px 8px rgba(29,29,32,0.04)' }}>
