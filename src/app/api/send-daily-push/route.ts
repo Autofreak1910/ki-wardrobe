@@ -5,8 +5,6 @@ import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-
 function parseWeatherCode(code: number, isDay: boolean): { icon: string; condition: string } {
   if (code === 0) return { icon: isDay ? '☀️' : '🌙', condition: isDay ? 'Sonnig' : 'Klar' }
   if (code <= 2)  return { icon: '⛅', condition: 'Leicht bewölkt' }
@@ -25,6 +23,11 @@ export async function GET(req: Request) {
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+
+  // Erst hier erzeugen (zur Laufzeit), nicht ganz oben in der Datei -- sonst versucht
+  // Next.js das schon beim Bauen auszufuehren, wo OPENAI_API_KEY nicht verfuegbar ist
+  // und der Build mit "Missing credentials" abbricht.
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
   webpush.setVapidDetails(
     'mailto:business@kiwardrobe.com',
@@ -215,7 +218,7 @@ if (!payload) {
     } catch (err: any) {
       failed++
       if (err.statusCode === 410 || err.statusCode === 404) {
-        await supabase.from('push_subscriptions').delete().eq('id', sub.id)
+        await supabase.from('push_subscriptions').delete().eq('id', sub.id) 
       }
       console.error('Push failed for subscription', sub.id, err.message)
     }
