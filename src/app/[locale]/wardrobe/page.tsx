@@ -15,6 +15,11 @@ type ClothingItem = {
   season: string[]; purchase_date?: string; purchase_price?: number; created_at: string
 }
 
+function getTodayStartUTC(): Date {
+  const now = new Date()
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0))
+}
+
 // Modul-Level-Cache -- ueberlebt Seitenwechsel, kein leeres Grid mehr beim erneuten Besuch
 let wardrobeCache: { items: ClothingItem[]; isPremium: boolean } | null = null
 
@@ -25,6 +30,7 @@ export default function WardrobePage() {
   const [sort, setSort] = useState('newest')
   const [uploading, setUploading] = useState(false)
   const [analyzing, setAnalyzing] = useState(false)
+  const [styleDnaUsedToday, setStyleDnaUsedToday] = useState(false)
   const [analyzeStep, setAnalyzeStep] = useState('')
   const [analyzeResult, setAnalyzeResult] = useState('')
   const [progress, setProgress] = useState(0)
@@ -65,10 +71,6 @@ const [detectedItems, setDetectedItems] = useState<Array<{
   const goldAccent = '#F1B951'
 
   useEffect(() => { loadItems() }, [])
-function getTodayStartUTC(): Date {
-  const now = new Date()
-  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0))
-}
 
  async function loadItems() {
     const { data: { session } } = await supabase.auth.getSession()
@@ -78,6 +80,12 @@ function getTodayStartUTC(): Date {
 const { data: stillPremium } = await supabase.rpc('check_and_expire_premium', { p_user_id: session.user.id })
     setIsPremium(stillPremium ?? false)
     wardrobeCache = { items: data ?? [], isPremium: stillPremium ?? false }
+    const todayStart = getTodayStartUTC()
+    const { count: dnaCount } = await supabase.from('style_dna_generations')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', session.user.id)
+      .gte('created_at', todayStart.toISOString()) as any
+    setStyleDnaUsedToday((dnaCount ?? 0) >= 1)
   }
 async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -355,6 +363,7 @@ async function generateStyleDna() {
   }
 
   await supabase.from('style_dna_generations').insert({ user_id: session.user.id })
+  setStyleDnaUsedToday(true)
 
   setDnaLoading(true)
   setShowDna(true)
@@ -571,7 +580,9 @@ async function generateStyleDna() {
         </div>
 
 {/* Style DNA Banner — Krass */}
-{items.length >= 3 && (
+{items.length >= 3 && (() => {
+  const dnaLocked = !isPremium || styleDnaUsedToday
+  return (
   <motion.div
     initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
     onClick={generateStyleDna}
@@ -585,7 +596,13 @@ async function generateStyleDna() {
       marginBottom: '16px', cursor: 'pointer',
       overflow: 'hidden', minHeight: '120px',
       boxShadow: isPremium ? '0 8px 32px rgba(168,85,247,0.25)' : '0 4px 20px rgba(0,0,0,0.15)',
+      opacity: dnaLocked ? 0.55 : 1,
     }}>
+    {dnaLocked && (
+      <div style={{ position: 'absolute', inset: 0, zIndex: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.25)' }}>
+        <span style={{ fontSize: '32px' }}>🔒</span>
+      </div>
+    )}
     {/* Glow Effekte */}
     <div style={{ position: 'absolute', top: '-30px', right: '-20px', width: '160px', height: '160px', borderRadius: '50%', background: isPremium ? 'radial-gradient(circle, rgba(168,85,247,0.3), transparent 70%)' : 'radial-gradient(circle, rgba(14,164,114,0.2), transparent 70%)', filter: 'blur(20px)', pointerEvents: 'none' }} />
     <div style={{ position: 'absolute', bottom: '-20px', left: '30%', width: '100px', height: '100px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(107,159,255,0.2), transparent 70%)', filter: 'blur(15px)', pointerEvents: 'none' }} />
@@ -610,6 +627,8 @@ async function generateStyleDna() {
         </p>
         {!isPremium ? (
           <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: goldAccent, borderRadius: '5px', padding: '2px 7px', boxShadow: '0 2px 8px rgba(251,191,36,0.4)' }}>PRO</span>
+        ) : styleDnaUsedToday ? (
+          <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: 'rgba(255,255,255,0.2)', borderRadius: '5px', padding: '2px 7px' }}>🔒 {locale === 'de' ? 'Heute genutzt' : 'Used today'}</span>
         ) : (
           <span style={{ fontSize: '9px', fontWeight: 700, color: '#a855f7', background: 'rgba(168,85,247,0.2)', borderRadius: '5px', padding: '2px 7px', border: '1px solid rgba(168,85,247,0.3)' }}>✦ AKTIV</span>
         )}
@@ -618,9 +637,11 @@ async function generateStyleDna() {
         {locale === 'de' ? 'Starke DNA' : 'Strong DNA'}
       </p>
       <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)', lineHeight: 1.4 }}>
-        {isPremium
-          ? (locale === 'de' ? `Analysiere deinen Stil-Code mit KI · ${items.length} Teile` : `Analyze your style code with AI · ${items.length} items`)
-          : (locale === 'de' ? 'Analysiere deinen Stil-Code mit KI.' : 'Analyze your style code with AI.')}
+        {!isPremium
+          ? (locale === 'de' ? 'Analysiere deinen Stil-Code mit KI.' : 'Analyze your style code with AI.')
+          : styleDnaUsedToday
+            ? (locale === 'de' ? 'Morgen wieder verfügbar' : 'Available again tomorrow')
+            : (locale === 'de' ? `Analysiere deinen Stil-Code mit KI · ${items.length} Teile` : `Analyze your style code with AI · ${items.length} items`)}
       </p>
       {!isPremium && (
         <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', marginTop: '4px', fontStyle: 'italic' }}>
@@ -629,7 +650,8 @@ async function generateStyleDna() {
       )}
     </div>
   </motion.div>
-)}
+  )
+})()}
 
         <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleUpload} style={{ display: 'none' }} />
     <input ref={multiFileInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleMultiUpload} multiple style={{ display: 'none' }} />

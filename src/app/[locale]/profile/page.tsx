@@ -127,6 +127,7 @@ const [weekOutfits, setWeekOutfits] = useState(0)
 const [weekAvatarCount, setWeekAvatarCount] = useState(0)
 const [monthAvatarCount, setMonthAvatarCount] = useState(0)
 const [multiScansThisWeek, setMultiScansThisWeek] = useState(0)
+const [styleDnaToday, setStyleDnaToday] = useState(0)
 const [totalInvitesSuccessful, setTotalInvitesSuccessful] = useState(0)
 const [showInviteStats, setShowInviteStats] = useState(false)
 const [pushEnabled, setPushEnabled] = useState(false)
@@ -163,19 +164,22 @@ async function loadProfile() {
     if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
     const weekStart = getWeekStartUTC()
     const monthStart = getMonthStartUTC()
-  const [profileRes, itemsRes, outfitsRes, weekOutfitsRes, weekAvatarRes, monthAvatarRes, multiScanRes] = await Promise.all([
+    const todayStart = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate(), 0, 0, 0, 0))
+  const [profileRes, itemsRes, outfitsRes, weekOutfitsRes, weekAvatarRes, monthAvatarRes, multiScanRes, styleDnaRes] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', session.user.id).single(),
       supabase.from('clothing_items').select('id').eq('user_id', session.user.id),
       supabase.from('outfits').select('id').eq('user_id', session.user.id),
       supabase.from('outfit_generations').select('id', { count: 'exact', head: true }).eq('user_id', session.user.id).gte('created_at', weekStart.toISOString()),
       supabase.from('avatar_results').select('id', { count: 'exact', head: true }).eq('user_id', session.user.id).gte('created_at', weekStart.toISOString()),
       supabase.from('avatar_results').select('id', { count: 'exact', head: true }).eq('user_id', session.user.id).gte('created_at', monthStart.toISOString()),
-  supabase.from('multi_scan_generations').select('id', { count: 'exact', head: true }).eq('user_id', session.user.id).gte('created_at', weekStart.toISOString()),
+      supabase.from('multi_scan_generations').select('id', { count: 'exact', head: true }).eq('user_id', session.user.id).gte('created_at', weekStart.toISOString()),
+      supabase.from('style_dna_generations').select('id', { count: 'exact', head: true }).eq('user_id', session.user.id).gte('created_at', todayStart.toISOString()),
     ])
   setWeekOutfits(weekOutfitsRes.count ?? 0)
   setWeekAvatarCount(weekAvatarRes.count ?? 0)
   setMonthAvatarCount(monthAvatarRes.count ?? 0)
   setMultiScansThisWeek(multiScanRes.count ?? 0)
+  setStyleDnaToday(styleDnaRes.count ?? 0)
 
 if (profileRes.data?.referral_code) {
     const { data: refCount } = await supabase.rpc('count_successful_referrals', { p_referral_code: profileRes.data.referral_code })
@@ -274,6 +278,7 @@ async function generateStyleDna() {
     return
   }
   await supabase.from('style_dna_generations').insert({ user_id: session.user.id })
+  setStyleDnaToday(prev => prev + 1)
 
   setDnaLoading(true)
   setShowDna(true)
@@ -407,7 +412,10 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
   isPremium
     ? { label: 'Try-On', value: weekAvatarCount, max: 6 }
     : { label: 'Try-On', value: monthAvatarCount, max: 2 },
-  ...(isPremium ? [{ label: locale === 'de' ? 'Multi-Upload' : 'Multi-upload', value: multiScansThisWeek, max: 3 }] : []),
+  ...(isPremium ? [
+    { label: locale === 'de' ? 'Multi-Upload' : 'Multi-upload', value: multiScansThisWeek, max: 3 },
+    { label: 'Style DNA', value: styleDnaToday, max: 1 },
+  ] : []),
 ]
       return (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', marginBottom: daysLeft !== null && daysLeft <= 3 ? '14px' : '0' }}>
