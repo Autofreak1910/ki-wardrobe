@@ -1023,12 +1023,9 @@ onClick={() => {
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(240,244,255,0.7) 0%, rgba(240,244,255,0) 60%)' }} />
 
           <div style={{ position: 'absolute' as const, bottom: '20px', left: '18px', zIndex: 2 }}>
-            <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: accent, marginBottom: '4px' }}>
-              {greeting}{username ? ',' : ''} {username ?? ''}
-            </p>
-            <h1 style={{ fontSize: '26px', fontWeight: 800, color: text, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: '2px' }}>
-              {locale === 'de' ? 'Willkommen' : 'Welcome'}{username ? `, ${username}.` : '.'}
-            </h1>
+        <h1 style={{ fontSize: '26px', fontWeight: 800, color: text, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: '2px' }}>
+  {locale === 'de' ? 'Willkommen' : 'Welcome'}{username ? `, ${username}.` : '.'}
+</h1>
             <p style={{ fontSize: '11px', color: muted }}>{today}, {dateStr}</p>
           </div>
 

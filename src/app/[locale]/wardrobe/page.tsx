@@ -65,6 +65,10 @@ const [detectedItems, setDetectedItems] = useState<Array<{
   const goldAccent = '#F1B951'
 
   useEffect(() => { loadItems() }, [])
+function getTodayStartUTC(): Date {
+  const now = new Date()
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0))
+}
 
  async function loadItems() {
     const { data: { session } } = await supabase.auth.getSession()
@@ -333,21 +337,36 @@ await Promise.allSettled(toSave.map(async (item, i) => {
     await supabase.from('clothing_items').delete().eq('id', id)
     setSelectedItem(null); loadItems()
   }
-  async function generateStyleDna() {
-    if (!isPremium) { router.push('/' + locale + '/profile?upgrade=true'); return }
-    setDnaLoading(true)
-    setShowDna(true)
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session?.user) return
-    const res = await fetch('/api/style-dna', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-locale': locale },
-      body: JSON.stringify({ items }),
-    })
-    const data = await res.json()
-    if (data.success) setDna(data.dna)
-    setDnaLoading(false)
+async function generateStyleDna() {
+  if (!isPremium) { router.push('/' + locale + '/profile?upgrade=true'); return }
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) return
+
+  const todayStart = getTodayStartUTC()
+  const { count } = await supabase.from('style_dna_generations')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', session.user.id)
+    .gte('created_at', todayStart.toISOString()) as any
+
+  if ((count ?? 0) >= 1) {
+    setLimitMsg(locale === 'de' ? 'Style DNA heute schon generiert — morgen wieder!' : 'Style DNA already generated today — try again tomorrow!')
+    setTimeout(() => setLimitMsg(null), 4000)
+    return
   }
+
+  await supabase.from('style_dna_generations').insert({ user_id: session.user.id })
+
+  setDnaLoading(true)
+  setShowDna(true)
+  const res = await fetch('/api/style-dna', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-locale': locale },
+    body: JSON.stringify({ items }),
+  })
+  const data = await res.json()
+  if (data.success) setDna(data.dna)
+  setDnaLoading(false)
+}
 
   async function handleSaveDetails() {
     if (!selectedItem) return

@@ -255,23 +255,37 @@ async function handleLogout() {
       setDeleting(false)
     }
   }
+async function generateStyleDna() {
+  if (!profile?.is_premium) { setShowUpgrade(true); return }
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) return
+  const { data: items } = await supabase.from('clothing_items').select('*').eq('user_id', session.user.id)
+  if (!items || items.length < 3) return
 
-  async function generateStyleDna() {
-    setDnaLoading(true)
-    setShowDna(true)
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session?.user) return
-    const { data: items } = await supabase.from('clothing_items').select('*').eq('user_id', session.user.id)
-    if (!items || items.length < 3) { setDnaLoading(false); return }
-    const res = await fetch('/api/style-dna', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-locale': locale },
-      body: JSON.stringify({ items }),
-    })
-    const data = await res.json()
-    if (data.success) setDna(data.dna)
+  const now = new Date()
+  const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0))
+  const { count } = await supabase.from('style_dna_generations')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', session.user.id)
+    .gte('created_at', todayStart.toISOString()) as any
+  if ((count ?? 0) >= 1) {
     setDnaLoading(false)
+    setShowDna(false)
+    return
   }
+  await supabase.from('style_dna_generations').insert({ user_id: session.user.id })
+
+  setDnaLoading(true)
+  setShowDna(true)
+  const res = await fetch('/api/style-dna', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-locale': locale },
+    body: JSON.stringify({ items }),
+  })
+  const data = await res.json()
+  if (data.success) setDna(data.dna)
+  setDnaLoading(false)
+}
 
   const memberSince = profile ? new Date(profile.created_at).toLocaleDateString(
     locale === 'de' ? 'de-DE' : 'en-US', { month: 'long', year: 'numeric' }
