@@ -100,26 +100,27 @@ function compositeOnDressingRoom(subjectUrl: string, bgUrl: string): Promise<str
       // Leicht abdunkeln, damit die Person besser abhebt
       ctx.fillStyle = 'rgba(0,0,0,0.06)'
       ctx.fillRect(0, 0, W, H)
-// Person auf Bodenlinie einfuegen -- FLOOR_Y_FRACTION bestimmt, wo im Hintergrundbild
-// der Boden ist (0 = ganz oben, 1 = ganz unten). Bei "schwebt"-Effekt hier anpassen:
-// Wert HOCH setzen wenn Person zu tief im Boden "versinkt",
-// Wert RUNTER setzen wenn Person zu hoch "schwebt".
-const FLOOR_Y_FRACTION = 0.94
-const floorY = H * FLOOR_Y_FRACTION
-const maxH = floorY - 20
-const scale = Math.min(maxH / subjImg.naturalHeight, (W - 100) / subjImg.naturalWidth)
-const dw = subjImg.naturalWidth * scale
-const dh = subjImg.naturalHeight * scale
-const dx = (W - dw) / 2
-const dy = floorY - dh
+
+      // Person auf Bodenlinie einfuegen -- FLOOR_Y_FRACTION bestimmt, wo im Hintergrundbild
+      // der Boden ist (0 = ganz oben, 1 = ganz unten). Bei "schwebt"-Effekt hier anpassen:
+      // Wert HOCH setzen wenn Person zu tief im Boden "versinkt",
+      // Wert RUNTER setzen wenn Person zu hoch "schwebt".
+      const FLOOR_Y_FRACTION = 0.94
+      const floorY = H * FLOOR_Y_FRACTION
+      const maxH = floorY - 20
+      const scale = Math.min(maxH / subjImg.naturalHeight, (W - 100) / subjImg.naturalWidth)
+      const dw = subjImg.naturalWidth * scale
+      const dh = subjImg.naturalHeight * scale
+      const dx = (W - dw) / 2
+      const dy = floorY - dh
 
       // Weicher Schatten fuer mehr Tiefe
       ctx.save()
       ctx.filter = 'blur(12px)'
       ctx.fillStyle = 'rgba(0,0,0,0.18)'
-     ctx.beginPath()
-ctx.ellipse(dx + dw / 2, floorY - 4, dw * 0.38, 18, 0, 0, Math.PI * 2)
-ctx.fill()
+      ctx.beginPath()
+      ctx.ellipse(dx + dw / 2, floorY - 4, dw * 0.38, 18, 0, 0, Math.PI * 2)
+      ctx.fill()
       ctx.restore()
 
       ctx.drawImage(subjImg, dx, dy, dw, dh)
@@ -346,7 +347,7 @@ export default function AvatarPage() {
     setResult(null)
     setGenProgress(0)
 
-const steps = locale === 'de' ? [
+    const steps = locale === 'de' ? [
       { at: 0,  label: 'Foto wird hochgeladen...' },
       { at: 12, label: 'Hintergrund wird entfernt...' },
       { at: 25, label: 'Foto wird geprüft...' },
@@ -431,7 +432,7 @@ const steps = locale === 'de' ? [
       </div>
 
 
-      <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '560px', width: '100%', margin: '0 auto', padding: canGenerate ? '68px 0 170px' : '68px 0 24px', position: 'relative', zIndex: 1 }}>
+      <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '560px', width: '100%', margin: '0 auto', padding: (canGenerate || result) ? '68px 0 170px' : '68px 0 24px', position: 'relative', zIndex: 1 }}>
 
         {/* Hero Banner */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
@@ -496,7 +497,7 @@ const steps = locale === 'de' ? [
           )}
         </div>
 
-        {canGenerate && (
+        {(canGenerate || result) && (
           <>
             {/* Step 1 — Selfie */}
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
@@ -696,14 +697,14 @@ const steps = locale === 'de' ? [
       </main>
 
       {/* Sticky Generate Bar — floats just above the bottom nav, always visible while scrolling */}
-      {canGenerate && (
+      {(canGenerate || result) && (
         <div style={{ position: 'fixed', bottom: 'calc(80px + env(safe-area-inset-bottom))', left: 0, right: 0, zIndex: 40, pointerEvents: 'none' }}>
           <div style={{ maxWidth: '560px', margin: '0 auto', padding: '0 20px', pointerEvents: 'auto' }}>
             <div style={{ background: isDark ? 'rgba(22,22,22,0.96)' : 'rgba(253,252,249,0.96)', backdropFilter: 'blur(14px)', border: `1px solid ${border}`, borderRadius: '20px', padding: '10px', boxShadow: '0 8px 28px rgba(0,0,0,0.14)' }}>
             <motion.button whileTap={{ scale: 0.97 }}
               onClick={generateAvatar}
-              disabled={loading || !selfie || !selectedItem}
-              style={{ width: '100%', padding: loading ? '10px 16px' : '16px', background: sageGradient, border: 'none', borderRadius: loading ? '18px' : '100px', fontSize: '15px', fontWeight: 700, color: '#fff', cursor: loading ? 'wait' : 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: '0 8px 24px rgba(53,92,125,0.3)', transition: 'all 0.2s', opacity: (!selfie || !selectedItem) ? 0.6 : 1 }}>
+              disabled={loading || !selfie || !selectedItem || !canGenerate}
+              style={{ width: '100%', padding: loading ? '10px 16px' : '16px', background: sageGradient, border: 'none', borderRadius: loading ? '18px' : '100px', fontSize: '15px', fontWeight: 700, color: '#fff', cursor: loading ? 'wait' : 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: '0 8px 24px rgba(53,92,125,0.3)', transition: 'all 0.2s', opacity: (!selfie || !selectedItem || !canGenerate) ? 0.6 : 1 }}>
               {loading ? (
                 <div style={{ width: '100%' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
