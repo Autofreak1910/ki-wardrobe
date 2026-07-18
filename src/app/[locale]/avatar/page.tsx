@@ -100,23 +100,26 @@ function compositeOnDressingRoom(subjectUrl: string, bgUrl: string): Promise<str
       // Leicht abdunkeln, damit die Person besser abhebt
       ctx.fillStyle = 'rgba(0,0,0,0.06)'
       ctx.fillRect(0, 0, W, H)
-
-      // Person unten zentriert einfuegen
-      const margin = 40
-      const maxH = H - margin * 1.4
-      const scale = Math.min(maxH / subjImg.naturalHeight, (W - 100) / subjImg.naturalWidth)
-      const dw = subjImg.naturalWidth * scale
-      const dh = subjImg.naturalHeight * scale
-      const dx = (W - dw) / 2
-      const dy = H - margin - dh
+// Person auf Bodenlinie einfuegen -- FLOOR_Y_FRACTION bestimmt, wo im Hintergrundbild
+// der Boden ist (0 = ganz oben, 1 = ganz unten). Bei "schwebt"-Effekt hier anpassen:
+// Wert HOCH setzen wenn Person zu tief im Boden "versinkt",
+// Wert RUNTER setzen wenn Person zu hoch "schwebt".
+const FLOOR_Y_FRACTION = 0.94
+const floorY = H * FLOOR_Y_FRACTION
+const maxH = floorY - 20
+const scale = Math.min(maxH / subjImg.naturalHeight, (W - 100) / subjImg.naturalWidth)
+const dw = subjImg.naturalWidth * scale
+const dh = subjImg.naturalHeight * scale
+const dx = (W - dw) / 2
+const dy = floorY - dh
 
       // Weicher Schatten fuer mehr Tiefe
       ctx.save()
       ctx.filter = 'blur(12px)'
       ctx.fillStyle = 'rgba(0,0,0,0.18)'
-      ctx.beginPath()
-      ctx.ellipse(dx + dw / 2, dy + dh - 6, dw * 0.32, 14, 0, 0, Math.PI * 2)
-      ctx.fill()
+     ctx.beginPath()
+ctx.ellipse(dx + dw / 2, floorY - 4, dw * 0.38, 18, 0, 0, Math.PI * 2)
+ctx.fill()
       ctx.restore()
 
       ctx.drawImage(subjImg, dx, dy, dw, dh)
