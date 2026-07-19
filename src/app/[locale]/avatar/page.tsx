@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 const DRESSING_ROOM_BG_URL = 'https://images.unsplash.com/photo-1672137233327-37b0c1049e77?w=1200&q=80&auto=format&fit=crop'
+import UpgradeModal from '@/components/UpgradeModal'
 
 type ClothingItem = { id: string; image_url: string; category: string; color: string; name?: string; brand?: string }
 function getCategoryLabel(category: string): string {
@@ -260,8 +261,9 @@ export default function AvatarPage() {
   const [pageLoading, setPageLoading] = useState(!avatarCache)
   const [error, setError] = useState<string | null>(null)
   const [sharing, setSharing] = useState(false)
-  const [genStep, setGenStep] = useState('')
+const [genStep, setGenStep] = useState('')
   const [genProgress, setGenProgress] = useState(0)
+  const [showUpgrade, setShowUpgrade] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const { theme } = useTheme()
   const locale = useLocale()
@@ -489,7 +491,7 @@ export default function AvatarPage() {
         <div style={{ padding: '0 20px' }}>
           {!canGenerate && (
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-              onClick={() => { if (!isPremium) router.push('/' + locale + '/profile?upgrade=true') }}
+             onClick={() => { if (!isPremium) setShowUpgrade(true) }}
               style={{ background: isPremium ? accentDim : sageGradient, borderRadius: '14px', padding: '12px 16px', marginBottom: '16px', cursor: isPremium ? 'default' : 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span style={{ fontSize: '18px' }}>🔒</span>
               <div>
@@ -593,7 +595,7 @@ export default function AvatarPage() {
               style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', padding: '12px 16px', marginBottom: '16px', textAlign: 'center' as const }}>
               <p style={{ fontSize: '13px', color: '#ef4444', fontWeight: 600 }}>{error}</p>
               {error.includes('Upgrade') && (
-                <button onClick={() => router.push('/' + locale + '/profile?upgrade=true')}
+               <button onClick={() => setShowUpgrade(true)}
                   style={{ marginTop: '8px', background: accent, border: 'none', borderRadius: '8px', padding: '8px 16px', color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
                   ✦ Upgrade →
                 </button>
@@ -744,8 +746,9 @@ export default function AvatarPage() {
             </motion.button>
           </div>
         </div>
-      </div>
+</div>
 
+      <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
     </div>
   )
 }

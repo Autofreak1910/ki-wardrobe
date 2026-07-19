@@ -5,6 +5,7 @@ import { useTheme } from '@/context/ThemeContext'
 import { useTranslations, useLocale } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import UpgradeModal from '@/components/UpgradeModal'
 import { motion, AnimatePresence } from 'framer-motion'
 
 type Outfit = { id: string; name: string; occasion: string; item_ids: string[]; is_favorite: boolean; created_at: string }
@@ -21,6 +22,7 @@ export default function OutfitsPage() {
   const [loading, setLoading] = useState(!outfitsCache)
   const [filter, setFilter] = useState<'all' | 'favorites'>('all')
   const { theme } = useTheme()
+  const [showUpgrade, setShowUpgrade] = useState(false)
   const t = useTranslations()
   const locale = useLocale()
   const router = useRouter()

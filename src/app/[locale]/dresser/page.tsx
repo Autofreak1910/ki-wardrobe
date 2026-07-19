@@ -6,11 +6,13 @@ import { useTranslations, useLocale } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
+import UpgradeModal from '@/components/UpgradeModal'
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4)
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
   const rawData = window.atob(base64)
+  const [showUpgrade, setShowUpgrade] = useState(false)
   const outputArray = new Uint8Array(rawData.length)
   for (let i = 0; i < rawData.length; ++i) {
     outputArray[i] = rawData.charCodeAt(i)
@@ -127,7 +129,8 @@ const [username, setUsername] = useState<string>(stylistCache?.username ?? '')
   const [isPremium, setIsPremium] = useState(stylistCache?.isPremium ?? false)
   const [premiumLoading, setPremiumLoading] = useState(!stylistCache)
   const [premiumUntil, setPremiumUntil] = useState<string | null>(stylistCache?.premiumUntil ?? null)
-  const [showProInfo, setShowProInfo] = useState(false)
+const [showProInfo, setShowProInfo] = useState(false)
+const [showUpgrade, setShowUpgrade] = useState(false)
   const { theme } = useTheme()
   const t = useTranslations()
   const locale = useLocale()
@@ -591,7 +594,7 @@ return (
   animate={{ opacity: 1, y: 0 }}
   exit={{ opacity: 0, y: -20 }}
 onClick={() => {
-  if (isPremium) { setLimitMsg(null) } else { router.push('/' + locale + '/profile?upgrade=true') }
+  if (isPremium) { setLimitMsg(null) } else { setShowUpgrade(true) }
 }}
  style={{
   position: 'fixed', top: '80px',
@@ -1502,17 +1505,20 @@ onClick={() => {
     {locale === 'de' ? '✦ Pro aktiv — weiter so!' : '✦ Pro active — keep it up!'}
   </motion.button>
 ) : (
-  <motion.button whileTap={{ scale: 0.97 }} onClick={() => { setShowProInfo(false); router.push('/' + locale + '/profile?upgrade=true') }}
+  <motion.button whileTap={{ scale: 0.97 }} onClick={() => { setShowProInfo(false); setShowUpgrade(true) }}
     style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: goldAccent, color: '#fff', fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", marginTop: '8px', boxShadow: '0 6px 24px rgba(251,191,36,0.4)' }}>
     {locale === 'de' ? '✦ Jetzt upgraden — €4,99/Monat' : '✦ Upgrade now — €4.99/month'}
   </motion.button>
+  
 )}
-            </motion.div>
+</motion.div>
           </motion.div>
+          
         )}
       </AnimatePresence>
         </div>
       </main>
+      <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
     </div>
   )
 }

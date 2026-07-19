@@ -6,7 +6,7 @@ import { useTranslations, useLocale } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-
+import UpgradeModal from '@/components/UpgradeModal'
 const categories = ['all', 'tops', 'hosen', 'jacken', 'schuhe', 'acc'] as const
 
 type ClothingItem = {
@@ -39,7 +39,8 @@ export default function WardrobePage() {
   const [editPrice, setEditPrice] = useState('')
   const [saving, setSaving] = useState(false)
 const [limitMsg, setLimitMsg] = useState<string | null>(null)
-  const [isPremium, setIsPremium] = useState(wardrobeCache?.isPremium ?? false)
+const [isPremium, setIsPremium] = useState(wardrobeCache?.isPremium ?? false)
+const [showUpgrade, setShowUpgrade] = useState(false)
   const [dna, setDna] = useState<any>(null)
   const [dnaLoading, setDnaLoading] = useState(false)
   const [showDna, setShowDna] = useState(false)
@@ -195,8 +196,8 @@ async function handleMultiUpload(e: React.ChangeEvent<HTMLInputElement>) {
   if (!files.length) return
   if (multiFileInputRef.current) multiFileInputRef.current.value = ''
 
-  if (!isPremium) {
-    router.push('/' + locale + '/profile?upgrade=true')
+if (!isPremium) {
+    setShowUpgrade(true)
     return
   }
 
@@ -346,7 +347,7 @@ await Promise.allSettled(toSave.map(async (item, i) => {
     setSelectedItem(null); loadItems()
   }
 async function generateStyleDna() {
-  if (!isPremium) { router.push('/' + locale + '/profile?upgrade=true'); return }
+  if (!isPremium) { setShowUpgrade(true); return }
   if (items.length < 3) return
   const { data: { session } } = await supabase.auth.getSession()
   if (!session?.user) return
@@ -544,7 +545,7 @@ async function generateStyleDna() {
 
    {/* Mehrere Fotos — Pro */}
           <motion.div whileTap={{ scale: 0.97 }}
-            onClick={() => { if (!isPremium) { router.push('/' + locale + '/profile?upgrade=true'); return } if (!multiAnalyzing) multiFileInputRef.current?.click() }}
+            onClick={() => { if (!isPremium) { setShowUpgrade(true); return } if (!multiAnalyzing) multiFileInputRef.current?.click() }}
             style={{
               background: isPremium ? card : 'linear-gradient(135deg, rgba(251,191,36,0.15), rgba(245,158,11,0.08))',
               border: isPremium ? `1px solid ${border}` : '1px solid rgba(251,191,36,0.35)',
@@ -946,7 +947,8 @@ const dnaLocked = !isPremium || styleDnaUsedToday || needsMoreItems
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
+</AnimatePresence>
+      <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
     </div>
   )
 }
