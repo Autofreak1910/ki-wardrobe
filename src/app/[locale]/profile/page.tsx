@@ -700,9 +700,12 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
         transition={{ type: 'spring', damping: 28, stiffness: 300 }}
         onClick={e => e.stopPropagation()}
         style={{ width: '100%', maxWidth: '480px', background: bg, border: `1px solid ${border}`, borderRadius: '28px', padding: '28px 20px 32px' }}>
-        <p style={{ fontSize: '11px', fontWeight: 700, color: muted, letterSpacing: '0.12em', textTransform: 'uppercase' as const, textAlign: 'center' as const, marginBottom: '20px' }}>
-          {locale === 'de' ? 'Wähle deinen Plan' : 'Choose your plan'}
-        </p>
+       <p style={{ fontSize: '11px', fontWeight: 700, color: muted, letterSpacing: '0.12em', textTransform: 'uppercase' as const, textAlign: 'center' as const, marginBottom: '4px' }}>
+              {locale === 'de' ? 'Wähle deinen Plan' : 'Choose your plan'}
+            </p>
+            <p style={{ fontSize: '13px', fontWeight: 600, color: text, textAlign: 'center' as const, marginBottom: '20px' }}>
+              {locale === 'de' ? 'Weniger als ein Kaffee — 7× mehr Outfits' : 'Less than a coffee — 7× more outfits'}
+            </p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
           {/* Free */}
           <div style={{ background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', border: `1px solid ${border}`, borderRadius: '18px', padding: '16px 14px' }}>
@@ -748,9 +751,12 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
               </p>
             </div>
             <div style={{ marginTop: '12px' }}>
-              <p style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(36,33,27,0.7)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '4px' }}>PRO</p>
-           <p style={{ fontSize: '32px', fontWeight: 800, color: '#24211B', letterSpacing: '-0.04em', marginBottom: '2px' }}>€4,99</p>
-              <p style={{ fontSize: '11px', color: 'rgba(36,33,27,0.7)', marginBottom: '12px' }}>{locale === 'de' ? 'pro Monat · kündbar' : 'per month'}</p>
+            <p style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(36,33,27,0.7)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '4px' }}>PRO</p>
+                <p style={{ fontSize: '32px', fontWeight: 800, color: '#24211B', letterSpacing: '-0.04em', marginBottom: '2px' }}>€4,99</p>
+                <p style={{ fontSize: '11px', color: 'rgba(36,33,27,0.7)', marginBottom: '2px' }}>{locale === 'de' ? 'pro Monat' : 'per month'}</p>
+                <p style={{ fontSize: '10px', color: 'rgba(36,33,27,0.6)', fontStyle: 'italic', marginBottom: '12px' }}>
+                  {locale === 'de' ? 'nur 16 Cent/Tag' : 'just 16¢/day'}
+                </p>
               <div style={{ height: '1px', background: 'rgba(36,33,27,0.2)', marginBottom: '12px' }} />
             {[
                { title: '14 Outfits', sub: locale === 'de' ? 'pro Woche' : 'per week' },
@@ -797,11 +803,11 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
             if (data.url) window.location.href = data.url
           }}
           style={{ width: '100%', padding: '15px', background: withdrawalConsent ? `linear-gradient(135deg, ${gold}, #E8B45E)` : (isDark ? '#1D1D20' : '#EDE7D8'), border: 'none', borderRadius: '14px', fontSize: '15px', fontWeight: 700, color: withdrawalConsent ? '#24211B' : muted, cursor: withdrawalConsent ? 'pointer' : 'not-allowed', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: withdrawalConsent ? `0 4px 20px ${gold}40` : 'none', marginBottom: '10px', transition: 'all 0.2s' }}>
-          {locale === 'de' ? '✦ Für €4,99/Monat abonnieren' : '✦ Subscribe for €4.99/month'}
+       {locale === 'de' ? '✦ Jetzt freischalten — €4,99/Monat' : '✦ Unlock now — €4.99/month'}
         </motion.button>
 
-        <p style={{ textAlign: 'center' as const, fontSize: '11px', color: muted }}>
-          {locale === 'de' ? 'Jederzeit kündbar · Keine versteckten Kosten' : 'Cancel anytime · No hidden fees'}
+ <p style={{ textAlign: 'center' as const, fontSize: '11px', color: muted }}>
+          {locale === 'de' ? 'Jederzeit kündbar · Sofort freigeschaltet' : 'Cancel anytime · Instant access'}
         </p>
       </motion.div>
     </motion.div>

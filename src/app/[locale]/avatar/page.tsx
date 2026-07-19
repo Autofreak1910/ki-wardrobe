@@ -498,7 +498,7 @@ const [genStep, setGenStep] = useState('')
                 <p style={{ fontSize: '13px', fontWeight: 700, color: isPremium ? accent : '#fff' }}>
                   {isPremium
                     ? (locale === 'de' ? 'Wochenlimit erreicht' : 'Weekly limit reached')
-                    : (locale === 'de' ? 'Keine Versuche mehr — Pro für €4,99/Mo →' : 'No tries left — Pro for €4.99/mo →')}
+                    : (locale === 'de' ? 'Keine Versuche mehr — Jetzt freischalten →' : 'No tries left — Pro for €4.99/mo →')}
                 </p>
                 {isPremium && (
                   <p style={{ fontSize: '11px', color: muted }}>
@@ -597,7 +597,7 @@ const [genStep, setGenStep] = useState('')
               {error.includes('Upgrade') && (
                <button onClick={() => setShowUpgrade(true)}
                   style={{ marginTop: '8px', background: accent, border: 'none', borderRadius: '8px', padding: '8px 16px', color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
-                  ✦ Upgrade →
+                  ✦ Jetzt freischalten →
                 </button>
               )}
             </motion.div>
