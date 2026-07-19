@@ -445,8 +445,8 @@ const [genStep, setGenStep] = useState('')
       <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '560px', width: '100%', margin: '0 auto', padding: '68px 0 170px', position: 'relative', zIndex: 1 }}>
 
         {/* Hero Banner */}
-    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-          style={{ position: 'relative' as const, height: '140px', marginBottom: '0', overflow: 'hidden', borderRadius: '0 0 28px 28px' }}>
+ <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+          style={{ position: 'relative' as const, height: '220px', marginBottom: '0', overflow: 'hidden', borderRadius: '0 0 28px 28px' }}>
           <img
             src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80&auto=format&fit=crop"
             alt=""
@@ -465,16 +465,19 @@ const [genStep, setGenStep] = useState('')
       <p style={{ fontSize: '11px', fontWeight: 700, color: '#fff' }}>{usedThisPeriod}/{periodLimit} {locale === 'de' ? 'diesen Monat' : 'this month'}</p>
             </div>
           )}
+
+          <div style={{ position: 'absolute' as const, bottom: '20px', left: '20px', zIndex: 2 }}>
+            <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: '4px', textShadow: '0 1px 8px rgba(0,0,0,0.4)' }}>
+              Virtual Try-On
+            </h1>
+            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.9)', fontWeight: 500, textShadow: '0 1px 6px rgba(0,0,0,0.4)' }}>
+              {locale === 'de' ? 'Probiere Klamotten virtuell an deinem Foto an' : 'Try clothes on your photo virtually'}
+            </p>
+          </div>
         </motion.div>
 
-        {/* Title + Tips */}
+        {/* Tips */}
         <div style={{ padding: '12px 20px 0', marginBottom: '14px' }}>
-          <h1 style={{ fontSize: '24px', fontWeight: 800, color: text, letterSpacing: '-0.04em', marginBottom: '2px' }}>
-            Virtual Try-On
-          </h1>
-          <p style={{ fontSize: '14px', color: text, fontWeight: 500, marginBottom: '12px' }}>
-            {locale === 'de' ? 'Probiere Klamotten virtuell an deinem Foto an' : 'Try clothes on your photo virtually'}
-          </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' as const }}>
             <span style={{ fontSize: '12px' }}>💡</span>
             {[

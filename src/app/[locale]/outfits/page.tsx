@@ -96,25 +96,26 @@ export default function OutfitsPage() {
       <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '800px', width: '100%', margin: '0 auto', padding: '68px 0 108px', position: 'relative', zIndex: 1 }}>
 
         {/* Hero Banner mit Outfit-Collage */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-          style={{ position: 'relative' as const, height: '180px', overflow: 'hidden', marginBottom: '0' }}>
+ <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+          style={{ position: 'relative' as const, height: '180px', overflow: 'hidden', marginBottom: '0', borderRadius: '0 0 28px 28px' }}>
 
-          <img
+    <img
             src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&q=80&auto=format&fit=crop"
             alt=""
             style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', position: 'absolute', inset: 0 }}
           />
 
           {/* Gradient Overlay */}
-          <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, rgba(29,29,32,0.06) 0%, ${bg}cc 65%, ${bg} 100%)` }} />
+          <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, transparent 0%, transparent 50%, ${bg} 100%)`, maskImage: 'linear-gradient(to bottom, transparent 0%, black 100%)', WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 100%)' }} />
+          <div style={{ position: 'absolute', inset: '40% 0 0 0', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', background: 'rgba(0,0,0,0.25)', maskImage: 'linear-gradient(to bottom, transparent 0%, black 40%, black 100%)', WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 40%, black 100%)' }} />
 
           {/* Titel über Bild */}
           <div style={{ position: 'absolute' as const, bottom: '16px', left: '20px', zIndex: 2 }}>
-            <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: muted, marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: accent, display: 'inline-block' }} />
+            <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: 'rgba(255,255,255,0.85)', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '6px', textShadow: '0 1px 6px rgba(0,0,0,0.4)' }}>
+              <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#fff', display: 'inline-block' }} />
               {locale === 'de' ? 'Deine Looks' : 'Your Looks'}
             </p>
-            <h1 style={{ fontSize: '28px', fontWeight: 800, color: text, letterSpacing: '-0.04em', lineHeight: 1 }}>Outfits</h1>
+            <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1, textShadow: '0 1px 8px rgba(0,0,0,0.4)' }}>Outfits</h1>
           </div>
 
           {/* Favoriten-Badge oben rechts */}
