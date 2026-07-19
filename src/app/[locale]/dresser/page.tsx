@@ -163,6 +163,7 @@ const [streak, setStreak] = useState(stylistCache?.streak ?? 0)
 const [weekOutfitsUsed, setWeekOutfitsUsed] = useState(0)
   const [savedOutfitsCount, setSavedOutfitsCount] = useState(0)
   const [bonusOutfitsThisWeek, setBonusOutfitsThisWeek] = useState(0)
+  const [bonusTryonsThisWeek, setBonusTryonsThisWeek] = useState(0)
   const [freezeUsedMonth, setFreezeUsedMonth] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const [streakReward, setStreakReward] = useState<{ days: number; milestone: number } | null>(null)
@@ -299,9 +300,10 @@ async function loadStreak() {
     if (data) { setWardrobeItems(data); setHasItems(data.length >= 3) }
 const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
     supabase.from('profiles').update({ timezone: tz }).eq('id', session.user.id)
-const { data: profile } = await supabase.from('profiles').select('username, premium_until, streak_freeze_used_month, bonus_outfits_this_week').eq('id', session.user.id).single()
+const { data: profile } = await supabase.from('profiles').select('username, premium_until, streak_freeze_used_month, bonus_outfits_this_week, bonus_tryons_this_week').eq('id', session.user.id).single()
     setFreezeUsedMonth(profile?.streak_freeze_used_month ?? null)
     setBonusOutfitsThisWeek(profile?.bonus_outfits_this_week ?? 0)
+    setBonusTryonsThisWeek(profile?.bonus_tryons_this_week ?? 0)
     if (profile?.username) setUsername(profile.username)
     if (profile?.premium_until) {
       const until = new Date(profile.premium_until)
@@ -1304,6 +1306,23 @@ onClick={() => {
               </div>
             </motion.div>
 
+   {isPremium && bonusOutfitsThisWeek > 0 && (
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'linear-gradient(135deg, rgba(249,115,22,0.1), rgba(239,68,68,0.05))', border: '1px solid rgba(249,115,22,0.25)', borderRadius: '12px', padding: '10px 14px', marginBottom: '12px' }}>
+                <span style={{ fontSize: '16px' }}>✨</span>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: '12px', fontWeight: 700, color: '#c2410c' }}>
+                    {locale === 'de'
+                      ? `+${bonusOutfitsThisWeek} Bonus-Outfit${bonusOutfitsThisWeek > 1 ? 's' : ''}${bonusTryonsThisWeek > 0 ? ` · +${bonusTryonsThisWeek} Try-On` : ''} diese Woche`
+                      : `+${bonusOutfitsThisWeek} bonus outfit${bonusOutfitsThisWeek > 1 ? 's' : ''}${bonusTryonsThisWeek > 0 ? ` · +${bonusTryonsThisWeek} try-on` : ''} this week`}
+                  </p>
+                  <p style={{ fontSize: '10px', color: '#c2410c', opacity: 0.75 }}>
+                    {locale === 'de' ? 'Läuft am Montag ab — jetzt nutzen! 🔥' : 'Expires Monday — use it now! 🔥'}
+                  </p>
+                </div>
+              </motion.div>
+            )}
+
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24, duration: 0.4 }} style={{ marginBottom: '28px' }}>
               <motion.button ref={dressMeRef} onClick={generateOutfit} disabled={loading} whileTap={!loading ? { scale: 0.97 } : {}}
                 style={{ width: '100%', padding: '19px', borderRadius: '100px', border: 'none', background: loading ? (isDark ? '#0f1a14' : '#e6f7f0') : sageGradient, color: loading ? muted : '#fff', fontSize: '15px', fontWeight: 700, fontFamily: "'Poppins', 'Inter', sans-serif", cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', WebkitTapHighlightColor: 'transparent', transition: 'all 0.2s', boxShadow: loading ? 'none' : '0 8px 24px rgba(53,92,125,0.3)' }}>
@@ -1451,7 +1470,23 @@ onClick={() => {
                 })()}
               </div>
 
-             <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '8px', marginBottom: '20px' }}>
+          {isPremium && (bonusOutfitsThisWeek > 0 || bonusTryonsThisWeek > 0) && (
+                <div style={{ background: 'linear-gradient(135deg, rgba(249,115,22,0.1), rgba(239,68,68,0.05))', border: '1px solid rgba(249,115,22,0.25)', borderRadius: '12px', padding: '12px 14px', marginBottom: '16px' }}>
+                  <p style={{ fontSize: '12px', fontWeight: 700, color: '#c2410c', marginBottom: '2px' }}>
+                    ✨ {locale === 'de' ? 'Aktiver Bonus diese Woche' : 'Active bonus this week'}
+                  </p>
+                  <p style={{ fontSize: '13px', color: '#c2410c' }}>
+                    {locale === 'de'
+                      ? `+${bonusOutfitsThisWeek} Outfit${bonusOutfitsThisWeek > 1 ? 's' : ''}${bonusTryonsThisWeek > 0 ? ` · +${bonusTryonsThisWeek} Try-On` : ''}`
+                      : `+${bonusOutfitsThisWeek} outfit${bonusOutfitsThisWeek > 1 ? 's' : ''}${bonusTryonsThisWeek > 0 ? ` · +${bonusTryonsThisWeek} try-on` : ''}`}
+                  </p>
+                  <p style={{ fontSize: '10px', color: '#c2410c', opacity: 0.75, marginTop: '2px' }}>
+                    {locale === 'de' ? 'Verfällt am Montag' : 'Expires Monday'}
+                  </p>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '8px', marginBottom: '20px' }}>
                 {(isPremium ? [
                   { days: 7, reward: locale === 'de' ? '+1 Outfit diese Woche' : '+1 outfit this week', emoji: '🏅', claimed: streak >= 7 },
                   { days: 14, reward: locale === 'de' ? '+2 Outfits · +1 Try-On' : '+2 outfits · +1 try-on', emoji: '🥇', claimed: streak >= 14 },
