@@ -42,9 +42,10 @@ const [limitMsg, setLimitMsg] = useState<string | null>(null)
 const [isPremium, setIsPremium] = useState(wardrobeCache?.isPremium ?? false)
   const [multiScansThisWeek, setMultiScansThisWeek] = useState(0)
 const [showUpgrade, setShowUpgrade] = useState(false)
-  const [dna, setDna] = useState<any>(null)
+const [dna, setDna] = useState<any>(null)
   const [dnaLoading, setDnaLoading] = useState(false)
   const [showDna, setShowDna] = useState(false)
+  const [showDnaUsedToday, setShowDnaUsedToday] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const multiFileInputRef = useRef<HTMLInputElement>(null)
   const [multiMode, setMultiMode] = useState(false)
@@ -371,8 +372,7 @@ async function generateStyleDna() {
     .gte('created_at', todayStart.toISOString()) as any
 
   if ((count ?? 0) >= 1) {
-    setLimitMsg(locale === 'de' ? 'Style DNA heute schon generiert — morgen wieder!' : 'Style DNA already generated today — try again tomorrow!')
-    setTimeout(() => setLimitMsg(null), 4000)
+    setShowDnaUsedToday(true)
     return
   }
 
@@ -827,6 +827,52 @@ const dnaLocked = !isPremium || styleDnaUsedToday || needsMoreItems
           </motion.div>
         )}
 </AnimatePresence>
+
+     {/* Style DNA schon heute genutzt */}
+      <AnimatePresence>
+        {showDnaUsedToday && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setShowDnaUsedToday(false)}
+            style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+            <motion.div
+              initial={{ scale: 0.85, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: 'spring', damping: 20 }}
+              onClick={e => e.stopPropagation()}
+              style={{ background: 'linear-gradient(135deg, #0f0c1a, #1a0f2e, #0f1a2e)', borderRadius: '28px', padding: '32px 24px', textAlign: 'center' as const, maxWidth: '340px', width: '100%', border: '1px solid rgba(168,85,247,0.3)', boxShadow: '0 24px 64px rgba(168,85,247,0.2)', position: 'relative' as const, overflow: 'hidden' }}>
+
+              <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '160px', height: '160px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(168,85,247,0.3), transparent 70%)', filter: 'blur(20px)', pointerEvents: 'none' }} />
+
+              <motion.p animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 2, repeat: Infinity }}
+                style={{ fontSize: '52px', marginBottom: '16px', position: 'relative', zIndex: 1 }}>🧬</motion.p>
+
+              <p style={{ fontSize: '11px', fontWeight: 700, color: '#a855f7', letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '10px', position: 'relative', zIndex: 1 }}>
+                {locale === 'de' ? '✦ Schon erledigt' : '✦ Already done'}
+              </p>
+
+              <p style={{ fontSize: '19px', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em', marginBottom: '10px', position: 'relative', zIndex: 1 }}>
+                {locale === 'de' ? 'Deine Style DNA von heute wartet schon!' : 'Your Style DNA for today is ready!'}
+              </p>
+
+              <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, marginBottom: '24px', position: 'relative', zIndex: 1 }}>
+                {locale === 'de'
+                  ? 'Eine neue Analyse gibt es morgen — schau dir bis dahin dein aktuelles Ergebnis nochmal an.'
+                  : "A new analysis is available tomorrow — in the meantime, take another look at today's result."}
+              </p>
+
+              <motion.button whileTap={{ scale: 0.97 }}
+                onClick={() => { setShowDnaUsedToday(false); setShowDna(true) }}
+                style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: 'linear-gradient(135deg, #a855f7, #6b9fff)', color: '#fff', fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: '0 6px 24px rgba(168,85,247,0.4)', marginBottom: '8px', position: 'relative', zIndex: 1 }}>
+                {locale === 'de' ? '🧬 Heutige DNA ansehen' : '🧬 View today\'s DNA'}
+              </motion.button>
+
+              <button onClick={() => setShowDnaUsedToday(false)}
+                style={{ width: '100%', padding: '11px', background: 'transparent', border: 'none', fontSize: '13px', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", position: 'relative', zIndex: 1 }}>
+                {locale === 'de' ? 'Schließen' : 'Close'}
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Style DNA Modal */}
       <AnimatePresence>
