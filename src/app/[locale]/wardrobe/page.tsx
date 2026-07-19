@@ -500,12 +500,12 @@ async function generateStyleDna() {
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
           style={{ position: 'relative' as const, marginBottom: '20px', borderRadius: '0 0 28px 28px', overflow: 'hidden', height: '200px', marginLeft: '-0px', marginRight: '-0px' }}>
 
-   <img
+  <img
             src="/closet-hero.jpg.png"
             alt=""
             style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', position: 'absolute', inset: 0 }}
           />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(232,237,245,0.88) 35%, rgba(232,237,245,0.15) 100%)' }} />
+          <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, rgba(253,252,249,0.1) 0%, ${bg}f2 100%)` }} />
 
           {/* Text über dem Bild */}
           <div style={{ position: 'absolute' as const, bottom: '20px', left: '20px', zIndex: 2 }}>
@@ -655,9 +655,7 @@ const dnaLocked = !isPremium || styleDnaUsedToday || needsMoreItems
   <span style={{ fontSize: '9px', fontWeight: 700, color: '#a855f7', background: 'rgba(168,85,247,0.2)', borderRadius: '5px', padding: '2px 7px', border: '1px solid rgba(168,85,247,0.3)' }}>✦ AKTIV</span>
 )}
       </div>
-      <p style={{ fontSize: '22px', fontWeight: 800, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: '6px' }}>
-        {locale === 'de' ? 'Starke DNA' : 'Strong DNA'}
-      </p>
+     {locale === 'de' ? 'Was sagt dein Style über dich?' : 'What does your style say?'}
    <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)', lineHeight: 1.4 }}>
   {!isPremium
     ? (locale === 'de' ? 'Analysiere deinen Stil-Code mit KI.' : 'Analyze your style code with AI.')

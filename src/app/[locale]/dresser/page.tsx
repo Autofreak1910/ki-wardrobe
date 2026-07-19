@@ -1034,8 +1034,8 @@ onClick={() => {
 
       <main ref={mainRef} style={{ flex: 1, overflowY: 'auto' as const, overflowX: 'hidden', maxWidth: '540px', width: '100%', margin: '0 auto', padding: '68px 0 112px', position: 'relative', zIndex: 1 }}>
 
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-          style={{ position: 'relative' as const, height: '220px', marginBottom: '0', overflow: 'hidden' }}>
+       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+          style={{ position: 'relative' as const, height: '220px', marginBottom: '0', overflow: 'hidden', borderRadius: '0 0 28px 28px' }}>
 
           <img
             src="https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800&q=80&auto=format&fit=crop"

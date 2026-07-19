@@ -446,7 +446,7 @@ const [genStep, setGenStep] = useState('')
 
         {/* Hero Banner */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-          style={{ position: 'relative' as const, height: '140px', marginBottom: '0', overflow: 'hidden' }}>
+          style={{ position: 'relative' as const, height: '140px', marginBottom: '0', overflow: 'hidden', borderRadius: '0 0 28px 28px' }}>
           <img
             src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80&auto=format&fit=crop"
             alt=""
