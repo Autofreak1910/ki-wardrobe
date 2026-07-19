@@ -505,7 +505,7 @@ async function generateStyleDna() {
             alt=""
             style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', position: 'absolute', inset: 0 }}
           />
-          <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, ${bg}f2 100%)` }} />
+          background: `linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.15) 45%, rgba(0,0,0,0.6) 70%, ${bg} 100%)`
 
           {/* Text über dem Bild */}
           <div style={{ position: 'absolute' as const, bottom: '20px', left: '20px', zIndex: 2 }}>
