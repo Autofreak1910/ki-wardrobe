@@ -965,7 +965,7 @@ const dnaLocked = !isPremium || styleDnaUsedToday || needsMoreItems
           </motion.div>
         )}
 </AnimatePresence>
-    <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} usage={{ items: items.length, itemsMax: 20 }} />
+ <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
     </div>
   )
 }

@@ -748,7 +748,7 @@ const [genStep, setGenStep] = useState('')
         </div>
 </div>
 
-      <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
+     <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
     </div>
   )
 }

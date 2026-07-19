@@ -6,14 +6,7 @@ import { useLocale } from 'next-intl'
 import { useTheme } from '@/context/ThemeContext'
 import { motion, AnimatePresence } from 'framer-motion'
 
-type Usage = {
-  items?: number; itemsMax?: number
-  savedOutfits?: number; savedMax?: number
-  weekOutfits?: number; weekOutfitsMax?: number
-  tryOns?: number; tryOnsMax?: number
-}
-
-export default function UpgradeModal({ open, onClose, usage }: { open: boolean; onClose: () => void; usage?: Usage }) {
+export default function UpgradeModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { theme } = useTheme()
   const locale = useLocale()
   const supabase = createClient()
@@ -26,13 +19,6 @@ export default function UpgradeModal({ open, onClose, usage }: { open: boolean; 
   const text   = isDark ? '#F5F3EE' : '#24211B'
   const muted  = isDark ? '#9a978f' : '#8C8776'
   const gold   = isDark ? '#E5B45B' : '#C9963C'
-  function line(current: number | undefined, max: number | undefined, fallback: string, urgentFallback: string): string {
-    if (current === undefined || max === undefined) return fallback
-    const remaining = max - current
-    if (remaining <= 0) return locale === 'de' ? `${current}/${max} — Limit erreicht!` : `${current}/${max} — limit reached!`
-    if (remaining <= Math.max(1, Math.round(max * 0.2))) return locale === 'de' ? `${current}/${max} — fast voll!` : `${current}/${max} — almost full!`
-    return `${current}/${max}`
-  }
 
   async function startCheckout() {
     if (!withdrawalConsent) return
@@ -58,66 +44,95 @@ export default function UpgradeModal({ open, onClose, usage }: { open: boolean; 
             onClick={e => e.stopPropagation()}
             style={{ width: '100%', maxWidth: '480px', background: bg, border: `1px solid ${border}`, borderRadius: '28px', padding: '28px 20px 32px' }}>
 
-            <p style={{ fontSize: '11px', fontWeight: 700, color: muted, letterSpacing: '0.12em', textTransform: 'uppercase' as const, textAlign: 'center' as const, marginBottom: '20px' }}>
+            <p style={{ fontSize: '11px', fontWeight: 700, color: muted, letterSpacing: '0.12em', textTransform: 'uppercase' as const, textAlign: 'center' as const, marginBottom: '4px' }}>
               {locale === 'de' ? 'Wähle deinen Plan' : 'Choose your plan'}
+            </p>
+            <p style={{ fontSize: '13px', fontWeight: 600, color: text, textAlign: 'center' as const, marginBottom: '20px' }}>
+              {locale === 'de' ? 'Weniger als ein Kaffee — 7× mehr Outfits' : 'Less than a coffee — 7× more outfits'}
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
+              {/* Free */}
               <div style={{ background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', border: `1px solid ${border}`, borderRadius: '18px', padding: '16px 14px' }}>
                 <p style={{ fontSize: '11px', fontWeight: 700, color: muted, letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '4px' }}>FREE</p>
                 <p style={{ fontSize: '32px', fontWeight: 800, color: text, letterSpacing: '-0.04em', marginBottom: '2px' }}>€0</p>
                 <p style={{ fontSize: '11px', color: muted, marginBottom: '12px' }}>{locale === 'de' ? 'für immer kostenlos' : 'free forever'}</p>
                 <div style={{ height: '1px', background: border, marginBottom: '12px' }} />
-         {[
-                  { t: line(usage?.weekOutfits, usage?.weekOutfitsMax, locale === 'de' ? '3 Outfits pro Woche' : '3 outfits per week', ''), urgent: usage?.weekOutfits !== undefined && usage?.weekOutfitsMax !== undefined && usage.weekOutfits >= usage.weekOutfitsMax },
-                  { t: line(usage?.items, usage?.itemsMax, locale === 'de' ? 'Max. 20 Kleidungsstücke' : 'Max. 20 items', ''), urgent: usage?.items !== undefined && usage?.itemsMax !== undefined && usage.items >= usage.itemsMax },
-                  { t: line(usage?.savedOutfits, usage?.savedMax, locale === 'de' ? 'Max. 5 gespeicherte Outfits' : 'Max. 5 saved outfits', ''), urgent: usage?.savedOutfits !== undefined && usage?.savedMax !== undefined && usage.savedOutfits >= usage.savedMax },
-                  { t: line(usage?.tryOns, usage?.tryOnsMax, locale === 'de' ? '2 Virtual Try-Ons/Monat' : '2 virtual try-ons/month', ''), urgent: usage?.tryOns !== undefined && usage?.tryOnsMax !== undefined && usage.tryOns >= usage.tryOnsMax },
+                {[
+                  { title: locale === 'de' ? '3 Outfits pro Woche' : '3 outfits per week', sub: '' },
+                  { title: locale === 'de' ? 'Max. 20 Kleidungsstücke' : 'Max. 20 items', sub: '' },
+                  { title: locale === 'de' ? 'Max. 5 Outfits speichern' : 'Max. 5 saved outfits', sub: '' },
+                  { title: locale === 'de' ? '2 Virtual Try-Ons' : '2 virtual try-ons', sub: locale === 'de' ? 'pro Monat' : 'per month' },
+                  { title: locale === 'de' ? 'Kein Mehrfach-Upload' : 'No multi-upload', sub: '' },
                 ].map((f, i) => (
                   <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '11px', color: f.urgent ? '#ef4444' : muted }}>{f.urgent ? '✕' : '○'}</span>
-                    <p style={{ fontSize: '13px', fontWeight: 600, color: f.urgent ? '#ef4444' : text }}>{f.t}</p>
+                    <span style={{ fontSize: '11px', color: muted, flexShrink: 0, marginTop: '2px' }}>○</span>
+                    <div>
+                      <p style={{ fontSize: '13px', fontWeight: 600, color: text }}>{f.title}</p>
+                      {f.sub && <p style={{ fontSize: '11px', color: muted }}>{f.sub}</p>}
+                    </div>
                   </div>
                 ))}
               </div>
 
+              {/* Pro */}
               <motion.div whileTap={{ scale: 0.98 }} onClick={startCheckout}
-                style={{ background: `linear-gradient(160deg, ${gold}, #E8B45E)`, borderRadius: '18px', padding: '16px 14px', cursor: 'pointer' }}>
-                <p style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(36,33,27,0.7)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '4px' }}>PRO</p>
-                <p style={{ fontSize: '32px', fontWeight: 800, color: '#24211B', letterSpacing: '-0.04em', marginBottom: '2px' }}>€4,99</p>
-                <p style={{ fontSize: '11px', color: 'rgba(36,33,27,0.7)', marginBottom: '12px' }}>{locale === 'de' ? 'pro Monat' : 'per month'}</p>
-                <div style={{ height: '1px', background: 'rgba(36,33,27,0.2)', marginBottom: '12px' }} />
-              {[
-                  '14 Outfits/' + (locale === 'de' ? 'Woche' : 'week'),
-                  locale === 'de' ? 'Unbegrenzt Kleidung' : 'Unlimited items',
-                  locale === 'de' ? 'Unbegrenzt speichern' : 'Unlimited saves',
-                  '6× Try-On/' + (locale === 'de' ? 'Woche' : 'week'),
-                  'Style DNA',
-                  locale === 'de' ? 'Mehrfach-Upload' : 'Multi-upload',
-                ].map((t, i) => (
-                  <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '11px', color: '#24211B' }}>✦</span>
-                    <p style={{ fontSize: '11px', fontWeight: 700, color: '#24211B' }}>{t}</p>
-                  </div>
-                ))}
+                style={{ background: `linear-gradient(160deg, ${gold}, #E8B45E)`, borderRadius: '18px', padding: '16px 14px', cursor: 'pointer', position: 'relative' as const, overflow: 'hidden', boxShadow: `0 8px 32px ${gold}50` }}>
+                <div style={{ position: 'absolute', top: '-1px', left: '50%', transform: 'translateX(-50%)', background: '#fff', borderRadius: '0 0 8px 8px', padding: '2px 10px' }}>
+                  <p style={{ fontSize: '9px', fontWeight: 800, color: gold, letterSpacing: '0.06em', textTransform: 'uppercase' as const, whiteSpace: 'nowrap' as const }}>
+                    {locale === 'de' ? 'Empfohlen' : 'Recommended'}
+                  </p>
+                </div>
+                <div style={{ marginTop: '12px' }}>
+                  <p style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(36,33,27,0.7)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '4px' }}>PRO</p>
+                  <p style={{ fontSize: '32px', fontWeight: 800, color: '#24211B', letterSpacing: '-0.04em', marginBottom: '2px' }}>€4,99</p>
+                  <p style={{ fontSize: '11px', color: 'rgba(36,33,27,0.7)', marginBottom: '2px' }}>{locale === 'de' ? 'pro Monat' : 'per month'}</p>
+                  <p style={{ fontSize: '10px', color: 'rgba(36,33,27,0.6)', fontStyle: 'italic', marginBottom: '12px' }}>
+                    {locale === 'de' ? 'nur 16 Cent/Tag' : 'just 16¢/day'}
+                  </p>
+                  <div style={{ height: '1px', background: 'rgba(36,33,27,0.2)', marginBottom: '12px' }} />
+                  <p style={{ fontSize: '10px', fontWeight: 800, color: '#9C6B1F', marginBottom: '10px', letterSpacing: '0.02em' }}>
+                    {locale === 'de' ? '🔥 Exklusiv mit Pro' : '🔥 Exclusive with Pro'}
+                  </p>
+                  {[
+                    { title: '14 Outfits', sub: locale === 'de' ? 'pro Woche' : 'per week' },
+                    { title: locale === 'de' ? 'Unbegrenzt Kleidung' : 'Unlimited items', sub: '' },
+                    { title: locale === 'de' ? 'Unbegrenzt speichern' : 'Unlimited saved', sub: '' },
+                    { title: locale === 'de' ? '6× Virtual Try-On' : '6× Virtual Try-On', sub: locale === 'de' ? 'pro Woche' : 'per week' },
+                    { title: 'Style DNA', sub: locale === 'de' ? 'KI Stil-Analyse' : 'AI style analysis' },
+                    { title: locale === 'de' ? 'Mehrfach-Upload ✦' : 'Multi-upload ✦', sub: locale === 'de' ? 'Bis zu 10 Fotos · 3× pro Woche' : 'Up to 10 photos · 3× per week' },
+                  ].map((f, i) => (
+                    <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '11px', color: '#24211B', flexShrink: 0, marginTop: '2px' }}>✦</span>
+                      <div>
+                        <p style={{ fontSize: '11px', fontWeight: 700, color: '#24211B' }}>{f.title}</p>
+                        {f.sub && <p style={{ fontSize: '10px', color: 'rgba(36,33,27,0.7)' }}>{f.sub}</p>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </motion.div>
             </div>
 
             <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '14px', cursor: 'pointer' }}>
               <input type="checkbox" checked={withdrawalConsent} onChange={e => setWithdrawalConsent(e.target.checked)}
-                style={{ width: '18px', height: '18px', marginTop: '1px', flexShrink: 0, cursor: 'pointer' }} />
+                style={{ width: '18px', height: '18px', marginTop: '1px', flexShrink: 0, accentColor: gold, cursor: 'pointer' }} />
               <span style={{ fontSize: '12px', color: muted, lineHeight: 1.5 }}>
                 {locale === 'de'
-                  ? 'Ich stimme zu, dass KiWardrobe Pro sofort nach Zahlung freigeschaltet wird, und verliere dadurch mein 14-tägiges Widerrufsrecht.'
-                  : 'I agree that KiWardrobe Pro will be activated immediately upon payment, and lose my 14-day right of withdrawal.'}
+                  ? 'Ich stimme zu, dass KiWardrobe Pro sofort nach Zahlung freigeschaltet wird, und bestätige, dass ich dadurch mein 14-tägiges Widerrufsrecht verliere.'
+                  : 'I agree that KiWardrobe Pro will be activated immediately upon payment, and confirm that I thereby lose my 14-day right of withdrawal.'}
               </span>
             </label>
 
             <motion.button whileTap={withdrawalConsent ? { scale: 0.97 } : {}}
               disabled={!withdrawalConsent} onClick={startCheckout}
-              style={{ width: '100%', padding: '15px', background: withdrawalConsent ? `linear-gradient(135deg, ${gold}, #E8B45E)` : (isDark ? '#1D1D20' : '#EDE7D8'), border: 'none', borderRadius: '14px', fontSize: '15px', fontWeight: 700, color: withdrawalConsent ? '#24211B' : muted, cursor: withdrawalConsent ? 'pointer' : 'not-allowed', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
-              {locale === 'de' ? '✦ Für €4,99/Monat abonnieren' : '✦ Subscribe for €4.99/month'}
+              style={{ width: '100%', padding: '15px', background: withdrawalConsent ? `linear-gradient(135deg, ${gold}, #E8B45E)` : (isDark ? '#1D1D20' : '#EDE7D8'), border: 'none', borderRadius: '14px', fontSize: '15px', fontWeight: 700, color: withdrawalConsent ? '#24211B' : muted, cursor: withdrawalConsent ? 'pointer' : 'not-allowed', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: withdrawalConsent ? `0 4px 20px ${gold}40` : 'none', marginBottom: '10px', transition: 'all 0.2s' }}>
+              {locale === 'de' ? '✦ Jetzt freischalten — €4,99/Monat' : '✦ Unlock now — €4.99/month'}
             </motion.button>
+
+            <p style={{ textAlign: 'center' as const, fontSize: '11px', color: muted }}>
+              {locale === 'de' ? 'Jederzeit kündbar · Sofort freigeschaltet' : 'Cancel anytime · Instant access'}
+            </p>
           </motion.div>
         </motion.div>
       )}

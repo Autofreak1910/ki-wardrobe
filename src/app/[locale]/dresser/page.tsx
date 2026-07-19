@@ -1527,11 +1527,10 @@ onClick={() => {
       </AnimatePresence>
         </div>
       </main>
-     <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} usage={{
+   <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
         items: wardrobeItems.length, itemsMax: 20,
         savedOutfits: savedOutfitsCount, savedMax: 5,
         weekOutfits: weekOutfitsUsed, weekOutfitsMax: 3,
-      }} />
     </div>
   )
 }
