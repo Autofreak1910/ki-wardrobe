@@ -1474,19 +1474,27 @@ onClick={() => {
                 })()}
               </div>
 
-          {isPremium && (bonusOutfitsThisWeek > 0 || bonusTryonsThisWeek > 0) && (
-                <div style={{ background: 'linear-gradient(135deg, rgba(249,115,22,0.1), rgba(239,68,68,0.05))', border: '1px solid rgba(249,115,22,0.25)', borderRadius: '12px', padding: '12px 14px', marginBottom: '16px' }}>
-                  <p style={{ fontSize: '12px', fontWeight: 700, color: '#c2410c', marginBottom: '2px' }}>
-                    ✨ {locale === 'de' ? 'Aktiver Bonus diese Woche' : 'Active bonus this week'}
+          {isPremium && (
+                <div style={{ background: (bonusOutfitsThisWeek > 0 || bonusTryonsThisWeek > 0) ? 'linear-gradient(135deg, rgba(249,115,22,0.1), rgba(239,68,68,0.05))' : accentDim, border: `1px solid ${(bonusOutfitsThisWeek > 0 || bonusTryonsThisWeek > 0) ? 'rgba(249,115,22,0.25)' : border}`, borderRadius: '12px', padding: '12px 14px', marginBottom: '16px' }}>
+                  <p style={{ fontSize: '12px', fontWeight: 700, color: (bonusOutfitsThisWeek > 0 || bonusTryonsThisWeek > 0) ? '#c2410c' : muted, marginBottom: '2px' }}>
+                    ✨ {locale === 'de' ? 'Wochen-Bonus (Streak-Belohnung)' : 'Weekly bonus (streak reward)'}
                   </p>
-                  <p style={{ fontSize: '13px', color: '#c2410c' }}>
-                    {locale === 'de'
-                      ? `+${bonusOutfitsThisWeek} Outfit${bonusOutfitsThisWeek > 1 ? 's' : ''}${bonusTryonsThisWeek > 0 ? ` · +${bonusTryonsThisWeek} Try-On` : ''}`
-                      : `+${bonusOutfitsThisWeek} outfit${bonusOutfitsThisWeek > 1 ? 's' : ''}${bonusTryonsThisWeek > 0 ? ` · +${bonusTryonsThisWeek} try-on` : ''}`}
-                  </p>
-                  <p style={{ fontSize: '10px', color: '#c2410c', opacity: 0.75, marginTop: '2px' }}>
-                    {locale === 'de' ? 'Verfällt am Montag' : 'Expires Monday'}
-                  </p>
+                  {(bonusOutfitsThisWeek > 0 || bonusTryonsThisWeek > 0) ? (
+                    <>
+                      <p style={{ fontSize: '13px', color: '#c2410c', fontWeight: 600 }}>
+                        {locale === 'de'
+                          ? `+${bonusOutfitsThisWeek} Outfit${bonusOutfitsThisWeek > 1 ? 's' : ''}${bonusTryonsThisWeek > 0 ? ` · +${bonusTryonsThisWeek} Try-On` : ''} aktiv`
+                          : `+${bonusOutfitsThisWeek} outfit${bonusOutfitsThisWeek > 1 ? 's' : ''}${bonusTryonsThisWeek > 0 ? ` · +${bonusTryonsThisWeek} try-on` : ''} active`}
+                      </p>
+                      <p style={{ fontSize: '10px', color: '#c2410c', opacity: 0.75, marginTop: '2px' }}>
+                        {locale === 'de' ? `Verfällt ${getNextWeekResetLabel(locale)}` : `Expires ${getNextWeekResetLabel(locale)}`}
+                      </p>
+                    </>
+                  ) : (
+                    <p style={{ fontSize: '12px', color: muted }}>
+                      {locale === 'de' ? 'Erreiche 7/14/30 Tage Streak für Bonus-Outfits diese Woche' : 'Reach a 7/14/30-day streak for bonus outfits this week'}
+                    </p>
+                  )}
                 </div>
               )}
 
