@@ -347,6 +347,7 @@ await Promise.allSettled(toSave.map(async (item, i) => {
   }
 async function generateStyleDna() {
   if (!isPremium) { router.push('/' + locale + '/profile?upgrade=true'); return }
+  if (items.length < 3) return
   const { data: { session } } = await supabase.auth.getSession()
   if (!session?.user) return
 
@@ -580,8 +581,9 @@ async function generateStyleDna() {
         </div>
 
 {/* Style DNA Banner — Krass */}
-{items.length >= 3 && (() => {
-  const dnaLocked = !isPremium || styleDnaUsedToday
+{(() => {
+ const needsMoreItems = isPremium && items.length < 3
+const dnaLocked = !isPremium || styleDnaUsedToday || needsMoreItems
   return (
   <motion.div
     initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
@@ -625,24 +627,28 @@ async function generateStyleDna() {
             ? (locale === 'de' ? 'Deine Style DNA' : 'Your Style DNA')
             : (locale === 'de' ? 'Style DNA entdecken' : 'Discover your Style DNA')}
         </p>
-        {!isPremium ? (
-          <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: goldAccent, borderRadius: '5px', padding: '2px 7px', boxShadow: '0 2px 8px rgba(251,191,36,0.4)' }}>PRO</span>
-        ) : styleDnaUsedToday ? (
-          <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: 'rgba(255,255,255,0.2)', borderRadius: '5px', padding: '2px 7px' }}>🔒 {locale === 'de' ? 'Heute genutzt' : 'Used today'}</span>
-        ) : (
-          <span style={{ fontSize: '9px', fontWeight: 700, color: '#a855f7', background: 'rgba(168,85,247,0.2)', borderRadius: '5px', padding: '2px 7px', border: '1px solid rgba(168,85,247,0.3)' }}>✦ AKTIV</span>
-        )}
+    {!isPremium ? (
+  <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: goldAccent, borderRadius: '5px', padding: '2px 7px', boxShadow: '0 2px 8px rgba(251,191,36,0.4)' }}>PRO</span>
+) : needsMoreItems ? (
+  <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: 'rgba(255,255,255,0.2)', borderRadius: '5px', padding: '2px 7px' }}>🔒 {items.length}/3</span>
+) : styleDnaUsedToday ? (
+  <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: 'rgba(255,255,255,0.2)', borderRadius: '5px', padding: '2px 7px' }}>🔒 {locale === 'de' ? 'Heute genutzt' : 'Used today'}</span>
+) : (
+  <span style={{ fontSize: '9px', fontWeight: 700, color: '#a855f7', background: 'rgba(168,85,247,0.2)', borderRadius: '5px', padding: '2px 7px', border: '1px solid rgba(168,85,247,0.3)' }}>✦ AKTIV</span>
+)}
       </div>
       <p style={{ fontSize: '22px', fontWeight: 800, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: '6px' }}>
         {locale === 'de' ? 'Starke DNA' : 'Strong DNA'}
       </p>
-      <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)', lineHeight: 1.4 }}>
-        {!isPremium
-          ? (locale === 'de' ? 'Analysiere deinen Stil-Code mit KI.' : 'Analyze your style code with AI.')
-          : styleDnaUsedToday
-            ? (locale === 'de' ? 'Morgen wieder verfügbar' : 'Available again tomorrow')
-            : (locale === 'de' ? `Analysiere deinen Stil-Code mit KI · ${items.length} Teile` : `Analyze your style code with AI · ${items.length} items`)}
-      </p>
+   <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)', lineHeight: 1.4 }}>
+  {!isPremium
+    ? (locale === 'de' ? 'Analysiere deinen Stil-Code mit KI.' : 'Analyze your style code with AI.')
+    : needsMoreItems
+      ? (locale === 'de' ? `Lade mind. 3 Kleidungsstücke hoch (${items.length}/3)` : `Upload at least 3 items (${items.length}/3)`)
+      : styleDnaUsedToday
+        ? (locale === 'de' ? 'Morgen wieder verfügbar' : 'Available again tomorrow')
+        : (locale === 'de' ? `Analysiere deinen Stil-Code mit KI · ${items.length} Teile` : `Analyze your style code with AI · ${items.length} items`)}
+</p>
       {!isPremium && (
         <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', marginTop: '4px', fontStyle: 'italic' }}>
           *{locale === 'de' ? 'Nur für PRO Mitglieder' : 'Pro members only'}
