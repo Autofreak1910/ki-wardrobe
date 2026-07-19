@@ -58,17 +58,18 @@ export default function UpgradeModal({ open, onClose }: { open: boolean; onClose
                 <p style={{ fontSize: '32px', fontWeight: 800, color: text, letterSpacing: '-0.04em', marginBottom: '2px' }}>€0</p>
                 <p style={{ fontSize: '11px', color: muted, marginBottom: '12px' }}>{locale === 'de' ? 'für immer kostenlos' : 'free forever'}</p>
                 <div style={{ height: '1px', background: border, marginBottom: '12px' }} />
-                {[
-                  { title: locale === 'de' ? '3 Outfits pro Woche' : '3 outfits per week', sub: '' },
-                  { title: locale === 'de' ? 'Max. 20 Kleidungsstücke' : 'Max. 20 items', sub: '' },
-                  { title: locale === 'de' ? 'Max. 5 Outfits speichern' : 'Max. 5 saved outfits', sub: '' },
-                  { title: locale === 'de' ? '2 Virtual Try-Ons' : '2 virtual try-ons', sub: locale === 'de' ? 'pro Monat' : 'per month' },
-                  { title: locale === 'de' ? 'Kein Mehrfach-Upload' : 'No multi-upload', sub: '' },
+           {[
+                  { title: locale === 'de' ? '3 Outfits pro Woche' : '3 outfits per week', sub: '', missing: false },
+                  { title: locale === 'de' ? 'Max. 20 Kleidungsstücke' : 'Max. 20 items', sub: '', missing: false },
+                  { title: locale === 'de' ? 'Max. 5 Outfits speichern' : 'Max. 5 saved outfits', sub: '', missing: false },
+                  { title: locale === 'de' ? '2 Virtual Try-Ons' : '2 virtual try-ons', sub: locale === 'de' ? 'pro Monat' : 'per month', missing: false },
+                  { title: locale === 'de' ? 'Kein Style DNA' : 'No Style DNA', sub: '', missing: true },
+                  { title: locale === 'de' ? 'Kein Mehrfach-Upload' : 'No multi-upload', sub: '', missing: true },
                 ].map((f, i) => (
                   <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '11px', color: muted, flexShrink: 0, marginTop: '2px' }}>○</span>
+                    <span style={{ fontSize: '11px', color: f.missing ? '#ef4444' : muted, flexShrink: 0, marginTop: '2px' }}>{f.missing ? '✕' : '○'}</span>
                     <div>
-                      <p style={{ fontSize: '13px', fontWeight: 600, color: text }}>{f.title}</p>
+                      <p style={{ fontSize: '13px', fontWeight: 600, color: f.missing ? '#ef4444' : text }}>{f.title}</p>
                       {f.sub && <p style={{ fontSize: '11px', color: muted }}>{f.sub}</p>}
                     </div>
                   </div>
@@ -95,16 +96,16 @@ export default function UpgradeModal({ open, onClose }: { open: boolean; onClose
                       {locale === 'de' ? '🔓 Nur mit Pro freigeschaltet' : '🔓 Unlocked only with Pro'}
                     </p>
                   </div>
-                  {[
-                    { title: '14 Outfits', sub: locale === 'de' ? 'pro Woche' : 'per week' },
-                    { title: locale === 'de' ? 'Unbegrenzt Kleidung' : 'Unlimited items', sub: '' },
-                    { title: locale === 'de' ? 'Unbegrenzt speichern' : 'Unlimited saved', sub: '' },
-                    { title: locale === 'de' ? '6× Virtual Try-On' : '6× Virtual Try-On', sub: locale === 'de' ? 'pro Woche' : 'per week' },
-                    { title: 'Style DNA', sub: locale === 'de' ? 'KI Stil-Analyse' : 'AI style analysis' },
-                    { title: locale === 'de' ? 'Mehrfach-Upload ✦' : 'Multi-upload ✦', sub: locale === 'de' ? 'Bis zu 10 Fotos · 3× pro Woche' : 'Up to 10 photos · 3× per week' },
+              {[
+                    { title: '14 Outfits', sub: locale === 'de' ? 'pro Woche' : 'per week', isNew: false },
+                    { title: locale === 'de' ? 'Unbegrenzt Kleidung' : 'Unlimited items', sub: '', isNew: false },
+                    { title: locale === 'de' ? 'Unbegrenzt speichern' : 'Unlimited saved', sub: '', isNew: false },
+                    { title: locale === 'de' ? '6× Virtual Try-On' : '6× Virtual Try-On', sub: locale === 'de' ? 'pro Woche' : 'per week', isNew: false },
+                    { title: 'Style DNA', sub: locale === 'de' ? 'KI Stil-Analyse' : 'AI style analysis', isNew: true },
+                    { title: locale === 'de' ? 'Mehrfach-Upload' : 'Multi-upload', sub: locale === 'de' ? 'Bis zu 10 Fotos · 3× pro Woche' : 'Up to 10 photos · 3× per week', isNew: true },
                   ].map((f, i) => (
-                    <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '11px', color: '#24211B', flexShrink: 0, marginTop: '2px' }}>✦</span>
+                    <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '8px', background: f.isNew ? 'rgba(36,33,27,0.08)' : 'transparent', borderRadius: '6px', padding: f.isNew ? '4px 6px' : '0', marginLeft: f.isNew ? '-6px' : '0', marginRight: f.isNew ? '-6px' : '0' }}>
+                      <span style={{ fontSize: '11px', color: f.isNew ? '#24211B' : '#24211B', flexShrink: 0, marginTop: '2px' }}>{f.isNew ? '🆕' : '✦'}</span>
                       <div>
                         <p style={{ fontSize: '11px', fontWeight: 700, color: '#24211B' }}>{f.title}</p>
                         {f.sub && <p style={{ fontSize: '10px', color: 'rgba(36,33,27,0.7)' }}>{f.sub}</p>}

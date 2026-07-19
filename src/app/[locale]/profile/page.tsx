@@ -6,6 +6,7 @@ import { useLocale } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
+import UpgradeModal from '@/components/UpgradeModal'
 type Profile = { id: string; username: string; is_premium: boolean; age?: string; country?: string; created_at: string; email?: string; gender?: string; style_preferences?: string[]; budget_range?: string; referral_code?: string; premium_until?: string; invites_this_month?: number; bonus_month_claimed_this_period?: boolean; avatar_tries_left?: number }
 
 function getWeekStartUTC(): Date {
@@ -691,132 +692,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
        <p style={{ textAlign: 'center' as const, fontSize: '11px', color: muted, letterSpacing: '0.04em' }}>KiWardrobe · v1.0</p>
       </main>
 
-<AnimatePresence>
-  {showUpgrade && (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      onClick={() => setShowUpgrade(false)}
-      style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '16px' }}>
-      <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
-        transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-        onClick={e => e.stopPropagation()}
-        style={{ width: '100%', maxWidth: '480px', background: bg, border: `1px solid ${border}`, borderRadius: '28px', padding: '28px 20px 32px' }}>
-       <p style={{ fontSize: '11px', fontWeight: 700, color: muted, letterSpacing: '0.12em', textTransform: 'uppercase' as const, textAlign: 'center' as const, marginBottom: '4px' }}>
-              {locale === 'de' ? 'Wähle deinen Plan' : 'Choose your plan'}
-            </p>
-            <p style={{ fontSize: '13px', fontWeight: 600, color: text, textAlign: 'center' as const, marginBottom: '20px' }}>
-              {locale === 'de' ? 'Weniger als ein Kaffee — 7× mehr Outfits' : 'Less than a coffee — 7× more outfits'}
-            </p>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
-          {/* Free */}
-          <div style={{ background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', border: `1px solid ${border}`, borderRadius: '18px', padding: '16px 14px' }}>
-            <p style={{ fontSize: '11px', fontWeight: 700, color: muted, letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '4px' }}>FREE</p>
-          <p style={{ fontSize: '32px', fontWeight: 800, color: text, letterSpacing: '-0.04em', marginBottom: '2px' }}>€0</p>
-            <p style={{ fontSize: '11px', color: muted, marginBottom: '12px' }}>{locale === 'de' ? 'für immer kostenlos' : 'free forever'}</p>
-            <div style={{ height: '1px', background: border, marginBottom: '12px' }} />
-            {[
-          { title: locale === 'de' ? '3 Outfits pro Woche' : '3 outfits per week', sub: '' },
-{ title: locale === 'de' ? 'Max. 20 Kleidungsstücke' : 'Max. 20 items', sub: '' },
-{ title: locale === 'de' ? 'Max. 5 Outfits speichern' : 'Max. 5 saved outfits', sub: '' },
-{ title: locale === 'de' ? 'Basis KI-Styling' : 'Basic AI styling', sub: '' },
-{ title: locale === 'de' ? '2 Virtual Try-Ons' : '2 virtual try-ons', sub: locale === 'de' ? 'pro Monat' : 'per month' },
-{ title: locale === 'de' ? 'Kein Mehrfach-Upload' : 'No multi-upload', sub: '' },
-            ].map((f, i) => (
-              <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
-                <span style={{ fontSize: '11px', color: muted, flexShrink: 0, marginTop: '2px' }}>○</span>
-                <div>
-                <p style={{ fontSize: '13px', fontWeight: 600, color: text }}>{f.title}</p>
-{f.sub && <p style={{ fontSize: '11px', color: muted }}>{f.sub}</p>}
-                </div>
-              </div>
-            ))}
-          </div>
-          {/* Pro */}
-          <motion.div whileTap={{ scale: 0.98 }}
-            onClick={async (e) => {
-              e.stopPropagation()
-              const { data: { session } } = await supabase.auth.getSession()
-              if (!session?.user) return
-              const res = await fetch('/api/create-checkout-session', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: session.user.id, userEmail: session.user.email, locale }),
-              })
-              const data = await res.json()
-              if (data.url) window.location.href = data.url
-            }}
-            style={{ background: `linear-gradient(160deg, ${gold}, #E8B45E)`, borderRadius: '18px', padding: '16px 14px', cursor: 'pointer', position: 'relative' as const, overflow: 'hidden', boxShadow: `0 8px 32px ${gold}50` }}>
-            <div style={{ position: 'absolute', top: '-1px', left: '50%', transform: 'translateX(-50%)', background: '#fff', borderRadius: '0 0 8px 8px', padding: '2px 10px' }}>
-              <p style={{ fontSize: '9px', fontWeight: 800, color: gold, letterSpacing: '0.06em', textTransform: 'uppercase' as const, whiteSpace: 'nowrap' as const }}>
-                {locale === 'de' ? 'Empfohlen' : 'Recommended'}
-              </p>
-            </div>
-            <div style={{ marginTop: '12px' }}>
-            <p style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(36,33,27,0.7)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '4px' }}>PRO</p>
-                <p style={{ fontSize: '32px', fontWeight: 800, color: '#24211B', letterSpacing: '-0.04em', marginBottom: '2px' }}>€4,99</p>
-                <p style={{ fontSize: '11px', color: 'rgba(36,33,27,0.7)', marginBottom: '2px' }}>{locale === 'de' ? 'pro Monat' : 'per month'}</p>
-                <p style={{ fontSize: '10px', color: 'rgba(36,33,27,0.6)', fontStyle: 'italic', marginBottom: '12px' }}>
-                  {locale === 'de' ? 'nur 16 Cent/Tag' : 'just 16¢/day'}
-                </p>
-             <div style={{ background: '#24211B', borderRadius: '8px', padding: '6px 10px', marginBottom: '12px', display: 'inline-block', boxShadow: '0 2px 8px rgba(0,0,0,0.25)' }}>
-                <p style={{ fontSize: '10px', fontWeight: 800, color: '#F1B951', letterSpacing: '0.02em', margin: 0 }}>
-                  {locale === 'de' ? '🔓 Nur mit Pro freigeschaltet' : '🔓 Unlocked only with Pro'}
-                </p>
-              </div>
-            {[
-               { title: '14 Outfits', sub: locale === 'de' ? 'pro Woche' : 'per week' },
-                { title: locale === 'de' ? 'Unbegrenzt Kleidung' : 'Unlimited items', sub: '' },
-                { title: locale === 'de' ? 'Unbegrenzt speichern' : 'Unlimited saved', sub: '' },
-             { title: locale === 'de' ? '6× Virtual Try-On' : '6× Virtual Try-On', sub: locale === 'de' ? 'pro Woche' : 'per week' },
-     { title: 'Style DNA', sub: locale === 'de' ? 'KI Stil-Analyse' : 'AI style analysis' },
-{ title: locale === 'de' ? 'Mehrfach-Upload ✦' : 'Multi-upload ✦', sub: locale === 'de' ? 'Bis zu 10 Fotos · 3× pro Woche' : 'Up to 10 photos · 3× per week' },
-              ].map((f, i) => (
-                <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '11px', color: '#24211B', flexShrink: 0, marginTop: '2px' }}>✦</span>
-                  <div>
-                    <p style={{ fontSize: '11px', fontWeight: 700, color: '#24211B' }}>{f.title}</p>
-                    {f.sub && <p style={{ fontSize: '10px', color: 'rgba(36,33,27,0.7)' }}>{f.sub}</p>}
-                  </div>
-                </div>
-              ))}
-      </div>
-          </motion.div>
-        </div>
-
-<label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '14px', cursor: 'pointer' }}>
-          <input type="checkbox" checked={withdrawalConsent} onChange={e => setWithdrawalConsent(e.target.checked)}
-            style={{ width: '18px', height: '18px', marginTop: '1px', flexShrink: 0, accentColor: accent, cursor: 'pointer' }} />
-          <span style={{ fontSize: '12px', color: muted, lineHeight: 1.5 }}>
-            {locale === 'de'
-              ? 'Ich stimme zu, dass KiWardrobe Pro sofort nach Zahlung freigeschaltet wird, und bestätige, dass ich dadurch mein 14-tägiges Widerrufsrecht verliere.'
-              : 'I agree that KiWardrobe Pro will be activated immediately upon payment, and confirm that I thereby lose my 14-day right of withdrawal.'}
-          </span>
-        </label>
-
-        <motion.button whileTap={withdrawalConsent ? { scale: 0.97 } : {}}
-          disabled={!withdrawalConsent}
-          onClick={async () => {
-            if (!withdrawalConsent) return
-            const { data: { session } } = await supabase.auth.getSession()
-            if (!session?.user) return
-            const res = await fetch('/api/create-checkout-session', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: session.user.id, userEmail: session.user.email, locale }),
-            })
-            const data = await res.json()
-            if (data.url) window.location.href = data.url
-          }}
-          style={{ width: '100%', padding: '15px', background: withdrawalConsent ? `linear-gradient(135deg, ${gold}, #E8B45E)` : (isDark ? '#1D1D20' : '#EDE7D8'), border: 'none', borderRadius: '14px', fontSize: '15px', fontWeight: 700, color: withdrawalConsent ? '#24211B' : muted, cursor: withdrawalConsent ? 'pointer' : 'not-allowed', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: withdrawalConsent ? `0 4px 20px ${gold}40` : 'none', marginBottom: '10px', transition: 'all 0.2s' }}>
-       {locale === 'de' ? '✦ Jetzt freischalten — €4,99/Monat' : '✦ Unlock now — €4.99/month'}
-        </motion.button>
-
- <p style={{ textAlign: 'center' as const, fontSize: '11px', color: muted }}>
-          {locale === 'de' ? 'Jederzeit kündbar · Sofort freigeschaltet' : 'Cancel anytime · Instant access'}
-        </p>
-      </motion.div>
-    </motion.div>
-  )}
-</AnimatePresence>
+<UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
 {/* Style DNA Modal */}
 <AnimatePresence>
   {showDna && (
