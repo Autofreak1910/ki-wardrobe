@@ -444,7 +444,7 @@ const res = await fetch('/api/style-dna', {
   function openItem(item: ClothingItem) {
     setSelectedItem(item)
     setEditDate(item.purchase_date ?? '')
-    setEditPrice(item.purchase_price?.toString() ?? '')
+    setEditPrice(item.purchase_price?.toString() ?? '') 
   }
 
   const catLabels: Record<string, string> = { tops: 'Tops', hosen: 'Pants', jacken: 'Jacket', schuhe: 'Shoes', acc: 'Acc' }
