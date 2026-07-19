@@ -18,15 +18,15 @@ export async function POST(req: Request) {
     }
 
     const today = localDateStr(new Date())
-   const { data: prof } = await supabase
+    const { data: prof } = await supabase
       .from('profiles')
-      .select('current_streak, last_outfit_date, streak_reward_claimed_7, streak_reward_claimed_14, streak_reward_claimed_30, premium_until, is_premium, bonus_outfits_this_week, bonus_tryons_this_week')
+      .select('current_streak, last_outfit_date, premium_until, is_premium, bonus_outfits_this_week, bonus_tryons_this_week, streak_cycle, streak_reward_claimed_7_cycle, streak_reward_claimed_14_cycle, streak_reward_claimed_30_cycle')
       .eq('id', user.id)
       .single()
 
     if (!prof) return NextResponse.json({ streak: 0 })
 
- const yesterday = new Date()
+    const yesterday = new Date()
     yesterday.setDate(yesterday.getDate() - 1)
     const yesterdayStr = localDateStr(yesterday)
 
@@ -36,28 +36,28 @@ export async function POST(req: Request) {
         ? (prof.current_streak ?? 1)
         : 1
 
-const updates: any = { current_streak: newStreak, last_outfit_date: today }
+    const updates: any = { current_streak: newStreak, last_outfit_date: today }
 
     let streakReward = null
     const isPremiumActive = prof.is_premium && prof.premium_until && new Date(prof.premium_until) > new Date()
+    const cycle = prof.streak_cycle ?? 0
 
     const milestones = [
-      { at: 30, claimedKey: 'streak_reward_claimed_30' as const, proOutfits: 3, proTryons: 1, freeDays: 3 },
-      { at: 14, claimedKey: 'streak_reward_claimed_14' as const, proOutfits: 2, proTryons: 1, freeDays: 2 },
-      { at: 7,  claimedKey: 'streak_reward_claimed_7'  as const, proOutfits: 1, proTryons: 0, freeDays: 1 },
+      { at: 30, claimedCycleKey: 'streak_reward_claimed_30_cycle' as const, proOutfits: 3, proTryons: 1, freeDays: 3 },
+      { at: 14, claimedCycleKey: 'streak_reward_claimed_14_cycle' as const, proOutfits: 2, proTryons: 1, freeDays: 2 },
+      { at: 7,  claimedCycleKey: 'streak_reward_claimed_7_cycle'  as const, proOutfits: 1, proTryons: 0, freeDays: 1 },
     ]
 
     for (const m of milestones) {
-      if (newStreak >= m.at && !prof[m.claimedKey]) {
-        updates[m.claimedKey] = true
+      const alreadyClaimedThisCycle = (prof[m.claimedCycleKey] ?? -1) === cycle
+      if (newStreak >= m.at && !alreadyClaimedThisCycle) {
+        updates[m.claimedCycleKey] = cycle
 
         if (isPremiumActive) {
-          // Pro: Kontingent-Boost statt geschenkter Tage (Pro-Nutzer würde sich sonst nur die eigene Zahlung verschieben)
           updates.bonus_outfits_this_week = (prof.bonus_outfits_this_week ?? 0) + m.proOutfits
           if (m.proTryons > 0) updates.bonus_tryons_this_week = (prof.bonus_tryons_this_week ?? 0) + m.proTryons
           streakReward = { milestone: m.at, type: 'boost', outfits: m.proOutfits, tryons: m.proTryons }
         } else {
-          // Free: Pro-Tage schenken bleibt Conversion-Tool
           const premiumUntil = prof.premium_until ? new Date(prof.premium_until) : new Date()
           if (premiumUntil < new Date()) premiumUntil.setTime(Date.now())
           premiumUntil.setDate(premiumUntil.getDate() + m.freeDays)

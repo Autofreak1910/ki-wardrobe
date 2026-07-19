@@ -39,7 +39,7 @@ export async function GET(req: Request) {
 
 const { data: profiles } = await supabase
     .from('profiles')
-    .select('id, current_streak, last_outfit_date, language, timezone, is_premium, premium_until, streak_freeze_used_month')
+    .select('id, current_streak, last_outfit_date, language, timezone, is_premium, premium_until, streak_freeze_used_month, streak_cycle')
     .gt('current_streak', 0)
 
   if (!profiles || profiles.length === 0) {
@@ -78,8 +78,11 @@ if (isPremiumActive && !freezeAlreadyUsedThisMonth) {
           streak_freeze_used_month: currentMonth,
         }).eq('id', p.id)
         toNotifyFreeze.push(p)
-      } else {
-        await supabase.from('profiles').update({ current_streak: 0 }).eq('id', p.id)
+  } else {
+        await supabase.from('profiles').update({
+          current_streak: 0,
+          streak_cycle: (p.streak_cycle ?? 0) + 1,
+        }).eq('id', p.id)
         reset++
       }
     }
