@@ -223,11 +223,11 @@ const gold      = '#F1B951'
 const goldDeep  = '#C9963C'
 const navBg     = isDark ? 'rgba(8,12,24,0.93)' : 'rgba(240,244,255,0.93)'
 const navBorder = isDark ? '#1a2540' : '#dde3f5'
-// Schwebende Pill-Navbar (dunkel, unabhaengig vom Farbschema, wie im DKB-Referenzbild)
-const pillBg     = 'rgba(15,17,24,0.92)'
-const pillBorder = 'rgba(255,255,255,0.08)'
-const pillMuted  = 'rgba(255,255,255,0.45)'
-const pillMutedDim = 'rgba(255,255,255,0.25)'
+// Schwebende Pill-Navbar -- jetzt theme-abhaengig statt fest dunkel
+const pillBg       = isDark ? 'rgba(15,17,24,0.92)' : 'rgba(255,255,255,0.88)'
+const pillBorder   = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(53,92,125,0.10)'
+const pillMuted    = isDark ? 'rgba(255,255,255,0.45)' : 'rgba(36,33,27,0.5)'
+const pillMutedDim = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(36,33,27,0.32)'
 
   return (
     <>
@@ -286,7 +286,7 @@ const pillMutedDim = 'rgba(255,255,255,0.25)'
           backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)',
           border: `1px solid ${pillBorder}`,
           borderRadius: '100px',
-          boxShadow: '0 12px 40px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2)',
+         boxShadow: isDark ? '0 12px 40px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2)' : '0 12px 32px rgba(53,92,125,0.16), 0 2px 10px rgba(0,0,0,0.06)',
           display: 'flex', alignItems: 'center',
           zIndex: 100,
           touchAction: 'none', userSelect: 'none',
