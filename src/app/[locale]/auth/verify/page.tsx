@@ -73,10 +73,10 @@ export default function VerifyPage() {
         )}
 
         <input
-         type="number" 
-placeholder="000000"
-value={otp}
-onChange={e => setOtp(e.target.value.slice(0, 6))}
+          type="number"
+          placeholder="000000"
+          value={otp}
+          onChange={e => setOtp(e.target.value.slice(0, 6))}
           style={{ width: '100%', background: isDark ? '#161616' : '#F7F4EC', border: `1.5px solid ${otp.length === 6 ? accent : border}`, borderRadius: '14px', padding: '16px', fontSize: '32px', color: text, outline: 'none', boxSizing: 'border-box' as const, fontFamily: "'Poppins', 'Inter', sans-serif", textAlign: 'center' as const, letterSpacing: '0.4em', marginBottom: '16px', transition: 'border-color 0.2s' }}
           onFocus={e => e.target.style.borderColor = accent}
           onBlur={e => e.target.style.borderColor = otp.length === 6 ? accent : border}
@@ -87,13 +87,11 @@ onChange={e => setOtp(e.target.value.slice(0, 6))}
           onClick={async () => {
             if (otp.length !== 6 || !email) return
             setLoading(true); setError('')
-          const { error } = await supabase.auth.signInWithOtp({ 
-  email, 
-  options: { 
-    shouldCreateUser: false,
-    data: { type: 'email' }
-  } 
-})
+            const { error } = await supabase.auth.verifyOtp({
+              email,
+              token: otp,
+              type: 'email',
+            })
             if (error) { setError(locale === 'de' ? 'Ungültiger Code — bitte nochmal versuchen' : 'Invalid code — please try again'); setLoading(false) }
             else { router.push('/' + locale + '/dresser') }
           }}
