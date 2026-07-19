@@ -1,24 +1,34 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
-export async function POST() {
+export async function POST(req: Request) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const today = new Date().toISOString().split('T')[0]
-    const { data: prof } = await supabase
+    let timezone = 'UTC'
+    try {
+      const body = await req.json()
+      if (body?.timezone) timezone = body.timezone
+    } catch {}
+
+    function localDateStr(date: Date): string {
+      return new Intl.DateTimeFormat('en-CA', { timeZone: timezone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(date)
+    }
+
+    const today = localDateStr(new Date())
+   const { data: prof } = await supabase
       .from('profiles')
-      .select('current_streak, last_outfit_date, streak_reward_claimed_7, streak_reward_claimed_14, streak_reward_claimed_30, premium_until')
+      .select('current_streak, last_outfit_date, streak_reward_claimed_7, streak_reward_claimed_14, streak_reward_claimed_30, premium_until, is_premium, bonus_outfits_this_week, bonus_tryons_this_week')
       .eq('id', user.id)
       .single()
 
     if (!prof) return NextResponse.json({ streak: 0 })
 
-    const yesterday = new Date()
+ const yesterday = new Date()
     yesterday.setDate(yesterday.getDate() - 1)
-    const yesterdayStr = yesterday.toISOString().split('T')[0]
+    const yesterdayStr = localDateStr(yesterday)
 
     const newStreak = prof.last_outfit_date === yesterdayStr
       ? (prof.current_streak ?? 0) + 1
@@ -26,27 +36,36 @@ export async function POST() {
         ? (prof.current_streak ?? 1)
         : 1
 
-    const updates: any = { current_streak: newStreak, last_outfit_date: today }
+const updates: any = { current_streak: newStreak, last_outfit_date: today }
 
     let streakReward = null
-    const premiumUntil = prof.premium_until ? new Date(prof.premium_until) : new Date()
-    if (premiumUntil < new Date()) premiumUntil.setTime(Date.now())
+    const isPremiumActive = prof.is_premium && prof.premium_until && new Date(prof.premium_until) > new Date()
 
-    if (newStreak >= 30 && !prof.streak_reward_claimed_30) {
-      premiumUntil.setDate(premiumUntil.getDate() + 3)
-      updates.streak_reward_claimed_30 = true
-      updates.premium_until = premiumUntil.toISOString()
-      streakReward = { days: 3, milestone: 30 }
-    } else if (newStreak >= 14 && !prof.streak_reward_claimed_14) {
-      premiumUntil.setDate(premiumUntil.getDate() + 2)
-      updates.streak_reward_claimed_14 = true
-      updates.premium_until = premiumUntil.toISOString()
-      streakReward = { days: 2, milestone: 14 }
-    } else if (newStreak >= 7 && !prof.streak_reward_claimed_7) {
-      premiumUntil.setDate(premiumUntil.getDate() + 1)
-      updates.streak_reward_claimed_7 = true
-      updates.premium_until = premiumUntil.toISOString()
-      streakReward = { days: 1, milestone: 7 }
+    const milestones = [
+      { at: 30, claimedKey: 'streak_reward_claimed_30' as const, proOutfits: 3, proTryons: 1, freeDays: 3 },
+      { at: 14, claimedKey: 'streak_reward_claimed_14' as const, proOutfits: 2, proTryons: 1, freeDays: 2 },
+      { at: 7,  claimedKey: 'streak_reward_claimed_7'  as const, proOutfits: 1, proTryons: 0, freeDays: 1 },
+    ]
+
+    for (const m of milestones) {
+      if (newStreak >= m.at && !prof[m.claimedKey]) {
+        updates[m.claimedKey] = true
+
+        if (isPremiumActive) {
+          // Pro: Kontingent-Boost statt geschenkter Tage (Pro-Nutzer würde sich sonst nur die eigene Zahlung verschieben)
+          updates.bonus_outfits_this_week = (prof.bonus_outfits_this_week ?? 0) + m.proOutfits
+          if (m.proTryons > 0) updates.bonus_tryons_this_week = (prof.bonus_tryons_this_week ?? 0) + m.proTryons
+          streakReward = { milestone: m.at, type: 'boost', outfits: m.proOutfits, tryons: m.proTryons }
+        } else {
+          // Free: Pro-Tage schenken bleibt Conversion-Tool
+          const premiumUntil = prof.premium_until ? new Date(prof.premium_until) : new Date()
+          if (premiumUntil < new Date()) premiumUntil.setTime(Date.now())
+          premiumUntil.setDate(premiumUntil.getDate() + m.freeDays)
+          updates.premium_until = premiumUntil.toISOString()
+          streakReward = { milestone: m.at, type: 'days', days: m.freeDays }
+        }
+        break
+      }
     }
 
     await supabase.from('profiles').update(updates).eq('id', user.id)

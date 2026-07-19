@@ -6,7 +6,15 @@
     },
     {
       "path": "/api/send-streak-reminder",
-      "schedule": "0 19 * * *"
+      "schedule": "0 16 * * *"
+    },
+    {
+      "path": "/api/send-streak-reminder",
+      "schedule": "0 18 * * *"
+    },
+    {
+      "path": "/api/send-streak-reminder",
+      "schedule": "0 20 * * *"
     }
   ]
 }

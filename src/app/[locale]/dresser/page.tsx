@@ -160,8 +160,10 @@ const [referrerName, setReferrerName] = useState('')
   const dateStr = new Date().toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-GB', { day: 'numeric', month: 'long' })
 const [greeting, setGreeting] = useState('')
 const [streak, setStreak] = useState(stylistCache?.streak ?? 0)
-  const [weekOutfitsUsed, setWeekOutfitsUsed] = useState(0)
+const [weekOutfitsUsed, setWeekOutfitsUsed] = useState(0)
   const [savedOutfitsCount, setSavedOutfitsCount] = useState(0)
+  const [bonusOutfitsThisWeek, setBonusOutfitsThisWeek] = useState(0)
+  const [freezeUsedMonth, setFreezeUsedMonth] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const [streakReward, setStreakReward] = useState<{ days: number; milestone: number } | null>(null)
   const [showStreakInfo, setShowStreakInfo] = useState(false)
@@ -295,7 +297,11 @@ async function loadStreak() {
 
     const { data } = await supabase.from('clothing_items').select('*').eq('user_id', session.user.id)
     if (data) { setWardrobeItems(data); setHasItems(data.length >= 3) }
-const { data: profile } = await supabase.from('profiles').select('username, premium_until').eq('id', session.user.id).single()
+const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+    supabase.from('profiles').update({ timezone: tz }).eq('id', session.user.id)
+const { data: profile } = await supabase.from('profiles').select('username, premium_until, streak_freeze_used_month, bonus_outfits_this_week').eq('id', session.user.id).single()
+    setFreezeUsedMonth(profile?.streak_freeze_used_month ?? null)
+    setBonusOutfitsThisWeek(profile?.bonus_outfits_this_week ?? 0)
     if (profile?.username) setUsername(profile.username)
     if (profile?.premium_until) {
       const until = new Date(profile.premium_until)
@@ -451,7 +457,7 @@ const { count: weekCount, error: countError } = await supabase
     .gte('created_at', weekStart.toISOString())
 if (countError) console.error('Count error:', countError)
 
-const WEEKLY_LIMIT = isPremium ? 14 : 3
+const WEEKLY_LIMIT = isPremium ? 14 + (bonusOutfitsThisWeek ?? 0) : 3
 if ((weekCount ?? 0) >= WEEKLY_LIMIT) {
   if (isPremium) {
     const resetLabel = getNextWeekResetLabel(locale)
@@ -513,9 +519,12 @@ setLoading(true); setSaved(false); setOutfit(null)
       })
 setOutfit({ outfits: mappedOutfits, active: 0 })
       try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
        const streakRes = await fetch('/api/update-streak', { 
           method: 'POST',
           credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ timezone: tz }),
         })
         const streakData = await streakRes.json()
         if (streakData.streak) setStreak(streakData.streak)
@@ -1417,29 +1426,47 @@ onClick={() => {
               onClick={e => e.stopPropagation()}
               style={{ background: card, borderRadius: '28px', padding: '24px 20px', width: '100%', maxWidth: '400px', border: `1px solid ${border}`, maxHeight: '85vh', overflowY: 'auto' as const }}>
 
-              <div style={{ textAlign: 'center' as const, marginBottom: '20px' }}>
+         <div style={{ textAlign: 'center' as const, marginBottom: '20px' }}>
                 <motion.p animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 0.5 }}
                   style={{ fontSize: '48px', marginBottom: '8px' }}>🔥</motion.p>
                 <p style={{ fontSize: '28px', fontWeight: 800, color: streak >= 7 ? '#f97316' : text, letterSpacing: '-0.04em', marginBottom: '4px' }}>
                   {streak} {locale === 'de' ? 'Tage' : 'Days'}
                 </p>
-                <p style={{ fontSize: '14px', color: muted }}>
+                <p style={{ fontSize: '14px', color: muted, marginBottom: isPremium ? '10px' : '0' }}>
                   {locale === 'de' ? 'Generiere täglich ein Outfit um deinen Streak zu halten' : 'Generate an outfit daily to keep your streak'}
                 </p>
+               {isPremium && (() => {
+                  const currentMonth = new Intl.DateTimeFormat('en-CA', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, year: 'numeric', month: '2-digit' }).format(new Date())
+                  const freezeAvailable = freezeUsedMonth !== currentMonth
+                  return (
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: freezeAvailable ? 'rgba(92,130,160,0.12)' : accentDim, border: `1px solid ${freezeAvailable ? accent + '40' : border}`, borderRadius: '100px', padding: '5px 12px' }}>
+                      <span style={{ fontSize: '13px' }}>🧊</span>
+                      <p style={{ fontSize: '11px', fontWeight: 700, color: freezeAvailable ? accent : muted }}>
+                        {freezeAvailable
+                          ? (locale === 'de' ? 'Streak-Schutz verfügbar' : 'Streak Freeze available')
+                          : (locale === 'de' ? 'Streak-Schutz diesen Monat genutzt' : 'Streak Freeze used this month')}
+                      </p>
+                    </div>
+                  )
+                })()}
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '8px', marginBottom: '20px' }}>
-                {[
-                  { days: 7, reward: '+1 Tag Pro', emoji: '🏅', claimed: streak >= 7 },
-                  { days: 14, reward: '+2 Tage Pro', emoji: '🥇', claimed: streak >= 14 },
-                  { days: 30, reward: '+3 Tage Pro', emoji: '👑', claimed: streak >= 30 },
-                ].map(m => (
+             <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '8px', marginBottom: '20px' }}>
+                {(isPremium ? [
+                  { days: 7, reward: locale === 'de' ? '+1 Outfit diese Woche' : '+1 outfit this week', emoji: '🏅', claimed: streak >= 7 },
+                  { days: 14, reward: locale === 'de' ? '+2 Outfits · +1 Try-On' : '+2 outfits · +1 try-on', emoji: '🥇', claimed: streak >= 14 },
+                  { days: 30, reward: locale === 'de' ? '+3 Outfits · +1 Try-On' : '+3 outfits · +1 try-on', emoji: '👑', claimed: streak >= 30 },
+                ] : [
+                  { days: 7, reward: locale === 'de' ? '+1 Tag Pro' : '+1 day Pro', emoji: '🏅', claimed: streak >= 7 },
+                  { days: 14, reward: locale === 'de' ? '+2 Tage Pro' : '+2 days Pro', emoji: '🥇', claimed: streak >= 14 },
+                  { days: 30, reward: locale === 'de' ? '+3 Tage Pro' : '+3 days Pro', emoji: '👑', claimed: streak >= 30 },
+                ]).map(m => (
                   <div key={m.days} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '14px', background: m.claimed ? 'rgba(249,115,22,0.08)' : accentDim, border: `1px solid ${m.claimed ? 'rgba(249,115,22,0.3)' : border}` }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <span style={{ fontSize: '20px' }}>{m.emoji}</span>
                       <div>
-                        <p style={{ fontSize: '13px', fontWeight: 700, color: m.claimed ? '#f97316' : text }}>
-                          {m.days} {locale === 'de' ? 'Tage' : 'days'} → {m.reward} {locale === 'de' ? 'gratis' : 'free'}
+                       <p style={{ fontSize: '13px', fontWeight: 700, color: m.claimed ? '#f97316' : text }}>
+                          {m.days} {locale === 'de' ? 'Tage' : 'days'} → {m.reward}
                         </p>
                         <p style={{ fontSize: '11px', color: muted }}>
                           {m.claimed ? (locale === 'de' ? '✓ Erreicht!' : '✓ Reached!') : `${locale === 'de' ? 'Noch' : 'Only'} ${Math.max(0, m.days - streak)} ${locale === 'de' ? 'Tage' : 'days'}`}
