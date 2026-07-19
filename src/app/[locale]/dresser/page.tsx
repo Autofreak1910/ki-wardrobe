@@ -1042,7 +1042,7 @@ onClick={() => {
             alt=""
             style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', position: 'absolute', inset: 0 }}
           />
-          <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, ${bg}f2 100%)` }} />
+<div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.15) 45%, rgba(0,0,0,0.6) 70%, ${bg} 100%)` }} />
 
           <div style={{ position: 'absolute' as const, bottom: '20px', left: '18px', zIndex: 2 }}>
         <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: '2px', textShadow: '0 1px 8px rgba(0,0,0,0.4)' }}>
