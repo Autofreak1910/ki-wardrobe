@@ -1479,18 +1479,35 @@ onClick={() => {
                   <p style={{ fontSize: '12px', fontWeight: 700, color: (bonusOutfitsThisWeek > 0 || bonusTryonsThisWeek > 0) ? '#c2410c' : muted, marginBottom: '2px' }}>
                     ✨ {locale === 'de' ? 'Wochen-Bonus (Streak-Belohnung)' : 'Weekly bonus (streak reward)'}
                   </p>
-                  {(bonusOutfitsThisWeek > 0 || bonusTryonsThisWeek > 0) ? (
-                    <>
-                      <p style={{ fontSize: '13px', color: '#c2410c', fontWeight: 600 }}>
-                        {locale === 'de'
-                          ? `+${bonusOutfitsThisWeek} Outfit${bonusOutfitsThisWeek > 1 ? 's' : ''}${bonusTryonsThisWeek > 0 ? ` · +${bonusTryonsThisWeek} Try-On` : ''} aktiv`
-                          : `+${bonusOutfitsThisWeek} outfit${bonusOutfitsThisWeek > 1 ? 's' : ''}${bonusTryonsThisWeek > 0 ? ` · +${bonusTryonsThisWeek} try-on` : ''} active`}
-                      </p>
-                      <p style={{ fontSize: '10px', color: '#c2410c', opacity: 0.75, marginTop: '2px' }}>
-                        {locale === 'de' ? `Verfällt ${getNextWeekResetLabel(locale)}` : `Expires ${getNextWeekResetLabel(locale)}`}
-                      </p>
-                    </>
-                  ) : (
+              {(bonusOutfitsThisWeek > 0 || bonusTryonsThisWeek > 0) ? (() => {
+                    const now = new Date()
+                    const day = now.getUTCDay()
+                    const diffToNextMonday = day === 0 ? 1 : 8 - day
+                    const msLeft = diffToNextMonday * 24 * 60 * 60 * 1000 - (now.getUTCHours() * 60 * 60 * 1000 + now.getUTCMinutes() * 60 * 1000)
+                    const daysLeft = Math.max(0, Math.ceil(msLeft / (24 * 60 * 60 * 1000)))
+                    const percentLeft = Math.min(100, Math.max(4, (daysLeft / 7) * 100))
+                    const urgent = daysLeft <= 1
+                    const barColor = urgent ? '#ef4444' : daysLeft <= 3 ? '#f97316' : '#22c55e'
+
+                    return (
+                      <>
+                        <p style={{ fontSize: '13px', color: '#c2410c', fontWeight: 600 }}>
+                          {locale === 'de'
+                            ? `+${bonusOutfitsThisWeek} Outfit${bonusOutfitsThisWeek > 1 ? 's' : ''}${bonusTryonsThisWeek > 0 ? ` · +${bonusTryonsThisWeek} Try-On` : ''} aktiv`
+                            : `+${bonusOutfitsThisWeek} outfit${bonusOutfitsThisWeek > 1 ? 's' : ''}${bonusTryonsThisWeek > 0 ? ` · +${bonusTryonsThisWeek} try-on` : ''} active`}
+                        </p>
+                        <div style={{ height: '6px', background: 'rgba(194,65,12,0.15)', borderRadius: '3px', overflow: 'hidden', marginTop: '8px', marginBottom: '6px' }}>
+                          <motion.div initial={{ width: '100%' }} animate={{ width: `${percentLeft}%` }} transition={{ duration: 0.6 }}
+                            style={{ height: '100%', background: barColor, borderRadius: '3px' }} />
+                        </div>
+                        <p style={{ fontSize: '10px', color: '#c2410c', opacity: 0.85, fontWeight: urgent ? 700 : 500 }}>
+                          {urgent
+                            ? (locale === 'de' ? `⚠️ Läuft heute/morgen ab!` : `⚠️ Expires today/tomorrow!`)
+                            : (locale === 'de' ? `Noch ${daysLeft} Tag${daysLeft > 1 ? 'e' : ''} bis ${getNextWeekResetLabel(locale)}` : `${daysLeft} day${daysLeft > 1 ? 's' : ''} left until ${getNextWeekResetLabel(locale)}`)}
+                        </p>
+                      </>
+                    )
+                  })() : (
                     <p style={{ fontSize: '12px', color: muted }}>
                       {locale === 'de' ? 'Erreiche 7/14/30 Tage Streak für Bonus-Outfits diese Woche' : 'Reach a 7/14/30-day streak for bonus outfits this week'}
                     </p>
