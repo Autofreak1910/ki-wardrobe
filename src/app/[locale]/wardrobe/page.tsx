@@ -21,7 +21,7 @@ function getTodayStartUTC(): Date {
 }
 
 // Modul-Level-Cache -- ueberlebt Seitenwechsel, kein leeres Grid mehr beim erneuten Besuch
-let wardrobeCache: { items: ClothingItem[]; isPremium: boolean } | null = null
+let wardrobeCache: { items: ClothingItem[]; isPremium: boolean; multiScansThisWeek: number } | null = null
 
 export default function WardrobePage() {
   const [items, setItems] = useState<ClothingItem[]>(wardrobeCache?.items ?? [])
@@ -40,6 +40,7 @@ export default function WardrobePage() {
   const [saving, setSaving] = useState(false)
 const [limitMsg, setLimitMsg] = useState<string | null>(null)
 const [isPremium, setIsPremium] = useState(wardrobeCache?.isPremium ?? false)
+  const [multiScansThisWeek, setMultiScansThisWeek] = useState(0)
 const [showUpgrade, setShowUpgrade] = useState(false)
   const [dna, setDna] = useState<any>(null)
   const [dnaLoading, setDnaLoading] = useState(false)
@@ -73,20 +74,31 @@ const [detectedItems, setDetectedItems] = useState<Array<{
 
   useEffect(() => { loadItems() }, [])
 
- async function loadItems() {
+async function loadItems() {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
     const { data } = await supabase.from('clothing_items').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false })
     if (data) setItems(data)
 const { data: stillPremium } = await supabase.rpc('check_and_expire_premium', { p_user_id: session.user.id })
     setIsPremium(stillPremium ?? false)
-    wardrobeCache = { items: data ?? [], isPremium: stillPremium ?? false }
     const todayStart = getTodayStartUTC()
-    const { count: dnaCount } = await supabase.from('style_dna_generations')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', session.user.id)
-      .gte('created_at', todayStart.toISOString()) as any
-    setStyleDnaUsedToday((dnaCount ?? 0) >= 1)
+    const now = new Date()
+    const day = now.getUTCDay()
+    const diffToMonday = (day === 0 ? -6 : 1) - day
+    const weekStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + diffToMonday, 0, 0, 0, 0))
+    const [dnaRes, multiScanRes] = await Promise.all([
+      supabase.from('style_dna_generations')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', session.user.id)
+        .gte('created_at', todayStart.toISOString()),
+      supabase.from('multi_scan_generations')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', session.user.id)
+        .gte('created_at', weekStart.toISOString()),
+    ])
+    setStyleDnaUsedToday((dnaRes.count ?? 0) >= 1)
+    setMultiScansThisWeek(multiScanRes.count ?? 0)
+    wardrobeCache = { items: data ?? [], isPremium: stillPremium ?? false, multiScansThisWeek: multiScanRes.count ?? 0 }
   }
 async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -567,12 +579,17 @@ async function generateStyleDna() {
                 <span style={{ fontSize: '22px' }}>🔒</span>
               )}
             </div>
-            <p style={{ fontWeight: 700, color: isPremium ? text : '#92610a', fontSize: '13px', marginBottom: '3px', letterSpacing: '-0.02em' }}>
+         <p style={{ fontWeight: 700, color: isPremium ? text : '#92610a', fontSize: '13px', marginBottom: '3px', letterSpacing: '-0.02em' }}>
               {multiAnalyzing ? (locale === 'de' ? 'Analysiere...' : 'Analyzing...') : (locale === 'de' ? 'Mehrere Fotos' : 'Multiple photos')}
             </p>
             <p style={{ fontSize: '11px', color: isPremium ? muted : '#b07d20', fontWeight: 500, marginBottom: isPremium ? 0 : '6px' }}>
               {locale === 'de' ? 'Bis zu 10 auf einmal' : 'Up to 10 at once'}
             </p>
+            {isPremium && (
+              <p style={{ fontSize: '10px', color: multiScansThisWeek >= 3 ? '#ef4444' : muted, fontWeight: 600, marginTop: '4px' }}>
+                {multiScansThisWeek}/3 {locale === 'de' ? 'diese Woche' : 'this week'}
+              </p>
+            )}
             {!isPremium && (
               <p style={{ fontSize: '11px', color: '#f59e0b', fontWeight: 700 }}>
                 {locale === 'de' ? 'Jetzt freischalten →' : 'Unlock now →'}

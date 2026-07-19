@@ -716,7 +716,6 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
 { title: locale === 'de' ? 'Max. 5 Outfits speichern' : 'Max. 5 saved outfits', sub: '' },
 { title: locale === 'de' ? 'Basis KI-Styling' : 'Basic AI styling', sub: '' },
 { title: locale === 'de' ? '2 Virtual Try-Ons' : '2 virtual try-ons', sub: locale === 'de' ? 'pro Monat' : 'per month' },
-{ title: locale === 'de' ? 'Kein Schrank-Scan' : 'No closet scan', sub: '' },
 { title: locale === 'de' ? 'Kein Mehrfach-Upload' : 'No multi-upload', sub: '' },
             ].map((f, i) => (
               <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
@@ -758,9 +757,8 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
                 { title: locale === 'de' ? 'Unbegrenzt Kleidung' : 'Unlimited items', sub: '' },
                 { title: locale === 'de' ? 'Unbegrenzt speichern' : 'Unlimited saved', sub: '' },
              { title: locale === 'de' ? '6× Virtual Try-On' : '6× Virtual Try-On', sub: locale === 'de' ? 'pro Woche' : 'per week' },
-              { title: 'Style DNA', sub: locale === 'de' ? 'KI Stil-Analyse' : 'AI style analysis' },
-          { title: locale === 'de' ? 'Schrank-Scan ✦' : 'Closet scan ✦', sub: locale === 'de' ? '3× pro Woche · ganzer Schrank' : '3× per week · whole closet' },
-{ title: locale === 'de' ? 'Mehrfach-Upload ✦' : 'Multi-upload ✦', sub: locale === 'de' ? 'Bis zu 10 Fotos auf einmal' : 'Up to 10 photos at once' },
+     { title: 'Style DNA', sub: locale === 'de' ? 'KI Stil-Analyse' : 'AI style analysis' },
+{ title: locale === 'de' ? 'Mehrfach-Upload ✦' : 'Multi-upload ✦', sub: locale === 'de' ? 'Bis zu 10 Fotos · 3× pro Woche' : 'Up to 10 photos · 3× per week' },
               ].map((f, i) => (
                 <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
                   <span style={{ fontSize: '11px', color: '#24211B', flexShrink: 0, marginTop: '2px' }}>✦</span>

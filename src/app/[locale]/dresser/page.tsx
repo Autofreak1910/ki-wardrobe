@@ -1480,9 +1480,8 @@ onClick={() => {
 { label: locale === 'de' ? 'Kleidungsstücke' : 'Clothing items', free: 'Max. 20', pro: '∞' },
 { label: locale === 'de' ? 'Outfits speichern' : 'Save outfits', free: 'Max. 5', pro: '∞' },
 { label: 'Virtual Try-On', free: locale === 'de' ? '2/Monat' : '2/month', pro: '6/' + (locale === 'de' ? 'Woche' : 'week') },
-                  { label: 'Style DNA', free: '✗', pro: '✓' },
-                  { label: locale === 'de' ? 'Mehrfach-Upload' : 'Multi-upload', free: '✗', pro: '✓' },
-                  { label: locale === 'de' ? 'Schrank-Scan' : 'Closet scan', free: '✗', pro: '3×/' + (locale === 'de' ? 'Woche' : 'week') },
+               { label: 'Style DNA', free: '✗', pro: '✓' },
+                  { label: locale === 'de' ? 'Mehrfach-Upload' : 'Multi-upload', free: '✗', pro: '3×/' + (locale === 'de' ? 'Woche' : 'week') },
                 ].map((f, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '12px', background: isPremium ? 'rgba(251,191,36,0.06)' : accentDim, border: `1px solid ${border}` }}>
                     <p style={{ fontSize: '13px', color: text, fontWeight: 500 }}>{f.label}</p>
