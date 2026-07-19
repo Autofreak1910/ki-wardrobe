@@ -11,8 +11,7 @@ import UpgradeModal from '@/components/UpgradeModal'
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4)
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
-  const rawData = window.atob(base64)
-  const [showUpgrade, setShowUpgrade] = useState(false)
+const rawData = window.atob(base64)
   const outputArray = new Uint8Array(rawData.length)
   for (let i = 0; i < rawData.length; ++i) {
     outputArray[i] = rawData.charCodeAt(i)
@@ -129,7 +128,7 @@ const [username, setUsername] = useState<string>(stylistCache?.username ?? '')
   const [isPremium, setIsPremium] = useState(stylistCache?.isPremium ?? false)
   const [premiumLoading, setPremiumLoading] = useState(!stylistCache)
   const [premiumUntil, setPremiumUntil] = useState<string | null>(stylistCache?.premiumUntil ?? null)
-const [showProInfo, setShowProInfo] = useState(false)
+
 const [showUpgrade, setShowUpgrade] = useState(false)
   const { theme } = useTheme()
   const t = useTranslations()
@@ -1110,7 +1109,7 @@ onClick={() => {
             </motion.div>
           ) : (
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.21 }}
-              onClick={() => setShowProInfo(true)}
+           onClick={() => setShowUpgrade(true)}
               style={{ background: isPremium ? 'linear-gradient(135deg, rgba(241,185,81,0.2), rgba(241,185,81,0.08))' : card, border: `1px solid ${isPremium ? 'rgba(241,185,81,0.4)' : border}`, borderRadius: '18px', padding: '14px 4px', textAlign: 'center' as const, cursor: 'pointer', boxShadow: isPremium ? '0 0 16px rgba(241,185,81,0.15)' : 'none', opacity: isPremium ? 1 : 0.6, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', minHeight: '86px' }}>
               <motion.div animate={isPremium ? { scale: [1, 1.08, 1] } : {}} transition={{ duration: 2, repeat: Infinity }}
                 style={{ marginBottom: '6px' }}>
@@ -1461,76 +1460,9 @@ onClick={() => {
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {showProInfo && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={() => setShowProInfo(false)}
-            style={{ position: 'fixed', inset: 0, zIndex: 9997, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '0 16px 90px' }}>
-            <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
-              transition={{ type: 'spring', damping: 20 }}
-              onClick={e => e.stopPropagation()}
-              style={{ background: card, borderRadius: '28px', padding: '24px 20px', width: '100%', maxWidth: '400px', border: `1px solid ${isPremium ? 'rgba(251,191,36,0.3)' : border}`, maxHeight: '80vh', overflowY: 'auto' as const }}>
-
-              <div style={{ textAlign: 'center' as const, marginBottom: '20px' }}>
-                <motion.p animate={isPremium ? { scale: [1, 1.15, 1] } : {}} transition={{ duration: 1.5, repeat: Infinity }}
-                  style={{ fontSize: '40px', marginBottom: '8px' }}>{isPremium ? '💎' : '⭐'}</motion.p>
-                <p style={{ fontSize: '20px', fontWeight: 800, color: isPremium ? '#f59e0b' : text, letterSpacing: '-0.03em', marginBottom: '4px' }}>
-                  KiWardrobe {isPremium ? 'Pro' : (locale === 'de' ? 'Free' : 'Free')}
-                </p>
-                {isPremium && premiumUntil && (
-                  <p style={{ fontSize: '12px', color: muted }}>
-                    {locale === 'de' ? `Aktiv bis ${premiumUntil}` : `Active until ${premiumUntil}`}
-                  </p>
-                )}
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '8px', marginBottom: '20px' }}>
-                {[
-                { label: locale === 'de' ? 'Outfits/Woche' : 'Outfits/week', free: '3', pro: '14' },
-{ label: locale === 'de' ? 'Kleidungsstücke' : 'Clothing items', free: 'Max. 20', pro: '∞' },
-{ label: locale === 'de' ? 'Outfits speichern' : 'Save outfits', free: 'Max. 5', pro: '∞' },
-{ label: 'Virtual Try-On', free: locale === 'de' ? '2/Monat' : '2/month', pro: '6/' + (locale === 'de' ? 'Woche' : 'week') },
-               { label: 'Style DNA', free: '✗', pro: '✓' },
-                  { label: locale === 'de' ? 'Mehrfach-Upload' : 'Multi-upload', free: '✗', pro: '3×/' + (locale === 'de' ? 'Woche' : 'week') },
-                ].map((f, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '12px', background: isPremium ? 'rgba(251,191,36,0.06)' : accentDim, border: `1px solid ${border}` }}>
-                    <p style={{ fontSize: '13px', color: text, fontWeight: 500 }}>{f.label}</p>
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                      <p style={{ fontSize: '12px', color: muted, minWidth: '50px', textAlign: 'center' as const }}>{f.free}</p>
-                      <p style={{ fontSize: '12px', color: '#f59e0b', fontWeight: 700, minWidth: '50px', textAlign: 'center' as const }}>{f.pro}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', padding: '0 14px', marginBottom: '-4px' }}>
-                <p style={{ fontSize: '10px', color: muted, fontWeight: 600, minWidth: '50px', textAlign: 'center' as const }}>Free</p>
-                <p style={{ fontSize: '10px', color: '#f59e0b', fontWeight: 700, minWidth: '50px', textAlign: 'center' as const }}>Pro</p>
-              </div>
-
-            {isPremium ? (
-  <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowProInfo(false)}
-    style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: goldAccent, color: '#fff', fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", marginTop: '8px' }}>
-    {locale === 'de' ? '✦ Pro aktiv — weiter so!' : '✦ Pro active — keep it up!'}
-  </motion.button>
-) : (
-  <motion.button whileTap={{ scale: 0.97 }} onClick={() => { setShowProInfo(false); setShowUpgrade(true) }}
-    style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: goldAccent, color: '#fff', fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", marginTop: '8px', boxShadow: '0 6px 24px rgba(251,191,36,0.4)' }}>
-    {locale === 'de' ? '✦ Jetzt upgraden — €4,99/Monat' : '✦ Upgrade now — €4.99/month'}
-  </motion.button>
-  
-)}
-</motion.div>
-          </motion.div>
-          
-        )}
-      </AnimatePresence>
-        </div>
+</div>
       </main>
-   <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
-        items: wardrobeItems.length, itemsMax: 20,
-        savedOutfits: savedOutfitsCount, savedMax: 5,
-        weekOutfits: weekOutfitsUsed, weekOutfitsMax: 3,
+      <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
     </div>
   )
 }

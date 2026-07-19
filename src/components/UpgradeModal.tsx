@@ -90,10 +90,11 @@ export default function UpgradeModal({ open, onClose }: { open: boolean; onClose
                   <p style={{ fontSize: '10px', color: 'rgba(36,33,27,0.6)', fontStyle: 'italic', marginBottom: '12px' }}>
                     {locale === 'de' ? 'nur 16 Cent/Tag' : 'just 16¢/day'}
                   </p>
-                  <div style={{ height: '1px', background: 'rgba(36,33,27,0.2)', marginBottom: '12px' }} />
-                  <p style={{ fontSize: '10px', fontWeight: 800, color: '#9C6B1F', marginBottom: '10px', letterSpacing: '0.02em' }}>
-                    {locale === 'de' ? '🔥 Exklusiv mit Pro' : '🔥 Exclusive with Pro'}
-                  </p>
+          <div style={{ background: '#24211B', borderRadius: '8px', padding: '6px 10px', marginBottom: '12px', display: 'inline-block', boxShadow: '0 2px 8px rgba(0,0,0,0.25)' }}>
+                    <p style={{ fontSize: '10px', fontWeight: 800, color: '#F1B951', letterSpacing: '0.02em', margin: 0 }}>
+                      {locale === 'de' ? '🔓 Nur mit Pro freigeschaltet' : '🔓 Unlocked only with Pro'}
+                    </p>
+                  </div>
                   {[
                     { title: '14 Outfits', sub: locale === 'de' ? 'pro Woche' : 'per week' },
                     { title: locale === 'de' ? 'Unbegrenzt Kleidung' : 'Unlimited items', sub: '' },
