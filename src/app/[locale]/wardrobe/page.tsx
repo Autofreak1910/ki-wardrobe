@@ -381,13 +381,16 @@ async function generateStyleDna() {
 
   setDnaLoading(true)
   setShowDna(true)
-  const res = await fetch('/api/style-dna', {
+const res = await fetch('/api/style-dna', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-locale': locale },
     body: JSON.stringify({ items }),
   })
   const data = await res.json()
-  if (data.success) setDna(data.dna)
+  if (data.success) {
+    setDna(data.dna)
+    try { localStorage.setItem('kw_dna_cache', JSON.stringify({ dna: data.dna, date: getTodayStartUTC().toISOString() })) } catch {}
+  }
   setDnaLoading(false)
 }
 
@@ -859,8 +862,21 @@ const dnaLocked = !isPremium || styleDnaUsedToday || needsMoreItems
                   : "A new analysis is available tomorrow — in the meantime, take another look at today's result."}
               </p>
 
-              <motion.button whileTap={{ scale: 0.97 }}
-                onClick={() => { setShowDnaUsedToday(false); setShowDna(true) }}
+            <motion.button whileTap={{ scale: 0.97 }}
+                onClick={() => {
+                  setShowDnaUsedToday(false)
+                  try {
+                    const cached = localStorage.getItem('kw_dna_cache')
+                    if (cached) {
+                      const parsed = JSON.parse(cached)
+                      const todayStart = getTodayStartUTC()
+                      if (new Date(parsed.date).getTime() === todayStart.getTime()) {
+                        setDna(parsed.dna)
+                      }
+                    }
+                  } catch {}
+                  setShowDna(true)
+                }}
                 style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: 'linear-gradient(135deg, #a855f7, #6b9fff)', color: '#fff', fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: '0 6px 24px rgba(168,85,247,0.4)', marginBottom: '8px', position: 'relative', zIndex: 1 }}>
                 {locale === 'de' ? '🧬 Heutige DNA ansehen' : '🧬 View today\'s DNA'}
               </motion.button>
