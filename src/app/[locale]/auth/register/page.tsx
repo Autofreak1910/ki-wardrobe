@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -26,6 +26,8 @@ const countries = [
 
 export default function RegisterPage() {
   const [step, setStep] = useState(1)
+  const [initializing, setInitializing] = useState(true)
+  const [isGoogleContinuation, setIsGoogleContinuation] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
@@ -57,8 +59,40 @@ const router = useRouter()
   const accent    = isDark ? '#5C82A0' : '#355C7D'
   const secondary = isDark ? '#221D12' : '#F7F4EC'
   const sageGradient = 'linear-gradient(135deg, #7FA98E, #355C7D)'
+ const selectedCountry = countries.find(c => c.code === country)
 
-  const selectedCountry = countries.find(c => c.code === country)
+  useEffect(() => {
+    checkGoogleSession()
+  }, [])
+
+  async function checkGoogleSession() {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('onboarding_completed')
+        .eq('id', session.user.id)
+        .single()
+      if (profile && profile.onboarding_completed === false) {
+        setIsGoogleContinuation(true)
+        setStep(2)
+      } else {
+        router.push('/' + locale + '/dresser')
+        return
+      }
+    }
+    setInitializing(false)
+  }
+
+  async function signInWithGoogle() {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?locale=${locale}${refCode ? '&ref=' + refCode : ''}`,
+      },
+    })
+  }
+
 function parseGermanDate(dateStr: string): Date | null {
     const parts = dateStr.split('.')
     if (parts.length !== 3) return null
@@ -84,8 +118,31 @@ function isValidEmail(e: string): boolean {
   async function handleRegister() {
     setLoading(true)
     setError('')
+
+    // Google-Nutzer: Account existiert bereits (durch OAuth), nur Profil vervollstaendigen
+    const { data: { session: existingSession } } = await supabase.auth.getSession()
+    if (existingSession?.user) {
+      const computedAge = calculateAge(birthdate)
+      const parsedBirth = parseGermanDate(birthdate)
+      const isoBirthdate = parsedBirth ? parsedBirth.toISOString().split('T')[0] : null
+      const lang = selectedCountry?.lang ?? locale
+
+      await supabase.from('profiles').update({
+        age: computedAge, birthdate: isoBirthdate, country, language: lang,
+        gender, style_preferences: stylePrefs, budget_range: budgetRange, favorite_shops: favoriteShops,
+        onboarding_completed: true,
+      }).eq('id', existingSession.user.id)
+
+      localStorage.removeItem('kw_onboarding_seen')
+      localStorage.setItem('kw_force_onboarding', 'true')
+      setLoading(false)
+      router.push('/' + lang + '/dresser')
+      return
+    }
+
+    // Normaler Email/Passwort-Flow
     const lang = selectedCountry?.lang ?? 'de'
- const computedAge = calculateAge(birthdate)
+    const computedAge = calculateAge(birthdate)
     const parsedBirth = parseGermanDate(birthdate)
     const isoBirthdate = parsedBirth ? parsedBirth.toISOString().split('T')[0] : null
 const { data, error: signUpError } = await supabase.auth.signUp({
@@ -97,18 +154,14 @@ const { data, error: signUpError } = await supabase.auth.signUp({
     })
 if (signUpError) { setError(signUpError.message); setLoading(false); return }
 
-    console.log('SignUp data:', data.user?.id, 'refCode:', refCode)
-
     if (data.user) {
-      console.log('User exists, waiting...')
       await new Promise(resolve => setTimeout(resolve, 1500))
 
-      // Profil updaten (eigene Session ist aktiv nach signUp)
-  await supabase.from('profiles').update({
-        gender, style_preferences: stylePrefs, budget_range: budgetRange, favorite_shops: favoriteShops
+      await supabase.from('profiles').update({
+        gender, style_preferences: stylePrefs, budget_range: budgetRange, favorite_shops: favoriteShops,
+        onboarding_completed: true,
       }).eq('id', data.user.id)
 
-      // Referral server-seitig anwenden
       if (refCode) {
         try {
           const res = await fetch('/api/apply-referral-server', {
@@ -117,9 +170,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
             body: JSON.stringify({ userId: data.user.id, referralCode: refCode }),
           })
           const result = await res.json()
-          console.log('Referral result:', result)
           if (result.success) {
-            // Pro-Ablaufdatum berechnen (14 Tage ab heute)
             const proUntil = new Date()
             proUntil.setDate(proUntil.getDate() + 14)
             localStorage.setItem('kw_pro_welcome_pending', JSON.stringify({
@@ -133,7 +184,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
         }
       }
     }
-// Willkommens-Email verschicken (non-blocking)
+
     if (data.user) {
       fetch('/api/send-welcome-email', {
         method: 'POST',
@@ -158,6 +209,15 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
 
   const totalSteps = 4
 
+  if (initializing) {
+    return (
+      <div style={{ minHeight: '100dvh', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          style={{ width: '36px', height: '36px', borderRadius: '50%', border: `3px solid ${border}`, borderTopColor: accent }} />
+      </div>
+    )
+  }
+
   return (
     <div style={{ minHeight: '100dvh', background: bg, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', fontFamily: "'Poppins', 'Inter', sans-serif", padding: '24px', position: 'relative', overflow: 'hidden' }}>
 
@@ -168,8 +228,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
           <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.4 }} xmlns="http://www.w3.org/2000/svg">
             <defs><pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="0.9" fill="#355C7D" opacity="0.2" /></pattern></defs>
             <rect width="100%" height="100%" fill="url(#dots)" />
-          </svg>
-        )}
+          </svg>    )}
       </div>
 
       <div style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 10 }}>
@@ -223,7 +282,25 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
               </p>
               {error && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#ef4444', fontSize: '13px', padding: '12px 16px', borderRadius: '10px', marginBottom: '16px' }}>{error}</div>}
 
-     {[
+              <motion.button whileTap={{ scale: 0.98 }}
+                onClick={signInWithGoogle}
+                style={{ width: '100%', background: 'transparent', border: `1.5px solid ${border}`, borderRadius: '12px', padding: '13px', fontSize: '14px', fontWeight: 600, color: text, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '16px' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                {locale === 'de' ? 'Mit Google registrieren' : 'Sign up with Google'}
+              </motion.button>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 16px' }}>
+                <div style={{ flex: 1, height: '1px', background: border }} />
+                <p style={{ fontSize: '11px', color: muted, fontWeight: 500 }}>{locale === 'de' ? 'oder' : 'or'}</p>
+                <div style={{ flex: 1, height: '1px', background: border }} />
+              </div>
+
+ {[
                 { label: locale === 'de' ? 'Benutzername' : 'Username', type: 'text', value: username, set: setUsername, placeholder: 'dein_name', hint: '', isPassword: false },
                 { label: 'E-Mail', type: 'email', value: email, set: setEmail, placeholder: 'deine@email.com', hint: '', isPassword: false },
                 { label: locale === 'de' ? 'Passwort' : 'Password', type: showPassword ? 'text' : 'password', value: password, set: setPassword, placeholder: '••••••••', hint: locale === 'de' ? 'Mind. 8 Zeichen, Buchstaben & Zahlen' : 'Min. 8 characters, letters & numbers', isPassword: true },
@@ -257,8 +334,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
                     <p style={{ fontSize: '11px', color: '#ef4444', marginTop: '5px', fontWeight: 500 }}>
                       {locale === 'de' ? '⚠ Bitte gültige E-Mail eingeben' : '⚠ Please enter a valid email'}
                     </p>
-                  )}
-                  {field.type === 'email' && email.length > 0 && isValidEmail(email) && (
+                  )} {field.type === 'email' && email.length > 0 && isValidEmail(email) && (
                     <p style={{ fontSize: '11px', color: '#10b981', marginTop: '5px', fontWeight: 500 }}>
                       {locale === 'de' ? '✓ E-Mail sieht gut aus' : '✓ Email looks good'}
                     </p>
@@ -286,8 +362,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
                       body: JSON.stringify({ email }),
                     })
                     const data = await res.json()
-                    if (data.exists) {
-                      setError(locale === 'de' ? 'Diese E-Mail wird bereits verwendet. Bitte logge dich ein.' : 'This email is already in use. Please log in instead.')
+                    if (data.exists) {     setError(locale === 'de' ? 'Diese E-Mail wird bereits verwendet. Bitte logge dich ein.' : 'This email is already in use. Please log in instead.')
                       setCheckingEmail(false)
                       return
                     }
@@ -316,8 +391,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
               {error && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#ef4444', fontSize: '13px', padding: '12px 16px', borderRadius: '10px', marginBottom: '16px' }}>{error}</div>}
 
               <div style={{ marginBottom: '24px' }}>
-                <label style={{ fontSize: '11px', fontWeight: 600, color: muted, display: 'block', marginBottom: '7px', letterSpacing: '0.05em', textTransform: 'uppercase' as const }}>
-                  {locale === 'de' ? 'Geburtsdatum' : 'Date of birth'}
+                <label style={{ fontSize: '11px', fontWeight: 600, color: muted, display: 'block', marginBottom: '7px', letterSpacing: '0.05em', textTransform: 'uppercase' as const }}>  {locale === 'de' ? 'Geburtsdatum' : 'Date of birth'}
                 </label>
             <input type="text" inputMode="numeric" value={birthdate} placeholder="TT.MM.JJJJ"
                   onChange={e => {
@@ -338,7 +412,9 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
               </div>
 
               <div style={{ display: 'flex', gap: '10px' }}>
-                <button onClick={() => setStep(1)} style={{ width: '48px', flexShrink: 0, padding: '14px', background: secondary, border: `1px solid ${border}`, borderRadius: '12px', fontSize: '16px', color: muted, cursor: 'pointer' }}>←</button>
+                {!isGoogleContinuation && (
+                  <button onClick={() => setStep(1)} style={{ width: '48px', flexShrink: 0, padding: '14px', background: secondary, border: `1px solid ${border}`, borderRadius: '12px', fontSize: '16px', color: muted, cursor: 'pointer' }}>←</button>
+                )}
                 <motion.button whileTap={{ scale: 0.97 }}
                   onClick={() => {
                     if (!birthdate) { setError(locale === 'de' ? 'Bitte Geburtsdatum eingeben' : 'Please enter your date of birth'); return }
@@ -351,9 +427,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
                 </motion.button>
               </div>
             </motion.div>
-          )}
-
-          {/* Step 3 */}
+          )}  {/* Step 3 */}
           {step === 3 && (
             <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}>
               <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '26px', fontWeight: 500, color: text, marginBottom: '6px', letterSpacing: '-0.02em' }}>
@@ -372,9 +446,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{c.name}</span>
                   </motion.button>
                 ))}
-              </div>
-
-              <div style={{ display: 'flex', gap: '10px' }}>
+              </div> <div style={{ display: 'flex', gap: '10px' }}>
                 <button onClick={() => setStep(2)} style={{ width: '48px', flexShrink: 0, padding: '14px', background: secondary, border: `1px solid ${border}`, borderRadius: '12px', fontSize: '16px', color: muted, cursor: 'pointer' }}>←</button>
                 <motion.button whileTap={{ scale: 0.97 }}
                   onClick={() => { if (country) { setError(''); setStep(4) } else setError(locale === 'de' ? 'Bitte Land wählen' : 'Please select country') }}
@@ -392,8 +464,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
                 {locale === 'de' ? 'Dein Style' : 'Your Style'}
               </h2>
               <p style={{ color: muted, fontSize: '14px', marginBottom: '20px' }}>
-                {locale === 'de' ? 'Für personalisierte Outfits' : 'For personalized outfits'}
-              </p>
+                {locale === 'de' ? 'Für personalisierte Outfits' : 'For personalized outfits'} </p>
               {error && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#ef4444', fontSize: '13px', padding: '12px 16px', borderRadius: '10px', marginBottom: '16px' }}>{error}</div>}
 
               {/* Geschlecht */}
@@ -424,8 +495,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
                   { value: 'formal', label: '👔 Formal' },
                   { value: 'sporty', label: '🏃 Sporty' },
                   { value: 'minimal', label: '⬜ Minimal' },
-                  { value: 'vintage', label: '🎞 Vintage' },
-                ].map(s => {
+                  { value: 'vintage', label: '🎞 Vintage' },    ].map(s => {
                   const isOn = stylePrefs.includes(s.value)
                   return (
                     <motion.button key={s.value} whileTap={{ scale: 0.95 }}
@@ -453,7 +523,6 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
                   </motion.button>
                 ))}
               </div>
-
               {/* Lieblings-Shops */}
               <p style={{ fontSize: '11px', fontWeight: 600, color: muted, letterSpacing: '0.05em', textTransform: 'uppercase' as const, marginBottom: '8px' }}>
                 {locale === 'de' ? 'Wo kaufst du meistens? (optional)' : 'Where do you usually shop? (optional)'}
@@ -485,8 +554,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
                     background: agbAccepted ? accent : 'transparent',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     transition: 'all 0.15s',
-                  }}>
-                    {agbAccepted && <span style={{ color: '#fff', fontSize: '12px', fontWeight: 700 }}>✓</span>}
+                  }}>   {agbAccepted && <span style={{ color: '#fff', fontSize: '12px', fontWeight: 700 }}>✓</span>}
                   </div>
                 </div>
                 <p style={{ fontSize: '12px', color: muted, lineHeight: 1.5 }}>
@@ -522,7 +590,6 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
 
         </AnimatePresence>
       </motion.div>
-
 <p style={{ marginTop: '20px', fontSize: '11px', color: muted, position: 'relative', zIndex: 1 }}>
         KiWardrobe · Made with ♥
       </p>
@@ -547,22 +614,19 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
               </div>
 
       {showLegalModal === 'agb' ? (
-                <>
-                  {[
+                <>     {[
                     { title: '1. Geltungsbereich', content: 'Diese AGB gelten für die Nutzung der App KiWardrobe, betrieben von Luca Darvas, Bernd-Rosemeyer-Straße 14, 85551 Kirchheim bei München ("Anbieter"). Mit der Registrierung erkennst du diese AGB an.' },
                     { title: '2. Leistungsbeschreibung', content: 'KiWardrobe bietet eine KI-gestützte Anwendung zur Verwaltung des persönlichen Kleiderschranks, zur Erstellung von Outfit-Vorschlägen sowie zur virtuellen Anprobe von Kleidung (Virtual Try-On). Ein Teil der Funktionen ist kostenlos nutzbar (KiWardrobe Free), erweiterte Funktionen sind im kostenpflichtigen Abonnement (KiWardrobe Pro) enthalten.' },
                     { title: '3. Vertragsschluss', content: 'Der Vertrag über die Free-Nutzung kommt durch erfolgreiche Registrierung zustande. Der Vertrag über ein Pro-Abonnement kommt durch Abschluss des Bezahlvorgangs über unseren Zahlungsdienstleister Stripe zustande.' },
                     { title: '4. Preise und Zahlung', content: 'Der aktuelle Preis für KiWardrobe Pro wird vor Vertragsschluss in der App angezeigt (Stand: €4,99/Monat). Die Zahlung erfolgt monatlich im Voraus über Stripe. Preisänderungen werden mit angemessener Vorlaufzeit angekündigt.' },
                     { title: '5. Laufzeit und Kündigung', content: 'Das Pro-Abonnement verlängert sich automatisch um jeweils einen Monat, sofern es nicht rechtzeitig vor Ablauf des laufenden Abrechnungszeitraums gekündigt wird. Die Kündigung ist jederzeit über die Profileinstellungen in der App oder per E-Mail an support.kiwardrobe@gmail.com möglich. Bereits bezahlte Zeiträume werden bei einer Kündigung nicht anteilig zurückerstattet; der Zugang zu Pro-Funktionen bleibt bis zum Ende des bezahlten Zeitraums bestehen.' },
-                    { title: '6. Widerrufsrecht', content: 'Verbrauchern steht grundsätzlich ein gesetzliches Widerrufsrecht von 14 Tagen nach Vertragsschluss zu. Da es sich bei KiWardrobe Pro um digitale Inhalte handelt, die sofort nach Zahlung bereitgestellt werden, erlischt das Widerrufsrecht vorzeitig, wenn du der sofortigen Ausführung ausdrücklich zustimmst und bestätigst, dass du dadurch dein Widerrufsrecht verlierst. Diese Zustimmung wird im Bestellprozess eingeholt.' },
-                    { title: '7. Nutzungsrechte und Pflichten', content: 'Du erhältst ein einfaches, nicht übertragbares Nutzungsrecht an der App für die Dauer deines Accounts. Du verpflichtest dich, keine missbräuchlichen, rechtswidrigen oder die Rechte Dritter verletzenden Inhalte (z. B. Bilder) hochzuladen. Bei Verstößen kann der Account gesperrt oder gelöscht werden.' },
+                    { title: '6. Widerrufsrecht', content: 'Verbrauchern steht grundsätzlich ein gesetzliches Widerrufsrecht von 14 Tagen nach Vertragsschluss zu. Da es sich bei KiWardrobe Pro um digitale Inhalte handelt, die sofort nach Zahlung bereitgestellt werden, erlischt das Widerrufsrecht vorzeitig, wenn du der sofortigen Ausführung ausdrücklich zustimmst und bestätigst, dass du dadurch dein Widerrufsrecht verlierst. Diese Zustimmung wird im Bestellprozess eingeholt.' }, { title: '7. Nutzungsrechte und Pflichten', content: 'Du erhältst ein einfaches, nicht übertragbares Nutzungsrecht an der App für die Dauer deines Accounts. Du verpflichtest dich, keine missbräuchlichen, rechtswidrigen oder die Rechte Dritter verletzenden Inhalte (z. B. Bilder) hochzuladen. Bei Verstößen kann der Account gesperrt oder gelöscht werden.' },
                     { title: '8. KI-generierte Inhalte', content: 'Outfit-Vorschläge und virtuelle Anprobe-Ergebnisse werden mithilfe von KI-Modellen Dritter (u. a. OpenAI, Replicate) erzeugt. Der Anbieter übernimmt keine Garantie für die optische Genauigkeit, Eignung oder Fehlerfreiheit der KI-generierten Ergebnisse.' },
                     { title: '9. Referral-Programm', content: 'Im Rahmen des Einladungsprogramms können Nutzer durch das Einladen neuer Nutzer zeitlich begrenzte kostenlose Pro-Zeiträume erhalten. Der Anbieter behält sich vor, das Programm jederzeit anzupassen, einzuschränken oder zu beenden sowie Belohnungen bei Missbrauch (z. B. Fake-Accounts) zu widerrufen.' },
                     { title: '10. Haftung', content: 'Der Anbieter haftet unbeschränkt bei Vorsatz und grober Fahrlässigkeit sowie nach den Vorschriften des Produkthaftungsgesetzes. Bei leicht fahrlässiger Verletzung wesentlicher Vertragspflichten ist die Haftung auf den vorhersehbaren, vertragstypischen Schaden begrenzt. Im Übrigen ist die Haftung ausgeschlossen, soweit gesetzlich zulässig.' },
                     { title: '11. Verfügbarkeit', content: 'Der Anbieter bemüht sich um eine möglichst unterbrechungsfreie Verfügbarkeit der App, übernimmt jedoch keine Garantie für eine bestimmte Verfügbarkeit, insbesondere bei Wartungsarbeiten oder Ausfällen von Drittanbietern (Hosting, KI-Dienste).' },
                     { title: '12. Änderung der AGB', content: 'Der Anbieter kann diese AGB mit Wirkung für die Zukunft ändern. Über wesentliche Änderungen wirst du rechtzeitig informiert. Widersprichst du nicht innerhalb von 30 Tagen, gelten die neuen AGB als akzeptiert.' },
-                    { title: '13. Schlussbestimmungen', content: 'Es gilt deutsches Recht. Sollte eine Bestimmung dieser AGB unwirksam sein, bleibt die Wirksamkeit der übrigen Bestimmungen unberührt.\n\nKontakt: support.kiwardrobe@gmail.com' },
-                  ].map(section => (
+                    { title: '13. Schlussbestimmungen', content: 'Es gilt deutsches Recht. Sollte eine Bestimmung dieser AGB unwirksam sein, bleibt die Wirksamkeit der übrigen Bestimmungen unberührt.\n\nKontakt: support.kiwardrobe@gmail.com' },    ].map(section => (
                     <div key={section.title} style={{ marginBottom: '16px' }}>
                       <h3 style={{ fontSize: '12px', fontWeight: 700, color: accent, textTransform: 'uppercase' as const, letterSpacing: '0.06em', marginBottom: '6px' }}>{section.title}</h3>
                       <p style={{ fontSize: '13px', color: text, lineHeight: 1.6, whiteSpace: 'pre-line' as const }}>{section.content}</p>
@@ -576,16 +640,14 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
                  { title: 'Welche Daten wir speichern', content: '• E-Mail-Adresse und Passwort (verschlüsselt)\n• Benutzername, Geburtsdatum, Land\n• Hochgeladene Kleidungsbilder\n• Selfie-/Körperfotos für die Virtual-Try-On-Funktion\n• Generierte Outfits und Avatar-Bilder\n• Standortdaten für die Wetteranzeige und tägliche Outfit-Vorschläge\n• Push-Notification-Anmeldedaten (falls aktiviert)\n• Zahlungsbezogene Daten bei Abschluss eines Pro-Abonnements (über Stripe)\n• Referral-Code und Einladungsstatistiken\n• Bevorzugte Einkaufs-Shops (optional, für personalisierte Empfehlungen)\n• Nutzungsstatistiken der App' },
                     { title: 'Wofür wir Daten nutzen', content: '• Bereitstellung der App-Funktionen\n• KI-basierte Outfit-Generierung und virtuelle Anprobe (Virtual Try-On)\n• Tagesaktuelle, wetterbasierte Outfit-Vorschläge\n• Versand von Push-Benachrichtigungen (nur mit deiner Zustimmung)\n• Abwicklung von Pro-Abonnements\n• Personalisierung der Nutzererfahrung\n• Verbesserung des Services' },
                     { title: 'Standortdaten', content: 'Mit deiner Erlaubnis erfassen wir deinen ungefähren Standort (GPS-Koordinaten), um dir aktuelle Wetterdaten und passende Outfit-Vorschläge anzuzeigen. Du kannst die Standortfreigabe jederzeit über die Berechtigungen deines Geräts/Browsers widerrufen.' },
-                    { title: 'Push-Benachrichtigungen', content: 'Wenn du Push-Benachrichtigungen aktivierst, speichern wir ein technisches Abonnement deines Geräts, um dir tägliche Outfit-Erinnerungen zu schicken. Du kannst dies jederzeit in deinem Profil deaktivieren.' },
-                    { title: 'Zahlungen', content: 'Bei Abschluss eines KiWardrobe Pro-Abonnements werden Zahlungsdaten ausschließlich von unserem Zahlungsdienstleister Stripe verarbeitet. Wir selbst speichern keine vollständigen Kreditkartendaten.' },
+                    { title: 'Push-Benachrichtigungen', content: 'Wenn du Push-Benachrichtigungen aktivierst, speichern wir ein technisches Abonnement deines Geräts, um dir tägliche Outfit-Erinnerungen zu schicken. Du kannst dies jederzeit in deinem Profil deaktivieren.' },     { title: 'Zahlungen', content: 'Bei Abschluss eines KiWardrobe Pro-Abonnements werden Zahlungsdaten ausschließlich von unserem Zahlungsdienstleister Stripe verarbeitet. Wir selbst speichern keine vollständigen Kreditkartendaten.' },
                     { title: 'Freunde einladen (Referral-Programm)', content: 'Wenn du Freunde über deinen persönlichen Einladungslink einlädst, wird gespeichert, welcher Account über welchen Code registriert wurde, um die vereinbarten Prämien zu vergeben.' },
                     { title: 'Drittanbieter', content: '• Supabase (Datenspeicherung, EU-Server Frankfurt)\n• OpenAI (KI-Analyse für Outfit-Vorschläge und Stilanalyse)\n• Replicate (KI-Bildverarbeitung für Virtual Try-On/Avatar-Generierung und Hintergrundentfernung)\n• Stripe (Zahlungsabwicklung für Pro-Abonnements)\n• Vercel (Hosting, inkl. Server in den USA)\n• Open-Meteo / OpenStreetMap (Wetter- und Standortdaten)' },
                     { title: 'Deine Rechte', content: '• Auskunft über gespeicherte Daten\n• Berichtigung falscher Daten\n• Löschung deiner Daten\n• Datenportabilität\n• Widerspruch gegen die Verarbeitung\n\nKontakt: support.kiwardrobe@gmail.com' },
                     { title: 'Datenlöschung', content: 'Du kannst dein Konto inklusive aller gespeicherten Daten jederzeit selbst über die App löschen (Profil → Account löschen). Diese Löschung ist sofort wirksam und unwiderruflich.' },
                     { title: 'Speicherdauer', content: 'Deine Daten werden gespeichert, solange dein Account aktiv ist. Nach Löschung werden alle personenbezogenen Daten unverzüglich entfernt, mit Ausnahme gesetzlich vorgeschriebener Aufbewahrungsfristen für Rechnungsdaten.' },
                     { title: 'Cookies', content: 'Wir verwenden nur technisch notwendige Cookies für die Authentifizierung. Keine Werbe-Cookies, kein Tracking durch Dritte zu Werbezwecken.' },
-                  ].map(section => (
-                    <div key={section.title} style={{ marginBottom: '16px' }}>
+                  ].map(section => (      <div key={section.title} style={{ marginBottom: '16px' }}>
                       <h3 style={{ fontSize: '12px', fontWeight: 700, color: accent, textTransform: 'uppercase' as const, letterSpacing: '0.06em', marginBottom: '6px' }}>{section.title}</h3>
                       <p style={{ fontSize: '13px', color: text, lineHeight: 1.6, whiteSpace: 'pre-line' as const }}>{section.content}</p>
                     </div>
