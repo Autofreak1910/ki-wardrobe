@@ -1034,7 +1034,7 @@ onClick={() => {
 
       <main ref={mainRef} style={{ flex: 1, overflowY: 'auto' as const, overflowX: 'hidden', maxWidth: '540px', width: '100%', margin: '0 auto', padding: '68px 0 112px', position: 'relative', zIndex: 1 }}>
 
-       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
           style={{ position: 'relative' as const, height: '220px', marginBottom: '0', overflow: 'hidden', borderRadius: '0 0 28px 28px' }}>
 
           <img
@@ -1042,14 +1042,13 @@ onClick={() => {
             alt=""
             style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', position: 'absolute', inset: 0 }}
           />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(240,244,255,0.1) 0%, rgba(240,244,255,0.6) 60%, rgba(240,244,255,1) 100%)' }} />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(240,244,255,0.7) 0%, rgba(240,244,255,0) 60%)' }} />
+          <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, ${bg}f2 100%)` }} />
 
           <div style={{ position: 'absolute' as const, bottom: '20px', left: '18px', zIndex: 2 }}>
-        <h1 style={{ fontSize: '26px', fontWeight: 800, color: text, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: '2px' }}>
+        <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: '2px', textShadow: '0 1px 8px rgba(0,0,0,0.4)' }}>
   {locale === 'de' ? 'Willkommen' : 'Welcome'}{username ? `, ${username}.` : '.'}
 </h1>
-            <p style={{ fontSize: '11px', color: muted }}>{today}, {dateStr}</p>
+            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.85)', textShadow: '0 1px 6px rgba(0,0,0,0.4)' }}>{today}, {dateStr}</p>
           </div>
 
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}

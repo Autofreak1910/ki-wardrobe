@@ -500,19 +500,19 @@ async function generateStyleDna() {
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
           style={{ position: 'relative' as const, marginBottom: '20px', borderRadius: '0 0 28px 28px', overflow: 'hidden', height: '200px', marginLeft: '-0px', marginRight: '-0px' }}>
 
-  <img
+<img
             src="/closet-hero.jpg.png"
             alt=""
             style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', position: 'absolute', inset: 0 }}
           />
-          <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, rgba(253,252,249,0.1) 0%, ${bg}f2 100%)` }} />
+          <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, ${bg}f2 100%)` }} />
 
           {/* Text über dem Bild */}
           <div style={{ position: 'absolute' as const, bottom: '20px', left: '20px', zIndex: 2 }}>
-            <h1 style={{ fontSize: '28px', fontWeight: 800, color: text, letterSpacing: '-0.04em', lineHeight: 1.1, textShadow: isDark ? 'none' : '0 1px 8px rgba(255,255,255,0.8)' }}>
+            <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1.1, textShadow: '0 1px 8px rgba(0,0,0,0.4)' }}>
               {locale === 'de' ? 'Dein' : 'Your'}
             </h1>
-            <h1 style={{ fontSize: '28px', fontWeight: 800, color: text, letterSpacing: '-0.04em', lineHeight: 1.1, textShadow: isDark ? 'none' : '0 1px 8px rgba(255,255,255,0.8)' }}>
+            <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1.1, textShadow: '0 1px 8px rgba(0,0,0,0.4)' }}>
               {locale === 'de' ? 'Kleiderschrank' : 'Wardrobe'}
             </h1>
           </div>

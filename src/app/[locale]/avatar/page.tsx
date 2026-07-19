@@ -445,14 +445,14 @@ const [genStep, setGenStep] = useState('')
       <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '560px', width: '100%', margin: '0 auto', padding: '68px 0 170px', position: 'relative', zIndex: 1 }}>
 
         {/* Hero Banner */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
           style={{ position: 'relative' as const, height: '140px', marginBottom: '0', overflow: 'hidden', borderRadius: '0 0 28px 28px' }}>
           <img
             src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80&auto=format&fit=crop"
             alt=""
             style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', position: 'absolute', inset: 0 }}
           />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(241,185,81,0.18) 0%, rgba(253,252,249,0.8) 65%, rgba(253,252,249,1) 100%)' }} />
+          <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, ${bg}f2 100%)` }} />
 
           {/* PRO Badge */}
           {isPremium ? (

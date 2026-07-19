@@ -92,13 +92,14 @@ export default function UpgradeModal({ open, onClose }: { open: boolean; onClose
                     {locale === 'de' ? 'nur 16 Cent/Tag' : 'just 16¢/day'}
                   </p>
        <div style={{ height: '1px', background: 'rgba(36,33,27,0.2)', marginBottom: '12px' }} />
-              {[
+            {[
                     { title: '14 Outfits', sub: locale === 'de' ? 'pro Woche' : 'per week', isNew: false },
                     { title: locale === 'de' ? 'Unbegrenzt Kleidung' : 'Unlimited items', sub: '', isNew: false },
                     { title: locale === 'de' ? 'Unbegrenzt speichern' : 'Unlimited saved', sub: '', isNew: false },
                     { title: locale === 'de' ? '6× Virtual Try-On' : '6× Virtual Try-On', sub: locale === 'de' ? 'pro Woche' : 'per week', isNew: false },
                     { title: 'Style DNA', sub: locale === 'de' ? 'KI Stil-Analyse' : 'AI style analysis', isNew: true },
                     { title: locale === 'de' ? 'Mehrfach-Upload' : 'Multi-upload', sub: locale === 'de' ? 'Bis zu 10 Fotos · 3× pro Woche' : 'Up to 10 photos · 3× per week', isNew: true },
+                    { title: locale === 'de' ? '🧊 Streak-Schutz' : '🧊 Streak Freeze', sub: locale === 'de' ? '1× kostenlose Wiederherstellung/Monat' : '1× free restore per month', isNew: true },
                   ].map((f, i) => (
                     <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '8px', background: f.isNew ? 'rgba(36,33,27,0.08)' : 'transparent', borderRadius: '6px', padding: f.isNew ? '4px 6px' : '0', marginLeft: f.isNew ? '-6px' : '0', marginRight: f.isNew ? '-6px' : '0' }}>
                       <span style={{ fontSize: '11px', color: f.isNew ? '#24211B' : '#24211B', flexShrink: 0, marginTop: '2px' }}>{f.isNew ? '🆕' : '✦'}</span>

@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import UpgradeModal from '@/components/UpgradeModal'
-type Profile = { id: string; username: string; is_premium: boolean; age?: string; country?: string; created_at: string; email?: string; gender?: string; style_preferences?: string[]; budget_range?: string; referral_code?: string; premium_until?: string; invites_this_month?: number; bonus_month_claimed_this_period?: boolean; avatar_tries_left?: number }
+type Profile = { id: string; username: string; is_premium: boolean; age?: string; country?: string; created_at: string; email?: string; gender?: string; style_preferences?: string[]; budget_range?: string; referral_code?: string; premium_until?: string; invites_this_month?: number; bonus_month_claimed_this_period?: boolean; avatar_tries_left?: number; streak_freeze_used_month?: string }
 
 function getWeekStartUTC(): Date {
   const now = new Date()
@@ -337,14 +337,14 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
       <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '560px', width: '100%', margin: '0 auto', padding: '68px 0 108px', position: 'relative', zIndex: 1 }}>
 
         {/* Hero Banner */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-          style={{ position: 'relative' as const, height: '160px', overflow: 'hidden', marginBottom: '0' }}>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          style={{ position: 'relative' as const, height: '160px', overflow: 'hidden', marginBottom: '0', borderRadius: '0 0 28px 28px' }}>
           <img
             src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&q=80&auto=format&fit=crop"
             alt=""
             style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', position: 'absolute', inset: 0 }}
           />
-          <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, rgba(242,239,231,0.1) 0%, ${bg}f2 100%)` }} />
+          <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, ${bg}f2 100%)` }} />
         </motion.div>
 
         {/* Avatar + Name + Stats */}
@@ -413,9 +413,10 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
   isPremium
     ? { label: 'Try-On', value: weekAvatarCount, max: 6 }
     : { label: 'Try-On', value: monthAvatarCount, max: 2 },
-  ...(isPremium ? [
+...(isPremium ? [
     { label: locale === 'de' ? 'Multi-Upload' : 'Multi-upload', value: multiScansThisWeek, max: 3 },
     { label: 'Style DNA', value: styleDnaToday, max: 1 },
+    { label: locale === 'de' ? '🧊 Streak-Schutz' : '🧊 Streak Freeze', value: (profile?.streak_freeze_used_month === new Date().toISOString().slice(0,7)) ? 1 : 0, max: 1 },
   ] : []),
 ]
       return (
