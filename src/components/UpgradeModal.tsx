@@ -6,7 +6,14 @@ import { useLocale } from 'next-intl'
 import { useTheme } from '@/context/ThemeContext'
 import { motion, AnimatePresence } from 'framer-motion'
 
-export default function UpgradeModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+type Usage = {
+  items?: number; itemsMax?: number
+  savedOutfits?: number; savedMax?: number
+  weekOutfits?: number; weekOutfitsMax?: number
+  tryOns?: number; tryOnsMax?: number
+}
+
+export default function UpgradeModal({ open, onClose, usage }: { open: boolean; onClose: () => void; usage?: Usage }) {
   const { theme } = useTheme()
   const locale = useLocale()
   const supabase = createClient()
@@ -19,6 +26,13 @@ export default function UpgradeModal({ open, onClose }: { open: boolean; onClose
   const text   = isDark ? '#F5F3EE' : '#24211B'
   const muted  = isDark ? '#9a978f' : '#8C8776'
   const gold   = isDark ? '#E5B45B' : '#C9963C'
+  function line(current: number | undefined, max: number | undefined, fallback: string, urgentFallback: string): string {
+    if (current === undefined || max === undefined) return fallback
+    const remaining = max - current
+    if (remaining <= 0) return locale === 'de' ? `${current}/${max} — Limit erreicht!` : `${current}/${max} — limit reached!`
+    if (remaining <= Math.max(1, Math.round(max * 0.2))) return locale === 'de' ? `${current}/${max} — fast voll!` : `${current}/${max} — almost full!`
+    return `${current}/${max}`
+  }
 
   async function startCheckout() {
     if (!withdrawalConsent) return
@@ -54,15 +68,15 @@ export default function UpgradeModal({ open, onClose }: { open: boolean; onClose
                 <p style={{ fontSize: '32px', fontWeight: 800, color: text, letterSpacing: '-0.04em', marginBottom: '2px' }}>€0</p>
                 <p style={{ fontSize: '11px', color: muted, marginBottom: '12px' }}>{locale === 'de' ? 'für immer kostenlos' : 'free forever'}</p>
                 <div style={{ height: '1px', background: border, marginBottom: '12px' }} />
-             {[
-                  locale === 'de' ? '3 Outfits pro Woche' : '3 outfits per week',
-                  locale === 'de' ? 'Max. 20 Kleidungsstücke' : 'Max. 20 items',
-                  locale === 'de' ? 'Max. 5 gespeicherte Outfits' : 'Max. 5 saved outfits',
-                  locale === 'de' ? '2 Virtual Try-Ons/Monat' : '2 virtual try-ons/month',
-                ].map((t, i) => (
+         {[
+                  { t: line(usage?.weekOutfits, usage?.weekOutfitsMax, locale === 'de' ? '3 Outfits pro Woche' : '3 outfits per week', ''), urgent: usage?.weekOutfits !== undefined && usage?.weekOutfitsMax !== undefined && usage.weekOutfits >= usage.weekOutfitsMax },
+                  { t: line(usage?.items, usage?.itemsMax, locale === 'de' ? 'Max. 20 Kleidungsstücke' : 'Max. 20 items', ''), urgent: usage?.items !== undefined && usage?.itemsMax !== undefined && usage.items >= usage.itemsMax },
+                  { t: line(usage?.savedOutfits, usage?.savedMax, locale === 'de' ? 'Max. 5 gespeicherte Outfits' : 'Max. 5 saved outfits', ''), urgent: usage?.savedOutfits !== undefined && usage?.savedMax !== undefined && usage.savedOutfits >= usage.savedMax },
+                  { t: line(usage?.tryOns, usage?.tryOnsMax, locale === 'de' ? '2 Virtual Try-Ons/Monat' : '2 virtual try-ons/month', ''), urgent: usage?.tryOns !== undefined && usage?.tryOnsMax !== undefined && usage.tryOns >= usage.tryOnsMax },
+                ].map((f, i) => (
                   <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '11px', color: muted }}>○</span>
-                    <p style={{ fontSize: '13px', fontWeight: 600, color: text }}>{t}</p>
+                    <span style={{ fontSize: '11px', color: f.urgent ? '#ef4444' : muted }}>{f.urgent ? '✕' : '○'}</span>
+                    <p style={{ fontSize: '13px', fontWeight: 600, color: f.urgent ? '#ef4444' : text }}>{f.t}</p>
                   </div>
                 ))}
               </div>

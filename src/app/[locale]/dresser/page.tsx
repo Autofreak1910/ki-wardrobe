@@ -160,7 +160,9 @@ const [referrerName, setReferrerName] = useState('')
  const today = days[new Date().getDay()]
   const dateStr = new Date().toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-GB', { day: 'numeric', month: 'long' })
 const [greeting, setGreeting] = useState('')
-  const [streak, setStreak] = useState(stylistCache?.streak ?? 0)
+const [streak, setStreak] = useState(stylistCache?.streak ?? 0)
+  const [weekOutfitsUsed, setWeekOutfitsUsed] = useState(0)
+  const [savedOutfitsCount, setSavedOutfitsCount] = useState(0)
   const [userId, setUserId] = useState<string | null>(null)
   const [streakReward, setStreakReward] = useState<{ days: number; milestone: number } | null>(null)
   const [showStreakInfo, setShowStreakInfo] = useState(false)
@@ -302,9 +304,17 @@ const { data: profile } = await supabase.from('profiles').select('username, prem
         setPremiumUntil(until.toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' }))
       }
     }
-    const { data: stillPremium } = await supabase.rpc('check_and_expire_premium', { p_user_id: session.user.id })
+  const { data: stillPremium } = await supabase.rpc('check_and_expire_premium', { p_user_id: session.user.id })
     setIsPremium(stillPremium ?? false)
     setPremiumLoading(false)
+
+    const weekStart = getWeekStartUTC()
+    const [weekOutfitsRes, savedRes] = await Promise.all([
+      supabase.from('outfit_generations').select('*', { count: 'exact', head: true }).eq('user_id', session.user.id).gte('created_at', weekStart.toISOString()),
+      supabase.from('outfits').select('*', { count: 'exact', head: true }).eq('user_id', session.user.id),
+    ])
+    setWeekOutfitsUsed(weekOutfitsRes.count ?? 0)
+    setSavedOutfitsCount(savedRes.count ?? 0)
 
     stylistCache = {
       wardrobeItems: data ?? [],
@@ -1517,7 +1527,11 @@ onClick={() => {
       </AnimatePresence>
         </div>
       </main>
-      <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
+     <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} usage={{
+        items: wardrobeItems.length, itemsMax: 20,
+        savedOutfits: savedOutfitsCount, savedMax: 5,
+        weekOutfits: weekOutfitsUsed, weekOutfitsMax: 3,
+      }} />
     </div>
   )
 }
