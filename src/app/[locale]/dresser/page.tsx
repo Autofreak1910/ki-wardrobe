@@ -166,7 +166,7 @@ const [weekOutfitsUsed, setWeekOutfitsUsed] = useState(0)
   const [bonusTryonsThisWeek, setBonusTryonsThisWeek] = useState(0)
   const [freezeUsedMonth, setFreezeUsedMonth] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
-  const [streakReward, setStreakReward] = useState<{ days: number; milestone: number } | null>(null)
+const [streakReward, setStreakReward] = useState<{ days?: number; milestone: number; type?: string; outfits?: number; tryons?: number } | null>(null)
   const [showStreakInfo, setShowStreakInfo] = useState(false)
 useEffect(() => {
   setGreeting(getGreeting(locale))
@@ -1420,8 +1420,12 @@ onClick={() => {
               <p style={{ fontSize: '22px', fontWeight: 800, color: '#f97316', letterSpacing: '-0.03em', marginBottom: '8px' }}>
                 {streakReward.milestone}{locale === 'de' ? '-Tage-Streak!' : '-Day Streak!'}
               </p>
-              <p style={{ fontSize: '15px', color: text, fontWeight: 600, marginBottom: '6px' }}>
-                {locale === 'de' ? `+${streakReward.days} Tag${streakReward.days > 1 ? 'e' : ''} Pro gratis! 🎁` : `+${streakReward.days} day${streakReward.days > 1 ? 's' : ''} Pro free! 🎁`}
+          <p style={{ fontSize: '15px', color: text, fontWeight: 600, marginBottom: '6px' }}>
+                {streakReward.type === 'boost'
+                  ? (locale === 'de'
+                      ? `+${streakReward.outfits} Outfit${(streakReward.outfits ?? 0) > 1 ? 's' : ''} diese Woche! ✨${streakReward.tryons ? ` +${streakReward.tryons} Try-On` : ''}`
+                      : `+${streakReward.outfits} outfit${(streakReward.outfits ?? 0) > 1 ? 's' : ''} this week! ✨${streakReward.tryons ? ` +${streakReward.tryons} try-on` : ''}`)
+                  : (locale === 'de' ? `+${streakReward.days} Tag${(streakReward.days ?? 0) > 1 ? 'e' : ''} Pro gratis! 🎁` : `+${streakReward.days} day${(streakReward.days ?? 0) > 1 ? 's' : ''} Pro free! 🎁`)}
               </p>
               <p style={{ fontSize: '13px', color: muted, marginBottom: '24px' }}>
                 {locale === 'de' ? 'Weiter so — bleib dran! 💪' : 'Keep it up — stay consistent! 💪'}
