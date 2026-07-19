@@ -54,9 +54,10 @@ export default function UpgradeModal({ open, onClose }: { open: boolean; onClose
                 <p style={{ fontSize: '32px', fontWeight: 800, color: text, letterSpacing: '-0.04em', marginBottom: '2px' }}>€0</p>
                 <p style={{ fontSize: '11px', color: muted, marginBottom: '12px' }}>{locale === 'de' ? 'für immer kostenlos' : 'free forever'}</p>
                 <div style={{ height: '1px', background: border, marginBottom: '12px' }} />
-                {[
+             {[
                   locale === 'de' ? '3 Outfits pro Woche' : '3 outfits per week',
                   locale === 'de' ? 'Max. 20 Kleidungsstücke' : 'Max. 20 items',
+                  locale === 'de' ? 'Max. 5 gespeicherte Outfits' : 'Max. 5 saved outfits',
                   locale === 'de' ? '2 Virtual Try-Ons/Monat' : '2 virtual try-ons/month',
                 ].map((t, i) => (
                   <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
@@ -72,11 +73,13 @@ export default function UpgradeModal({ open, onClose }: { open: boolean; onClose
                 <p style={{ fontSize: '32px', fontWeight: 800, color: '#24211B', letterSpacing: '-0.04em', marginBottom: '2px' }}>€4,99</p>
                 <p style={{ fontSize: '11px', color: 'rgba(36,33,27,0.7)', marginBottom: '12px' }}>{locale === 'de' ? 'pro Monat' : 'per month'}</p>
                 <div style={{ height: '1px', background: 'rgba(36,33,27,0.2)', marginBottom: '12px' }} />
-                {[
+              {[
                   '14 Outfits/' + (locale === 'de' ? 'Woche' : 'week'),
                   locale === 'de' ? 'Unbegrenzt Kleidung' : 'Unlimited items',
+                  locale === 'de' ? 'Unbegrenzt speichern' : 'Unlimited saves',
                   '6× Try-On/' + (locale === 'de' ? 'Woche' : 'week'),
                   'Style DNA',
+                  locale === 'de' ? 'Mehrfach-Upload' : 'Multi-upload',
                 ].map((t, i) => (
                   <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
                     <span style={{ fontSize: '11px', color: '#24211B' }}>✦</span>
