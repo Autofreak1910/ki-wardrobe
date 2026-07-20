@@ -30,21 +30,27 @@ export default function WelcomeOfferPage() {
     loadProfile()
   }, [])
 
-  async function loadProfile() {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      router.push('/' + locale + '/dresser')
-      return
-    }
-    const { data } = await supabase
-      .from('profiles')
-      .select('is_founder, signup_number')
-      .eq('id', user.id)
-      .single()
-
-    setProfile(data as any)
-    setInitializing(false)
+async function loadProfile() {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    router.push('/' + locale + '/dresser')
+    return
   }
+  const { data } = await supabase
+    .from('profiles')
+    .select('is_founder, signup_number')
+    .eq('id', user.id)
+    .single()
+
+  // War nicht auf der Warteliste -> kein Angebot -> direkt in die App
+  if (!data || !data.signup_number) {
+    router.push('/' + locale + '/dresser')
+    return
+  }
+
+  setProfile(data as any)
+  setInitializing(false)
+}
 
   async function handleClaim() {
     setLoading(true)
