@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 
 async function callOpenAI(prompt: string) {
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -39,12 +40,9 @@ function uniqueId(item: any): string {
   return normalize(item.name ?? item.category) + '|' + normalize(item.color)
 }
 
-// Waehlt das am wenigsten benutzte Item, mit kleiner Zufallskomponente unter den am wenigsten benutzten,
-// damit es nicht IMMER exakt dasselbe ist wenn mehrere gleich selten benutzt wurden.
 type UsageInfo = { count: number; lastUsed: number }
 
 function getUsageInfo(usage: Record<string, any>, id: string): UsageInfo {
-  // id ist bereits normalisiert (lowercase). usage-Keys koennen Original-Schreibweise haben, also case-insensitive suchen.
   const normalizedId = normalize(id)
   for (const key of Object.keys(usage)) {
     if (normalize(key) === normalizedId) {
@@ -55,7 +53,7 @@ function getUsageInfo(usage: Record<string, any>, id: string): UsageInfo {
   }
   return { count: 0, lastUsed: 0 }
 }
-// Waehlt deterministisch: zuerst niedrigste count, bei Gleichstand das mit dem aeltesten lastUsed (am laengsten nicht benutzt). Kein Zufall mehr.
+
 function pickLeastUsed(pool: any[], usage: Record<string, UsageInfo>, excludeIds: Set<string>): any | null {
   const candidates = pool.filter((p: any) => !excludeIds.has(uniqueId(p)))
   const finalPool = candidates.length > 0 ? candidates : pool
@@ -75,13 +73,21 @@ function pickLeastUsed(pool: any[], usage: Record<string, UsageInfo>, excludeIds
 
 export async function POST(request: NextRequest) {
   try {
+    // --- AUTH CHECK ---
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (!user || authError) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+    // --- ENDE AUTH CHECK ---
+
     const { items, occasion, weather, blockedNames, usageCounts, recentCombos, activeCategories, weatherAware } = await request.json()
     const recentComboSet = new Set(Array.isArray(recentCombos) ? recentCombos : [])
     const wantsJacket = Array.isArray(activeCategories) ? activeCategories.includes('jacken') : true
     const useWeather = weatherAware !== false
     const locale = request.headers.get('x-locale') || 'de'
     const isEnglish = locale === 'en'
-const usage: Record<string, UsageInfo> = usageCounts && typeof usageCounts === 'object' ? usageCounts : {}
+    const usage: Record<string, UsageInfo> = usageCounts && typeof usageCounts === 'object' ? usageCounts : {}
     console.log('=== USAGE DEBUG ===')
     console.log('Received usage object:', JSON.stringify(usage))
     const blocked = new Set((Array.isArray(blockedNames) ? blockedNames : []).map(normalize))
@@ -91,7 +97,7 @@ const usage: Record<string, UsageInfo> = usageCounts && typeof usageCounts === '
     const hosen = grouped['hosen'] ?? []
     const schuhe = grouped['schuhe'] ?? []
     const jacken = grouped['jacken'] ?? []
-console.log('All schuhe with usage:', schuhe.map((s: any) => uniqueId(s) + ' -> ' + JSON.stringify(getUsageInfo(usage, uniqueId(s)))))
+    console.log('All schuhe with usage:', schuhe.map((s: any) => uniqueId(s) + ' -> ' + JSON.stringify(getUsageInfo(usage, uniqueId(s)))))
     console.log('All hosen with usage:', hosen.map((h: any) => uniqueId(h) + ' -> ' + JSON.stringify(getUsageInfo(usage, uniqueId(h)))))
 
     const tempMatch = String(weather).match(/(-?\d+)/)
@@ -102,7 +108,7 @@ console.log('All schuhe with usage:', schuhe.map((s: any) => uniqueId(s) + ' -> 
     const vibes = ['']
     const outfits: { items: string[]; reasoning: string; vibe: string }[] = []
 
-const sessionUsedTops = new Set<string>(blocked)
+    const sessionUsedTops = new Set<string>(blocked)
     const sessionUsedHosen = new Set<string>(blocked)
     const sessionUsedSchuhe = new Set<string>(blocked)
     const generatedComboKeys: string[] = []
@@ -125,26 +131,21 @@ const sessionUsedTops = new Set<string>(blocked)
         pickedTop = pickLeastUsed(tops, usage, sessionUsedTops)
       }
 
-     const pickedHose = pickLeastUsed(hosen, usage, sessionUsedHosen)
+      const pickedHose = pickLeastUsed(hosen, usage, sessionUsedHosen)
       const pickedSchuh = pickLeastUsed(schuhe, usage, sessionUsedSchuhe)
       console.log('PICKED hose:', pickedHose ? uniqueId(pickedHose) : 'none', '| PICKED schuh:', pickedSchuh ? uniqueId(pickedSchuh) : 'none')
-  // Jacke: Wenn User die Jacken-Kategorie ausgewaehlt hat, kommt eine rein.
-      // Bei aktivem Wetter-Modus haengt es von der Temperatur ab.
+
       let pickedJacke: any = null
       if (jacken.length > 0 && wantsJacket) {
         if (useWeather) {
           if (tempValue >= 25) {
-            // Heiss: gar keine Jacke
             pickedJacke = null
           } else if (tempValue >= 20) {
-            // Mild: Jacke nur selten (leichte Jacke denkbar)
             pickedJacke = Math.random() > 0.7 ? pickLeastUsed(jacken, usage, new Set()) : null
           } else {
-            // Kuehl/kalt: Jacke immer
             pickedJacke = pickLeastUsed(jacken, usage, new Set())
           }
         } else {
-          // Wetter-Modus aus: Jacke immer wenn ausgewaehlt
           pickedJacke = pickLeastUsed(jacken, usage, new Set())
         }
       }
@@ -154,10 +155,9 @@ const sessionUsedTops = new Set<string>(blocked)
       if (pickedHose) sessionUsedHosen.add(uniqueId(pickedHose))
       if (pickedSchuh) sessionUsedSchuhe.add(uniqueId(pickedSchuh))
 
-let chosenItems = [pickedTop, pickedBaseTop, pickedHose, pickedSchuh, pickedJacke].filter(Boolean)
+      let chosenItems = [pickedTop, pickedBaseTop, pickedHose, pickedSchuh, pickedJacke].filter(Boolean)
       let comboKey = chosenItems.map((it: any) => uniqueId(it)).sort().join('+')
 
-      // Falls diese exakte Kombination kuerzlich schon vorkam: tausche das Top gegen die naechstbeste Alternative
       if (recentComboSet.has(comboKey)) {
         const altTop = pickLeastUsed(tops.filter((t: any) => uniqueId(t) !== uniqueId(pickedTop)), usage, sessionUsedTops)
         if (altTop) {
@@ -175,14 +175,14 @@ let chosenItems = [pickedTop, pickedBaseTop, pickedHose, pickedSchuh, pickedJack
 
       let prompt = ''
       if (isEnglish) {
-      prompt = 'You are a fashion stylist. The user will wear exactly these items for \"' + occasion + '\": ' + chosenDescriptions + '. Weather: ' + weather + '. '
+        prompt = 'You are a fashion stylist. The user will wear exactly these items for "' + occasion + '": ' + chosenDescriptions + '. Weather: ' + weather + '. '
         prompt += 'Write a short, natural one-sentence reasoning (max 25 words) why this combination works together (colors, style, weather), naturally mentioning the temperature. Respond ONLY with JSON: {"reasoning": "your text here"}'
       } else {
-        prompt = 'Du bist ein Fashion-Stylist. Der Nutzer traegt genau diese Teile fuer \"' + occasion + '\": ' + chosenDescriptions + '. Wetter: ' + weather + '. '
+        prompt = 'Du bist ein Fashion-Stylist. Der Nutzer traegt genau diese Teile fuer "' + occasion + '": ' + chosenDescriptions + '. Wetter: ' + weather + '. '
         prompt += 'Schreib eine kurze, natuerliche ein-Satz-Begruendung (max 25 Woerter) warum diese Kombination zusammenpasst (Farben, Stil, Wetter), erwaehne dabei natuerlich die Temperatur. Antworte NUR mit JSON: {"reasoning": "dein Text hier"}'
       }
 
-try {
+      try {
         const result = await callOpenAI(prompt)
         outfits.push({ items: chosenNames, reasoning: result.reasoning ?? '', vibe: vibes[i] })
       } catch (err) {

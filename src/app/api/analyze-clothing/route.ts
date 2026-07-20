@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 
 export async function POST(request: NextRequest) {
   try {
+    // --- AUTH CHECK ---
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (!user || authError) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+    // --- ENDE AUTH CHECK ---
+
     const { imageBase64, mimeType } = await request.json()
     const safeMimeType = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(mimeType) ? mimeType : 'image/jpeg'
 
@@ -21,13 +30,13 @@ export async function POST(request: NextRequest) {
               {
                 type: 'image_url',
                 image_url: {
-               url: `data:${safeMimeType};base64,${imageBase64}`,
+                  url: `data:${safeMimeType};base64,${imageBase64}`,
                   detail: 'high',
                 }
               },
               {
                 type: 'text',
-text: `You are a fashion expert. Analyze this clothing item and respond ONLY with a valid JSON object, no markdown, no backticks, no explanation:
+                text: `You are a fashion expert. Analyze this clothing item and respond ONLY with a valid JSON object, no markdown, no backticks, no explanation:
 {"category":"schuhe","name":"Nike Air Max Plus","color":"Black","style_tags":["streetwear"],"season":["spring","autumn"],"brand":"Nike","layer_type":null}
 
 Rules:
