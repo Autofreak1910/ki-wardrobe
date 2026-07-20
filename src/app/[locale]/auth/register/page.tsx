@@ -136,7 +136,7 @@ function isValidEmail(e: string): boolean {
       localStorage.removeItem('kw_onboarding_seen')
       localStorage.setItem('kw_force_onboarding', 'true')
       setLoading(false)
-      router.push('/' + lang + '/dresser')
+     router.push('/' + lang + '/auth/welcome-offer')
       return
     }
 
@@ -196,7 +196,8 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
     localStorage.removeItem('kw_onboarding_seen')
     localStorage.setItem('kw_force_onboarding', 'true')
     setLoading(false)
-    router.push('/' + lang + '/dresser')
+   router.push('/' + lang + '/auth/welcome-offer')
+  }
   }
 
   const inputStyle = {
