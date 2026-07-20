@@ -198,7 +198,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
     setLoading(false)
    router.push('/' + lang + '/auth/welcome-offer')
   }
-  }
+  
 
   const inputStyle = {
     width: '100%', background: isDark ? '#161616' : '#F7F4EC',
