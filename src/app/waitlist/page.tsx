@@ -18,12 +18,30 @@ const content = {
     error: 'Gib eine gültige E-Mail ein',
     alreadyOn: 'Diese E-Mail ist schon dabei',
     founderTitle: '🏆 Erste 75: Founder-Status',
-    founderPerk: '2 Monate Premium gratis + 20% Rabatt für immer',
+    founderPerks: [
+      '2 Monate KiWardrobe Premium — komplett kostenlos',
+      'Danach dauerhaft 20% Rabatt auf Premium',
+      'Founder-Badge im Profil, sichtbar für immer',
+    ],
     earlyTitle: '⚡ Platz 76–500: Early Bird',
-    earlyPerk: '3 Tage gratis testen, dann nur 2,99€ im 1. Monat',
-    noteAfter: 'Das Angebot gilt nur für Anmeldungen über diese Warteliste.',
+    earlyPerks: [
+      '3 Tage Premium kostenlos testen',
+      'Danach nur 2,99€ für den 1. Monat',
+      'Ab Monat 2 regulärer Preis (4,99€/Monat)',
+    ],
+    noteAfter: 'Das Angebot gilt nur für Anmeldungen über diese Warteliste, mit derselben E-Mail-Adresse.',
     spotsLeft: (left: number) => left > 0 ? `Noch ${left} Founder-Plätze frei` : 'Founder-Plätze vergeben — jetzt Early Bird sichern',
-    stillGetOffer: 'Danach: 3 Tage gratis testen + 2,99€ im 1. Monat für alle bis Platz 500',
+    lockedUntilFounder: 'Startet automatisch, sobald die Founder-Plätze vergeben sind',
+    compareTitle: 'Was du mit Premium bekommst',
+    compareFree: 'Free',
+    comparePremium: 'Premium',
+    compareRows: [
+      { label: 'KI-Outfit-Vorschläge', free: '3 pro Woche', premium: 'Unbegrenzt' },
+      { label: 'Wetter-Anpassung', free: '✓', premium: '✓' },
+      { label: 'Virtual Try-On', free: '✕', premium: '✓' },
+      { label: 'Style-DNA-Analyse', free: '✕', premium: '✓' },
+      { label: 'Hintergrund entfernen', free: '✕', premium: '✓' },
+    ],
     features: ['KI-Outfits', 'Wetter-Match', 'Virtual Try-On'],
     legalLink: 'Impressum & Datenschutz',
     legalTitle: 'Impressum & Datenschutz',
@@ -49,12 +67,30 @@ const content = {
     error: 'Enter a valid email',
     alreadyOn: "That email's already on the list",
     founderTitle: '🏆 First 75: Founder status',
-    founderPerk: '2 months Premium free + 20% off forever',
+    founderPerks: [
+      '2 months of KiWardrobe Premium — completely free',
+      '20% off Premium forever after that',
+      'Founder badge on your profile, forever',
+    ],
     earlyTitle: '⚡ Spot 76–500: Early Bird',
-    earlyPerk: '3 days free trial, then just €2.99 for month 1',
-    noteAfter: 'This offer only applies to signups via this waitlist.',
+    earlyPerks: [
+      '3-day free trial of Premium',
+      'Then just €2.99 for month 1',
+      'Regular price (€4.99/month) from month 2',
+    ],
+    noteAfter: 'This offer only applies to signups via this waitlist, with the same email address.',
     spotsLeft: (left: number) => left > 0 ? `${left} Founder spots left` : 'Founder spots taken — grab Early Bird now',
-    stillGetOffer: 'After that: 3-day free trial + €2.99 for month 1, for everyone up to spot 500',
+    lockedUntilFounder: 'Unlocks automatically once Founder spots are taken',
+    compareTitle: "What you get with Premium",
+    compareFree: 'Free',
+    comparePremium: 'Premium',
+    compareRows: [
+      { label: 'AI outfit suggestions', free: '3 per week', premium: 'Unlimited' },
+      { label: 'Weather matching', free: '✓', premium: '✓' },
+      { label: 'Virtual Try-On', free: '✕', premium: '✓' },
+      { label: 'Style DNA analysis', free: '✕', premium: '✓' },
+      { label: 'Background removal', free: '✕', premium: '✓' },
+    ],
     features: ['AI outfits', 'Weather match', 'Virtual try-on'],
     legalLink: 'Legal and privacy',
     legalTitle: 'Legal and privacy',
@@ -74,7 +110,7 @@ const content = {
 export default function WaitlistPage() {
   const [lang, setLang] = useState<'de' | 'en'>('de')
   const [email, setEmail] = useState('')
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error' | 'already'>('idle')
+  const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'success' | 'already'>('idle')
   const [count, setCount] = useState(0)
   const [showLegal, setShowLegal] = useState(false)
   const t = content[lang]
@@ -116,7 +152,6 @@ export default function WaitlistPage() {
     }
   }
 
-  // Sage/Blau-Farbschema wie der Rest der App
   const bg          = '#F2EFE7'
   const card        = '#ffffff'
   const border      = '#E7E2D5'
@@ -128,8 +163,6 @@ export default function WaitlistPage() {
   const founderGold = 'linear-gradient(135deg, #C9963C, #B9852E)'
 
   const founderLeft = Math.max(0, FOUNDER_SPOTS - count)
-  const totalLeft = Math.max(0, EARLY_SPOTS - count)
-  const progressPct = Math.min(100, (count / EARLY_SPOTS) * 100)
   const isFounderPhase = count < FOUNDER_SPOTS
 
   return (
@@ -180,48 +213,96 @@ export default function WaitlistPage() {
         {t.sub}
       </motion.p>
 
-{/* Angebots-Karte mit Fortschrittsbalken */}
+      {/* Angebots-Karte mit zwei Fortschrittsbalken + Bullet-Details */}
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.35 }}
-        style={{ width: '100%', maxWidth: '380px', background: card, border: `1.5px solid ${border}`, borderRadius: '18px', padding: '18px 20px', marginBottom: '28px', boxShadow: `0 8px 30px ${accent}10`, position: 'relative' as const, zIndex: 1 }}>
+        style={{ width: '100%', maxWidth: '380px', background: card, border: `1.5px solid ${border}`, borderRadius: '18px', padding: '18px 20px', marginBottom: '20px', boxShadow: `0 8px 30px ${accent}10`, position: 'relative' as const, zIndex: 1 }}>
 
+        {/* Stufe 1: Founder */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-          <span style={{ fontSize: '12px', fontWeight: 700, color: text }}>
-            {isFounderPhase ? t.founderTitle : t.earlyTitle}
-          </span>
+          <span style={{ fontSize: '12px', fontWeight: 700, color: text }}>{t.founderTitle}</span>
           <span style={{ fontSize: '11px', fontWeight: 600, color: muted }}>
-            {isFounderPhase ? `${count}/${FOUNDER_SPOTS}` : `${count}/${EARLY_SPOTS}`}
+            {Math.min(count, FOUNDER_SPOTS)}/{FOUNDER_SPOTS}
           </span>
         </div>
 
-        <p style={{ fontSize: '13px', color: accent, fontWeight: 600, marginBottom: '12px', textAlign: 'left' as const }}>
-          {isFounderPhase ? t.founderPerk : t.earlyPerk}
-        </p>
+        <div style={{ marginBottom: '10px' }}>
+          {t.founderPerks.map((perk, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '7px', marginBottom: '5px' }}>
+              <span style={{ color: '#C9963C', fontSize: '13px', fontWeight: 700, lineHeight: 1.5 }}>✓</span>
+              <span style={{ fontSize: '12.5px', color: isFounderPhase ? text : muted, fontWeight: 500, lineHeight: 1.5, textAlign: 'left' as const }}>{perk}</span>
+            </div>
+          ))}
+        </div>
 
-        {/* Progress bar - relativ zur aktuellen Phase */}
-        <div style={{ width: '100%', height: '8px', borderRadius: '4px', background: secondary, overflow: 'hidden', marginBottom: '8px' }}>
+        <div style={{ width: '100%', height: '8px', borderRadius: '4px', background: secondary, overflow: 'hidden', marginBottom: '6px' }}>
           <motion.div
             initial={{ width: 0 }}
-            animate={{ width: isFounderPhase ? `${Math.min(100, (count / FOUNDER_SPOTS) * 100)}%` : `${Math.min(100, ((count - FOUNDER_SPOTS) / (EARLY_SPOTS - FOUNDER_SPOTS)) * 100)}%` }}
+            animate={{ width: `${Math.min(100, (count / FOUNDER_SPOTS) * 100)}%` }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            style={{ height: '100%', borderRadius: '4px', background: isFounderPhase ? founderGold : sageGradient }}
+            style={{ height: '100%', borderRadius: '4px', background: founderGold }}
           />
         </div>
 
-        <p style={{ fontSize: '11px', color: muted, textAlign: 'left' as const, marginBottom: isFounderPhase ? '10px' : 0 }}>
+        <p style={{ fontSize: '11px', color: muted, textAlign: 'left' as const, marginBottom: '16px' }}>
           {isFounderPhase ? t.spotsLeft(founderLeft) : t.spotsLeft(0)}
         </p>
 
-        {/* Hinweis: auch danach gibt's noch ein Angebot */}
-        {isFounderPhase && (
-          <div style={{ borderTop: `1px solid ${border}`, paddingTop: '10px', marginTop: '2px' }}>
-            <p style={{ fontSize: '11px', color: muted, textAlign: 'left' as const }}>
-              {t.stillGetOffer}
-            </p>
+        <div style={{ borderTop: `1px solid ${border}`, marginBottom: '16px' }} />
+
+        {/* Stufe 2: Early Bird */}
+        <div style={{ opacity: isFounderPhase ? 0.45 : 1, transition: 'opacity 0.3s' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: text }}>{t.earlyTitle}</span>
+            <span style={{ fontSize: '11px', fontWeight: 600, color: muted }}>
+              {isFounderPhase ? `0/${EARLY_SPOTS - FOUNDER_SPOTS}` : `${count - FOUNDER_SPOTS}/${EARLY_SPOTS - FOUNDER_SPOTS}`}
+            </span>
           </div>
-        )}
+
+          <div style={{ marginBottom: '10px' }}>
+            {t.earlyPerks.map((perk, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '7px', marginBottom: '5px' }}>
+                <span style={{ color: accent, fontSize: '13px', fontWeight: 700, lineHeight: 1.5 }}>✓</span>
+                <span style={{ fontSize: '12.5px', color: !isFounderPhase ? text : muted, fontWeight: 500, lineHeight: 1.5, textAlign: 'left' as const }}>{perk}</span>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ width: '100%', height: '8px', borderRadius: '4px', background: secondary, overflow: 'hidden', marginBottom: '6px' }}>
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: isFounderPhase ? '0%' : `${Math.min(100, ((count - FOUNDER_SPOTS) / (EARLY_SPOTS - FOUNDER_SPOTS)) * 100)}%` }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              style={{ height: '100%', borderRadius: '4px', background: sageGradient }}
+            />
+          </div>
+
+          <p style={{ fontSize: '11px', color: muted, textAlign: 'left' as const }}>
+            {isFounderPhase ? t.lockedUntilFounder : t.spotsLeft(0)}
+          </p>
+        </div>
       </motion.div>
 
-      <motion.form initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.4 }}
+      {/* Premium vs Free Vergleich */}
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.4 }}
+        style={{ width: '100%', maxWidth: '380px', background: card, border: `1.5px solid ${border}`, borderRadius: '18px', padding: '18px 20px', marginBottom: '28px', boxShadow: `0 8px 30px ${accent}10`, position: 'relative' as const, zIndex: 1, textAlign: 'left' as const }}>
+        <p style={{ fontSize: '12px', fontWeight: 700, color: text, marginBottom: '14px' }}>{t.compareTitle}</p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 60px 70px', gap: '4px 8px', alignItems: 'center' }}>
+          <div />
+          <p style={{ fontSize: '10px', fontWeight: 700, color: muted, textAlign: 'center' as const, letterSpacing: '0.03em' }}>{t.compareFree}</p>
+          <p style={{ fontSize: '10px', fontWeight: 700, color: accent, textAlign: 'center' as const, letterSpacing: '0.03em' }}>{t.comparePremium}</p>
+
+          {t.compareRows.map((row, i) => (
+            <>
+              <p key={`label-${i}`} style={{ fontSize: '12px', color: text, fontWeight: 500, padding: '6px 0' }}>{row.label}</p>
+              <p key={`free-${i}`} style={{ fontSize: '12px', color: muted, textAlign: 'center' as const, padding: '6px 0' }}>{row.free}</p>
+              <p key={`premium-${i}`} style={{ fontSize: '12px', color: accent, fontWeight: 600, textAlign: 'center' as const, padding: '6px 0' }}>{row.premium}</p>
+            </>
+          ))}
+        </div>
+      </motion.div>
+
+      <motion.form initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.45 }}
         onSubmit={handleSubmit}
         style={{ display: 'flex', flexDirection: 'column' as const, gap: '10px', width: '100%', maxWidth: '360px', marginBottom: '12px', position: 'relative' as const, zIndex: 1 }}>
         <input
