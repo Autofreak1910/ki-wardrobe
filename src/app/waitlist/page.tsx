@@ -23,6 +23,7 @@ const content = {
     earlyPerk: '3 Tage gratis testen, dann nur 2,99€ im 1. Monat',
     noteAfter: 'Das Angebot gilt nur für Anmeldungen über diese Warteliste.',
     spotsLeft: (left: number) => left > 0 ? `Noch ${left} Founder-Plätze frei` : 'Founder-Plätze vergeben — jetzt Early Bird sichern',
+    stillGetOffer: 'Danach: 3 Tage gratis testen + 2,99€ im 1. Monat für alle bis Platz 500',
     features: ['KI-Outfits', 'Wetter-Match', 'Virtual Try-On'],
     legalLink: 'Impressum & Datenschutz',
     legalTitle: 'Impressum & Datenschutz',
@@ -53,6 +54,7 @@ const content = {
     earlyPerk: '3 days free trial, then just €2.99 for month 1',
     noteAfter: 'This offer only applies to signups via this waitlist.',
     spotsLeft: (left: number) => left > 0 ? `${left} Founder spots left` : 'Founder spots taken — grab Early Bird now',
+    stillGetOffer: 'After that: 3-day free trial + €2.99 for month 1, for everyone up to spot 500',
     features: ['AI outfits', 'Weather match', 'Virtual try-on'],
     legalLink: 'Legal and privacy',
     legalTitle: 'Legal and privacy',
@@ -178,7 +180,7 @@ export default function WaitlistPage() {
         {t.sub}
       </motion.p>
 
-      {/* Angebots-Karte mit Fortschrittsbalken */}
+{/* Angebots-Karte mit Fortschrittsbalken */}
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.35 }}
         style={{ width: '100%', maxWidth: '380px', background: card, border: `1.5px solid ${border}`, borderRadius: '18px', padding: '18px 20px', marginBottom: '28px', boxShadow: `0 8px 30px ${accent}10`, position: 'relative' as const, zIndex: 1 }}>
 
@@ -186,26 +188,37 @@ export default function WaitlistPage() {
           <span style={{ fontSize: '12px', fontWeight: 700, color: text }}>
             {isFounderPhase ? t.founderTitle : t.earlyTitle}
           </span>
-          <span style={{ fontSize: '11px', fontWeight: 600, color: muted }}>{count}/{EARLY_SPOTS}</span>
+          <span style={{ fontSize: '11px', fontWeight: 600, color: muted }}>
+            {isFounderPhase ? `${count}/${FOUNDER_SPOTS}` : `${count}/${EARLY_SPOTS}`}
+          </span>
         </div>
 
         <p style={{ fontSize: '13px', color: accent, fontWeight: 600, marginBottom: '12px', textAlign: 'left' as const }}>
           {isFounderPhase ? t.founderPerk : t.earlyPerk}
         </p>
 
-        {/* Progress bar */}
+        {/* Progress bar - relativ zur aktuellen Phase */}
         <div style={{ width: '100%', height: '8px', borderRadius: '4px', background: secondary, overflow: 'hidden', marginBottom: '8px' }}>
           <motion.div
             initial={{ width: 0 }}
-            animate={{ width: `${progressPct}%` }}
+            animate={{ width: isFounderPhase ? `${Math.min(100, (count / FOUNDER_SPOTS) * 100)}%` : `${Math.min(100, ((count - FOUNDER_SPOTS) / (EARLY_SPOTS - FOUNDER_SPOTS)) * 100)}%` }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             style={{ height: '100%', borderRadius: '4px', background: isFounderPhase ? founderGold : sageGradient }}
           />
         </div>
 
-        <p style={{ fontSize: '11px', color: muted, textAlign: 'left' as const }}>
+        <p style={{ fontSize: '11px', color: muted, textAlign: 'left' as const, marginBottom: isFounderPhase ? '10px' : 0 }}>
           {isFounderPhase ? t.spotsLeft(founderLeft) : t.spotsLeft(0)}
         </p>
+
+        {/* Hinweis: auch danach gibt's noch ein Angebot */}
+        {isFounderPhase && (
+          <div style={{ borderTop: `1px solid ${border}`, paddingTop: '10px', marginTop: '2px' }}>
+            <p style={{ fontSize: '11px', color: muted, textAlign: 'left' as const }}>
+              {t.stillGetOffer}
+            </p>
+          </div>
+        )}
       </motion.div>
 
       <motion.form initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.4 }}
