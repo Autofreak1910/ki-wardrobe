@@ -165,12 +165,21 @@ async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
       setAnalyzeStep(locale === 'de' ? 'KI analysiert...' : 'AI analyzing...')
       setProgress(50)
       const base64 = await fileToBase64(convertedFile)
-      const res = await fetch('/api/analyze-clothing', {
+ const res = await fetch('/api/analyze-clothing', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-locale': locale },
         body: JSON.stringify({ imageBase64: base64, mimeType: convertedFile.type || 'image/jpeg' }),
       })
       const result = await res.json()
+
+      if (result.notClothing) {
+        setAnalyzeStep(locale === 'de' ? 'Bitte lade ein Kleidungsstück hoch' : 'Please upload a clothing item')
+        setAnalyzing(false)
+        setUploading(false)
+        if (fileInputRef.current) fileInputRef.current.value = ''
+        return
+      }
+
       const analysis = result.analysis ?? {}
       setAnalyzeStep(locale === 'de' ? 'Wird gespeichert...' : 'Saving...')
       setProgress(80)

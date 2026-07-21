@@ -34,12 +34,19 @@ export async function POST(request: NextRequest) {
                   detail: 'high',
                 }
               },
-              {
+{
                 type: 'text',
-                text: `You are a fashion expert. Analyze this clothing item and respond ONLY with a valid JSON object, no markdown, no backticks, no explanation:
-{"category":"schuhe","name":"Nike Air Max Plus","color":"Black","style_tags":["streetwear"],"season":["spring","autumn"],"brand":"Nike","layer_type":null}
+                text: `You are a fashion expert. First check: does this image show a piece of clothing, footwear, or a wearable fashion accessory (bag, belt, hat, jewelry, scarf, etc.)? Everyday objects, electronics, furniture, food, animals, people without focus on an item, or anything else that is NOT wearable fashion must be rejected.
 
-Rules:
+Respond ONLY with a valid JSON object, no markdown, no backticks, no explanation.
+
+If it IS a clothing/fashion item:
+{"is_clothing":true,"category":"schuhe","name":"Nike Air Max Plus","color":"Black","style_tags":["streetwear"],"season":["spring","autumn"],"brand":"Nike","layer_type":null}
+
+If it is NOT a clothing/fashion item:
+{"is_clothing":false,"reason":"short description of what the image actually shows"}
+
+Rules when is_clothing is true:
 - category must be exactly one of: tops, hosen, jacken, schuhe, acc
 - name: specific product name if recognizable, otherwise short descriptive name in English, max 3 words
 - color: main color in English (e.g. Black, White, Navy, Grey, Beige, Blue)
@@ -70,8 +77,12 @@ Respond with ONLY the JSON, no explanation, no markdown.`
     if (!jsonMatch) {
       return NextResponse.json({ success: false, error: 'No JSON in response', raw: text }, { status: 500 })
     }
+const analysis = JSON.parse(jsonMatch[0])
 
-    const analysis = JSON.parse(jsonMatch[0])
+    if (analysis.is_clothing === false) {
+      return NextResponse.json({ success: false, notClothing: true, reason: analysis.reason }, { status: 200 })
+    }
+
     return NextResponse.json({ success: true, analysis })
 
   } catch (error) {
