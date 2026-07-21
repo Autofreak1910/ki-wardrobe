@@ -25,8 +25,7 @@ const content = {
     earlyTitle: '⚡ Platz 76–500: Early Bird',
     earlyPerks: [
       '3 Tage Premium kostenlos testen',
-      'Danach nur 2,99€ für den 1. Monat',
-      'Ab Monat 2 regulärer Preis (4,99€/Monat)',
+      'Danach regulärer Preis (4,99€/Monat)',
     ],
     noteAfter: 'Das Angebot gilt nur für Anmeldungen über diese Warteliste, mit derselben E-Mail-Adresse.',
     spotsLeft: (left: number) => left > 0 ? `Noch ${left} Founder-Plätze frei` : 'Founder-Plätze vergeben — jetzt Early Bird sichern',
@@ -73,8 +72,7 @@ const content = {
     earlyTitle: '⚡ Spot 76–500: Early Bird',
     earlyPerks: [
       '3-day free trial of Premium',
-      'Then just €2.99 for month 1',
-      'Regular price (€4.99/month) from month 2',
+      'Regular price (€4.99/month) after that',
     ],
     noteAfter: 'This offer only applies to signups via this waitlist, with the same email address.',
     spotsLeft: (left: number) => left > 0 ? `${left} Founder spots left` : 'Founder spots taken — grab Early Bird now',
