@@ -1100,8 +1100,26 @@ onClick={() => {
                 style={{ width: '38px', height: '8px', borderRadius: '4px', background: border }} />
             </motion.div>
           ) : (
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}
-              onClick={() => setDailyFreeOutfitExpanded(v => !v)}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}
+          onClick={async () => {
+                setDailyFreeOutfitExpanded(v => !v)
+                if (!dailyFreeOutfit) return
+                try {
+                  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+                  const streakRes = await fetch('/api/update-streak', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ timezone: tz }),
+                  })
+                  const streakData = await streakRes.json()
+                  console.log('streak update response:', streakRes.status, streakData)
+                  if (typeof streakData.streak === 'number') setStreak(streakData.streak)
+                  if (streakData.streakReward) setStreakReward(streakData.streakReward)
+                } catch (err) {
+                  console.error('streak update failed:', err)
+                }
+              }}
               style={{ background: dailyFreeOutfit ? accentDim : card, border: `1px solid ${dailyFreeOutfit ? accent + '40' : border}`, borderRadius: '18px', padding: '14px 6px', textAlign: 'center' as const, cursor: 'pointer', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', minHeight: '86px' }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={dailyFreeOutfit ? accent : muted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '6px' }}>
                 <rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8V21"/><path d="M3 8h18"/><path d="M7.5 8a2.5 2.5 0 010-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 010 5"/>
