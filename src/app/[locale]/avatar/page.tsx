@@ -88,7 +88,6 @@ function compositeOnDressingRoom(avatarImg: HTMLImageElement): Promise<string> {
     if (!ctx) return reject(new Error('No canvas context'))
 
     const bg = new Image()
-    bg.crossOrigin = 'anonymous'
     bg.onload = () => {
       canvas.width = bg.width
       canvas.height = bg.height
