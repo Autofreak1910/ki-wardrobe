@@ -443,9 +443,9 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
         <div style={{ display: 'flex', gap: '8px' }}>
           <button onClick={async () => {
               const inviteUrl = `https://kiwardrobe-app.vercel.app/${locale}/auth/register?ref=${profile?.referral_code ?? ''}`
-              const shareText = locale === 'de'
-                ? `Ich hab gerade meinen eigenen Avatar erstellt und KI sagt mir jeden Morgen was ich anziehen soll 🤯 KiWardrobe ist echt krass — probier's aus, mit meinem Link bekommst du 14 Tage Pro komplett gratis: ${inviteUrl}`
-                : `I just made my own AI avatar and it tells me what to wear every morning 🤯 KiWardrobe is actually insane — try it, my link gets you 14 days Pro completely free: ${inviteUrl}`
+             const shareText = locale === 'de'
+                ? `Ich hab gerade meinen eigenen Avatar erstellt und KI sagt mir jeden Morgen was ich anziehen soll 🤯 KiWardrobe ist echt krass — probier's aus, mit meinem Link bekommst du 7 Tage Pro komplett gratis: ${inviteUrl}`
+                : `I just made my own AI avatar and it tells me what to wear every morning 🤯 KiWardrobe is actually insane — try it, my link gets you 7 days Pro completely free: ${inviteUrl}`
               if (navigator.share) { try { await navigator.share({ title: 'KiWardrobe', text: shareText, url: inviteUrl }) } catch {} }
               else { await navigator.clipboard.writeText(shareText); alert(locale === 'de' ? 'Link kopiert!' : 'Link copied!') }
             }}
@@ -505,8 +505,8 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
       <p style={{ fontSize: '14px', fontWeight: 800, color: '#fff', marginBottom: '2px', letterSpacing: '-0.02em' }}>
         {locale === 'de' ? 'Freunde einladen' : 'Invite friends'}
       </p>
-      <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', lineHeight: 1.4 }}>
-        {locale === 'de' ? 'Du +7 Tage · Freund 14 Tage Pro gratis' : 'You +7 days · Friend 14 days Pro free'}
+<p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', lineHeight: 1.4 }}>
+        {locale === 'de' ? 'Du +7 Tage · Freund +7 Tage Pro gratis' : 'You +7 days · Friend +7 days Pro free'}
       </p>
     </div>
     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>

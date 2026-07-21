@@ -225,7 +225,7 @@ function checkProWelcomePending() {
       const data = JSON.parse(pending)
       setProWelcomeData(data)
     } catch {
-      setProWelcomeData({ days: 14, until: '', fromInvite: false })
+      setProWelcomeData({ days: 7, until: '', fromInvite: false })
     }
     setTimeout(() => setShowProWelcome(true), 600)
   }
@@ -744,7 +744,7 @@ onClick={() => {
         initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.95, type: 'spring', damping: 14 }}
         style={{ background: goldAccent, borderRadius: '14px', padding: '10px 20px', marginBottom: '16px', boxShadow: '0 4px 20px rgba(251,191,36,0.4)' }}>
         <p style={{ fontSize: '17px', fontWeight: 800, color: '#fff', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
-          {locale === 'de' ? '🎁 14 Tage Pro gratis!' : '🎁 14 days Pro free!'}
+          {locale === 'de' ? '🎁 7 Tage Pro gratis!' : '🎁 7 days Pro free!'}
         </p>
       </motion.div>
 

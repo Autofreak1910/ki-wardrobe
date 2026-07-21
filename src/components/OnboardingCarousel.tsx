@@ -179,13 +179,13 @@ function next() {
             <motion.div key={4} drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.6} onDragEnd={handleDragEnd}
               initial={{ opacity: 0, x: 60 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -60 }} transition={{ duration: 0.3 }}
               style={{ width: '100%', maxWidth: '380px', padding: '0 24px', cursor: 'grab' }}>
-              <div style={{ background: `linear-gradient(135deg, ${gold}, #C9963C)`, borderRadius: '24px', padding: '24px 20px', marginBottom: '28px', textAlign: 'center' as const, boxShadow: `0 8px 32px ${gold}40` }}>
+         <div style={{ background: `linear-gradient(135deg, ${gold}, #C9963C)`, borderRadius: '24px', padding: '24px 20px', marginBottom: '28px', textAlign: 'center' as const, boxShadow: `0 8px 32px ${gold}40` }}>
                 <p style={{ fontSize: '40px', marginBottom: '10px' }}>🎁</p>
                 <p style={{ fontSize: '15px', fontWeight: 800, color: '#fff', marginBottom: '6px' }}>
-                  {locale === 'de' ? '+14 Tage Pro gratis' : '+14 days Pro free'}
+                  {locale === 'de' ? '+7 Tage Pro gratis' : '+7 days Pro free'}
                 </p>
                 <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.85)' }}>
-                  {locale === 'de' ? 'für jeden eingeladenen Freund' : 'for every friend you invite'}
+                  {locale === 'de' ? 'für dich und deinen Freund' : 'for you and your friend'}
                 </p>
               </div>
               <div style={{ textAlign: 'center' as const }}>
@@ -194,8 +194,8 @@ function next() {
                 </h2>
                 <p style={{ fontSize: '14px', color: muted, lineHeight: 1.6 }}>
                   {locale === 'de'
-                    ? 'Dein Freund bekommt 14 Tage Pro gratis, du eine Woche pro Einladung. Findest du jederzeit in deinem Profil.'
-                    : "Your friend gets 14 days Pro free, you get a week per invite. Find it anytime in your profile."}
+                    ? 'Du und dein eingeladener Freund bekommt ihr jeweils 7 Tage Pro gratis. Findest du jederzeit in deinem Profil.'
+                    : 'You and your invited friend each get 7 days Pro free. Find it anytime in your profile.'}
                 </p>
               </div>
             </motion.div>
