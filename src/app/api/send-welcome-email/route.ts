@@ -122,8 +122,8 @@ export async function POST(request: NextRequest) {
 </html>
     `
 
-    await resend.emails.send({
-      from: 'KiWardrobe <onboarding@resend.dev>',
+ await resend.emails.send({
+      from: 'KiWardrobe <noreply@kiwardrobe.com>',
       to: email,
       subject,
       html,
