@@ -267,6 +267,8 @@ async function loadStreak() {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
     setUserId(session.user.id)
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+supabase.from('profiles').update({ timezone: tz }).eq('id', session.user.id)
     const welcomeSeenKey = 'kw_invited_welcome_seen_' + session.user.id
     if (!localStorage.getItem(welcomeSeenKey) && !checkingReferrerRef.current) {
       checkingReferrerRef.current = true
@@ -297,10 +299,8 @@ async function loadStreak() {
       }
     }
 
-    const { data } = await supabase.from('clothing_items').select('*').eq('user_id', session.user.id)
+const { data } = await supabase.from('clothing_items').select('*').eq('user_id', session.user.id)
     if (data) { setWardrobeItems(data); setHasItems(data.length >= 3) }
-const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
-    supabase.from('profiles').update({ timezone: tz }).eq('id', session.user.id)
 const { data: profile } = await supabase.from('profiles').select('username, premium_until, streak_freeze_used_month, bonus_outfits_this_week, bonus_tryons_this_week').eq('id', session.user.id).single()
     setFreezeUsedMonth(profile?.streak_freeze_used_month ?? null)
     setBonusOutfitsThisWeek(profile?.bonus_outfits_this_week ?? 0)
