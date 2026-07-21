@@ -3,13 +3,11 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function POST(request: NextRequest) {
   try {
-    // --- AUTH CHECK ---
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (!user || authError) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
-    // --- ENDE AUTH CHECK ---
 
     const { items } = await request.json()
     const locale = request.headers.get('x-locale') || 'de'
@@ -85,10 +83,61 @@ Antworte NUR mit JSON:
     const jsonMatch = text.match(/\{[\s\S]*\}/)
     if (!jsonMatch) throw new Error('No JSON')
     const dna = JSON.parse(jsonMatch[0])
+
+    // Ergebnis in der heutigen Generation-Zeile speichern (die das Frontend
+    // schon beim Klick angelegt hat, um das Tageslimit zu zaehlen)
+    try {
+      const { data: latestGen } = await supabase
+        .from('style_dna_generations')
+        .select('id')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+
+      if (latestGen?.id) {
+        await supabase
+          .from('style_dna_generations')
+          .update({ dna_result: dna })
+          .eq('id', latestGen.id)
+      }
+    } catch (saveErr) {
+      console.error('Failed to persist dna_result:', saveErr)
+      // Speichern-Fehler soll die Antwort an den Nutzer nicht verhindern
+    }
+
     return NextResponse.json({ success: true, dna })
 
   } catch (error) {
     console.error('Style DNA error:', error)
+    return NextResponse.json({ success: false, error: String(error) }, { status: 500 })
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (!user || authError) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { data: latestGen } = await supabase
+      .from('style_dna_generations')
+      .select('dna_result, created_at')
+      .eq('user_id', user.id)
+      .not('dna_result', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
+
+    if (!latestGen?.dna_result) {
+      return NextResponse.json({ success: false, error: 'No DNA found' }, { status: 404 })
+    }
+
+    return NextResponse.json({ success: true, dna: latestGen.dna_result })
+  } catch (error) {
+    console.error('Style DNA GET error:', error)
     return NextResponse.json({ success: false, error: String(error) }, { status: 500 })
   }
 }

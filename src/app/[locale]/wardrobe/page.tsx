@@ -889,20 +889,20 @@ const dnaLocked = !isPremium || styleDnaUsedToday || needsMoreItems
               </p>
 
             <motion.button whileTap={{ scale: 0.97 }}
-                onClick={() => {
-                  setShowDnaUsedToday(false)
-                  try {
-                    const cached = localStorage.getItem('kw_dna_cache')
-                    if (cached) {
-                      const parsed = JSON.parse(cached)
-                      const todayStart = getTodayStartUTC()
-                      if (new Date(parsed.date).getTime() === todayStart.getTime()) {
-                        setDna(parsed.dna)
-                      }
-                    }
-                  } catch {}
-                  setShowDna(true)
-                }}
+       onClick={async () => {
+  setShowDnaUsedToday(false)
+  setShowDna(true)
+  setDnaLoading(true)
+  try {
+    const res = await fetch('/api/style-dna')
+    const data = await res.json()
+    if (data.success) setDna(data.dna)
+  } catch (err) {
+    console.error('Failed to load today\'s DNA:', err)
+  } finally {
+    setDnaLoading(false)
+  }
+}}
                 style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: 'linear-gradient(135deg, #a855f7, #6b9fff)', color: '#fff', fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: '0 6px 24px rgba(168,85,247,0.4)', marginBottom: '8px', position: 'relative', zIndex: 1 }}>
                 {locale === 'de' ? '🧬 Heutige DNA ansehen' : '🧬 View today\'s DNA'}
               </motion.button>
