@@ -1478,9 +1478,25 @@ onClick={() => {
                 <p style={{ fontSize: '28px', fontWeight: 800, color: streak >= 7 ? '#f97316' : text, letterSpacing: '-0.04em', marginBottom: '4px' }}>
                   {streak} {locale === 'de' ? 'Tage' : 'Days'}
                 </p>
-                <p style={{ fontSize: '14px', color: muted, marginBottom: isPremium ? '10px' : '0' }}>
-                  {locale === 'de' ? 'Generiere täglich ein Outfit um deinen Streak zu halten' : 'Generate an outfit daily to keep your streak'}
+                <p style={{ fontSize: '14px', color: muted, marginBottom: '8px' }}>
+                  {locale === 'de' ? 'Generiere ein Outfit oder schau dir dein Tagesoutfit an — einmal täglich reicht' : 'Generate an outfit or check your daily outfit — once a day keeps it alive'}
                 </p>
+                {(() => {
+                  const levels = [
+                    { min: 0,  label: locale === 'de' ? 'Neuling' : 'Newbie',    emoji: '🌱' },
+                    { min: 7,  label: locale === 'de' ? 'Erfahren' : 'Regular',  emoji: '🔥' },
+                    { min: 14, label: locale === 'de' ? 'Profi' : 'Pro',         emoji: '⚡' },
+                    { min: 30, label: locale === 'de' ? 'Meister' : 'Master',   emoji: '🏆' },
+                    { min: 60, label: locale === 'de' ? 'Legende' : 'Legend',   emoji: '👑' },
+                    { min: 100, label: locale === 'de' ? 'Ikone' : 'Icon',      emoji: '💎' },
+                  ]
+                  const current = [...levels].reverse().find(l => streak >= l.min) ?? levels[0]
+                  return (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: accentDim, borderRadius: '100px', padding: '5px 14px', fontSize: '12px', fontWeight: 700, color: accent, marginBottom: '10px' }}>
+                      {current.emoji} {current.label}
+                    </span>
+                  )
+                })()}
                {isPremium && (() => {
                   const currentMonth = new Intl.DateTimeFormat('en-CA', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, year: 'numeric', month: '2-digit' }).format(new Date())
                   const freezeAvailable = freezeUsedMonth !== currentMonth
@@ -1539,14 +1555,20 @@ onClick={() => {
               )}
 
               <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '8px', marginBottom: '20px' }}>
-                {(isPremium ? [
+          {(isPremium ? [
                   { days: 7, reward: locale === 'de' ? '+1 Outfit diese Woche' : '+1 outfit this week', emoji: '🏅', claimed: streak >= 7 },
                   { days: 14, reward: locale === 'de' ? '+2 Outfits · +1 Try-On' : '+2 outfits · +1 try-on', emoji: '🥇', claimed: streak >= 14 },
                   { days: 30, reward: locale === 'de' ? '+3 Outfits · +1 Try-On' : '+3 outfits · +1 try-on', emoji: '👑', claimed: streak >= 30 },
+                  { days: 45, reward: locale === 'de' ? '+3 Outfits · +2 Try-On' : '+3 outfits · +2 try-on', emoji: '🌟', claimed: streak >= 45 },
+                  { days: 60, reward: locale === 'de' ? '+4 Outfits · +2 Try-On' : '+4 outfits · +2 try-on', emoji: '⚡', claimed: streak >= 60 },
+                  { days: 100, reward: locale === 'de' ? '+5 Outfits · +3 Try-On' : '+5 outfits · +3 try-on', emoji: '💎', claimed: streak >= 100 },
                 ] : [
                   { days: 7, reward: locale === 'de' ? '+1 Tag Pro' : '+1 day Pro', emoji: '🏅', claimed: streak >= 7 },
                   { days: 14, reward: locale === 'de' ? '+2 Tage Pro' : '+2 days Pro', emoji: '🥇', claimed: streak >= 14 },
                   { days: 30, reward: locale === 'de' ? '+3 Tage Pro' : '+3 days Pro', emoji: '👑', claimed: streak >= 30 },
+                  { days: 45, reward: locale === 'de' ? '+4 Tage Pro' : '+4 days Pro', emoji: '🌟', claimed: streak >= 45 },
+                  { days: 60, reward: locale === 'de' ? '+5 Tage Pro' : '+5 days Pro', emoji: '⚡', claimed: streak >= 60 },
+                  { days: 100, reward: locale === 'de' ? '+7 Tage Pro' : '+7 days Pro', emoji: '💎', claimed: streak >= 100 },
                 ]).map(m => (
                   <div key={m.days} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '14px', background: m.claimed ? 'rgba(249,115,22,0.08)' : accentDim, border: `1px solid ${m.claimed ? 'rgba(249,115,22,0.3)' : border}` }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

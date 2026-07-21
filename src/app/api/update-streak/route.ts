@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     const today = localDateStr(new Date())
     const { data: prof } = await supabase
       .from('profiles')
-      .select('current_streak, last_outfit_date, premium_until, is_premium, bonus_outfits_this_week, bonus_tryons_this_week, streak_cycle, streak_reward_claimed_7_cycle, streak_reward_claimed_14_cycle, streak_reward_claimed_30_cycle')
+    .select('current_streak, last_outfit_date, premium_until, is_premium, bonus_outfits_this_week, bonus_tryons_this_week, streak_cycle, streak_reward_claimed_7_cycle, streak_reward_claimed_14_cycle, streak_reward_claimed_30_cycle, streak_reward_claimed_45_cycle, streak_reward_claimed_60_cycle, streak_reward_claimed_100_cycle')
       .eq('id', user.id)
       .single()
 
@@ -42,10 +42,13 @@ export async function POST(req: Request) {
     const isPremiumActive = prof.is_premium && prof.premium_until && new Date(prof.premium_until) > new Date()
     const cycle = prof.streak_cycle ?? 0
 
-    const milestones = [
-      { at: 30, claimedCycleKey: 'streak_reward_claimed_30_cycle' as const, proOutfits: 3, proTryons: 1, freeDays: 3 },
-      { at: 14, claimedCycleKey: 'streak_reward_claimed_14_cycle' as const, proOutfits: 2, proTryons: 1, freeDays: 2 },
-      { at: 7,  claimedCycleKey: 'streak_reward_claimed_7_cycle'  as const, proOutfits: 1, proTryons: 0, freeDays: 1 },
+const milestones = [
+      { at: 100, claimedCycleKey: 'streak_reward_claimed_100_cycle' as const, proOutfits: 5, proTryons: 3, freeDays: 7 },
+      { at: 60,  claimedCycleKey: 'streak_reward_claimed_60_cycle'  as const, proOutfits: 4, proTryons: 2, freeDays: 5 },
+      { at: 45,  claimedCycleKey: 'streak_reward_claimed_45_cycle'  as const, proOutfits: 3, proTryons: 2, freeDays: 4 },
+      { at: 30,  claimedCycleKey: 'streak_reward_claimed_30_cycle'  as const, proOutfits: 3, proTryons: 1, freeDays: 3 },
+      { at: 14,  claimedCycleKey: 'streak_reward_claimed_14_cycle'  as const, proOutfits: 2, proTryons: 1, freeDays: 2 },
+      { at: 7,   claimedCycleKey: 'streak_reward_claimed_7_cycle'   as const, proOutfits: 1, proTryons: 0, freeDays: 1 },
     ]
 
     for (const m of milestones) {
