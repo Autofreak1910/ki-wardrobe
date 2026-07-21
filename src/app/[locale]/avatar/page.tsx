@@ -6,7 +6,7 @@ import { useLocale } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-const DRESSING_ROOM_BG_URL = 'https://images.unsplash.com/photo-1672137233327-37b0c1049e77?w=1200&q=80&auto=format&fit=crop'
+const DRESSING_ROOM_BG_URL = '/dressing-room-bg.jpeg'
 import UpgradeModal from '@/components/UpgradeModal'
 
 type ClothingItem = { id: string; image_url: string; category: string; color: string; name?: string; brand?: string }
@@ -81,65 +81,34 @@ async function cutoutPersonFromResult(imageUrl: string): Promise<string> {
   throw new Error('cutout failed')
 }
 
-function compositeOnDressingRoom(subjectUrl: string, bgUrl: string): Promise<string> {
+function compositeOnDressingRoom(avatarImg: HTMLImageElement): Promise<string> {
   return new Promise((resolve, reject) => {
-    const bgImg = new Image()
-    const subjImg = new Image()
-    bgImg.crossOrigin = 'anonymous'
-    subjImg.crossOrigin = 'anonymous'
-    let loaded = 0
-    function onBoth() {
-      loaded++
-      if (loaded < 2) return
-      const W = 1080, H = 1440
-      const canvas = document.createElement('canvas')
-      canvas.width = W
-      canvas.height = H
-      const ctx = canvas.getContext('2d')!
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return reject(new Error('No canvas context'))
 
-      // Hintergrund im "cover"-Modus einpassen
-      const bgRatio = bgImg.naturalWidth / bgImg.naturalHeight
-      const boxRatio = W / H
-      let sx = 0, sy = 0, sw = bgImg.naturalWidth, sh = bgImg.naturalHeight
-      if (bgRatio > boxRatio) { sw = bgImg.naturalHeight * boxRatio; sx = (bgImg.naturalWidth - sw) / 2 }
-      else { sh = bgImg.naturalWidth / boxRatio; sy = (bgImg.naturalHeight - sh) / 2 }
-      ctx.drawImage(bgImg, sx, sy, sw, sh, 0, 0, W, H)
+    const bg = new Image()
+    bg.crossOrigin = 'anonymous'
+    bg.onload = () => {
+      canvas.width = bg.width
+      canvas.height = bg.height
+      ctx.drawImage(bg, 0, 0)
 
-      // Leicht abdunkeln, damit die Person besser abhebt
-      ctx.fillStyle = 'rgba(0,0,0,0.06)'
-      ctx.fillRect(0, 0, W, H)
+      const FLOOR_Y_FRACTION = 0.90
+      const AVATAR_HEIGHT_FRACTION = 0.62
+      const CENTER_X_FRACTION = 0.5
 
-      // Person auf Bodenlinie einfuegen -- FLOOR_Y_FRACTION bestimmt, wo im Hintergrundbild
-      // der Boden ist (0 = ganz oben, 1 = ganz unten). Bei "schwebt"-Effekt hier anpassen:
-      // Wert HOCH setzen wenn Person zu tief im Boden "versinkt",
-      // Wert RUNTER setzen wenn Person zu hoch "schwebt".
-    const FLOOR_Y_FRACTION = 0.88
-      const floorY = H * FLOOR_Y_FRACTION
-      const maxH = floorY - 20
-      const scale = Math.min(maxH / subjImg.naturalHeight, (W - 100) / subjImg.naturalWidth)
-      const dw = subjImg.naturalWidth * scale
-      const dh = subjImg.naturalHeight * scale
-      const dx = (W - dw) / 2
-      const dy = floorY - dh
+      const avatarHeight = canvas.height * AVATAR_HEIGHT_FRACTION
+      const avatarWidth = avatarHeight * (avatarImg.width / avatarImg.height)
+      const floorY = canvas.height * FLOOR_Y_FRACTION
+      const drawX = canvas.width * CENTER_X_FRACTION - avatarWidth / 2
+      const drawY = floorY - avatarHeight
 
-      // Weicher Schatten fuer mehr Tiefe
-      ctx.save()
-      ctx.filter = 'blur(12px)'
-      ctx.fillStyle = 'rgba(0,0,0,0.18)'
-      ctx.beginPath()
-      ctx.ellipse(dx + dw / 2, floorY - 4, dw * 0.38, 18, 0, 0, Math.PI * 2)
-      ctx.fill()
-      ctx.restore()
-
-      ctx.drawImage(subjImg, dx, dy, dw, dh)
+      ctx.drawImage(avatarImg, drawX, drawY, avatarWidth, avatarHeight)
       resolve(canvas.toDataURL('image/jpeg', 0.92))
     }
-    bgImg.onload = onBoth
-    subjImg.onload = onBoth
-    bgImg.onerror = () => reject(new Error('background load failed'))
-    subjImg.onerror = () => reject(new Error('subject load failed'))
-    bgImg.src = bgUrl
-    subjImg.src = subjectUrl
+    bg.onerror = reject
+    bg.src = DRESSING_ROOM_BG_URL
   })
 }
 
