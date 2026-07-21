@@ -39,17 +39,14 @@ export async function POST(request: NextRequest) {
       await supabase.from('profiles').update({ stripe_customer_id: customerId }).eq('id', userId)
     }
 
-    let trialDays = 0
-    let couponId: string | undefined = undefined
+  let trialDays = 0
     let tier = 'none'
 
     if (profile.is_founder) {
-      trialDays = 60
-      couponId = process.env.STRIPE_COUPON_FOUNDER
+      trialDays = 30
       tier = 'founder'
     } else if (profile.signup_number) {
       trialDays = 3
-      couponId = process.env.STRIPE_COUPON_EARLY
       tier = 'early'
     }
 
@@ -65,7 +62,6 @@ export async function POST(request: NextRequest) {
         metadata: { userId, tier },
         ...(trialDays > 0 ? { trial_period_days: trialDays } : {}),
       },
-      discounts: couponId ? [{ coupon: couponId }] : undefined,
     })
 
     return NextResponse.json({ url: session.url })
