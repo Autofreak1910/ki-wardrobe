@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
 await resend.emails.send({
-      from: 'KiWardrobe <onboarding@resend.dev>', // anpassen, falls eigene Domain verifiziert ist
+     from: 'KiWardrobe <noreply@kiwardrobe.com>',
       to: 'support.kiwardrobe@gmail.com',
       subject: `${typeLabels[type] ?? 'Feedback'} — neue Nachricht`,
       text: `Typ: ${typeLabels[type] ?? type}\nVon: ${email ?? 'unbekannt'}\n\nNachricht:\n${message}\n\n---\nIch melde mich.`,
