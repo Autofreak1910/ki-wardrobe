@@ -791,7 +791,11 @@ const dnaLocked = !isPremium || styleDnaUsedToday || needsMoreItems
             style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(4px)' }}>
             <motion.div initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }} transition={{ type: 'spring', damping: 28, stiffness: 300 }}
               onClick={e => e.stopPropagation()}
-              style={{ background: bg, borderRadius: '24px 24px 0 0', padding: '24px 20px 40px', width: '100%', maxWidth: '500px', border: `1px solid ${border}`, borderBottom: 'none' }}>
+              style={{ background: bg, borderRadius: '24px 24px 0 0', padding: '24px 20px 40px', width: '100%', maxWidth: '500px', border: `1px solid ${border}`, borderBottom: 'none', position: 'relative' as const }}>
+              <button onClick={() => setSelectedItem(null)} aria-label={locale === 'de' ? 'Schließen' : 'Close'}
+                style={{ position: 'absolute' as const, top: '16px', right: '16px', width: '30px', height: '30px', borderRadius: '50%', border: `1px solid ${border}`, background: card, color: muted, fontSize: '14px', lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+                ✕
+              </button>
               <div style={{ width: '36px', height: '4px', background: border, borderRadius: '2px', margin: '0 auto 20px' }} />
               <div style={{ display: 'flex', gap: '16px', marginBottom: '20px' }}>
                 <img src={selectedItem.image_url} alt={selectedItem.name} style={{ width: '96px', height: '124px', objectFit: 'cover', borderRadius: '14px', border: `1px solid ${border}`, flexShrink: 0 }} />
@@ -842,6 +846,11 @@ const dnaLocked = !isPremium || styleDnaUsedToday || needsMoreItems
               transition={{ type: 'spring', damping: 20 }}
               onClick={e => e.stopPropagation()}
               style={{ background: 'linear-gradient(135deg, #0f0c1a, #1a0f2e, #0f1a2e)', borderRadius: '28px', padding: '32px 24px', textAlign: 'center' as const, maxWidth: '340px', width: '100%', border: '1px solid rgba(168,85,247,0.3)', boxShadow: '0 24px 64px rgba(168,85,247,0.2)', position: 'relative' as const, overflow: 'hidden' }}>
+
+              <button onClick={() => setShowDnaUsedToday(false)} aria-label={locale === 'de' ? 'Schließen' : 'Close'}
+                style={{ position: 'absolute' as const, top: '14px', right: '14px', width: '30px', height: '30px', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.8)', fontSize: '14px', lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+                ✕
+              </button>
 
               <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '160px', height: '160px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(168,85,247,0.3), transparent 70%)', filter: 'blur(20px)', pointerEvents: 'none' }} />
 
@@ -899,7 +908,13 @@ const dnaLocked = !isPremium || styleDnaUsedToday || needsMoreItems
             <motion.div initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 60, opacity: 0 }}
               transition={{ type: 'spring', damping: 28, stiffness: 300 }}
               onClick={e => e.stopPropagation()}
-              style={{ width: '100%', maxWidth: '420px', background: card, border: `1px solid ${border}`, borderRadius: '28px', padding: '28px 24px 32px', maxHeight: '85vh', overflowY: 'auto' as const }}>
+              style={{ width: '100%', maxWidth: '420px', background: card, border: `1px solid ${border}`, borderRadius: '28px', padding: '28px 24px 32px', maxHeight: '85vh', overflowY: 'auto' as const, position: 'relative' as const }}>
+
+              <button onClick={() => setShowDna(false)} aria-label={locale === 'de' ? 'Schließen' : 'Close'}
+                style={{ position: 'absolute' as const, top: '16px', right: '16px', width: '30px', height: '30px', borderRadius: '50%', border: `1px solid ${border}`, background: secondary, color: muted, fontSize: '14px', lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+                ✕
+              </button>
+
               {dnaLoading ? (
                 <div style={{ textAlign: 'center' as const, padding: '40px 0' }}>
                   <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
@@ -908,7 +923,7 @@ const dnaLocked = !isPremium || styleDnaUsedToday || needsMoreItems
                 </div>
               ) : dna ? (
                 <>
-                  <div style={{ textAlign: 'center' as const, marginBottom: '24px' }}>
+                  <div style={{ textAlign: 'center' as const, marginBottom: '24px', paddingRight: '32px' }}>
                     <div style={{ fontSize: '48px', marginBottom: '8px' }}>{dna.styleEmoji}</div>
                     <h2 style={{ fontSize: '22px', fontWeight: 800, color: text, letterSpacing: '-0.03em', marginBottom: '8px' }}>{dna.styleType}</h2>
                     <p style={{ fontSize: '13px', color: muted, lineHeight: 1.6 }}>{dna.description}</p>
