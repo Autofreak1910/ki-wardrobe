@@ -1119,7 +1119,7 @@ onClick={() => {
             </motion.div>
           ) : (
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.21 }}
-           onClick={() => setShowUpgrade(true)}
+           onClick={() => { if (!isPremium) setShowUpgrade(true) }}
               style={{ background: isPremium ? 'linear-gradient(135deg, rgba(241,185,81,0.2), rgba(241,185,81,0.08))' : card, border: `1px solid ${isPremium ? 'rgba(241,185,81,0.4)' : border}`, borderRadius: '18px', padding: '14px 4px', textAlign: 'center' as const, cursor: 'pointer', boxShadow: isPremium ? '0 0 16px rgba(241,185,81,0.15)' : 'none', opacity: isPremium ? 1 : 0.6, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', minHeight: '86px' }}>
               <motion.div animate={isPremium ? { scale: [1, 1.08, 1] } : {}} transition={{ duration: 2, repeat: Infinity }}
                 style={{ marginBottom: '6px' }}>
@@ -1446,7 +1446,12 @@ onClick={() => {
             <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
               transition={{ type: 'spring', damping: 20 }}
               onClick={e => e.stopPropagation()}
-              style={{ background: card, borderRadius: '28px', padding: '24px 20px', width: '100%', maxWidth: '400px', border: `1px solid ${border}`, maxHeight: '85vh', overflowY: 'auto' as const }}>
+              style={{ background: card, borderRadius: '28px', padding: '24px 20px', width: '100%', maxWidth: '400px', border: `1px solid ${border}`, maxHeight: '85vh', overflowY: 'auto' as const, position: 'relative' as const }}>
+
+              <button onClick={() => setShowStreakInfo(false)} aria-label={locale === 'de' ? 'Schließen' : 'Close'}
+                style={{ position: 'absolute' as const, top: '16px', right: '16px', width: '30px', height: '30px', borderRadius: '50%', border: `1px solid ${border}`, background: card, color: muted, fontSize: '14px', lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+                ✕
+              </button>
 
          <div style={{ textAlign: 'center' as const, marginBottom: '20px' }}>
                 <motion.p animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 0.5 }}
