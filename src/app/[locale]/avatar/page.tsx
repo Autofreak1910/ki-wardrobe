@@ -81,7 +81,7 @@ async function cutoutPersonFromResult(imageUrl: string): Promise<string> {
   throw new Error('cutout failed')
 }
 
-function compositeOnDressingRoom(avatarImg: HTMLImageElement): Promise<string> {
+function compositeOnDressingRoom(avatarUrl: string, bgUrl: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')
@@ -93,24 +93,29 @@ function compositeOnDressingRoom(avatarImg: HTMLImageElement): Promise<string> {
       canvas.height = bg.height
       ctx.drawImage(bg, 0, 0)
 
-      const FLOOR_Y_FRACTION = 0.90
-      const AVATAR_HEIGHT_FRACTION = 0.62
-      const CENTER_X_FRACTION = 0.5
+      const avatarImg = new Image()
+      avatarImg.crossOrigin = 'anonymous'
+      avatarImg.onload = () => {
+        const FLOOR_Y_FRACTION = 0.90
+        const AVATAR_HEIGHT_FRACTION = 0.62
+        const CENTER_X_FRACTION = 0.5
 
-      const avatarHeight = canvas.height * AVATAR_HEIGHT_FRACTION
-      const avatarWidth = avatarHeight * (avatarImg.width / avatarImg.height)
-      const floorY = canvas.height * FLOOR_Y_FRACTION
-      const drawX = canvas.width * CENTER_X_FRACTION - avatarWidth / 2
-      const drawY = floorY - avatarHeight
+        const avatarHeight = canvas.height * AVATAR_HEIGHT_FRACTION
+        const avatarWidth = avatarHeight * (avatarImg.width / avatarImg.height)
+        const floorY = canvas.height * FLOOR_Y_FRACTION
+        const drawX = canvas.width * CENTER_X_FRACTION - avatarWidth / 2
+        const drawY = floorY - avatarHeight
 
-      ctx.drawImage(avatarImg, drawX, drawY, avatarWidth, avatarHeight)
-      resolve(canvas.toDataURL('image/jpeg', 0.92))
+        ctx.drawImage(avatarImg, drawX, drawY, avatarWidth, avatarHeight)
+        resolve(canvas.toDataURL('image/jpeg', 0.92))
+      }
+      avatarImg.onerror = reject
+      avatarImg.src = avatarUrl
     }
     bg.onerror = reject
-    bg.src = DRESSING_ROOM_BG_URL
+    bg.src = bgUrl
   })
 }
-
 async function createShareCard(selfieUrl: string, resultUrl: string, locale: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const selfieImg = new Image()
