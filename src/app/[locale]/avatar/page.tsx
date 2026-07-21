@@ -96,8 +96,8 @@ function compositeOnDressingRoom(avatarUrl: string, bgUrl: string): Promise<stri
       const avatarImg = new Image()
       avatarImg.crossOrigin = 'anonymous'
       avatarImg.onload = () => {
-        const FLOOR_Y_FRACTION = 0.90
-      const AVATAR_HEIGHT_FRACTION = 1.15
+  const FLOOR_Y_FRACTION = 0.98
+const AVATAR_HEIGHT_FRACTION = 0.95
         const CENTER_X_FRACTION = 0.5
 
         const avatarHeight = canvas.height * AVATAR_HEIGHT_FRACTION
