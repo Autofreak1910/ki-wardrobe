@@ -68,10 +68,11 @@ function getActivePage(pathname: string): string | null {
 }
 
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
- const [showSplash, setShowSplash] = useState(true)
+const [showSplash, setShowSplash] = useState(true)
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [showWelcome, setShowWelcome] = useState(false)
   const [isPremium, setIsPremium] = useState(false)
+  const [dbOnboardingSeen, setDbOnboardingSeen] = useState<boolean | null>(null)
   const pathname = usePathname()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -89,11 +90,10 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
       preloadData()
     } else {
       const hasSeenSplash = sessionStorage.getItem('splashShown')
-      const hasSeenOnboarding = localStorage.getItem('kw_onboarding_seen')
 
       if (hasSeenSplash) {
         setShowSplash(false)
-        if (!hasSeenOnboarding) setShowOnboarding(true)
+        checkOnboardingStatus()
       } else {
         preloadData()
       }
@@ -105,29 +105,44 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
       }
     })
   }, [pathname])
+
+  async function checkOnboardingStatus() {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.user) return
+    const { data } = await supabase.from('profiles').select('onboarding_seen').eq('id', session.user.id).single()
+    const seen = data?.onboarding_seen ?? false
+    setDbOnboardingSeen(seen)
+    if (!seen) setShowOnboarding(true)
+  }
+
  async function preloadData() {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) return
     const [,, profileRes] = await Promise.all([
       supabase.from('clothing_items').select('*').eq('user_id', session.user.id),
       supabase.from('outfits').select('*').eq('user_id', session.user.id),
-      supabase.from('profiles').select('is_premium').eq('id', session.user.id).single(),
+      supabase.from('profiles').select('is_premium, onboarding_seen').eq('id', session.user.id).single(),
     ])
     if (profileRes.data?.is_premium) setIsPremium(true)
+    setDbOnboardingSeen(profileRes.data?.onboarding_seen ?? false)
   }
 
   function handleSplashDone() {
     sessionStorage.setItem('splashShown', 'true')
     setShowSplash(false)
-    const hasSeenOnboarding = localStorage.getItem('kw_onboarding_seen')
-    if (!hasSeenOnboarding) {
+    if (dbOnboardingSeen === false) {
       setShowOnboarding(true)
+    } else if (dbOnboardingSeen === null) {
+      checkOnboardingStatus()
     }
   }
-function handleOnboardingDone() {
-    localStorage.setItem('kw_onboarding_seen', 'true')
+async function handleOnboardingDone() {
     setShowOnboarding(false)
     setShowWelcome(true)
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.user) {
+      await supabase.from('profiles').update({ onboarding_seen: true }).eq('id', session.user.id)
+    }
   }
 
   function handleWelcomeDone() {
