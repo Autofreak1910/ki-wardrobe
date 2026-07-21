@@ -637,9 +637,9 @@ const dnaLocked = !isPremium || styleDnaUsedToday || needsMoreItems
       boxShadow: isPremium ? '0 8px 32px rgba(168,85,247,0.25)' : '0 4px 20px rgba(0,0,0,0.15)',
       opacity: dnaLocked ? 0.55 : 1,
     }}>
-    {dnaLocked && (
-      <div style={{ position: 'absolute', inset: 0, zIndex: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.25)' }}>
-        <span style={{ fontSize: '32px' }}>🔒</span>
+  {dnaLocked && (
+      <div style={{ position: 'absolute', top: '14px', right: '16px', zIndex: 5, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(8px)', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <span style={{ fontSize: '16px' }}>🔒</span>
       </div>
     )}
     {/* Glow Effekte */}
