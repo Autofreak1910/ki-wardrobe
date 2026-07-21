@@ -84,10 +84,19 @@ Antworte NUR mit JSON:
     if (!jsonMatch) throw new Error('No JSON')
     const dna = JSON.parse(jsonMatch[0])
 
-    // Ergebnis in der heutigen Generation-Zeile speichern (die das Frontend
+// Ergebnis in der heutigen Generation-Zeile speichern (die das Frontend
     // schon beim Klick angelegt hat, um das Tageslimit zu zaehlen)
+    // Nutzt den Service-Role-Client, um RLS zu umgehen -- das Frontend
+    // erstellt die Zeile selbst als eingeloggter User, aber das UPDATE
+    // danach kann an fehlenden RLS-Policies scheitern.
     try {
-      const { data: latestGen } = await supabase
+      const { createClient: createServiceClient } = await import('@supabase/supabase-js')
+      const serviceSupabase = createServiceClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      )
+
+      const { data: latestGen, error: findErr } = await serviceSupabase
         .from('style_dna_generations')
         .select('id')
         .eq('user_id', user.id)
@@ -95,11 +104,14 @@ Antworte NUR mit JSON:
         .limit(1)
         .single()
 
+      if (findErr) console.error('Failed to find latest generation:', findErr)
+
       if (latestGen?.id) {
-        await supabase
+        const { error: updateErr } = await serviceSupabase
           .from('style_dna_generations')
           .update({ dna_result: dna })
           .eq('id', latestGen.id)
+        if (updateErr) console.error('Failed to update dna_result:', updateErr)
       }
     } catch (saveErr) {
       console.error('Failed to persist dna_result:', saveErr)
