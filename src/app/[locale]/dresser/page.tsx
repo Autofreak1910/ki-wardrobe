@@ -521,6 +521,7 @@ setLoading(true); setSaved(false); setOutfit(null)
         return { items: o.items, reasoning: o.reasoning, vibe: o.vibe, itemObjects: matchedItems }
       })
 setOutfit({ outfits: mappedOutfits, active: 0 })
+      setWeekOutfitsUsed(c => c + 1)
       try {
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
        const streakRes = await fetch('/api/update-streak', { 
@@ -1324,22 +1325,30 @@ onClick={() => {
               </div>
             </motion.div>
 
-   {isPremium && bonusOutfitsThisWeek > 0 && (
+{isPremium && bonusOutfitsThisWeek > 0 && (() => {
+              const remainingBonus = Math.max(0, bonusOutfitsThisWeek - Math.max(0, weekOutfitsUsed - 14))
+              const usedUp = remainingBonus === 0
+              return (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'linear-gradient(135deg, rgba(249,115,22,0.1), rgba(239,68,68,0.05))', border: '1px solid rgba(249,115,22,0.25)', borderRadius: '12px', padding: '10px 14px', marginBottom: '12px' }}>
-                <span style={{ fontSize: '16px' }}>✨</span>
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', background: usedUp ? (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)') : 'linear-gradient(135deg, rgba(249,115,22,0.1), rgba(239,68,68,0.05))', border: `1px solid ${usedUp ? border : 'rgba(249,115,22,0.25)'}`, borderRadius: '12px', padding: '10px 14px', marginBottom: '12px', opacity: usedUp ? 0.55 : 1 }}>
+                <span style={{ fontSize: '16px', filter: usedUp ? 'grayscale(1)' : 'none' }}>✨</span>
                 <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: '12px', fontWeight: 700, color: '#c2410c' }}>
-                    {locale === 'de'
-                      ? `+${bonusOutfitsThisWeek} Bonus-Outfit${bonusOutfitsThisWeek > 1 ? 's' : ''}${bonusTryonsThisWeek > 0 ? ` · +${bonusTryonsThisWeek} Try-On` : ''} diese Woche`
-                      : `+${bonusOutfitsThisWeek} bonus outfit${bonusOutfitsThisWeek > 1 ? 's' : ''}${bonusTryonsThisWeek > 0 ? ` · +${bonusTryonsThisWeek} try-on` : ''} this week`}
+                  <p style={{ fontSize: '12px', fontWeight: 700, color: usedUp ? muted : '#c2410c' }}>
+                    {usedUp
+                      ? (locale === 'de' ? 'Bonus-Outfits diese Woche aufgebraucht' : 'Bonus outfits used up this week')
+                      : (locale === 'de'
+                          ? `+${remainingBonus} Bonus-Outfit${remainingBonus > 1 ? 's' : ''}${bonusTryonsThisWeek > 0 ? ` · +${bonusTryonsThisWeek} Try-On` : ''} übrig`
+                          : `+${remainingBonus} bonus outfit${remainingBonus > 1 ? 's' : ''}${bonusTryonsThisWeek > 0 ? ` · +${bonusTryonsThisWeek} try-on` : ''} left`)}
                   </p>
-                  <p style={{ fontSize: '10px', color: '#c2410c', opacity: 0.75 }}>
-                    {locale === 'de' ? 'Läuft am Montag ab — jetzt nutzen! 🔥' : 'Expires Monday — use it now! 🔥'}
-                  </p>
+                  {!usedUp && (
+                    <p style={{ fontSize: '10px', color: '#c2410c', opacity: 0.75 }}>
+                      {locale === 'de' ? 'Läuft am Montag ab — jetzt nutzen! 🔥' : 'Expires Monday — use it now! 🔥'}
+                    </p>
+                  )}
                 </div>
               </motion.div>
-            )}
+              )
+            })()}
 
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24, duration: 0.4 }} style={{ marginBottom: '28px' }}>
               <motion.button ref={dressMeRef} onClick={generateOutfit} disabled={loading} whileTap={!loading ? { scale: 0.97 } : {}}
