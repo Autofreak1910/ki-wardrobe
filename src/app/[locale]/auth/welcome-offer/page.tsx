@@ -162,14 +162,14 @@ export default function WaitlistPage() {
   const isFounderPhase = count < FOUNDER_SPOTS
 
   return (
-    <div style={{
+ <div style={{
       minHeight: '100dvh',
       background: bg,
       display: 'flex', flexDirection: 'column' as const,
       alignItems: 'center', justifyContent: 'center',
       textAlign: 'center' as const, padding: '40px 24px',
       fontFamily: "'Poppins', 'Inter', sans-serif",
-      position: 'relative' as const, overflow: 'hidden',
+      position: 'relative' as const,
     }}>
 
       <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
