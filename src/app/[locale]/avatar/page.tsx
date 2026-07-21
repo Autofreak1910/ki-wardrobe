@@ -24,7 +24,6 @@ function getMonthStartUTC(): Date {
   const now = new Date()
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0))
 }
-const [errorTips, setErrorTips] = useState<string[] | null>(null)
 function getWeekStartUTC(): Date {
   const now = new Date()
   const day = now.getUTCDay()
@@ -250,6 +249,7 @@ async function createShareCard(selfieUrl: string, resultUrl: string, locale: str
 let avatarCache: { profile: any; items: ClothingItem[] } | null = null
 
 export default function AvatarPage() {
+  const [errorTips, setErrorTips] = useState<string[] | null>(null)
   const [profile, setProfile] = useState<any>(avatarCache?.profile ?? null)
   const [items, setItems] = useState<ClothingItem[]>(avatarCache?.items ?? [])
   const [selectedItem, setSelectedItem] = useState<ClothingItem | null>(null)
