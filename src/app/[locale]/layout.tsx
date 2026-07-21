@@ -30,7 +30,8 @@ export default async function LocaleLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="KiWardrobe" />
-        <meta name="theme-color" content="#0ea472" />
+        <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FDFCF9" />
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#161616" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
         <link rel="prefetch" href={`/${locale}/dresser`} />
         <link rel="prefetch" href={`/${locale}/wardrobe`} />
