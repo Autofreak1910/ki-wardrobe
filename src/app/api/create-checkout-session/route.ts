@@ -18,10 +18,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing userId' }, { status: 400 })
     }
 
-    // Founder/Waitlist-Status serverseitig nachschlagen — niemals dem Client vertrauen
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('is_founder, signup_number')
+      .select('is_founder, signup_number, stripe_customer_id')
       .eq('id', userId)
       .single()
 
@@ -29,7 +28,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
     }
 
-    // Tier-abhängige Werte
+    // Stripe-Customer wiederverwenden falls schon vorhanden, sonst neu anlegen
+    let customerId = profile.stripe_customer_id
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: userEmail,
+        metadata: { userId },
+      })
+      customerId = customer.id
+      await supabase.from('profiles').update({ stripe_customer_id: customerId }).eq('id', userId)
+    }
+
     let trialDays = 0
     let couponId: string | undefined = undefined
     let tier = 'none'
@@ -39,20 +48,18 @@ export async function POST(request: NextRequest) {
       couponId = process.env.STRIPE_COUPON_FOUNDER
       tier = 'founder'
     } else if (profile.signup_number) {
-      // War auf der Warteliste, aber nicht unter den ersten 75
       trialDays = 3
       couponId = process.env.STRIPE_COUPON_EARLY
       tier = 'early'
     }
-    // else: signup_number ist null -> war nicht auf der Warteliste -> kein Trial, kein Coupon
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       payment_method_types: ['card'],
+      customer: customerId,
       line_items: [{ price: process.env.STRIPE_PRICE_ID!, quantity: 1 }],
       success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://kiwardrobe-app.vercel.app'}/${lang}/profile?success=true`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://kiwardrobe-app.vercel.app'}/${lang}/profile?canceled=true`,
-      customer_email: userEmail,
       metadata: { userId, tier },
       subscription_data: {
         metadata: { userId, tier },
