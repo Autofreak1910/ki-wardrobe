@@ -33,6 +33,8 @@ export default function WardrobePage() {
   const [styleDnaUsedToday, setStyleDnaUsedToday] = useState(false)
   const [analyzeStep, setAnalyzeStep] = useState('')
   const [analyzeResult, setAnalyzeResult] = useState('')
+  const [showNotClothingModal, setShowNotClothingModal] = useState(false)
+const [notClothingReason, setNotClothingReason] = useState('')
   const [progress, setProgress] = useState(0)
   const [selectedItem, setSelectedItem] = useState<ClothingItem | null>(null)
   const [editDate, setEditDate] = useState('')
@@ -172,10 +174,12 @@ async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
       })
       const result = await res.json()
 
-      if (result.notClothing) {
-        setAnalyzeStep(locale === 'de' ? 'Bitte lade ein Kleidungsstück hoch' : 'Please upload a clothing item')
+  if (result.notClothing) {
         setAnalyzing(false)
         setUploading(false)
+        setProgress(0)
+        setNotClothingReason(result.reason ?? '')
+        setShowNotClothingModal(true)
         if (fileInputRef.current) fileInputRef.current.value = ''
         return
       }
@@ -1052,6 +1056,50 @@ const dnaLocked = !isPremium || styleDnaUsedToday || needsMoreItems
           </motion.div>
         )}
 </AnimatePresence>
+{/* Kein Kleidungsstück erkannt */}
+      <AnimatePresence>
+        {showNotClothingModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setShowNotClothingModal(false)}
+            style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+            <motion.div
+              initial={{ scale: 0.85, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: 'spring', damping: 20 }}
+              onClick={e => e.stopPropagation()}
+              style={{ background: card, borderRadius: '24px', padding: '32px 24px', textAlign: 'center' as const, maxWidth: '340px', width: '100%', border: `1px solid ${border}`, boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
+
+              <p style={{ fontSize: '44px', marginBottom: '16px' }}>🤔</p>
+
+              <p style={{ fontSize: '17px', fontWeight: 800, color: text, letterSpacing: '-0.02em', marginBottom: '8px' }}>
+                {locale === 'de' ? 'Kein Kleidungsstück erkannt' : 'No clothing item detected'}
+              </p>
+
+              <p style={{ fontSize: '13px', color: muted, lineHeight: 1.6, marginBottom: notClothingReason ? '8px' : '24px' }}>
+                {locale === 'de'
+                  ? 'Auf diesem Foto konnte die KI kein Kleidungsstück, Schuh oder Accessoire erkennen.'
+                  : 'The AI couldn\'t detect a clothing item, shoe, or accessory in this photo.'}
+              </p>
+
+              {notClothingReason && (
+                <p style={{ fontSize: '12px', color: muted, fontStyle: 'italic', marginBottom: '24px' }}>
+                  {locale === 'de' ? 'Erkannt: ' : 'Detected: '}{notClothingReason}
+                </p>
+              )}
+
+              <motion.button whileTap={{ scale: 0.97 }}
+                onClick={() => { setShowNotClothingModal(false); fileInputRef.current?.click() }}
+                style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: `linear-gradient(135deg, ${accent}, #0891b2)`, color: '#fff', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", marginBottom: '8px' }}>
+                {locale === 'de' ? 'Anderes Foto versuchen' : 'Try another photo'}
+              </motion.button>
+
+              <button onClick={() => setShowNotClothingModal(false)}
+                style={{ width: '100%', padding: '11px', background: 'transparent', border: 'none', fontSize: '13px', color: muted, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+                {locale === 'de' ? 'Schließen' : 'Close'}
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
  <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
     </div>
   )
