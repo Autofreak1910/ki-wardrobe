@@ -1219,38 +1219,43 @@ onClick={() => {
 {!hasItems ? (
   <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
 
-    <div style={{ marginBottom: '22px', opacity: 0.4, pointerEvents: 'none', userSelect: 'none' as const, filter: 'blur(1.5px)' }}>
-      <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: muted, marginBottom: '10px' }}>
-        {locale === 'de' ? 'Anlass' : 'Occasion'}
-      </p>
-      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' as const }}>
-        {['Casual', 'Uni', 'Arbeit', 'Date', 'Sport', 'Party', 'Festival'].map((occ, i) => (
-          <div key={i} style={{ padding: '8px 16px', borderRadius: '100px', border: `1px solid ${i === 0 ? accent : border}`, background: i === 0 ? accent : card, color: i === 0 ? '#fff' : muted, fontSize: '13px', fontWeight: i === 0 ? 600 : 400 }}>
+    <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '18px', padding: '14px 16px', marginBottom: '16px', opacity: 0.4, pointerEvents: 'none', userSelect: 'none' as const, filter: 'blur(1.5px)' }}>
+
+      <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', overflowX: 'auto' as const, paddingBottom: '2px' }}>
+        {['Casual', 'Arbeit', 'Date', 'Party'].map((occ, i) => (
+          <div key={i} style={{ padding: '7px 14px', borderRadius: '100px', border: `1px solid ${i === 0 ? accent : border}`, background: i === 0 ? accent : 'transparent', color: i === 0 ? '#fff' : muted, fontSize: '13px', fontWeight: i === 0 ? 600 : 400, whiteSpace: 'nowrap' as const, flexShrink: 0 }}>
             {occ}
           </div>
         ))}
       </div>
+
+      <div style={{ height: '1px', background: border, marginBottom: '12px' }} />
+
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' as const, flex: 1 }}>
+          {categoryConfig.map((cat, i) => (
+            <div key={i} style={{ padding: '5px 10px', borderRadius: '100px', border: `1px solid ${i === 0 ? accent : border}`, background: i === 0 ? accentDim : 'transparent', color: i === 0 ? accent : muted, fontSize: '11px', fontWeight: i === 0 ? 700 : 400 }}>
+              {locale === 'de' ? cat.labelDe : cat.labelEn}
+            </div>
+          ))}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+          <span style={{ fontSize: '16px' }}>🌤️</span>
+          <div style={{ width: '36px', height: '20px', borderRadius: '10px', background: accent, position: 'relative' as const }}>
+            <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#fff', position: 'absolute', top: '2px', left: '18px' }} />
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div style={{ marginBottom: '22px', opacity: 0.4, pointerEvents: 'none', userSelect: 'none' as const, filter: 'blur(1.5px)' }}>
-      <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: muted, marginBottom: '10px' }}>
-        {locale === 'de' ? 'Was soll ins Outfit?' : 'What to include?'}
-      </p>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-        {categoryConfig.map((cat, i) => (
-          <div key={i} style={{
-            gridColumn: i === categoryConfig.length - 1 && categoryConfig.length % 2 !== 0 ? '1 / -1' : undefined,
-            display: 'flex', flexDirection: 'column' as const,
-            alignItems: 'center', justifyContent: 'center', gap: '10px',
-            padding: '22px 16px', borderRadius: '18px',
-            border: `1.5px solid ${border}`, background: card,
-          }}>
-            <span style={{ color: muted }}>{cat.icon}</span>
-            <span style={{ fontSize: '14px', fontWeight: 600, color: muted }}>
-              {locale === 'de' ? cat.labelDe : cat.labelEn}
-            </span>
-          </div>
-        ))}
+    <div style={{ marginBottom: '28px', opacity: 0.4, pointerEvents: 'none', userSelect: 'none' as const, filter: 'blur(1.5px)' }}>
+      <div style={{ width: '100%', padding: '19px', borderRadius: '100px', border: 'none', background: sageGradient, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style={{ color: '#fff' }}>
+          <path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2zm6 10l.75 2.25L21 15l-2.25.75L18 18l-.75-2.25L15 15l2.25-.75L18 12z"/>
+        </svg>
+        <span style={{ fontSize: '15px', fontWeight: 700, color: '#fff', letterSpacing: '-0.01em', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+          {t('dresser.button')} ✦
+        </span>
       </div>
     </div>
 
