@@ -130,6 +130,7 @@ const [username, setUsername] = useState<string>(stylistCache?.username ?? '')
   const [premiumUntil, setPremiumUntil] = useState<string | null>(stylistCache?.premiumUntil ?? null)
 
 const [showUpgrade, setShowUpgrade] = useState(false)
+const [showProStatus, setShowProStatus] = useState(false)
   const { theme } = useTheme()
   const t = useTranslations()
   const locale = useLocale()
@@ -1119,7 +1120,7 @@ onClick={() => {
             </motion.div>
           ) : (
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.21 }}
-           onClick={() => { if (!isPremium) setShowUpgrade(true) }}
+        onClick={() => { if (isPremium) { setShowProStatus(true) } else { setShowUpgrade(true) } }}
               style={{ background: isPremium ? 'linear-gradient(135deg, rgba(241,185,81,0.2), rgba(241,185,81,0.08))' : card, border: `1px solid ${isPremium ? 'rgba(241,185,81,0.4)' : border}`, borderRadius: '18px', padding: '14px 4px', textAlign: 'center' as const, cursor: 'pointer', boxShadow: isPremium ? '0 0 16px rgba(241,185,81,0.15)' : 'none', opacity: isPremium ? 1 : 0.6, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', minHeight: '86px' }}>
               <motion.div animate={isPremium ? { scale: [1, 1.08, 1] } : {}} transition={{ duration: 2, repeat: Infinity }}
                 style={{ marginBottom: '6px' }}>
@@ -1558,6 +1559,44 @@ onClick={() => {
 </div>
       </main>
       <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
+        <AnimatePresence>
+  {showProStatus && (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      onClick={() => setShowProStatus(false)}
+      style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+        onClick={e => e.stopPropagation()}
+        style={{ background: card, borderRadius: '24px', padding: '28px 24px', maxWidth: '340px', width: '100%', border: '1px solid rgba(241,185,81,0.4)', position: 'relative' as const, textAlign: 'center' as const }}>
+
+        <button onClick={() => setShowProStatus(false)} aria-label={locale === 'de' ? 'Schließen' : 'Close'}
+          style={{ position: 'absolute' as const, top: '14px', right: '14px', width: '30px', height: '30px', borderRadius: '50%', border: `1px solid ${border}`, background: card, color: muted, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          ✕
+        </button>
+
+        <p style={{ fontSize: '40px', marginBottom: '10px' }}>👑</p>
+        <p style={{ fontSize: '19px', fontWeight: 800, color: text, marginBottom: '6px' }}>
+          {locale === 'de' ? 'Du bist Pro-Mitglied' : "You're a Pro member"}
+        </p>
+        {premiumUntil && (
+          <p style={{ fontSize: '14px', color: muted, marginBottom: '18px' }}>
+            {locale === 'de' ? `Aktiv bis ${premiumUntil}` : `Active until ${premiumUntil}`}
+          </p>
+        )}
+        <div style={{ textAlign: 'left' as const, background: accentDim, borderRadius: '14px', padding: '14px 16px' }}>
+          {[
+            locale === 'de' ? '14 Outfits pro Woche' : '14 outfits per week',
+            locale === 'de' ? 'Unbegrenzt Kleidung & Speichern' : 'Unlimited items & saves',
+            locale === 'de' ? '6× Virtual Try-On pro Woche' : '6× Virtual Try-On per week',
+            'Style DNA',
+            locale === 'de' ? 'Mehrfach-Upload' : 'Multi-upload',
+          ].map((f, i) => (
+            <p key={i} style={{ fontSize: '13px', color: text, marginBottom: '6px' }}>✓ {f}</p>
+          ))}
+        </div>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
     </div>
   )
 }
