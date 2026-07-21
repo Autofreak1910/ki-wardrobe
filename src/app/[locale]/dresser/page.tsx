@@ -1471,145 +1471,153 @@ onClick={() => {
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
+<AnimatePresence>
         {showStreakInfo && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={() => setShowStreakInfo(false)}
-            style={{ position: 'fixed', inset: 0, zIndex: 9997, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '0 16px 90px' }}>
-            <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
+            style={{ position: 'fixed', inset: 0, zIndex: 9997, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px' }}>
+            <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }}
               transition={{ type: 'spring', damping: 20 }}
               onClick={e => e.stopPropagation()}
-              style={{ background: card, borderRadius: '28px', padding: '24px 20px', width: '100%', maxWidth: '400px', border: `1px solid ${border}`, maxHeight: '85vh', overflowY: 'auto' as const, position: 'relative' as const }}>
+              style={{ background: card, borderRadius: '28px', width: '100%', maxWidth: '400px', border: `1px solid ${border}`, maxHeight: '85vh', display: 'flex', flexDirection: 'column' as const, position: 'relative' as const, overflow: 'hidden' }}>
 
-              <button onClick={() => setShowStreakInfo(false)} aria-label={locale === 'de' ? 'Schließen' : 'Close'}
-                style={{ position: 'absolute' as const, top: '16px', right: '16px', width: '30px', height: '30px', borderRadius: '50%', border: `1px solid ${border}`, background: card, color: muted, fontSize: '14px', lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, fontFamily: "'Poppins', 'Inter', sans-serif" }}>
-                ✕
-              </button>
+              {/* Fester Header */}
+              <div style={{ padding: '24px 20px 16px', position: 'relative' as const, flexShrink: 0 }}>
+                <button onClick={() => setShowStreakInfo(false)} aria-label={locale === 'de' ? 'Schließen' : 'Close'}
+                  style={{ position: 'absolute' as const, top: '16px', right: '16px', width: '30px', height: '30px', borderRadius: '50%', border: `1px solid ${border}`, background: card, color: muted, fontSize: '14px', lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+                  ✕
+                </button>
 
-         <div style={{ textAlign: 'center' as const, marginBottom: '20px' }}>
-                <motion.p animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 0.5 }}
-                  style={{ fontSize: '48px', marginBottom: '8px' }}>🔥</motion.p>
-                <p style={{ fontSize: '28px', fontWeight: 800, color: streak >= 7 ? '#f97316' : text, letterSpacing: '-0.04em', marginBottom: '4px' }}>
-                  {streak} {locale === 'de' ? 'Tage' : 'Days'}
-                </p>
-                <p style={{ fontSize: '14px', color: muted, marginBottom: '8px' }}>
-                  {locale === 'de' ? 'Generiere ein Outfit oder schau dir dein Tagesoutfit an — einmal täglich reicht' : 'Generate an outfit or check your daily outfit — once a day keeps it alive'}
-                </p>
-                {(() => {
-                  const levels = [
-                    { min: 0,  label: locale === 'de' ? 'Neuling' : 'Newbie',    emoji: '🌱' },
-                    { min: 7,  label: locale === 'de' ? 'Erfahren' : 'Regular',  emoji: '🔥' },
-                    { min: 14, label: locale === 'de' ? 'Profi' : 'Pro',         emoji: '⚡' },
-                    { min: 30, label: locale === 'de' ? 'Meister' : 'Master',   emoji: '🏆' },
-                    { min: 60, label: locale === 'de' ? 'Legende' : 'Legend',   emoji: '👑' },
-                    { min: 100, label: locale === 'de' ? 'Ikone' : 'Icon',      emoji: '💎' },
-                  ]
-                  const current = [...levels].reverse().find(l => streak >= l.min) ?? levels[0]
-                  return (
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: accentDim, borderRadius: '100px', padding: '5px 14px', fontSize: '12px', fontWeight: 700, color: accent, marginBottom: '10px' }}>
-                      {current.emoji} {current.label}
-                    </span>
-                  )
-                })()}
-               {isPremium && (() => {
-                  const currentMonth = new Intl.DateTimeFormat('en-CA', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, year: 'numeric', month: '2-digit' }).format(new Date())
-                  const freezeAvailable = freezeUsedMonth !== currentMonth
-                  return (
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: freezeAvailable ? 'rgba(92,130,160,0.12)' : accentDim, border: `1px solid ${freezeAvailable ? accent + '40' : border}`, borderRadius: '100px', padding: '5px 12px' }}>
-                      <span style={{ fontSize: '13px' }}>🧊</span>
-                      <p style={{ fontSize: '11px', fontWeight: 700, color: freezeAvailable ? accent : muted }}>
-                        {freezeAvailable
-                          ? (locale === 'de' ? 'Streak-Schutz verfügbar' : 'Streak Freeze available')
-                          : (locale === 'de' ? 'Streak-Schutz diesen Monat genutzt' : 'Streak Freeze used this month')}
-                      </p>
-                    </div>
-                  )
-                })()}
-              </div>
-
-          {isPremium && (
-                <div style={{ background: (bonusOutfitsThisWeek > 0 || bonusTryonsThisWeek > 0) ? 'linear-gradient(135deg, rgba(249,115,22,0.1), rgba(239,68,68,0.05))' : accentDim, border: `1px solid ${(bonusOutfitsThisWeek > 0 || bonusTryonsThisWeek > 0) ? 'rgba(249,115,22,0.25)' : border}`, borderRadius: '12px', padding: '12px 14px', marginBottom: '16px' }}>
-                  <p style={{ fontSize: '12px', fontWeight: 700, color: (bonusOutfitsThisWeek > 0 || bonusTryonsThisWeek > 0) ? '#c2410c' : muted, marginBottom: '2px' }}>
-                    ✨ {locale === 'de' ? 'Wochen-Bonus (Streak-Belohnung)' : 'Weekly bonus (streak reward)'}
+                <div style={{ textAlign: 'center' as const }}>
+                  <motion.p animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 0.5 }}
+                    style={{ fontSize: '48px', marginBottom: '8px' }}>🔥</motion.p>
+                  <p style={{ fontSize: '28px', fontWeight: 800, color: streak >= 7 ? '#f97316' : text, letterSpacing: '-0.04em', marginBottom: '4px' }}>
+                    {streak} {locale === 'de' ? 'Tage' : 'Days'}
                   </p>
-              {(bonusOutfitsThisWeek > 0 || bonusTryonsThisWeek > 0) ? (() => {
-                    const now = new Date()
-                    const day = now.getUTCDay()
-                    const diffToNextMonday = day === 0 ? 1 : 8 - day
-                    const msLeft = diffToNextMonday * 24 * 60 * 60 * 1000 - (now.getUTCHours() * 60 * 60 * 1000 + now.getUTCMinutes() * 60 * 1000)
-                    const daysLeft = Math.max(0, Math.ceil(msLeft / (24 * 60 * 60 * 1000)))
-                    const percentLeft = Math.min(100, Math.max(4, (daysLeft / 7) * 100))
-                    const urgent = daysLeft <= 1
-                    const barColor = urgent ? '#ef4444' : daysLeft <= 3 ? '#f97316' : '#22c55e'
-
+                  <p style={{ fontSize: '14px', color: muted, marginBottom: '8px' }}>
+                    {locale === 'de' ? 'Generiere ein Outfit oder schau dir dein Tagesoutfit an — einmal täglich reicht' : 'Generate an outfit or check your daily outfit — once a day keeps it alive'}
+                  </p>
+                  {(() => {
+                    const levels = [
+                      { min: 0,  label: locale === 'de' ? 'Neuling' : 'Newbie',    emoji: '🌱' },
+                      { min: 7,  label: locale === 'de' ? 'Erfahren' : 'Regular',  emoji: '🔥' },
+                      { min: 14, label: locale === 'de' ? 'Profi' : 'Pro',         emoji: '⚡' },
+                      { min: 30, label: locale === 'de' ? 'Meister' : 'Master',   emoji: '🏆' },
+                      { min: 60, label: locale === 'de' ? 'Legende' : 'Legend',   emoji: '👑' },
+                      { min: 100, label: locale === 'de' ? 'Ikone' : 'Icon',      emoji: '💎' },
+                    ]
+                    const current = [...levels].reverse().find(l => streak >= l.min) ?? levels[0]
                     return (
-                      <>
-                        <p style={{ fontSize: '13px', color: '#c2410c', fontWeight: 600 }}>
-                          {locale === 'de'
-                            ? `+${bonusOutfitsThisWeek} Outfit${bonusOutfitsThisWeek > 1 ? 's' : ''}${bonusTryonsThisWeek > 0 ? ` · +${bonusTryonsThisWeek} Try-On` : ''} aktiv`
-                            : `+${bonusOutfitsThisWeek} outfit${bonusOutfitsThisWeek > 1 ? 's' : ''}${bonusTryonsThisWeek > 0 ? ` · +${bonusTryonsThisWeek} try-on` : ''} active`}
-                        </p>
-                        <div style={{ height: '6px', background: 'rgba(194,65,12,0.15)', borderRadius: '3px', overflow: 'hidden', marginTop: '8px', marginBottom: '6px' }}>
-                          <motion.div initial={{ width: '100%' }} animate={{ width: `${percentLeft}%` }} transition={{ duration: 0.6 }}
-                            style={{ height: '100%', background: barColor, borderRadius: '3px' }} />
-                        </div>
-                        <p style={{ fontSize: '10px', color: '#c2410c', opacity: 0.85, fontWeight: urgent ? 700 : 500 }}>
-                          {urgent
-                            ? (locale === 'de' ? `⚠️ Läuft heute/morgen ab!` : `⚠️ Expires today/tomorrow!`)
-                            : (locale === 'de' ? `Noch ${daysLeft} Tag${daysLeft > 1 ? 'e' : ''} bis ${getNextWeekResetLabel(locale)}` : `${daysLeft} day${daysLeft > 1 ? 's' : ''} left until ${getNextWeekResetLabel(locale)}`)}
-                        </p>
-                      </>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: accentDim, borderRadius: '100px', padding: '5px 14px', fontSize: '12px', fontWeight: 700, color: accent, marginBottom: '10px' }}>
+                        {current.emoji} {current.label}
+                      </span>
                     )
-                  })() : (
-                    <p style={{ fontSize: '12px', color: muted }}>
-                      {locale === 'de' ? 'Erreiche 7/14/30 Tage Streak für Bonus-Outfits diese Woche' : 'Reach a 7/14/30-day streak for bonus outfits this week'}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '8px', marginBottom: '20px' }}>
-          {(isPremium ? [
-                  { days: 7, reward: locale === 'de' ? '+1 Outfit diese Woche' : '+1 outfit this week', emoji: '🏅', claimed: streak >= 7 },
-                  { days: 14, reward: locale === 'de' ? '+2 Outfits · +1 Try-On' : '+2 outfits · +1 try-on', emoji: '🥇', claimed: streak >= 14 },
-                  { days: 30, reward: locale === 'de' ? '+3 Outfits · +1 Try-On' : '+3 outfits · +1 try-on', emoji: '👑', claimed: streak >= 30 },
-                  { days: 45, reward: locale === 'de' ? '+3 Outfits · +2 Try-On' : '+3 outfits · +2 try-on', emoji: '🌟', claimed: streak >= 45 },
-                  { days: 60, reward: locale === 'de' ? '+4 Outfits · +2 Try-On' : '+4 outfits · +2 try-on', emoji: '⚡', claimed: streak >= 60 },
-                  { days: 100, reward: locale === 'de' ? '+5 Outfits · +3 Try-On' : '+5 outfits · +3 try-on', emoji: '💎', claimed: streak >= 100 },
-                ] : [
-                  { days: 7, reward: locale === 'de' ? '+1 Tag Pro' : '+1 day Pro', emoji: '🏅', claimed: streak >= 7 },
-                  { days: 14, reward: locale === 'de' ? '+2 Tage Pro' : '+2 days Pro', emoji: '🥇', claimed: streak >= 14 },
-                  { days: 30, reward: locale === 'de' ? '+3 Tage Pro' : '+3 days Pro', emoji: '👑', claimed: streak >= 30 },
-                  { days: 45, reward: locale === 'de' ? '+4 Tage Pro' : '+4 days Pro', emoji: '🌟', claimed: streak >= 45 },
-                  { days: 60, reward: locale === 'de' ? '+5 Tage Pro' : '+5 days Pro', emoji: '⚡', claimed: streak >= 60 },
-                  { days: 100, reward: locale === 'de' ? '+7 Tage Pro' : '+7 days Pro', emoji: '💎', claimed: streak >= 100 },
-                ]).map(m => (
-                  <div key={m.days} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '14px', background: m.claimed ? 'rgba(249,115,22,0.08)' : accentDim, border: `1px solid ${m.claimed ? 'rgba(249,115,22,0.3)' : border}` }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <span style={{ fontSize: '20px' }}>{m.emoji}</span>
-                      <div>
-                       <p style={{ fontSize: '13px', fontWeight: 700, color: m.claimed ? '#f97316' : text }}>
-                          {m.days} {locale === 'de' ? 'Tage' : 'days'} → {m.reward}
-                        </p>
-                        <p style={{ fontSize: '11px', color: muted }}>
-                          {m.claimed ? (locale === 'de' ? '✓ Erreicht!' : '✓ Reached!') : `${locale === 'de' ? 'Noch' : 'Only'} ${Math.max(0, m.days - streak)} ${locale === 'de' ? 'Tage' : 'days'}`}
+                  })()}
+                  {isPremium && (() => {
+                    const currentMonth = new Intl.DateTimeFormat('en-CA', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, year: 'numeric', month: '2-digit' }).format(new Date())
+                    const freezeAvailable = freezeUsedMonth !== currentMonth
+                    return (
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: freezeAvailable ? 'rgba(92,130,160,0.12)' : accentDim, border: `1px solid ${freezeAvailable ? accent + '40' : border}`, borderRadius: '100px', padding: '5px 12px' }}>
+                        <span style={{ fontSize: '13px' }}>🧊</span>
+                        <p style={{ fontSize: '11px', fontWeight: 700, color: freezeAvailable ? accent : muted }}>
+                          {freezeAvailable
+                            ? (locale === 'de' ? 'Streak-Schutz verfügbar' : 'Streak Freeze available')
+                            : (locale === 'de' ? 'Streak-Schutz diesen Monat genutzt' : 'Streak Freeze used this month')}
                         </p>
                       </div>
-                    </div>
-                    {m.claimed && <span style={{ fontSize: '18px' }}>✅</span>}
-                  </div>
-                ))}
+                    )
+                  })()}
+                </div>
               </div>
 
-              <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowStreakInfo(false)}
-                style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: streak >= 1 ? 'linear-gradient(135deg, #f97316, #ef4444)' : accent, color: '#fff', fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
-                {locale === 'de' ? 'Weiter so! 🔥' : 'Keep it up! 🔥'}
-              </motion.button>
+              {/* Scrollbarer Mittelteil */}
+              <div style={{ overflowY: 'auto' as const, padding: '0 20px', flex: 1 }}>
+                {isPremium && (
+                  <div style={{ background: (bonusOutfitsThisWeek > 0 || bonusTryonsThisWeek > 0) ? 'linear-gradient(135deg, rgba(249,115,22,0.1), rgba(239,68,68,0.05))' : accentDim, border: `1px solid ${(bonusOutfitsThisWeek > 0 || bonusTryonsThisWeek > 0) ? 'rgba(249,115,22,0.25)' : border}`, borderRadius: '12px', padding: '12px 14px', marginBottom: '16px' }}>
+                    <p style={{ fontSize: '12px', fontWeight: 700, color: (bonusOutfitsThisWeek > 0 || bonusTryonsThisWeek > 0) ? '#c2410c' : muted, marginBottom: '2px' }}>
+                      ✨ {locale === 'de' ? 'Wochen-Bonus (Streak-Belohnung)' : 'Weekly bonus (streak reward)'}
+                    </p>
+                    {(bonusOutfitsThisWeek > 0 || bonusTryonsThisWeek > 0) ? (() => {
+                      const now = new Date()
+                      const day = now.getUTCDay()
+                      const diffToNextMonday = day === 0 ? 1 : 8 - day
+                      const msLeft = diffToNextMonday * 24 * 60 * 60 * 1000 - (now.getUTCHours() * 60 * 60 * 1000 + now.getUTCMinutes() * 60 * 1000)
+                      const daysLeft = Math.max(0, Math.ceil(msLeft / (24 * 60 * 60 * 1000)))
+                      const percentLeft = Math.min(100, Math.max(4, (daysLeft / 7) * 100))
+                      const urgent = daysLeft <= 1
+                      const barColor = urgent ? '#ef4444' : daysLeft <= 3 ? '#f97316' : '#22c55e'
+
+                      return (
+                        <>
+                          <p style={{ fontSize: '13px', color: '#c2410c', fontWeight: 600 }}>
+                            {locale === 'de'
+                              ? `+${bonusOutfitsThisWeek} Outfit${bonusOutfitsThisWeek > 1 ? 's' : ''}${bonusTryonsThisWeek > 0 ? ` · +${bonusTryonsThisWeek} Try-On` : ''} aktiv`
+                              : `+${bonusOutfitsThisWeek} outfit${bonusOutfitsThisWeek > 1 ? 's' : ''}${bonusTryonsThisWeek > 0 ? ` · +${bonusTryonsThisWeek} try-on` : ''} active`}
+                          </p>
+                          <div style={{ height: '6px', background: 'rgba(194,65,12,0.15)', borderRadius: '3px', overflow: 'hidden', marginTop: '8px', marginBottom: '6px' }}>
+                            <motion.div initial={{ width: '100%' }} animate={{ width: `${percentLeft}%` }} transition={{ duration: 0.6 }}
+                              style={{ height: '100%', background: barColor, borderRadius: '3px' }} />
+                          </div>
+                          <p style={{ fontSize: '10px', color: '#c2410c', opacity: 0.85, fontWeight: urgent ? 700 : 500 }}>
+                            {urgent
+                              ? (locale === 'de' ? `⚠️ Läuft heute/morgen ab!` : `⚠️ Expires today/tomorrow!`)
+                              : (locale === 'de' ? `Noch ${daysLeft} Tag${daysLeft > 1 ? 'e' : ''} bis ${getNextWeekResetLabel(locale)}` : `${daysLeft} day${daysLeft > 1 ? 's' : ''} left until ${getNextWeekResetLabel(locale)}`)}
+                          </p>
+                        </>
+                      )
+                    })() : (
+                      <p style={{ fontSize: '12px', color: muted }}>
+                        {locale === 'de' ? 'Erreiche 7/14/30 Tage Streak für Bonus-Outfits diese Woche' : 'Reach a 7/14/30-day streak for bonus outfits this week'}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '8px', paddingBottom: '20px' }}>
+                  {(isPremium ? [
+                    { days: 7, reward: locale === 'de' ? '+1 Outfit diese Woche' : '+1 outfit this week', emoji: '🏅', claimed: streak >= 7 },
+                    { days: 14, reward: locale === 'de' ? '+2 Outfits · +1 Try-On' : '+2 outfits · +1 try-on', emoji: '🥇', claimed: streak >= 14 },
+                    { days: 30, reward: locale === 'de' ? '+3 Outfits · +1 Try-On' : '+3 outfits · +1 try-on', emoji: '👑', claimed: streak >= 30 },
+                    { days: 45, reward: locale === 'de' ? '+3 Outfits · +2 Try-On' : '+3 outfits · +2 try-on', emoji: '🌟', claimed: streak >= 45 },
+                    { days: 60, reward: locale === 'de' ? '+4 Outfits · +2 Try-On' : '+4 outfits · +2 try-on', emoji: '⚡', claimed: streak >= 60 },
+                    { days: 100, reward: locale === 'de' ? '+5 Outfits · +3 Try-On' : '+5 outfits · +3 try-on', emoji: '💎', claimed: streak >= 100 },
+                  ] : [
+                    { days: 7, reward: locale === 'de' ? '+1 Tag Pro' : '+1 day Pro', emoji: '🏅', claimed: streak >= 7 },
+                    { days: 14, reward: locale === 'de' ? '+2 Tage Pro' : '+2 days Pro', emoji: '🥇', claimed: streak >= 14 },
+                    { days: 30, reward: locale === 'de' ? '+3 Tage Pro' : '+3 days Pro', emoji: '👑', claimed: streak >= 30 },
+                    { days: 45, reward: locale === 'de' ? '+4 Tage Pro' : '+4 days Pro', emoji: '🌟', claimed: streak >= 45 },
+                    { days: 60, reward: locale === 'de' ? '+5 Tage Pro' : '+5 days Pro', emoji: '⚡', claimed: streak >= 60 },
+                    { days: 100, reward: locale === 'de' ? '+7 Tage Pro' : '+7 days Pro', emoji: '💎', claimed: streak >= 100 },
+                  ]).map(m => (
+                    <div key={m.days} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '14px', background: m.claimed ? 'rgba(249,115,22,0.08)' : accentDim, border: `1px solid ${m.claimed ? 'rgba(249,115,22,0.3)' : border}` }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontSize: '20px' }}>{m.emoji}</span>
+                        <div>
+                          <p style={{ fontSize: '13px', fontWeight: 700, color: m.claimed ? '#f97316' : text }}>
+                            {m.days} {locale === 'de' ? 'Tage' : 'days'} → {m.reward}
+                          </p>
+                          <p style={{ fontSize: '11px', color: muted }}>
+                            {m.claimed ? (locale === 'de' ? '✓ Erreicht!' : '✓ Reached!') : `${locale === 'de' ? 'Noch' : 'Only'} ${Math.max(0, m.days - streak)} ${locale === 'de' ? 'Tage' : 'days'}`}
+                          </p>
+                        </div>
+                      </div>
+                      {m.claimed && <span style={{ fontSize: '18px' }}>✅</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Fester Footer-Button */}
+              <div style={{ padding: '14px 20px 20px', flexShrink: 0, borderTop: `1px solid ${border}` }}>
+                <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowStreakInfo(false)}
+                  style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: streak >= 1 ? 'linear-gradient(135deg, #f97316, #ef4444)' : accent, color: '#fff', fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+                  {locale === 'de' ? 'Weiter so! 🔥' : 'Keep it up! 🔥'}
+                </motion.button>
+              </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-
 </div>
       </main>
       <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />

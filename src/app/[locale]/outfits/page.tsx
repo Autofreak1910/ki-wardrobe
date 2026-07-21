@@ -204,11 +204,11 @@ const byFavorite = filter === 'favorites' ? outfits.filter(o => o.is_favorite) :
                           <p style={{ fontSize: '12px', color: muted }}>No items</p>
                         </div>
                       )}
-                {outfit.occasion && (
-                        <span style={{ position: 'absolute', top: '10px', left: '10px', background: 'rgba(255,255,255,0.92)', border: `1px solid ${border}`, color: text, fontSize: '10px', fontWeight: 600, padding: '4px 9px', borderRadius: '100px' }}>
-                          {occasionLabels[outfit.occasion] ?? outfit.occasion}
-                        </span>
-                      )}
+           {outfit.occasion && (
+                  <span style={{ position: 'absolute', top: '10px', left: '10px', background: card, border: `1px solid ${border}`, color: text, fontSize: '10px', fontWeight: 600, padding: '4px 9px', borderRadius: '100px' }}>
+                    {occasionLabels[outfit.occasion] ?? outfit.occasion}
+                  </span>
+                )}
                     </div>
                     {/* Info */}
                     <div style={{ padding: '12px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

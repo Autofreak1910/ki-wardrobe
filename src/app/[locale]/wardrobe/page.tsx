@@ -673,9 +673,11 @@ const dnaLocked = !isPremium || styleDnaUsedToday || needsMoreItems
 ) : (
   <span style={{ fontSize: '9px', fontWeight: 700, color: '#a855f7', background: 'rgba(168,85,247,0.2)', borderRadius: '5px', padding: '2px 7px', border: '1px solid rgba(168,85,247,0.3)' }}>✦ AKTIV</span>
 )}
-      </div>
-     {locale === 'de' ? 'Was sagt dein Style über dich?' : 'What does your style say?'}
-   <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)', lineHeight: 1.4 }}>
+    </div>
+      <p style={{ fontSize: '13px', fontWeight: 600, color: '#fff', marginBottom: '4px' }}>
+        {locale === 'de' ? 'Was sagt dein Style über dich?' : 'What does your style say?'}
+      </p>
+      <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)', lineHeight: 1.4 }}>
   {!isPremium
     ? (locale === 'de' ? 'Analysiere deinen Stil-Code mit KI.' : 'Analyze your style code with AI.')
     : needsMoreItems
