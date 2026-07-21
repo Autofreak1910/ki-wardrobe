@@ -24,7 +24,7 @@ function getMonthStartUTC(): Date {
   const now = new Date()
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0))
 }
-
+const [errorTips, setErrorTips] = useState<string[] | null>(null)
 function getWeekStartUTC(): Date {
   const now = new Date()
   const day = now.getUTCDay()
@@ -114,7 +114,7 @@ function compositeOnDressingRoom(subjectUrl: string, bgUrl: string): Promise<str
       // der Boden ist (0 = ganz oben, 1 = ganz unten). Bei "schwebt"-Effekt hier anpassen:
       // Wert HOCH setzen wenn Person zu tief im Boden "versinkt",
       // Wert RUNTER setzen wenn Person zu hoch "schwebt".
-      const FLOOR_Y_FRACTION = 0.94
+    const FLOOR_Y_FRACTION = 0.88
       const floorY = H * FLOOR_Y_FRACTION
       const maxH = floorY - 20
       const scale = Math.min(maxH / subjImg.naturalHeight, (W - 100) / subjImg.naturalWidth)
@@ -355,6 +355,7 @@ const [genStep, setGenStep] = useState('')
     setLoading(true)
     setError(null)
     setResult(null)
+    setErrorTips(null)
     setGenProgress(0)
 
     const steps = locale === 'de' ? [
@@ -409,7 +410,20 @@ const [genStep, setGenStep] = useState('')
       } else if (data.error === 'weekly_limit') {
         setError(locale === 'de' ? 'Du hast diese Woche bereits 6 Avatare erstellt. Nächste Woche wieder!' : 'You already created 6 avatars this week. Come back next week!')
       } else if (data.error === 'bad_selfie') {
-        setError(locale === 'de' ? 'Dein Foto eignet sich nicht gut für Try-On. Bitte nutze ein Ganzkörperfoto mit klarer Pose, gutem Licht und einfachem Hintergrund.' : "Your photo isn't well suited for try-on. Please use a full-body photo with a clear pose, good lighting, and a plain background.")
+        setError(locale === 'de' ? 'Dein Foto eignet sich nicht gut für Try-On' : "Your photo isn't well suited for try-on")
+        setErrorTips(locale === 'de' ? [
+          'Handy hinstellen (z.B. anlehnen) statt in der Hand halten',
+          'Ein paar Schritte zurücktreten, ganzer Körper muss sichtbar sein',
+          'Gerade und aufrecht stehen, kein Winkel von oben/unten',
+          'Helles, gleichmäßiges Licht — keine Rückenbeleuchtung',
+          'Einfacher, ruhiger Hintergrund ohne viel Durcheinander',
+        ] : [
+          'Prop your phone up instead of holding it',
+          'Step back a few steps — your whole body needs to be visible',
+          'Stand straight, no angle from above or below',
+          'Bright, even lighting — avoid backlighting',
+          'Simple, uncluttered background',
+        ])
       } else if (data.success) {
         setResult(data.imageUrl)
         await loadData()
@@ -592,15 +606,33 @@ const [genStep, setGenStep] = useState('')
           </div>
         </motion.div>
 
-        {/* Error */}
+   {/* Error */}
         {error && (
           <div style={{ padding: '0 20px' }}>
             <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-              style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', padding: '12px 16px', marginBottom: '16px', textAlign: 'center' as const }}>
-              <p style={{ fontSize: '13px', color: '#ef4444', fontWeight: 600 }}>{error}</p>
+              style={{ background: isDark ? 'rgba(239,68,68,0.1)' : '#fef2f2', border: `1px solid ${isDark ? 'rgba(239,68,68,0.25)' : '#fecaca'}`, borderRadius: '14px', padding: '16px', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: errorTips ? '10px' : 0 }}>
+                <span style={{ fontSize: '18px', flexShrink: 0 }}>📸</span>
+                <p style={{ fontSize: '13px', color: '#ef4444', fontWeight: 600, lineHeight: 1.5 }}>{error}</p>
+              </div>
+
+              {errorTips && (
+                <div style={{ background: isDark ? 'rgba(255,255,255,0.04)' : '#ffffff', borderRadius: '10px', padding: '12px 14px', marginTop: '4px' }}>
+                  <p style={{ fontSize: '11px', fontWeight: 700, color: text, marginBottom: '8px', textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>
+                    {locale === 'de' ? '💡 So klappt\'s besser' : '💡 Tips for better results'}
+                  </p>
+                  {errorTips.map((tip, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: i < errorTips.length - 1 ? '6px' : 0 }}>
+                      <span style={{ color: accent, fontSize: '13px', fontWeight: 700 }}>✓</span>
+                      <span style={{ fontSize: '12.5px', color: muted, lineHeight: 1.5 }}>{tip}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {error.includes('Upgrade') && (
                <button onClick={() => setShowUpgrade(true)}
-                  style={{ marginTop: '8px', background: accent, border: 'none', borderRadius: '8px', padding: '8px 16px', color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+                  style={{ marginTop: '10px', background: accent, border: 'none', borderRadius: '8px', padding: '8px 16px', color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
                   ✦ Jetzt freischalten →
                 </button>
               )}
