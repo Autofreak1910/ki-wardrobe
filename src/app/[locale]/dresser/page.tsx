@@ -1564,25 +1564,26 @@ onClick={() => {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       onClick={() => setShowProStatus(false)}
       style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+<motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
         onClick={e => e.stopPropagation()}
-        style={{ background: card, borderRadius: '24px', padding: '28px 24px', maxWidth: '340px', width: '100%', border: '1px solid rgba(241,185,81,0.4)', position: 'relative' as const, textAlign: 'center' as const }}>
+        style={{ background: `linear-gradient(160deg, ${goldAccent}, #E8B45E)`, borderRadius: '24px', padding: '28px 24px', maxWidth: '340px', width: '100%', position: 'relative' as const, textAlign: 'center' as const, boxShadow: `0 8px 32px ${goldAccent}50` }}>
 
         <button onClick={() => setShowProStatus(false)} aria-label={locale === 'de' ? 'Schließen' : 'Close'}
-          style={{ position: 'absolute' as const, top: '14px', right: '14px', width: '30px', height: '30px', borderRadius: '50%', border: `1px solid ${border}`, background: card, color: muted, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          style={{ position: 'absolute' as const, top: '14px', right: '14px', width: '30px', height: '30px', borderRadius: '50%', border: 'none', background: 'rgba(36,33,27,0.15)', color: '#24211B', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           ✕
         </button>
 
         <p style={{ fontSize: '40px', marginBottom: '10px' }}>👑</p>
-        <p style={{ fontSize: '19px', fontWeight: 800, color: text, marginBottom: '6px' }}>
+        <p style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(36,33,27,0.7)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '4px' }}>PRO</p>
+        <p style={{ fontSize: '19px', fontWeight: 800, color: '#24211B', marginBottom: '6px' }}>
           {locale === 'de' ? 'Du bist Pro-Mitglied' : "You're a Pro member"}
         </p>
         {premiumUntil && (
-          <p style={{ fontSize: '14px', color: muted, marginBottom: '18px' }}>
+          <p style={{ fontSize: '13px', color: 'rgba(36,33,27,0.7)', marginBottom: '18px' }}>
             {locale === 'de' ? `Aktiv bis ${premiumUntil}` : `Active until ${premiumUntil}`}
           </p>
         )}
-        <div style={{ textAlign: 'left' as const, background: accentDim, borderRadius: '14px', padding: '14px 16px' }}>
+        <div style={{ textAlign: 'left' as const, background: 'rgba(36,33,27,0.08)', borderRadius: '14px', padding: '14px 16px' }}>
           {[
             locale === 'de' ? '14 Outfits pro Woche' : '14 outfits per week',
             locale === 'de' ? 'Unbegrenzt Kleidung & Speichern' : 'Unlimited items & saves',
@@ -1590,7 +1591,7 @@ onClick={() => {
             'Style DNA',
             locale === 'de' ? 'Mehrfach-Upload' : 'Multi-upload',
           ].map((f, i) => (
-            <p key={i} style={{ fontSize: '13px', color: text, marginBottom: '6px' }}>✓ {f}</p>
+            <p key={i} style={{ fontSize: '13px', color: '#24211B', fontWeight: 600, marginBottom: '6px' }}>✓ {f}</p>
           ))}
         </div>
       </motion.div>
