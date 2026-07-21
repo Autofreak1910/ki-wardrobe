@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-const FOUNDER_SPOTS = 75
+const FOUNDER_SPOTS = 50
 const EARLY_SPOTS = 500
 
 const content = {
@@ -17,10 +17,9 @@ const content = {
     success: 'Du bist auf der Liste ✓',
     error: 'Gib eine gültige E-Mail ein',
     alreadyOn: 'Diese E-Mail ist schon dabei',
-    founderTitle: '🏆 Erste 75: Founder-Status',
+    founderTitle: '🏆 Erste 50: Founder-Status',
     founderPerks: [
-      '2 Monate KiWardrobe Premium — komplett kostenlos',
-      'Danach dauerhaft 20% Rabatt auf Premium',
+      '1 Monat KiWardrobe Premium — komplett kostenlos',
       'Founder-Badge im Profil, sichtbar für immer',
     ],
     earlyTitle: '⚡ Platz 76–500: Early Bird',
@@ -66,10 +65,9 @@ const content = {
     success: "You're on the list ✓",
     error: 'Enter a valid email',
     alreadyOn: "That email's already on the list",
-    founderTitle: '🏆 First 75: Founder status',
+    founderTitle: '🏆 First 50: Founder status',
     founderPerks: [
-      '2 months of KiWardrobe Premium — completely free',
-      '20% off Premium forever after that',
+      '1 month of KiWardrobe Premium — completely free',
       'Founder badge on your profile, forever',
     ],
     earlyTitle: '⚡ Spot 76–500: Early Bird',
