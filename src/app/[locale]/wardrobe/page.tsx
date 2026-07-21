@@ -447,7 +447,9 @@ const res = await fetch('/api/style-dna', {
     setEditPrice(item.purchase_price?.toString() ?? '') 
   }
 
-  const catLabels: Record<string, string> = { tops: 'Tops', hosen: 'Pants', jacken: 'Jacket', schuhe: 'Shoes', acc: 'Acc' }
+const catLabels: Record<string, string> = locale === 'de'
+    ? { tops: 'Oberteil', hosen: 'Hose', jacken: 'Jacke', schuhe: 'Schuhe', acc: 'Acc' }
+    : { tops: 'Top', hosen: 'Pants', jacken: 'Jacket', schuhe: 'Shoes', acc: 'Acc' }
 
   const filtered = (filter === 'all' ? items : items.filter(i => i.category === filter))
     .sort((a, b) => {

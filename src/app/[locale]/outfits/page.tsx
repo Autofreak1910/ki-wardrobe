@@ -172,9 +172,9 @@ export default function OutfitsPage() {
                     transition={{ duration: 0.3, delay: Math.min(i * 0.04, 0.16) }}
                     style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden' }}>
                     {/* Images */}
-                    <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: `repeat(${Math.min(outfitItems.length || 1, 4)}, 1fr)`, height: '180px', background: isDark ? '#221c14' : '#F4EFE4' }}>
+                   <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: outfitItems.length >= 4 ? 'repeat(2, 1fr)' : `repeat(${Math.min(outfitItems.length || 1, 3)}, 1fr)`, background: isDark ? '#221c14' : '#F4EFE4' }}>
                       {outfitItems.map((item, j) => (
-                        <div key={j} style={{ overflow: 'hidden' }}>
+                        <div key={j} style={{ overflow: 'hidden', aspectRatio: '3/4' }}>
                           <img src={item.image_url} alt={item.name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                         </div>
                       ))}
