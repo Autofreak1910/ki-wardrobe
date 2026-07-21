@@ -98,7 +98,7 @@ export default function ProfilePage() {
   const [saved, setSaved] = useState(false)
   const [editEmail, setEditEmail] = useState('')
 const [editAge, setEditAge] = useState('')
-const [savedEmail, setSavedEmail] = useState(false)
+const [pendingEmailChange, setPendingEmailChange] = useState(false)
 const [savedAge, setSavedAge] = useState(false)
   const [dna, setDna] = useState<any>(null)
   const [dnaLoading, setDnaLoading] = useState(false)
@@ -217,10 +217,21 @@ setEditAge(profileRes.data?.age ?? '')
     setTimeout(() => setSaved(false), 2000)
     setProfile(prev => prev ? { ...prev, username: editUsername } : null)
   }
-  async function saveEmail() {
+async function saveEmail() {
   setSaving(true)
   const { error } = await supabase.auth.updateUser({ email: editEmail })
-  if (!error) { setSavedEmail(true); setTimeout(() => setSavedEmail(false), 2000) }
+  if (!error) { setPendingEmailChange(true) }
+  setSaving(false)
+}
+
+async function cancelEmailChange() {
+  setSaving(true)
+  const { data: { user } } = await supabase.auth.getUser()
+  if (user?.email) {
+    await supabase.auth.updateUser({ email: user.email })
+    setEditEmail(user.email)
+  }
+  setPendingEmailChange(false)
   setSaving(false)
 }
 
@@ -831,18 +842,34 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
               </motion.button>
             </div>
           </div>
-
-          {/* Email */}
+{/* Email */}
           <div style={{ padding: '14px 16px', borderBottom: `1px solid ${border}` }}>
             <label style={{ fontSize: '11px', fontWeight: 600, color: muted, display: 'block', marginBottom: '8px', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>Email</label>
             <div style={{ display: 'flex', gap: '8px' }}>
               <input type="email" value={editEmail} onChange={e => setEditEmail(e.target.value)}
                 style={{ flex: 1, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 12px', fontSize: '14px', color: text, outline: 'none', fontFamily: "'Poppins', 'Inter', sans-serif", background: isDark ? '#161616' : '#F7F4EC', minWidth: 0 }} />
-              <motion.button whileTap={{ scale: 0.95 }} onClick={saveEmail}
-                style={{ background: savedEmail ? accent : 'transparent', border: `1px solid ${savedEmail ? accent : border}`, borderRadius: '10px', padding: '10px 16px', fontSize: '13px', fontWeight: 600, color: savedEmail ? '#24211B' : text, cursor: 'pointer', whiteSpace: 'nowrap' as const, transition: 'all 0.2s' }}>
-                {savedEmail ? '✓' : locale === 'de' ? 'Speichern' : 'Save'}
+              <motion.button whileTap={{ scale: 0.95 }} onClick={saveEmail} disabled={saving}
+                style={{ background: 'transparent', border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 16px', fontSize: '13px', fontWeight: 600, color: text, cursor: 'pointer', whiteSpace: 'nowrap' as const, transition: 'all 0.2s' }}>
+                {saving ? '...' : locale === 'de' ? 'Speichern' : 'Save'}
               </motion.button>
             </div>
+
+            {pendingEmailChange && (
+              <div style={{ marginTop: '10px', background: isDark ? 'rgba(251,191,36,0.1)' : '#fffbeb', border: `1px solid ${isDark ? 'rgba(251,191,36,0.3)' : '#fde68a'}`, borderRadius: '10px', padding: '12px 14px' }}>
+                <p style={{ fontSize: '12px', fontWeight: 700, color: '#b45309', marginBottom: '4px' }}>
+                  📬 {locale === 'de' ? 'Bestätigung ausstehend' : 'Confirmation pending'}
+                </p>
+                <p style={{ fontSize: '12px', color: muted, marginBottom: '8px', lineHeight: 1.5 }}>
+                  {locale === 'de'
+                    ? 'Check dein Postfach und bestätige die neue E-Mail-Adresse. Ohne Bestätigung bleibt deine alte E-Mail aktiv.'
+                    : 'Check your inbox and confirm the new email address. Without confirmation your old email stays active.'}
+                </p>
+                <button onClick={cancelEmailChange} disabled={saving}
+                  style={{ fontSize: '12px', fontWeight: 600, color: '#ef4444', background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+                  {locale === 'de' ? 'Änderung abbrechen' : 'Cancel change'}
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Alter */}
