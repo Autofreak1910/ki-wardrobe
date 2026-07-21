@@ -142,13 +142,13 @@ function next() {
               <p style={{ fontSize: '13px', color: muted, textAlign: 'center' as const, marginBottom: '18px' }}>
                 {locale === 'de' ? 'Free reicht schon für viel — Pro für alle die mehr wollen' : 'Free already covers a lot — Pro for those who want more'}
               </p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '18px', padding: '16px 12px' }}>
                   <p style={{ fontSize: '10px', fontWeight: 700, color: muted, letterSpacing: '0.08em', marginBottom: '10px' }}>FREE</p>
                   {[
-                    locale === 'de' ? '3 Outfits/Tag' : '3 outfits/day',
+                    locale === 'de' ? '3 Outfits/Woche' : '3 outfits/week',
                     locale === 'de' ? '20 Kleidungsstücke' : '20 items',
-                    locale === 'de' ? '1 Avatar-Versuch' : '1 avatar try',
+                    locale === 'de' ? '2 Virtual Try-Ons/Monat' : '2 virtual try-ons/month',
                     locale === 'de' ? '5 Outfits speichern' : '5 saved outfits',
                   ].map((f, i) => (
                     <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '7px', alignItems: 'flex-start' }}>
@@ -160,9 +160,9 @@ function next() {
                 <div style={{ background: `linear-gradient(160deg, ${gold}, #C9963C)`, borderRadius: '18px', padding: '16px 12px', position: 'relative' as const }}>
                   <p style={{ fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.85)', letterSpacing: '0.08em', marginBottom: '10px' }}>PRO ✦</p>
                   {[
-                    locale === 'de' ? '15 Outfits/Tag' : '15 outfits/day',
+                    locale === 'de' ? '14 Outfits/Woche' : '14 outfits/week',
                     locale === 'de' ? 'Unbegrenzt Kleidung' : 'Unlimited items',
-                    locale === 'de' ? 'Tägl. Avatar + Try-On' : 'Daily avatar + try-on',
+                    locale === 'de' ? '6× Try-On/Woche' : '6× try-on/week',
                     locale === 'de' ? 'Style DNA Analyse' : 'Style DNA analysis',
                   ].map((f, i) => (
                     <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '7px', alignItems: 'flex-start' }}>

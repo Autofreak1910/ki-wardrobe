@@ -20,7 +20,8 @@ export default function OutfitsPage() {
   const [outfits, setOutfits] = useState<Outfit[]>(outfitsCache?.outfits ?? [])
   const [items, setItems] = useState<ClothingItem[]>(outfitsCache?.items ?? [])
   const [loading, setLoading] = useState(!outfitsCache)
-  const [filter, setFilter] = useState<'all' | 'favorites'>('all')
+const [filter, setFilter] = useState<'all' | 'favorites'>('all')
+  const [occasionFilter, setOccasionFilter] = useState<string>('all')
   const { theme } = useTheme()
   const [showUpgrade, setShowUpgrade] = useState(false)
   const t = useTranslations()
@@ -80,8 +81,13 @@ export default function OutfitsPage() {
     return outfit.item_ids?.map(id => items.find(i => i.id === id)).filter(Boolean) as ClothingItem[]
   }
 
-  const displayed = filter === 'favorites' ? outfits.filter(o => o.is_favorite) : outfits
+const byFavorite = filter === 'favorites' ? outfits.filter(o => o.is_favorite) : outfits
+  const displayed = occasionFilter === 'all' ? byFavorite : byFavorite.filter(o => o.occasion === occasionFilter)
   const favCount = outfits.filter(o => o.is_favorite).length
+  const occasionLabels: Record<string, string> = locale === 'de'
+    ? { casual: 'Casual', work: 'Arbeit', date: 'Date', party: 'Party' }
+    : { casual: 'Casual', work: 'Work', date: 'Date', party: 'Party' }
+  const presentOccasions = Array.from(new Set(outfits.map(o => o.occasion).filter(Boolean)))
 
   return (
     <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' as const, background: bg, overflow: 'hidden', fontFamily: "'Poppins', 'Inter', sans-serif", position: 'relative' as const, backgroundImage: isDark ? 'none' : 'radial-gradient(circle, rgba(29,29,32,0.07) 1px, transparent 1px)', backgroundSize: '18px 18px' }}>
@@ -136,10 +142,25 @@ export default function OutfitsPage() {
               {f === 'all' ? (locale === 'de' ? 'Alle' : 'All') : (locale === 'de' ? 'Favoriten' : 'Favorites')}
             </button>
           ))}
-          <span style={{ marginLeft: 'auto', fontSize: '12px', color: muted, alignSelf: 'center', paddingRight: '4px' }}>
+      <span style={{ marginLeft: 'auto', fontSize: '12px', color: muted, alignSelf: 'center', paddingRight: '4px' }}>
             {outfits.length} {t('outfits.saved')}
           </span>
         </div>
+
+        {presentOccasions.length > 1 && (
+          <div style={{ display: 'flex', gap: '6px', margin: '0 20px 16px', overflowX: 'auto' as const, paddingBottom: '2px' }}>
+            <button onClick={() => setOccasionFilter('all')}
+              style={{ padding: '6px 14px', borderRadius: '100px', border: `1px solid ${occasionFilter === 'all' ? accent : border}`, background: occasionFilter === 'all' ? accentDim : card, color: occasionFilter === 'all' ? accent : muted, fontSize: '12px', fontWeight: occasionFilter === 'all' ? 700 : 400, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", whiteSpace: 'nowrap' as const, flexShrink: 0 }}>
+              {locale === 'de' ? 'Alle Anlässe' : 'All occasions'}
+            </button>
+            {presentOccasions.map(occ => (
+              <button key={occ} onClick={() => setOccasionFilter(occ)}
+                style={{ padding: '6px 14px', borderRadius: '100px', border: `1px solid ${occasionFilter === occ ? accent : border}`, background: occasionFilter === occ ? accentDim : card, color: occasionFilter === occ ? accent : muted, fontSize: '12px', fontWeight: occasionFilter === occ ? 700 : 400, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", whiteSpace: 'nowrap' as const, flexShrink: 0 }}>
+                {occasionLabels[occ] ?? occ}
+              </button>
+            ))}
+          </div>
+        )}
 
         {loading ? (
           <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '10px', padding: '0 20px' }}>
@@ -183,9 +204,9 @@ export default function OutfitsPage() {
                           <p style={{ fontSize: '12px', color: muted }}>No items</p>
                         </div>
                       )}
-                      {outfit.occasion && (
-                        <span style={{ position: 'absolute', top: '10px', left: '10px', background: 'rgba(255,255,255,0.92)', border: `1px solid ${border}`, color: text, fontSize: '10px', fontWeight: 600, padding: '4px 9px', borderRadius: '100px', textTransform: 'capitalize' as const }}>
-                          {outfit.occasion}
+                {outfit.occasion && (
+                        <span style={{ position: 'absolute', top: '10px', left: '10px', background: 'rgba(255,255,255,0.92)', border: `1px solid ${border}`, color: text, fontSize: '10px', fontWeight: 600, padding: '4px 9px', borderRadius: '100px' }}>
+                          {occasionLabels[outfit.occasion] ?? outfit.occasion}
                         </span>
                       )}
                     </div>
