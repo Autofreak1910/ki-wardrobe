@@ -6,7 +6,7 @@ import { useLocale } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-const DRESSING_ROOM_BG_URL = '/dressing-room-bg.jpeg'
+const DRESSING_ROOM_BG_URL = '/dressing-room-bg.jpg'
 import UpgradeModal from '@/components/UpgradeModal'
 
 type ClothingItem = { id: string; image_url: string; category: string; color: string; name?: string; brand?: string }
