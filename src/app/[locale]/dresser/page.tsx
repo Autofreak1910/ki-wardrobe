@@ -7,6 +7,10 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import UpgradeModal from '@/components/UpgradeModal'
+import InstallAppPrompt from '@/components/InstallAppPrompt'
+
+// ... im JSX, ganz oben im Content-Bereich, vor der Begrüßung/Greeting:
+<InstallAppPrompt />
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4)
