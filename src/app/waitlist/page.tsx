@@ -22,7 +22,7 @@ const content = {
       '1 Monat KiWardrobe Premium — komplett kostenlos',
       'Founder-Badge im Profil, sichtbar für immer',
     ],
-    earlyTitle: '⚡ Platz 76–500: Early Bird',
+    earlyTitle: '⚡ Platz 51–500: Early Bird',
     earlyPerks: [
       '3 Tage Premium kostenlos testen',
       'Danach regulärer Preis (4,99€/Monat)',
@@ -69,7 +69,7 @@ const content = {
       '1 month of KiWardrobe Premium — completely free',
       'Founder badge on your profile, forever',
     ],
-    earlyTitle: '⚡ Spot 76–500: Early Bird',
+    earlyTitle: '⚡ Spot 51–500: Early Bird',
     earlyPerks: [
       '3-day free trial of Premium',
       'Regular price (€4.99/month) after that',
