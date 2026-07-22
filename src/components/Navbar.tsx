@@ -4,7 +4,7 @@ import { useTheme } from '@/context/ThemeContext'
 import { useLocale } from 'next-intl'
 import { useRouter, usePathname } from 'next/navigation'
 import { useRef, useEffect, useState } from 'react'
-import { motion, useMotionValue, animate } from 'framer-motion'
+import { motion, useMotionValue, animate, AnimatePresence } from 'framer-motion'
 
 const ADMIN_EMAIL = 'kiwardrobebusiness@gmail.com'
 
@@ -16,7 +16,8 @@ export default function Navbar({ activePage }: { activePage: string }) {
   const isDark = theme === 'dark'
   const navRef = useRef<HTMLDivElement>(null)
 const [mounted, setMounted] = useState(false)
-  const [isBlocked, setIsBlocked] = useState(false)
+const [isBlocked, setIsBlocked] = useState(false)
+  const [showBlockedMsg, setShowBlockedMsg] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [dragIndex, setDragIndex] = useState(-1)
   const currentActiveIndex = useRef(0)
@@ -181,8 +182,13 @@ useEffect(() => {
     }
   }, [mounted, isDragging])
 
- function onDragStart(e: React.TouchEvent | React.MouseEvent) {
-    if (!navRef.current || isBlocked) return
+function onDragStart(e: React.TouchEvent | React.MouseEvent) {
+    if (!navRef.current) return
+    if (isBlocked) {
+      setShowBlockedMsg(true)
+      setTimeout(() => setShowBlockedMsg(false), 2200)
+      return
+    }
     setIsDragging(true)
     const x = 'touches' in e ? e.touches[0].clientX : e.clientX
     const idx = getIndex(x)
@@ -390,7 +396,7 @@ pointerEvents: 'none',
         })}
       </div>
 
-      <style>{`
+<style>{`
         @media (min-width: 640px) {
           .mobile-nav { display: none !important; }
           .desktop-nav { display: flex !important; }
@@ -400,6 +406,28 @@ pointerEvents: 'none',
           .desktop-nav { display: none !important; }
         }
       `}</style>
+
+      <AnimatePresence>
+        {showBlockedMsg && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: 10, x: '-50%' }}
+            style={{
+              position: 'fixed', bottom: 'calc(100px + env(safe-area-inset-bottom))',
+              left: '50%', zIndex: 200,
+              background: isDark ? 'rgba(20,20,20,0.95)' : 'rgba(30,30,30,0.92)',
+              color: '#fff', fontSize: '13px', fontWeight: 600,
+              padding: '10px 18px', borderRadius: '100px',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+              whiteSpace: 'nowrap' as const,
+              fontFamily: "'DM Sans', sans-serif",
+            }}
+          >
+            {locale === 'de' ? '⏳ Bitte warten — Generierung läuft noch' : '⏳ Please wait — still generating'}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   )
 }
