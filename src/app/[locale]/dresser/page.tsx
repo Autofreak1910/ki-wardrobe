@@ -1575,37 +1575,70 @@ onClick={() => {
                   </div>
                 )}
 
-                <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '8px', paddingBottom: '20px' }}>
-                  {(isPremium ? [
-                    { days: 7, reward: locale === 'de' ? '+1 Outfit diese Woche' : '+1 outfit this week', emoji: '🏅', claimed: streak >= 7 },
-                    { days: 14, reward: locale === 'de' ? '+2 Outfits · +1 Try-On' : '+2 outfits · +1 try-on', emoji: '🥇', claimed: streak >= 14 },
-                    { days: 30, reward: locale === 'de' ? '+3 Outfits · +1 Try-On' : '+3 outfits · +1 try-on', emoji: '👑', claimed: streak >= 30 },
-                    { days: 45, reward: locale === 'de' ? '+3 Outfits · +2 Try-On' : '+3 outfits · +2 try-on', emoji: '🌟', claimed: streak >= 45 },
-                    { days: 60, reward: locale === 'de' ? '+4 Outfits · +2 Try-On' : '+4 outfits · +2 try-on', emoji: '⚡', claimed: streak >= 60 },
-                    { days: 100, reward: locale === 'de' ? '+5 Outfits · +3 Try-On' : '+5 outfits · +3 try-on', emoji: '💎', claimed: streak >= 100 },
-                  ] : [
-                    { days: 7, reward: locale === 'de' ? '+1 Tag Pro' : '+1 day Pro', emoji: '🏅', claimed: streak >= 7 },
-                    { days: 14, reward: locale === 'de' ? '+2 Tage Pro' : '+2 days Pro', emoji: '🥇', claimed: streak >= 14 },
-                    { days: 30, reward: locale === 'de' ? '+3 Tage Pro' : '+3 days Pro', emoji: '👑', claimed: streak >= 30 },
-                    { days: 45, reward: locale === 'de' ? '+4 Tage Pro' : '+4 days Pro', emoji: '🌟', claimed: streak >= 45 },
-                    { days: 60, reward: locale === 'de' ? '+5 Tage Pro' : '+5 days Pro', emoji: '⚡', claimed: streak >= 60 },
-                    { days: 100, reward: locale === 'de' ? '+7 Tage Pro' : '+7 days Pro', emoji: '💎', claimed: streak >= 100 },
-                  ]).map(m => (
-                    <div key={m.days} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '14px', background: m.claimed ? 'rgba(249,115,22,0.08)' : accentDim, border: `1px solid ${m.claimed ? 'rgba(249,115,22,0.3)' : border}` }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ fontSize: '20px' }}>{m.emoji}</span>
-                        <div>
-                          <p style={{ fontSize: '13px', fontWeight: 700, color: m.claimed ? '#f97316' : text }}>
-                            {m.days} {locale === 'de' ? 'Tage' : 'days'} → {m.reward}
-                          </p>
-                          <p style={{ fontSize: '11px', color: muted }}>
-                            {m.claimed ? (locale === 'de' ? '✓ Erreicht!' : '✓ Reached!') : `${locale === 'de' ? 'Noch' : 'Only'} ${Math.max(0, m.days - streak)} ${locale === 'de' ? 'Tage' : 'days'}`}
-                          </p>
+             <div style={{ paddingBottom: '20px' }}>
+                  {(() => {
+                    const milestones = isPremium ? [
+                      { days: 7, reward: locale === 'de' ? '+1 Outfit' : '+1 outfit', emoji: '🏅' },
+                      { days: 14, reward: locale === 'de' ? '+2 Outfits · +1 Try-On' : '+2 outfits · +1 try-on', emoji: '🥇' },
+                      { days: 30, reward: locale === 'de' ? '+3 Outfits · +1 Try-On' : '+3 outfits · +1 try-on', emoji: '👑' },
+                      { days: 45, reward: locale === 'de' ? '+3 Outfits · +2 Try-On' : '+3 outfits · +2 try-on', emoji: '🌟' },
+                      { days: 60, reward: locale === 'de' ? '+4 Outfits · +2 Try-On' : '+4 outfits · +2 try-on', emoji: '⚡' },
+                      { days: 100, reward: locale === 'de' ? '+5 Outfits · +3 Try-On' : '+5 outfits · +3 try-on', emoji: '💎' },
+                    ] : [
+                      { days: 7, reward: locale === 'de' ? '+1 Tag Pro' : '+1 day Pro', emoji: '🏅' },
+                      { days: 14, reward: locale === 'de' ? '+2 Tage Pro' : '+2 days Pro', emoji: '🥇' },
+                      { days: 30, reward: locale === 'de' ? '+3 Tage Pro' : '+3 days Pro', emoji: '👑' },
+                      { days: 45, reward: locale === 'de' ? '+4 Tage Pro' : '+4 days Pro', emoji: '🌟' },
+                      { days: 60, reward: locale === 'de' ? '+5 Tage Pro' : '+5 days Pro', emoji: '⚡' },
+                      { days: 100, reward: locale === 'de' ? '+7 Tage Pro' : '+7 days Pro', emoji: '💎' },
+                    ]
+                    const nextIdx = milestones.findIndex(m => streak < m.days)
+
+                    return (
+                      <div style={{ position: 'relative' as const, paddingLeft: '4px' }}>
+                        {/* Verbindungslinie */}
+                        <div style={{ position: 'absolute' as const, left: '23px', top: '24px', bottom: '24px', width: '2px', background: border, zIndex: 0 }} />
+
+                        <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '4px' }}>
+                          {milestones.map((m, i) => {
+                            const claimed = streak >= m.days
+                            const isNext = i === nextIdx
+                            return (
+                              <div key={m.days} style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '10px 4px', position: 'relative' as const, zIndex: 1 }}>
+                                {/* Knoten */}
+                                <div style={{
+                                  width: '46px', height: '46px', borderRadius: '50%', flexShrink: 0,
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  fontSize: '20px',
+                                  background: claimed ? sageGradient : isNext ? accentDim : (isDark ? '#1a1a1a' : '#f0f0f0'),
+                                  border: claimed ? 'none' : isNext ? `2px solid ${accent}` : `1px solid ${border}`,
+                                  boxShadow: isNext ? `0 0 0 4px ${accent}20` : 'none',
+                                  opacity: claimed || isNext ? 1 : 0.4,
+                                  filter: claimed || isNext ? 'none' : 'grayscale(1)',
+                                }}>
+                                  {claimed ? '✓' : m.emoji}
+                                </div>
+
+                                {/* Text */}
+                                <div style={{ flex: 1, opacity: claimed || isNext ? 1 : 0.5 }}>
+                                  <p style={{ fontSize: '13px', fontWeight: 700, color: claimed ? accent : text }}>
+                                    {m.days} {locale === 'de' ? 'Tage' : 'days'} — {m.reward}
+                                  </p>
+                               <p style={{ fontSize: '11px', color: muted, marginTop: '1px' }}>
+                                    {claimed
+                                      ? (locale === 'de' ? '✓ Erreicht' : '✓ Reached')
+                                      : isNext
+                                        ? (locale === 'de' ? `Noch ${m.days - streak} Tage — weiter so!` : `${m.days - streak} days to go — keep going!`)
+                                        : (locale === 'de' ? 'Gesperrt' : 'Locked')}
+                                  </p>
+                                </div>
+                              </div>
+                            )
+                          })}
                         </div>
                       </div>
-                      {m.claimed && <span style={{ fontSize: '18px' }}>✅</span>}
-                    </div>
-                  ))}
+                    
+                  })()}
                 </div>
               </div>
 
