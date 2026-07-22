@@ -236,7 +236,8 @@ export default function AvatarPage() {
   const [error, setError] = useState<string | null>(null)
   const [sharing, setSharing] = useState(false)
 const [genStep, setGenStep] = useState('')
-  const [genProgress, setGenProgress] = useState(0)
+const [genProgress, setGenProgress] = useState(0)
+  const [genIcon, setGenIcon] = useState('📤')
   const [showUpgrade, setShowUpgrade] = useState(false)
   const [showGallery, setShowGallery] = useState(false)
   const [galleryAvatars, setGalleryAvatars] = useState<{ id: string; image_url: string; created_at: string }[]>([])
@@ -364,33 +365,34 @@ async function generateAvatar() {
     setErrorTips(null)
     setGenProgress(0)
 
-    const steps = locale === 'de' ? [
-      { at: 0,  label: 'Foto wird hochgeladen...' },
-      { at: 12, label: 'Hintergrund wird entfernt...' },
-      { at: 25, label: 'Foto wird geprüft...' },
-      { at: 38, label: 'KI zieht dir das Outfit an...' },
-      { at: 52, label: 'Falten werden geglättet...' },
-      { at: 64, label: 'Farben werden abgestimmt...' },
-      { at: 76, label: 'Licht wird angepasst...' },
-      { at: 87, label: 'Letzte Details...' },
-      { at: 94, label: 'Fast fertig...' },
+const steps = locale === 'de' ? [
+      { at: 0,  label: 'Foto wird hochgeladen...', icon: '📤' },
+      { at: 12, label: 'Hintergrund wird entfernt...', icon: '✂️' },
+      { at: 25, label: 'Foto wird geprüft...', icon: '🔍' },
+      { at: 38, label: 'KI zieht dir das Outfit an...', icon: '👕' },
+      { at: 52, label: 'Falten werden geglättet...', icon: '🪄' },
+      { at: 64, label: 'Farben werden abgestimmt...', icon: '🎨' },
+      { at: 76, label: 'Licht wird angepasst...', icon: '💡' },
+      { at: 87, label: 'Letzte Details...', icon: '✨' },
+      { at: 94, label: 'Fast fertig...', icon: '⏳' },
     ] : [
-      { at: 0,  label: 'Uploading photo...' },
-      { at: 12, label: 'Removing background...' },
-      { at: 25, label: 'Checking photo quality...' },
-      { at: 38, label: 'AI is dressing you...' },
-      { at: 52, label: 'Smoothing out wrinkles...' },
-      { at: 64, label: 'Matching the colors...' },
-      { at: 76, label: 'Adjusting the lighting...' },
-      { at: 87, label: 'Final touches...' },
-      { at: 94, label: 'Almost there...' },
+      { at: 0,  label: 'Uploading photo...', icon: '📤' },
+      { at: 12, label: 'Removing background...', icon: '✂️' },
+      { at: 25, label: 'Checking photo quality...', icon: '🔍' },
+      { at: 38, label: 'AI is dressing you...', icon: '👕' },
+      { at: 52, label: 'Smoothing out wrinkles...', icon: '🪄' },
+      { at: 64, label: 'Matching the colors...', icon: '🎨' },
+      { at: 76, label: 'Adjusting the lighting...', icon: '💡' },
+      { at: 87, label: 'Final touches...', icon: '✨' },
+      { at: 94, label: 'Almost there...', icon: '⏳' },
     ]
-    setGenStep(steps[0].label)
+ setGenStep(steps[0].label)
+    setGenIcon(steps[0].icon)
     const interval = setInterval(() => {
       setGenProgress(p => {
         const next = Math.min(p + Math.random() * 2.5 + 1, 95)
         const current = [...steps].reverse().find(s => next >= s.at)
-        if (current) setGenStep(current.label)
+        if (current) { setGenStep(current.label); setGenIcon(current.icon) }
         return next
       })
     }, 1800)
@@ -773,26 +775,20 @@ async function generateAvatar() {
         </div>
 
       </main>
-
-      {/* Sticky Generate Bar — immer sichtbar, egal ob Kontingent da ist */}
+{/* Sticky Generate Bar — immer sichtbar, egal ob Kontingent da ist */}
       <div style={{ position: 'fixed', bottom: 'calc(80px + env(safe-area-inset-bottom))', left: 0, right: 0, zIndex: 40, pointerEvents: 'none' }}>
         <div style={{ maxWidth: '560px', margin: '0 auto', padding: '0 20px', pointerEvents: 'auto' }}>
           <div style={{ background: isDark ? 'rgba(22,22,22,0.96)' : 'rgba(253,252,249,0.96)', backdropFilter: 'blur(14px)', border: `1px solid ${border}`, borderRadius: '20px', padding: '10px', boxShadow: '0 8px 28px rgba(0,0,0,0.14)' }}>
             <motion.button whileTap={{ scale: 0.97 }}
               onClick={generateAvatar}
               disabled={loading || !selfie || !selectedItem || !canGenerate}
-              style={{ width: '100%', padding: loading ? '10px 16px' : '16px', background: sageGradient, border: 'none', borderRadius: loading ? '18px' : '100px', fontSize: '15px', fontWeight: 700, color: '#fff', cursor: loading ? 'wait' : 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: '0 8px 24px rgba(53,92,125,0.3)', transition: 'all 0.2s', opacity: (!selfie || !selectedItem || !canGenerate) ? 0.6 : 1 }}>
+              style={{ width: '100%', padding: '16px', background: sageGradient, border: 'none', borderRadius: '100px', fontSize: '15px', fontWeight: 700, color: '#fff', cursor: loading ? 'wait' : 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: '0 8px 24px rgba(53,92,125,0.3)', transition: 'all 0.2s', opacity: (!selfie || !selectedItem || !canGenerate) ? 0.6 : 1 }}>
               {loading ? (
-                <div style={{ width: '100%' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: 600 }}>{genStep}</span>
-                    <span style={{ fontSize: '13px', fontWeight: 700 }}>{Math.round(genProgress)}%</span>
-                  </div>
-                  <div style={{ height: '5px', background: 'rgba(255,255,255,0.25)', borderRadius: '3px', overflow: 'hidden' }}>
-                    <motion.div animate={{ width: `${genProgress}%` }} transition={{ duration: 0.4 }}
-                      style={{ height: '100%', background: '#fff', borderRadius: '3px' }} />
-                  </div>
-                </div>
+                <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                  <motion.span animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                    style={{ display: 'block', width: '16px', height: '16px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff' }} />
+                  {locale === 'de' ? 'Wird generiert...' : 'Generating...'}
+                </span>
               ) : !canGenerate ? (
                 <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
                   🔒 {locale === 'de' ? 'Kein Kontingent mehr' : 'No quota left'}
@@ -805,7 +801,51 @@ async function generateAvatar() {
             </motion.button>
           </div>
         </div>
-</div>
+      </div>
+
+      {/* Großes Overlay während der Generierung */}
+      <AnimatePresence>
+        {loading && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ position: 'fixed', inset: 0, zIndex: 9999, background: isDark ? 'rgba(8,12,24,0.97)' : 'rgba(240,244,255,0.97)', backdropFilter: 'blur(20px)', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', padding: '32px' }}>
+
+            {selfie && (
+              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                style={{ width: '140px', height: '140px', borderRadius: '28px', overflow: 'hidden', marginBottom: '32px', boxShadow: `0 12px 40px ${accent}40`, border: `3px solid ${accent}` }}>
+                <img src={selfie} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </motion.div>
+            )}
+
+            <motion.div key={genIcon} initial={{ scale: 0.5, opacity: 0, rotate: -10 }} animate={{ scale: 1, opacity: 1, rotate: 0 }}
+              transition={{ type: 'spring', damping: 12 }}
+              style={{ fontSize: '56px', marginBottom: '20px' }}>
+              {genIcon}
+            </motion.div>
+
+            <motion.p key={genStep} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+              style={{ fontSize: '19px', fontWeight: 800, color: text, textAlign: 'center' as const, letterSpacing: '-0.02em', marginBottom: '28px', maxWidth: '280px' }}>
+              {genStep}
+            </motion.p>
+
+            <div style={{ width: '100%', maxWidth: '300px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: muted }}>
+                  {locale === 'de' ? 'Fortschritt' : 'Progress'}
+                </span>
+                <span style={{ fontSize: '15px', fontWeight: 800, color: accent }}>{Math.round(genProgress)}%</span>
+              </div>
+              <div style={{ height: '10px', background: accentDim, borderRadius: '6px', overflow: 'hidden' }}>
+                <motion.div animate={{ width: `${genProgress}%` }} transition={{ duration: 0.4 }}
+                  style={{ height: '100%', background: sageGradient, borderRadius: '6px' }} />
+              </div>
+            </div>
+
+            <p style={{ fontSize: '12px', color: muted, marginTop: '24px', textAlign: 'center' as const }}>
+              {locale === 'de' ? 'Das dauert meist 20-30 Sekunden ✦' : 'This usually takes 20-30 seconds ✦'}
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
      <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
 
