@@ -355,9 +355,10 @@ const [galleryFullscreen, setGalleryFullscreen] = useState<string | null>(null)
     reader.readAsDataURL(file)
   }
 
-  async function generateAvatar() {
+async function generateAvatar() {
     if (!selfie || !selectedItem) return
     setLoading(true)
+    window.dispatchEvent(new CustomEvent('kw-generating', { detail: true }))
     setError(null)
     setResult(null)
     setErrorTips(null)
@@ -439,8 +440,9 @@ const [galleryFullscreen, setGalleryFullscreen] = useState<string | null>(null)
       clearInterval(interval)
       setError(locale === 'de' ? 'Fehler beim Generieren' : 'Error generating')
     }
-    setLoading(false)
+ setLoading(false)
     setGenProgress(0)
+    window.dispatchEvent(new CustomEvent('kw-generating', { detail: false }))
   }
   const isPremium = profile?.is_premium ?? false
   const usedThisPeriod = profile?.used_this_period ?? 0

@@ -449,7 +449,6 @@ function pushToBlockedHistory(ids: string[]) {
     localStorage.setItem('kw_recent_outfit_history', JSON.stringify(trimmed.slice(-2)))
   } catch {}
 }
-
 async function generateOutfit() {
 if (wardrobeItems.length < 3) return
   const { data: { session } } = await supabase.auth.getSession()
@@ -491,6 +490,7 @@ const blockedNames = getBlockedNames()
     } catch { return [] }
   })()
 setLoading(true); setSaved(false); setOutfit(null)
+  window.dispatchEvent(new CustomEvent('kw-generating', { detail: true }))
   const filteredItems = wardrobeItems.filter(i => activeCategories.includes(i.category))
   const itemsToUse = filteredItems.length >= 2 ? filteredItems : wardrobeItems
   const weatherStr = weather ? `${weather.temp}°C, ${weather.condition}` : '18°C'
@@ -564,6 +564,7 @@ const allUsedIds = (mappedOutfits[0]?.itemObjects ?? []).map((item: ClothingItem
 } catch (err) { console.error(err) }
   finally {
     setLoading(false)
+    window.dispatchEvent(new CustomEvent('kw-generating', { detail: false }))
   }
 }
 
