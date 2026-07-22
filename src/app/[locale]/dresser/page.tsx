@@ -538,12 +538,13 @@ setOutfit({ outfits: mappedOutfits, active: 0 })
      if (document.visibilityState === 'hidden' && 'Notification' in window && Notification.permission === 'granted') {
        const reg = await navigator.serviceWorker.getRegistration('/sw-push.js')
        if (reg) {
-         reg.showNotification(locale === 'de' ? '✨ Dein Outfit ist bereit!' : '✨ Your outfit is ready!', {
-           body: locale === 'de' ? 'Tipp hier, um dein neues Outfit zu sehen.' : 'Tap here to see your new outfit.',
-           icon: '/icon-512.png',
-           badge: '/icon-512.png',
-           tag: 'outfit-ready',
-         })
+      reg.showNotification(locale === 'de' ? '✨ Dein Outfit ist bereit!' : '✨ Your outfit is ready!', {
+  body: locale === 'de' ? 'Tipp hier, um dein neues Outfit zu sehen.' : 'Tap here to see your new outfit.',
+  icon: '/icon-512.png',
+  badge: '/icon-512.png',
+  tag: 'outfit-ready',
+  data: { url: '/' + locale + '/dresser' },
+})
        }
      }
    } catch {}
