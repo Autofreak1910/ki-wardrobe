@@ -207,6 +207,23 @@ export default function WaitlistPage() {
       <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }}
         style={{ fontSize: '16px', color: muted, maxWidth: '420px', lineHeight: 1.6, marginBottom: '24px', position: 'relative' as const, zIndex: 1 }}>
         {t.sub}
+        <motion.button
+  initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.32 }}
+  whileTap={{ scale: 0.97 }}
+  onClick={() => {
+    document.getElementById('waitlist-email')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    setTimeout(() => document.getElementById('waitlist-email')?.focus(), 400)
+  }}
+  style={{
+    background: sageGradient, border: 'none', borderRadius: '12px',
+    padding: '13px 28px', fontSize: '14px', fontWeight: 700, color: '#fff',
+    cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif",
+    marginBottom: '28px', boxShadow: `0 6px 24px ${accent}35`,
+    position: 'relative' as const, zIndex: 1,
+  }}
+>
+  {t.cta}
+</motion.button>
       </motion.p>
 
       {/* Angebots-Karte mit zwei Fortschrittsbalken + Bullet-Details */}
@@ -301,13 +318,14 @@ export default function WaitlistPage() {
       <motion.form initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.45 }}
         onSubmit={handleSubmit}
         style={{ display: 'flex', flexDirection: 'column' as const, gap: '10px', width: '100%', maxWidth: '360px', marginBottom: '12px', position: 'relative' as const, zIndex: 1 }}>
-        <input
-          type="email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          placeholder={t.placeholder}
-          style={{ width: '100%', height: '50px', borderRadius: '12px', border: `1.5px solid ${border}`, padding: '0 16px', fontSize: '15px', background: card, color: text, boxSizing: 'border-box' as const, fontFamily: "'Poppins', 'Inter', sans-serif", outline: 'none' }}
-        />
+      <input
+  id="waitlist-email"
+  type="email"
+  value={email}
+  onChange={e => setEmail(e.target.value)}
+  placeholder={t.placeholder}
+  style={{ width: '100%', height: '50px', borderRadius: '12px', border: `1.5px solid ${border}`, padding: '0 16px', fontSize: '15px', background: card, color: text, boxSizing: 'border-box' as const, fontFamily: "'Poppins', 'Inter', sans-serif", outline: 'none' }}
+/>
         <motion.button whileTap={{ scale: 0.97 }}
           type="submit"
           disabled={status === 'loading'}
