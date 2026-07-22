@@ -18,10 +18,19 @@ export default function ConfirmPage() {
   useEffect(() => {
     async function confirmEmail() {
       const code = searchParams.get('code')
+
       if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code)
-        if (error) { setStatus('error'); return }
+        if (error) {
+          console.error('Code exchange failed:', error)
+          setStatus('error')
+          return
+        }
+        setStatus('success')
+        return
       }
+
+      // Kein code-Parameter -- evtl. schon eingeloggt (z.B. erneuter Aufruf der Seite)
       const { data: { session } } = await supabase.auth.getSession()
       setStatus(session ? 'success' : 'error')
     }
