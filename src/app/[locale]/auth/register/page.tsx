@@ -61,10 +61,33 @@ const router = useRouter()
   const secondary = isDark ? '#221D12' : '#F7F4EC'
   const sageGradient = 'linear-gradient(135deg, #7FA98E, #355C7D)'
  const selectedCountry = countries.find(c => c.code === country)
-
-  useEffect(() => {
+useEffect(() => {
     checkGoogleSession()
   }, [])
+
+  useEffect(() => {
+    if (!pendingConfirmation) return
+
+    async function checkIfConfirmed() {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        setPendingConfirmation(false)
+        setStep(2)
+      }
+    }
+
+    function onVisible() {
+      if (document.visibilityState === 'visible') checkIfConfirmed()
+    }
+
+    document.addEventListener('visibilitychange', onVisible)
+    const interval = setInterval(checkIfConfirmed, 3000)
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      clearInterval(interval)
+    }
+  }, [pendingConfirmation])
 
   async function checkGoogleSession() {
     const { data: { session } } = await supabase.auth.getSession()
@@ -366,12 +389,12 @@ function isValidEmail(e: string): boolean {
                     }
                   } catch {}
 
-                  // Account jetzt sofort anlegen, statt erst ganz am Ende
+                // Account jetzt sofort anlegen, statt erst ganz am Ende
                   const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
                     email, password,
                     options: {
                       data: { username, ref_code: refCode ?? '' },
-                      emailRedirectTo: window.location.origin + '/' + locale + '/auth/callback?locale=' + locale,
+                      emailRedirectTo: window.location.origin + '/' + locale + '/auth/confirm?locale=' + locale,
                     },
                   })
 
