@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useLocale } from 'next-intl'
@@ -8,9 +8,8 @@ import { useTheme } from '@/context/ThemeContext'
 import { motion } from 'framer-motion'
 
 export default function ConfirmPage() {
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [errorCode, setErrorCode] = useState<string | null>(null)
-  const hasRun = useRef(false)
   const router = useRouter()
   const searchParams = useSearchParams()
   const locale = useLocale()
@@ -26,47 +25,31 @@ export default function ConfirmPage() {
   const accent = isDark ? '#5C82A0' : '#355C7D'
   const sageGradient = 'linear-gradient(135deg, #7FA98E, #355C7D)'
 
-  useEffect(() => {
-    if (hasRun.current) return
-    hasRun.current = true
+  async function handleConfirm() {
+    setStatus('loading')
 
-    async function confirmEmail() {
-      const urlError = searchParams.get('error') || searchParams.get('error_code')
-      if (urlError) {
-        setErrorCode(searchParams.get('error_code') ?? urlError)
-        setStatus('error')
-        return
-      }
-
-      const code = searchParams.get('code')
-      if (code) {
-        const { error } = await supabase.auth.exchangeCodeForSession(code)
-        if (error) {
-          console.error('Code exchange failed:', error)
-          setErrorCode(error.message)
-          setStatus('error')
-          return
-        }
-        setStatus('success')
-        return
-      }
-
-      const hash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash
-      const hashParams = new URLSearchParams(hash)
-      const accessToken = hashParams.get('access_token')
-      const refreshToken = hashParams.get('refresh_token')
-      if (accessToken && refreshToken) {
-        const { error } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
-        if (error) { setErrorCode(error.message); setStatus('error'); return }
-        setStatus('success')
-        return
-      }
-
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) { setStatus('success') } else { setErrorCode('otp_expired'); setStatus('error') }
+    const code = searchParams.get('code')
+    if (code) {
+      const { error } = await supabase.auth.exchangeCodeForSession(code)
+      if (error) { console.error('Code exchange failed:', error); setErrorCode(error.message); setStatus('error'); return }
+      setStatus('success')
+      return
     }
-    confirmEmail()
-  }, [])
+
+    const hash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash
+    const hashParams = new URLSearchParams(hash)
+    const accessToken = hashParams.get('access_token')
+    const refreshToken = hashParams.get('refresh_token')
+    if (accessToken && refreshToken) {
+      const { error } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+      if (error) { setErrorCode(error.message); setStatus('error'); return }
+      setStatus('success')
+      return
+    }
+
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) { setStatus('success') } else { setErrorCode('otp_expired'); setStatus('error') }
+  }
 
   return (
     <div style={{ minHeight: '100dvh', background: bg, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', fontFamily: "'Poppins', 'Inter', sans-serif", padding: '24px' }}>
@@ -89,6 +72,24 @@ export default function ConfirmPage() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.45 }}
         style={{ width: '100%', maxWidth: '380px', background: card, border: `1px solid ${border}`, borderRadius: '24px', padding: '36px 28px', textAlign: 'center' as const, boxShadow: isDark ? '0 8px 40px rgba(0,0,0,0.4)' : `0 8px 40px ${accent}12`, position: 'relative', zIndex: 1 }}>
 
+        {status === 'idle' && (
+          <>
+            <p style={{ fontSize: '48px', marginBottom: '16px' }}>📬</p>
+            <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '22px', fontWeight: 500, color: text, marginBottom: '8px', letterSpacing: '-0.02em' }}>
+              {locale === 'de' ? 'E-Mail bestätigen' : 'Confirm your email'}
+            </h2>
+            <p style={{ fontSize: '14px', color: muted, marginBottom: '20px', lineHeight: 1.6 }}>
+              {locale === 'de'
+                ? 'Klick hier, um deine E-Mail-Adresse zu bestätigen.'
+                : 'Tap here to confirm your email address.'}
+            </p>
+            <motion.button whileTap={{ scale: 0.97 }} onClick={handleConfirm}
+              style={{ width: '100%', background: sageGradient, border: 'none', borderRadius: '14px', padding: '14px', fontSize: '15px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+              {locale === 'de' ? '✓ E-Mail bestätigen' : '✓ Confirm email'}
+            </motion.button>
+          </>
+        )}
+
         {status === 'loading' && (
           <>
             <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
@@ -96,9 +97,6 @@ export default function ConfirmPage() {
             <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '22px', fontWeight: 500, color: text, marginBottom: '8px', letterSpacing: '-0.02em' }}>
               {locale === 'de' ? 'Wird bestätigt...' : 'Confirming...'}
             </h2>
-            <p style={{ fontSize: '14px', color: muted }}>
-              {locale === 'de' ? 'Einen Moment bitte' : 'Just a moment'}
-            </p>
           </>
         )}
 
@@ -128,8 +126,8 @@ export default function ConfirmPage() {
             </h2>
             <p style={{ fontSize: '13px', color: muted, marginBottom: '6px', lineHeight: 1.6 }}>
               {locale === 'de'
-                ? 'Dieser Bestätigungslink wurde bereits verwendet oder ist abgelaufen.'
-                : 'This confirmation link was already used or has expired.'}
+                ? 'Falls du bereits weitergeleitet wurdest, ist alles in Ordnung — geh einfach zurück zu deinem Registrierungs-Tab.'
+                : 'If you were already redirected, everything is fine — just go back to your registration tab.'}
             </p>
             {errorCode && (
               <p style={{ fontSize: '11px', color: muted, opacity: 0.6, marginBottom: '20px', fontFamily: 'monospace' }}>
