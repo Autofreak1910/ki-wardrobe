@@ -39,10 +39,14 @@ export default function AvatarPhotoGuide({
             onClick={e => e.stopPropagation()}
             style={{ width: '100%', maxWidth: '420px', maxHeight: '92vh', overflowY: 'auto' as const, background: card, border: `1px solid ${border}`, borderRadius: '28px 28px 0 0', padding: '20px 20px 28px' }}>
 
-            <div style={{ width: '36px', height: '4px', background: border, borderRadius: '2px', margin: '0 auto 16px' }} />
+         <div style={{ width: '36px', height: '4px', background: border, borderRadius: '2px', margin: '0 auto 16px' }} />
 
-            <div style={{ textAlign: 'center' as const, marginBottom: '16px' }}>
-              <h2 style={{ fontSize: '19px', fontWeight: 800, color: text, letterSpacing: '-0.02em', marginBottom: '4px' }}>
+            <div style={{ position: 'relative' as const, textAlign: 'center' as const, marginBottom: '16px' }}>
+              <button onClick={onClose}
+                style={{ position: 'absolute' as const, top: '-4px', right: '0', background: card, border: `1px solid ${border}`, borderRadius: '10px', width: '32px', height: '32px', cursor: 'pointer', fontSize: '14px', color: muted, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                ✕
+              </button>
+              <h2 style={{ fontSize: '19px', fontWeight: 800, color: text, letterSpacing: '-0.02em', marginBottom: '4px', paddingRight: '36px' }}>
                 📸 {locale === 'de' ? 'So klappt dein Avatar am besten' : 'How to get the best avatar'}
               </h2>
               <p style={{ fontSize: '13px', color: muted }}>
