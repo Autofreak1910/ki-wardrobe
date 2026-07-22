@@ -1254,16 +1254,7 @@ onClick={() => {
       </div>
     </div>
 
-    <div style={{ marginBottom: '28px', opacity: 0.4, pointerEvents: 'none', userSelect: 'none' as const, filter: 'blur(1.5px)' }}>
-      <div style={{ width: '100%', padding: '19px', borderRadius: '100px', border: 'none', background: sageGradient, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style={{ color: '#fff' }}>
-          <path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2zm6 10l.75 2.25L21 15l-2.25.75L18 18l-.75-2.25L15 15l2.25-.75L18 12z"/>
-        </svg>
-        <span style={{ fontSize: '15px', fontWeight: 700, color: '#fff', letterSpacing: '-0.01em', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
-          {t('dresser.button')} ✦
-        </span>
-      </div>
-    </div>
+
 
     <motion.div
       whileTap={{ scale: 0.98 }}
