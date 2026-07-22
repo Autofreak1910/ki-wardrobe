@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useTheme } from '@/context/ThemeContext'
 import { useLocale } from 'next-intl'
+import AvatarPhotoGuide from '@/components/AvatarPhotoGuide'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -240,7 +241,8 @@ const [genStep, setGenStep] = useState('')
   const [showGallery, setShowGallery] = useState(false)
   const [galleryAvatars, setGalleryAvatars] = useState<{ id: string; image_url: string; created_at: string }[]>([])
   const [galleryLoading, setGalleryLoading] = useState(false)
-  const [galleryFullscreen, setGalleryFullscreen] = useState<string | null>(null)
+const [galleryFullscreen, setGalleryFullscreen] = useState<string | null>(null)
+  const [showPhotoGuide, setShowPhotoGuide] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const { theme } = useTheme()
   const locale = useLocale()
@@ -259,6 +261,17 @@ const [genStep, setGenStep] = useState('')
   const sageGradient = 'linear-gradient(135deg, #7FA98E, #355C7D)'
 
   useEffect(() => { loadData() }, [])
+  useEffect(() => {
+    if (!localStorage.getItem('kw_avatar_guide_seen')) {
+      const t = setTimeout(() => setShowPhotoGuide(true), 500)
+      return () => clearTimeout(t)
+    }
+  }, [])
+
+  function closePhotoGuide() {
+    localStorage.setItem('kw_avatar_guide_seen', 'true')
+    setShowPhotoGuide(false)
+  }
 
   useEffect(() => {
     if (!result) { setProcessedResult(null); setCompositing(false); return }
@@ -533,9 +546,15 @@ const [genStep, setGenStep] = useState('')
         {/* Step 1 — Selfie */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
           style={{ background: 'transparent', marginBottom: '12px', padding: '0 20px' }}>
-          <p style={{ fontSize: '11px', fontWeight: 800, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>
-            {locale === 'de' ? 'Schritt 1 · Dein Foto' : 'Step 1 · Your Photo'}
-          </p>
+       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+            <p style={{ fontSize: '11px', fontWeight: 800, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
+              {locale === 'de' ? 'Schritt 1 · Dein Foto' : 'Step 1 · Your Photo'}
+            </p>
+            <button onClick={() => setShowPhotoGuide(true)}
+              style={{ background: accentDim, border: `1px solid ${border}`, borderRadius: '50%', width: '18px', height: '18px', fontSize: '10px', fontWeight: 700, color: accent, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
+              ?
+            </button>
+          </div>
           <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '20px', overflow: 'hidden', boxShadow: isDark ? 'none' : '0 2px 8px rgba(29,29,32,0.04)', position: 'relative' as const, opacity: canGenerate ? 1 : 0.5, pointerEvents: canGenerate ? 'auto' : 'none' as const }}>
             {!canGenerate && (
               <div style={{ position: 'absolute', inset: 0, zIndex: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', background: isDark ? 'rgba(29,29,32,0.4)' : 'rgba(255,255,255,0.4)' }}>
@@ -858,6 +877,12 @@ const [genStep, setGenStep] = useState('')
           </motion.div>
         )}
       </AnimatePresence>
+<AvatarPhotoGuide
+        open={showPhotoGuide}
+        onClose={closePhotoGuide}
+        locale={locale}
+        theme={{ card, border, text, muted, accent, sageGradient, isDark }}
+      />
     </div>
   )
 }
