@@ -30,6 +30,7 @@ export default function RegisterPage() {
   const [isGoogleContinuation, setIsGoogleContinuation] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [pendingConfirmation, setPendingConfirmation] = useState(false)
   const [username, setUsername] = useState('')
 const [birthdate, setBirthdate] = useState('')
 const [agbAccepted, setAgbAccepted] = useState(false)
@@ -119,7 +120,7 @@ function isValidEmail(e: string): boolean {
     setLoading(true)
     setError('')
 
-    // Google-Nutzer: Account existiert bereits (durch OAuth), nur Profil vervollstaendigen
+    // Account existiert schon (Google-OAuth ODER Email/Passwort-Account nach Bestaetigung) -- nur Profil vervollstaendigen
     const { data: { session: existingSession } } = await supabase.auth.getSession()
     if (existingSession?.user) {
       const computedAge = calculateAge(birthdate)
@@ -133,41 +134,12 @@ function isValidEmail(e: string): boolean {
         onboarding_completed: true,
       }).eq('id', existingSession.user.id)
 
-      localStorage.removeItem('kw_onboarding_seen')
-      localStorage.setItem('kw_force_onboarding', 'true')
-      setLoading(false)
-     router.push('/' + lang + '/auth/welcome-offer')
-      return
-    }
-
-    // Normaler Email/Passwort-Flow
-    const lang = selectedCountry?.lang ?? 'de'
-    const computedAge = calculateAge(birthdate)
-    const parsedBirth = parseGermanDate(birthdate)
-    const isoBirthdate = parsedBirth ? parsedBirth.toISOString().split('T')[0] : null
-const { data, error: signUpError } = await supabase.auth.signUp({
-      email, password,
-      options: {
-        data: { username, age: computedAge, birthdate: isoBirthdate, country, language: lang, ref_code: refCode ?? '' },
-        emailRedirectTo: window.location.origin + '/' + lang + '/auth/callback?locale=' + lang,
-      },
-    })
-if (signUpError) { setError(signUpError.message); setLoading(false); return }
-
-    if (data.user) {
-      await new Promise(resolve => setTimeout(resolve, 1500))
-
-      await supabase.from('profiles').update({
-        gender, style_preferences: stylePrefs, budget_range: budgetRange, favorite_shops: favoriteShops,
-        onboarding_completed: true,
-      }).eq('id', data.user.id)
-
       if (refCode) {
         try {
           const res = await fetch('/api/apply-referral-server', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: data.user.id, referralCode: refCode }),
+            body: JSON.stringify({ userId: existingSession.user.id, referralCode: refCode }),
           })
           const result = await res.json()
           if (result.success) {
@@ -183,20 +155,23 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
           console.error('Referral failed:', err)
         }
       }
-    }
 
-    if (data.user) {
       fetch('/api/send-welcome-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, username, language: lang }),
+        body: JSON.stringify({ email: existingSession.user.email, username, language: lang }),
       }).catch(err => console.error('Welcome email failed:', err))
+
+      localStorage.removeItem('kw_onboarding_seen')
+      localStorage.setItem('kw_force_onboarding', 'true')
+      setLoading(false)
+     router.push('/' + lang + '/auth/welcome-offer')
+      return
     }
 
-    localStorage.removeItem('kw_onboarding_seen')
-    localStorage.setItem('kw_force_onboarding', 'true')
+    // Sollte eigentlich nie passieren -- signUp() lief schon in Step 1.
+    setError(locale === 'de' ? 'Etwas ist schiefgelaufen, bitte lade die Seite neu.' : 'Something went wrong, please reload the page.')
     setLoading(false)
-   router.push('/' + lang + '/auth/welcome-offer')
   }
   
 
@@ -247,7 +222,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
           Ki<em style={{ color: accent }}>Wardrobe</em>
         </h1>
 
-        {step <= totalSteps && (
+        {step <= totalSteps && !pendingConfirmation && (
           <>
             <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', marginBottom: '6px' }}>
               {Array.from({ length: totalSteps }).map((_, i) => (
@@ -269,8 +244,29 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
 
         <AnimatePresence mode="wait">
 
-          {/* Step 1 */}
-          {step === 1 && (
+          {pendingConfirmation ? (
+            <motion.div key="confirm-email" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}
+              style={{ textAlign: 'center' as const }}>
+              <p style={{ fontSize: '48px', marginBottom: '16px' }}>📬</p>
+              <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '24px', fontWeight: 500, color: text, marginBottom: '10px' }}>
+                {locale === 'de' ? 'Bestätige deine E-Mail' : 'Confirm your email'}
+              </h2>
+              <p style={{ color: muted, fontSize: '14px', lineHeight: 1.6, marginBottom: '8px' }}>
+                {locale === 'de'
+                  ? `Wir haben dir einen Bestätigungslink an ${email} geschickt.`
+                  : `We sent a confirmation link to ${email}.`}
+              </p>
+              <p style={{ color: muted, fontSize: '13px', lineHeight: 1.6, marginBottom: '20px' }}>
+                {locale === 'de'
+                  ? 'Klick auf den Link in der E-Mail — danach geht es hier automatisch weiter.'
+                  : 'Click the link in the email — this page will continue automatically after that.'}
+              </p>
+              <button onClick={() => setPendingConfirmation(false)}
+                style={{ fontSize: '12px', color: muted, background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+                {locale === 'de' ? '← Zurück' : '← Back'}
+              </button>
+            </motion.div>
+          ) : step === 1 && (
             <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}>
               <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '26px', fontWeight: 500, color: text, marginBottom: '6px', letterSpacing: '-0.02em' }}>
                 {locale === 'de' ? 'Konto erstellen' : 'Create account'}
@@ -363,16 +359,37 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
                       body: JSON.stringify({ email }),
                     })
                     const data = await res.json()
-                    if (data.exists) {     setError(locale === 'de' ? 'Diese E-Mail wird bereits verwendet. Bitte logge dich ein.' : 'This email is already in use. Please log in instead.')
+                    if (data.exists) {
+                      setError(locale === 'de' ? 'Diese E-Mail wird bereits verwendet. Bitte logge dich ein.' : 'This email is already in use. Please log in instead.')
                       setCheckingEmail(false)
                       return
                     }
-                    setCheckingEmail(false)
-                    setStep(2)
-                  } catch {
-                    setCheckingEmail(false)
-                    setStep(2)
+                  } catch {}
+
+                  // Account jetzt sofort anlegen, statt erst ganz am Ende
+                  const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+                    email, password,
+                    options: {
+                      data: { username, ref_code: refCode ?? '' },
+                      emailRedirectTo: window.location.origin + '/' + locale + '/auth/callback?locale=' + locale,
+                    },
+                  })
+
+                  setCheckingEmail(false)
+
+                  if (signUpError) {
+                    setError(signUpError.message)
+                    return
                   }
+
+                  if (signUpData.user && !signUpData.session) {
+                    // E-Mail-Bestaetigung noetig -- Rest der Registrierung wartet
+                    setPendingConfirmation(true)
+                    return
+                  }
+
+                  // Falls Confirmations in Supabase deaktiviert sind, direkt weiter wie bisher
+                  setStep(2)
                 }}
                 style={{ width: '100%', background: checkingEmail ? (isDark ? '#1D1D20' : '#EDE7D8') : sageGradient, border: 'none', borderRadius: '14px', padding: '15px', fontSize: '15px', fontWeight: 700, color: checkingEmail ? muted : '#fff', cursor: checkingEmail ? 'wait' : 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", letterSpacing: '-0.01em', boxShadow: checkingEmail ? 'none' : `0 4px 20px ${accent}40` }}>
                 {checkingEmail ? (locale === 'de' ? 'Prüfe...' : 'Checking...') : (locale === 'de' ? 'Weiter' : 'Next') + ' →'}
@@ -381,7 +398,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
           )}
 
  {/* Step 2 */}
-          {step === 2 && (
+          {!pendingConfirmation && step === 2 && (
             <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}>
               <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '26px', fontWeight: 500, color: text, marginBottom: '6px', letterSpacing: '-0.02em' }}>
                 {locale === 'de' ? 'Wann hast du Geburtstag?' : 'When were you born?'}
@@ -429,7 +446,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
               </div>
             </motion.div>
           )}  {/* Step 3 */}
-          {step === 3 && (
+          {!pendingConfirmation && step === 3 && (
             <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}>
               <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '26px', fontWeight: 500, color: text, marginBottom: '6px', letterSpacing: '-0.02em' }}>
                 {locale === 'de' ? 'Woher kommst du?' : 'Where are you from?'}
@@ -459,7 +476,7 @@ if (signUpError) { setError(signUpError.message); setLoading(false); return }
           )}
 
           {/* Step 4 - Style */}
-          {step === 4 && (
+          {!pendingConfirmation && step === 4 && (
             <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}>
               <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '26px', fontWeight: 500, color: text, marginBottom: '6px', letterSpacing: '-0.02em' }}>
                 {locale === 'de' ? 'Dein Style' : 'Your Style'}
