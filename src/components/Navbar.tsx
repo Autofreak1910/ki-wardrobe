@@ -327,23 +327,6 @@ pointerEvents: 'none',
           </motion.button>
         )}
 
-        {streak >= 2 && !isAdmin && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ type: 'spring', damping: 12, delay: 0.3 }}
-            style={{
-              position: 'absolute', top: '-30px', right: '10px',
-              background: 'linear-gradient(135deg, #f97316, #ef4444)',
-              borderRadius: '10px', padding: '3px 8px',
-              display: 'flex', alignItems: 'center', gap: '3px',
-              zIndex: 2, boxShadow: '0 2px 8px rgba(249,115,22,0.4)',
-            }}>
-            <span style={{ fontSize: '11px' }}>🔥</span>
-            <span style={{ fontSize: '11px', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>{streak}</span>
-          </motion.div>
-        )}
-
         {tabs.map((item) => {
           const isActive = activePage === item.page
           const tabIdx = tabs.findIndex(t => t.page === item.page)
