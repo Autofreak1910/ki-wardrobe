@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useTheme } from '@/context/ThemeContext'
 import { useLocale } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
+import { InstallInstructionsModal } from '@/components/InstallAppPrompt'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import UpgradeModal from '@/components/UpgradeModal'
@@ -125,6 +126,7 @@ const [withdrawalConsent, setWithdrawalConsent] = useState(false)
   const accentDim = isDark ? 'rgba(92,130,160,0.12)' : 'rgba(53,92,125,0.07)'
   const gold      = isDark ? '#E5B45B' : '#C9963C'
   const goldDim   = isDark ? 'rgba(229,180,91,0.12)' : 'rgba(201,150,60,0.10)'
+  const sageGradient = 'linear-gradient(135deg, #7FA98E, #355C7D)'
 const [weekOutfits, setWeekOutfits] = useState(0)
 const [weekAvatarCount, setWeekAvatarCount] = useState(0)
 const [monthAvatarCount, setMonthAvatarCount] = useState(0)
@@ -137,12 +139,20 @@ const [pushLoading, setPushLoading] = useState(false)
 const [weatherEnabled, setWeatherEnabled] = useState(true)
 const [highlightWeather, setHighlightWeather] = useState(false)
 const weatherSettingRef = useRef<HTMLDivElement>(null)
+const [showInstallModal, setShowInstallModal] = useState(false)
+const [installPlatform, setInstallPlatform] = useState<'ios' | 'android-native' | 'android-manual' | 'desktop' | 'installed'>('desktop')
 
 useEffect(() => { loadProfile() }, [])
   useEffect(() => {
     setWeatherEnabled(localStorage.getItem('kw_weather_disabled') !== 'true')
   }, [])
-
+useEffect(() => {
+  const ua = window.navigator.userAgent
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true
+  if (isStandalone) { setInstallPlatform('installed'); return }
+  if (/iPad|iPhone|iPod/.test(ua)) setInstallPlatform('ios')
+  else if (/Android/.test(ua)) setInstallPlatform('android-manual')
+}, [])
 useEffect(() => {
   const params = new URLSearchParams(window.location.search)
   if (params.get('scrollTo') === 'weather' && weatherSettingRef.current) {
@@ -692,6 +702,23 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
                 {locale === 'de' ? 'EN' : 'DE'}
               </button>
             </div>
+            {installPlatform !== 'installed' && installPlatform !== 'desktop' && (
+              <>
+                <div style={{ height: '1px', background: border, margin: '0 16px' }} />
+                <button onClick={() => setShowInstallModal(true)}
+                  style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' as const }}>
+                  <div>
+                    <p style={{ fontSize: '14px', color: text, fontWeight: 500 }}>
+                      {locale === 'de' ? '📲 Als App installieren' : '📲 Install as app'}
+                    </p>
+                    <p style={{ fontSize: '11px', color: muted, marginTop: '2px' }}>
+                      {locale === 'de' ? 'Schneller starten, ohne Browserleiste' : 'Faster launch, no browser bar'}
+                    </p>
+                  </div>
+                  <span style={{ color: muted, fontSize: '14px' }}>›</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -732,6 +759,13 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
       </main>
 
 <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
+<InstallInstructionsModal
+  open={showInstallModal}
+  onClose={() => setShowInstallModal(false)}
+  platform={installPlatform}
+  locale={locale}
+  theme={{ card, border, text, muted, accent, sageGradient, isDark }}
+/>
 {/* Style DNA Modal */}
 <AnimatePresence>
   {showDna && (
