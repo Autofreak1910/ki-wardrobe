@@ -118,25 +118,20 @@ export default function ConfirmPage() {
           </>
         )}
 
-        {status === 'error' && (
+       {status === 'error' && (
           <>
-            <p style={{ fontSize: '48px', marginBottom: '16px' }}>❌</p>
+            <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: sageGradient, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: '28px', color: '#fff' }}>✓</div>
             <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '22px', fontWeight: 500, color: text, marginBottom: '8px', letterSpacing: '-0.02em' }}>
-              {locale === 'de' ? 'Link abgelaufen oder ungültig' : 'Link expired or invalid'}
+              {locale === 'de' ? 'Du wurdest schon bestätigt' : "You're already confirmed"}
             </h2>
-            <p style={{ fontSize: '13px', color: muted, marginBottom: '6px', lineHeight: 1.6 }}>
+            <p style={{ fontSize: '14px', color: muted, marginBottom: '20px', lineHeight: 1.6 }}>
               {locale === 'de'
-                ? 'Falls du bereits weitergeleitet wurdest, ist alles in Ordnung — geh einfach zurück zu deinem Registrierungs-Tab.'
-                : 'If you were already redirected, everything is fine — just go back to your registration tab.'}
+                ? 'Dein Postfach hat den Link automatisch schon geöffnet, um ihn zu prüfen — das zählt bereits als Bestätigung. Geh einfach zurück zu deinem Registrierungs-Tab, dort geht es automatisch weiter.'
+                : 'Your inbox already opened the link automatically to check it — that counts as confirmed. Just go back to your registration tab, it will continue automatically.'}
             </p>
-            {errorCode && (
-              <p style={{ fontSize: '11px', color: muted, opacity: 0.6, marginBottom: '20px', fontFamily: 'monospace' }}>
-                {errorCode}
-              </p>
-            )}
             <motion.button whileTap={{ scale: 0.97 }} onClick={() => router.push('/' + locale + '/auth/register')}
               style={{ width: '100%', background: sageGradient, border: 'none', borderRadius: '14px', padding: '14px', fontSize: '15px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
-              {locale === 'de' ? 'Neu registrieren' : 'Register again'}
+              {locale === 'de' ? 'Zurück zur Registrierung' : 'Back to registration'}
             </motion.button>
           </>
         )}
