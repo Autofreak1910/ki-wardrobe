@@ -15,7 +15,8 @@ export default function Navbar({ activePage }: { activePage: string }) {
   const pathname = usePathname()
   const isDark = theme === 'dark'
   const navRef = useRef<HTMLDivElement>(null)
-  const [mounted, setMounted] = useState(false)
+const [mounted, setMounted] = useState(false)
+  const [isBlocked, setIsBlocked] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [dragIndex, setDragIndex] = useState(-1)
   const currentActiveIndex = useRef(0)
@@ -117,6 +118,13 @@ const tabs = [
   }
 
 useEffect(() => { setMounted(true) }, [])
+useEffect(() => {
+  function onGenerating(e: Event) {
+    setIsBlocked((e as CustomEvent).detail === true)
+  }
+  window.addEventListener('kw-generating', onGenerating)
+  return () => window.removeEventListener('kw-generating', onGenerating)
+}, [])
   useEffect(() => { tabs.forEach(t => router.prefetch('/' + locale + '/' + t.page)) }, [locale])
 useEffect(() => {
     import('@/lib/supabase/client').then(({ createClient }) => {
@@ -173,8 +181,8 @@ useEffect(() => {
     }
   }, [mounted, isDragging])
 
-  function onDragStart(e: React.TouchEvent | React.MouseEvent) {
-    if (!navRef.current) return
+ function onDragStart(e: React.TouchEvent | React.MouseEvent) {
+    if (!navRef.current || isBlocked) return
     setIsDragging(true)
     const x = 'touches' in e ? e.touches[0].clientX : e.clientX
     const idx = getIndex(x)
@@ -199,8 +207,15 @@ useEffect(() => {
     }
   }
 
-  function onDragEnd(e: React.TouchEvent | React.MouseEvent) {
+function onDragEnd(e: React.TouchEvent | React.MouseEvent) {
     if (!isDragging) return
+    if (isBlocked) {
+      setIsDragging(false)
+      setDragIndex(-1)
+      dragIndexRef.current = -1
+      snap(currentActiveIndex.current)
+      return
+    }
     const x = 'changedTouches' in e ? e.changedTouches[0].clientX : (e as React.MouseEvent).clientX
     const targetIndex = getIndex(x)
     setIsDragging(false)
@@ -277,12 +292,14 @@ const pillMutedDim = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(36,33,27,0.32)'
         onMouseMove={onDragMove}
         onMouseUp={onDragEnd}
         onMouseLeave={onLeave}
-        style={{
+    style={{
           position: 'fixed',
           bottom: 'calc(14px + env(safe-area-inset-bottom))',
           left: '14px', right: '14px',
           height: `${NAV_H}px`,
           background: pillBg,
+          opacity: isBlocked ? 0.5 : 1,
+          transition: 'opacity 0.2s',
           backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)',
           border: `1px solid ${pillBorder}`,
           borderRadius: '100px',
