@@ -237,6 +237,10 @@ export default function AvatarPage() {
 const [genStep, setGenStep] = useState('')
   const [genProgress, setGenProgress] = useState(0)
   const [showUpgrade, setShowUpgrade] = useState(false)
+  const [showGallery, setShowGallery] = useState(false)
+  const [galleryAvatars, setGalleryAvatars] = useState<{ id: string; image_url: string; created_at: string }[]>([])
+  const [galleryLoading, setGalleryLoading] = useState(false)
+  const [galleryFullscreen, setGalleryFullscreen] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const { theme } = useTheme()
   const locale = useLocale()
@@ -302,6 +306,21 @@ const [genStep, setGenStep] = useState('')
     } finally {
       setPageLoading(false)
     }
+  }
+
+  async function openGallery() {
+    if (!isPremium) { setShowUpgrade(true); return }
+    setShowGallery(true)
+    setGalleryLoading(true)
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.user) { setGalleryLoading(false); return }
+    const { data } = await supabase
+      .from('avatar_results')
+      .select('id, image_url, created_at')
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending: false })
+    setGalleryAvatars(data ?? [])
+    setGalleryLoading(false)
   }
 
   function handleSelfie(e: React.ChangeEvent<HTMLInputElement>) {
@@ -442,16 +461,26 @@ const [genStep, setGenStep] = useState('')
       <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, transparent 0%, transparent 50%, ${bg} 100%)`, maskImage: 'linear-gradient(to bottom, transparent 0%, black 100%)', WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 100%)' }} />
           <div style={{ position: 'absolute', inset: '40% 0 0 0', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', background: 'rgba(0,0,0,0.25)', maskImage: 'linear-gradient(to bottom, transparent 0%, black 40%, black 100%)', WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 40%, black 100%)' }} />
 
-          {/* PRO Badge */}
-          {isPremium ? (
-            <div style={{ position: 'absolute' as const, top: '16px', right: '18px', background: goldAccent, borderRadius: '10px', padding: '6px 14px', boxShadow: '0 4px 12px rgba(241,185,81,0.5)', zIndex: 2 }}>
-           <p style={{ fontSize: '11px', fontWeight: 700, color: '#1D1D20', letterSpacing: '0.04em' }}>✦ PRO · {usedThisPeriod}/{periodLimit} {locale === 'de' ? 'diese Woche' : 'this week'}</p>
-            </div>
-          ) : (
-            <div style={{ position: 'absolute' as const, top: '16px', right: '18px', background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '10px', padding: '6px 14px', zIndex: 2 }}>
-      <p style={{ fontSize: '11px', fontWeight: 700, color: '#fff' }}>{usedThisPeriod}/{periodLimit} {locale === 'de' ? 'diesen Monat' : 'this month'}</p>
-            </div>
-          )}
+          {/* Top row: PRO Badge + Gallery button */}
+          <div style={{ position: 'absolute' as const, top: '16px', left: '20px', right: '18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 2 }}>
+            <motion.button whileTap={{ scale: 0.95 }} onClick={openGallery}
+              style={{ background: isPremium ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.35)', borderRadius: '10px', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', opacity: isPremium ? 1 : 0.6 }}>
+              <span style={{ fontSize: '13px' }}>{isPremium ? '🖼️' : '🔒'}</span>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#fff' }}>
+                {locale === 'de' ? 'Meine Avatare' : 'My Avatars'}
+              </span>
+            </motion.button>
+
+            {isPremium ? (
+              <div style={{ background: goldAccent, borderRadius: '10px', padding: '6px 14px', boxShadow: '0 4px 12px rgba(241,185,81,0.5)' }}>
+                <p style={{ fontSize: '11px', fontWeight: 700, color: '#1D1D20', letterSpacing: '0.04em' }}>✦ PRO · {usedThisPeriod}/{periodLimit} {locale === 'de' ? 'diese Woche' : 'this week'}</p>
+              </div>
+            ) : (
+              <div style={{ background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '10px', padding: '6px 14px' }}>
+                <p style={{ fontSize: '11px', fontWeight: 700, color: '#fff' }}>{usedThisPeriod}/{periodLimit} {locale === 'de' ? 'diesen Monat' : 'this month'}</p>
+              </div>
+            )}
+          </div>
 
           <div style={{ position: 'absolute' as const, bottom: '20px', left: '20px', zIndex: 2 }}>
             <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: '4px', textShadow: '0 1px 8px rgba(0,0,0,0.4)' }}>
@@ -758,6 +787,77 @@ const [genStep, setGenStep] = useState('')
 </div>
 
      <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
+
+      {/* Avatar-Galerie Modal */}
+      <AnimatePresence>
+        {showGallery && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setShowGallery(false)}
+            style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '16px' }}>
+            <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+              onClick={e => e.stopPropagation()}
+              style={{ width: '100%', maxWidth: '480px', maxHeight: '80vh', overflowY: 'auto' as const, background: bg, border: `1px solid ${border}`, borderRadius: '28px 28px 0 0', padding: '20px 20px 28px' }}>
+
+              <div style={{ width: '36px', height: '4px', background: border, borderRadius: '2px', margin: '0 auto 16px' }} />
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h2 style={{ fontSize: '18px', fontWeight: 800, color: text, letterSpacing: '-0.02em' }}>
+                  🖼️ {locale === 'de' ? 'Meine Avatare' : 'My Avatars'}
+                </h2>
+                <button onClick={() => setShowGallery(false)}
+                  style={{ background: card, border: `1px solid ${border}`, borderRadius: '10px', width: '32px', height: '32px', cursor: 'pointer', fontSize: '14px', color: muted }}>✕</button>
+              </div>
+
+              {galleryLoading ? (
+                <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
+                  <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                    style={{ width: '32px', height: '32px', borderRadius: '50%', border: `3px solid ${border}`, borderTopColor: accent }} />
+                </div>
+              ) : galleryAvatars.length === 0 ? (
+                <p style={{ fontSize: '13px', color: muted, textAlign: 'center' as const, padding: '30px 0' }}>
+                  {locale === 'de' ? 'Noch keine Avatare erstellt.' : 'No avatars created yet.'}
+                </p>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                  {galleryAvatars.map(a => (
+                    <motion.div key={a.id} whileTap={{ scale: 0.96 }}
+                      onClick={() => setGalleryFullscreen(a.image_url)}
+                      style={{ borderRadius: '12px', overflow: 'hidden', cursor: 'pointer', border: `1px solid ${border}`, aspectRatio: '3/4', position: 'relative' as const }}>
+                      <img src={a.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Vollbild-Ansicht eines gespeicherten Avatars */}
+      <AnimatePresence>
+        {galleryFullscreen && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setGalleryFullscreen(null)}
+            style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              onClick={e => e.stopPropagation()}
+              style={{ width: '100%', maxWidth: '420px', display: 'flex', flexDirection: 'column' as const, gap: '14px' }}>
+              <img src={galleryFullscreen} style={{ width: '100%', borderRadius: '16px', maxHeight: '70vh', objectFit: 'contain' }} />
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button onClick={() => window.open(galleryFullscreen, '_blank')}
+                  style={{ flex: 1, background: sageGradient, border: 'none', borderRadius: '12px', padding: '12px', fontSize: '13px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+                  🔗 {locale === 'de' ? 'Öffnen' : 'Open'}
+                </button>
+                <button onClick={() => setGalleryFullscreen(null)}
+                  style={{ flex: 1, background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '12px', padding: '12px', fontSize: '13px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+                  {locale === 'de' ? 'Schließen' : 'Close'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
