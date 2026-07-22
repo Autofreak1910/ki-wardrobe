@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useLocale } from 'next-intl'
@@ -10,6 +10,7 @@ import { motion } from 'framer-motion'
 export default function ConfirmPage() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [errorCode, setErrorCode] = useState<string | null>(null)
+  const hasRun = useRef(false)
   const router = useRouter()
   const searchParams = useSearchParams()
   const locale = useLocale()
@@ -26,8 +27,10 @@ export default function ConfirmPage() {
   const sageGradient = 'linear-gradient(135deg, #7FA98E, #355C7D)'
 
   useEffect(() => {
+    if (hasRun.current) return
+    hasRun.current = true
+
     async function confirmEmail() {
-      // Supabase leitet bei abgelaufenem/ungültigem Link direkt mit error-Parametern weiter
       const urlError = searchParams.get('error') || searchParams.get('error_code')
       if (urlError) {
         setErrorCode(searchParams.get('error_code') ?? urlError)
