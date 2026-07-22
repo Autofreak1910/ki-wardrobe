@@ -1531,7 +1531,7 @@ onClick={() => {
               {/* Scrollbarer Mittelteil */}
               <div style={{ overflowY: 'auto' as const, padding: '0 20px', flex: 1 }}>
                 {isPremium && (
-                  <div style={{ background: (bonusOutfitsThisWeek > 0 || bonusTryonsThisWeek > 0) ? 'linear-gradient(135deg, rgba(249,115,22,0.1), rgba(239,68,68,0.05))' : accentDim, border: `1px solid ${(bonusOutfitsThisWeek > 0 || bonusTryonsThisWeek > 0) ? 'rgba(249,115,22,0.25)' : border}`, borderRadius: '12px', padding: '12px 14px', marginBottom: '16px' }}>
+             <div style={{ background: (bonusOutfitsThisWeek > 0 || bonusTryonsThisWeek > 0) ? 'linear-gradient(135deg, rgba(249,115,22,0.1), rgba(239,68,68,0.05))' : accentDim, border: `1px solid ${(bonusOutfitsThisWeek > 0 || bonusTryonsThisWeek > 0) ? 'rgba(249,115,22,0.25)' : border}`, borderRadius: '12px', padding: '12px 14px', marginBottom: '16px', opacity: (bonusOutfitsThisWeek === 0 && bonusTryonsThisWeek === 0 && streak >= 7) ? 0.6 : 1 }}>
                     <p style={{ fontSize: '12px', fontWeight: 700, color: (bonusOutfitsThisWeek > 0 || bonusTryonsThisWeek > 0) ? '#c2410c' : muted, marginBottom: '2px' }}>
                       ✨ {locale === 'de' ? 'Wochen-Bonus (Streak-Belohnung)' : 'Weekly bonus (streak reward)'}
                     </p>
@@ -1563,7 +1563,11 @@ onClick={() => {
                           </p>
                         </>
                       )
-                    })() : (
+                  })() : streak >= 7 ? (
+                      <p style={{ fontSize: '12px', color: muted, opacity: 0.7 }}>
+                        {locale === 'de' ? '✓ Bereits benutzt — nächste Woche wieder verfügbar' : '✓ Already used — available again next week'}
+                      </p>
+                    ) : (
                       <p style={{ fontSize: '12px', color: muted }}>
                         {locale === 'de' ? 'Erreiche 7/14/30 Tage Streak für Bonus-Outfits diese Woche' : 'Reach a 7/14/30-day streak for bonus outfits this week'}
                       </p>
