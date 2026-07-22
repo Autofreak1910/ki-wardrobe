@@ -508,10 +508,10 @@ const [galleryFullscreen, setGalleryFullscreen] = useState<string | null>(null)
         <div style={{ padding: '12px 20px 0', marginBottom: '14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' as const, marginBottom: '8px' }}>
             <span style={{ fontSize: '12px' }}>💡</span>
-            {[
+           {[
               locale === 'de' ? 'Ganzkörper-Foto' : 'Full-body photo',
               locale === 'de' ? 'Heller Hintergrund' : 'Bright background',
-              locale === 'de' ? 'Nur 1 Kleidungsstück' : 'Only 1 clothing item',
+              locale === 'de' ? 'Ein Kleidungsstück pro Versuch' : 'One item per try',
               locale === 'de' ? 'Kein Spiegel-Selfie' : 'No mirror selfie',
             ].map((tip, i) => (
               <span key={i} style={{ fontSize: '12px', fontWeight: 600, color: accent, background: accentDim, borderRadius: '100px', padding: '4px 10px', border: `1px solid ${accent}30` }}>{tip}</span>
@@ -550,17 +550,11 @@ const [galleryFullscreen, setGalleryFullscreen] = useState<string | null>(null)
         </div>
 
         {/* Step 1 — Selfie */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
           style={{ background: 'transparent', marginBottom: '12px', padding: '0 20px' }}>
-       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-            <p style={{ fontSize: '11px', fontWeight: 800, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
-              {locale === 'de' ? 'Schritt 1 · Dein Foto' : 'Step 1 · Your Photo'}
-            </p>
-           <button onClick={() => setShowPhotoGuide(true)}
-              style={{ background: accentDim, border: `1px solid ${accent}`, borderRadius: '100px', padding: '3px 10px', fontSize: '10.5px', fontWeight: 700, color: accent, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              💡 {locale === 'de' ? 'Tipps ansehen' : 'View tips'}
-            </button>
-          </div>
+          <p style={{ fontSize: '11px', fontWeight: 800, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>
+            {locale === 'de' ? 'Schritt 1 · Dein Foto' : 'Step 1 · Your Photo'}
+          </p>
           <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '20px', overflow: 'hidden', boxShadow: isDark ? 'none' : '0 2px 8px rgba(29,29,32,0.04)', position: 'relative' as const, opacity: canGenerate ? 1 : 0.5, pointerEvents: canGenerate ? 'auto' : 'none' as const }}>
             {!canGenerate && (
               <div style={{ position: 'absolute', inset: 0, zIndex: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', background: isDark ? 'rgba(29,29,32,0.4)' : 'rgba(255,255,255,0.4)' }}>
