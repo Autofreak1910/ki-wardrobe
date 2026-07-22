@@ -16,6 +16,87 @@ type ClothingItem = { id: string; image_url: string; name?: string; color: strin
 // kein Skeleton-Flackern mehr, waehrend im Hintergrund still nachgeladen wird.
 let outfitsCache: { outfits: Outfit[]; items: ClothingItem[] } | null = null
 
+// -------- Share-Bild bauen (Canvas) --------
+
+function loadImg(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => resolve(img)
+    img.onerror = reject
+    img.src = src
+  })
+}
+
+async function buildOutfitShareImage(
+  outfitItems: { image_url: string }[],
+  outfitName: string,
+  occasionLabel: string,
+  locale: string
+): Promise<string> {
+  const W = 1080, H = 1350
+  const canvas = document.createElement('canvas')
+  canvas.width = W; canvas.height = H
+  const ctx = canvas.getContext('2d')!
+
+  // Hintergrund
+  ctx.fillStyle = '#161616'
+  ctx.fillRect(0, 0, W, H)
+
+  // Header
+  ctx.fillStyle = '#F1B951'
+  ctx.font = 'bold 44px sans-serif'
+  ctx.textAlign = 'center'
+  ctx.fillText('KiWardrobe', W / 2, 100)
+
+  if (occasionLabel) {
+    ctx.fillStyle = '#9a978f'
+    ctx.font = '28px sans-serif'
+    ctx.fillText(occasionLabel, W / 2, 145)
+  }
+
+  // Grid für die Kleidungsstücke
+  const imgs = await Promise.all(outfitItems.slice(0, 4).map(i => loadImg(i.image_url)))
+  const cols = imgs.length >= 3 ? 2 : Math.max(imgs.length, 1)
+  const rows = Math.max(Math.ceil(imgs.length / cols), 1)
+  const gridTop = 190, gridBottom = H - 220
+  const gridH = gridBottom - gridTop
+  const cellW = W / cols, cellH = gridH / rows
+  const pad = 6
+
+  imgs.forEach((img, i) => {
+    const col = i % cols, row = Math.floor(i / cols)
+    const x = col * cellW + pad, y = gridTop + row * cellH + pad
+    const w = cellW - pad * 2, h = cellH - pad * 2
+
+    // cover-fit zeichnen
+    const scale = Math.max(w / img.width, h / img.height)
+    const sw = w / scale, sh = h / scale
+    const sx = (img.width - sw) / 2, sy = (img.height - sh) / 2
+    ctx.fillStyle = '#221c14'
+    ctx.fillRect(x, y, w, h)
+    ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h)
+  })
+
+  // Footer
+  ctx.fillStyle = '#F5F3EE'
+  ctx.font = 'bold 34px sans-serif'
+  ctx.fillText(outfitName, W / 2, H - 150)
+
+  ctx.fillStyle = '#c9c5bb'
+  ctx.font = '26px sans-serif'
+  ctx.fillText(
+    locale === 'de' ? 'KI sagt mir jeden Morgen was ich anziehen soll ✦' : 'AI tells me what to wear every morning ✦',
+    W / 2, H - 100
+  )
+
+  ctx.fillStyle = '#F1B951'
+  ctx.font = 'bold 30px sans-serif'
+  ctx.fillText('kiwardrobe-app.vercel.app', W / 2, H - 55)
+
+  return canvas.toDataURL('image/jpeg', 0.92)
+}
+
 export default function OutfitsPage() {
   const [outfits, setOutfits] = useState<Outfit[]>(outfitsCache?.outfits ?? [])
   const [items, setItems] = useState<ClothingItem[]>(outfitsCache?.items ?? [])
@@ -24,6 +105,8 @@ const [filter, setFilter] = useState<'all' | 'favorites'>('all')
   const [occasionFilter, setOccasionFilter] = useState<string>('all')
   const { theme } = useTheme()
   const [showUpgrade, setShowUpgrade] = useState(false)
+  const [isPremium, setIsPremium] = useState(false)
+  const [sharingId, setSharingId] = useState<string | null>(null)
   const t = useTranslations()
   const locale = useLocale()
   const router = useRouter()
@@ -56,6 +139,10 @@ const [filter, setFilter] = useState<'all' | 'favorites'>('all')
     if (outfitsRes.data) setOutfits(outfitsRes.data)
     if (itemsRes.data) setItems(itemsRes.data)
     outfitsCache = { outfits: outfitsRes.data ?? [], items: itemsRes.data ?? [] }
+
+    const { data: stillPremium } = await supabase.rpc('check_and_expire_premium', { p_user_id: session.user.id })
+    setIsPremium(stillPremium ?? false)
+
     setLoading(false)
   }
 
@@ -79,6 +166,46 @@ const [filter, setFilter] = useState<'all' | 'favorites'>('all')
 
   function getItemsForOutfit(outfit: Outfit) {
     return outfit.item_ids?.map(id => items.find(i => i.id === id)).filter(Boolean) as ClothingItem[]
+  }
+
+  async function shareOutfit(outfit: Outfit) {
+    if (!isPremium) { setShowUpgrade(true); return }
+    if (sharingId) return
+    setSharingId(outfit.id)
+    try {
+      const outfitItems = getItemsForOutfit(outfit)
+      const occLabel = occasionLabels[outfit.occasion] ?? outfit.occasion ?? ''
+      const dataUrl = await buildOutfitShareImage(outfitItems, outfit.name, occLabel, locale)
+      const blob = await (await fetch(dataUrl)).blob()
+      const file = new File([blob], 'kiwardrobe-outfit.jpg', { type: 'image/jpeg' })
+
+      const shareText = locale === 'de'
+        ? `Schau dir mein Outfit an ✦ Erstellt mit KiWardrobe, meinem KI-Stylisten. Der sagt mir jeden Morgen was ich anziehen soll 🤯 kiwardrobe-app.vercel.app`
+        : `Check out my outfit ✦ Made with KiWardrobe, my AI stylist. It tells me what to wear every morning 🤯 kiwardrobe-app.vercel.app`
+
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        // Auf Mobile (z.B. WhatsApp) landen Bild + Text gemeinsam in der Nachricht
+        await navigator.share({ files: [file], title: 'KiWardrobe', text: shareText })
+      } else if (navigator.share) {
+        // Fallback ohne Datei-Support: Text + Link teilen, Bild separat downloaden
+        await navigator.share({ title: 'KiWardrobe', text: shareText })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url; a.download = 'kiwardrobe-outfit.jpg'; a.click()
+        URL.revokeObjectURL(url)
+      } else {
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url; a.download = 'kiwardrobe-outfit.jpg'; a.click()
+        URL.revokeObjectURL(url)
+        await navigator.clipboard.writeText(shareText)
+        alert(locale === 'de' ? 'Bild heruntergeladen, Text kopiert!' : 'Image downloaded, text copied!')
+      }
+    } catch (err) {
+      console.error('Share outfit failed:', err)
+    } finally {
+      setSharingId(null)
+    }
   }
 
 const byFavorite = filter === 'favorites' ? outfits.filter(o => o.is_favorite) : outfits
@@ -217,6 +344,18 @@ const byFavorite = filter === 'favorites' ? outfits.filter(o => o.is_favorite) :
                         <p style={{ fontSize: '11px', color: muted }}>{outfitItems.length} {t('outfits.pieces')}</p>
                       </div>
                       <div style={{ display: 'flex', gap: '5px', flexShrink: 0 }}>
+                        <motion.button whileTap={{ scale: 0.88 }} onClick={() => shareOutfit(outfit)}
+                          style={{
+                            background: isPremium ? goldDim : 'transparent',
+                            border: `1px solid ${isPremium ? goldAccent : border}`,
+                            borderRadius: '8px', padding: '6px 9px', cursor: 'pointer', fontSize: '13px',
+                            color: isPremium ? goldText : muted, transition: 'all 0.15s',
+                            opacity: sharingId === outfit.id ? 0.5 : 1,
+                            pointerEvents: sharingId === outfit.id ? 'none' : 'auto',
+                          }}
+                          title={isPremium ? (locale === 'de' ? 'Outfit teilen' : 'Share outfit') : (locale === 'de' ? 'Nur mit Premium' : 'Premium only')}>
+                          {sharingId === outfit.id ? '…' : (isPremium ? '📤' : '🔒')}
+                        </motion.button>
                         <motion.button whileTap={{ scale: 0.88 }} onClick={() => toggleFavorite(outfit)}
                           style={{ background: outfit.is_favorite ? goldDim : 'transparent', border: `1px solid ${outfit.is_favorite ? goldAccent : border}`, borderRadius: '8px', padding: '6px 9px', cursor: 'pointer', fontSize: '13px', color: outfit.is_favorite ? goldAccent : muted, transition: 'all 0.15s' }}>
                           {outfit.is_favorite ? '★' : '☆'}
@@ -234,6 +373,8 @@ const byFavorite = filter === 'favorites' ? outfits.filter(o => o.is_favorite) :
           </div>
         )}
       </main>
+
+      {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
     </div>
   ) 
 }
