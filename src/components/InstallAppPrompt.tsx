@@ -101,11 +101,11 @@ export default function InstallAppPrompt() {
           <motion.div
             initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.35 }}
-            style={{
-              width: '100%', maxWidth: '480px', margin: '0 auto 16px',
+          style={{
+              width: 'calc(100% - 32px)', maxWidth: '480px', margin: '76px auto 16px',
               background: card, border: `1.5px solid ${border}`, borderRadius: '16px',
               padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px',
-              boxShadow: `0 6px 24px ${accent}12`, position: 'relative' as const,
+              boxShadow: `0 6px 24px ${accent}12`, position: 'relative' as const, zIndex: 50,
             }}
           >
             <div style={{ width: '40px', height: '40px', borderRadius: '11px', overflow: 'hidden', flexShrink: 0 }}>
