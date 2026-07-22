@@ -14,18 +14,18 @@ export default function AvatarPhotoGuide({
 }) {
   const { card, border, text, muted, accent, sageGradient } = theme
 
-  const points = locale === 'de'
+ const points = locale === 'de'
     ? [
-        { pos: { top: '4%', left: '50%' }, label: 'Gesicht klar erkennbar' },
-        { pos: { top: '32%', left: '8%' }, label: 'Arme locker seitlich, nichts in der Hand' },
-        { pos: { top: '55%', left: '92%' }, label: 'Ganzer Körper im Bild — Kopf bis Füße' },
-        { pos: { top: '90%', left: '50%' }, label: 'Gerade stehen, Kamera auf Augenhöhe' },
+        { top: '6%', side: 'right' as const, label: 'Gesicht klar erkennbar' },
+        { top: '38%', side: 'left' as const, label: 'Arme locker seitlich' },
+        { top: '68%', side: 'right' as const, label: 'Ganzer Körper sichtbar' },
+        { top: '96%', side: 'left' as const, label: 'Gerade stehen' },
       ]
     : [
-        { pos: { top: '4%', left: '50%' }, label: 'Face clearly visible' },
-        { pos: { top: '32%', left: '8%' }, label: 'Arms relaxed at your sides, nothing in hands' },
-        { pos: { top: '55%', left: '92%' }, label: 'Full body in frame — head to feet' },
-        { pos: { top: '90%', left: '50%' }, label: 'Stand straight, camera at eye level' },
+        { top: '6%', side: 'right' as const, label: 'Face clearly visible' },
+        { top: '38%', side: 'left' as const, label: 'Arms relaxed at sides' },
+        { top: '68%', side: 'right' as const, label: 'Full body visible' },
+        { top: '96%', side: 'left' as const, label: 'Stand up straight' },
       ]
 
   return (
@@ -51,15 +51,19 @@ export default function AvatarPhotoGuide({
             </div>
 
             {/* Bild mit Annotationen */}
-            <div style={{ position: 'relative' as const, borderRadius: '18px', overflow: 'hidden', border: `1px solid ${border}`, marginBottom: '14px' }}>
+          <div style={{ position: 'relative' as const, borderRadius: '18px', overflow: 'hidden', border: `1px solid ${border}`, marginBottom: '14px' }}>
               <img src="/avatar-example-pose.jpg" alt="Beispiel" style={{ width: '100%', display: 'block' }} />
 
               {points.map((p, i) => (
-                <div key={i} style={{ position: 'absolute' as const, top: p.pos.top, left: p.pos.left, transform: 'translate(-50%, -50%)', pointerEvents: 'none' as const }}>
+                <div key={i} style={{
+                  position: 'absolute' as const, top: p.top,
+                  [p.side]: '4%',
+                  transform: 'translateY(-50%)',
+                }}>
                   <div style={{
-                    background: sageGradient, color: '#fff', fontSize: '10px', fontWeight: 700,
-                    padding: '4px 9px', borderRadius: '100px', whiteSpace: 'nowrap' as const,
-                    boxShadow: '0 3px 10px rgba(0,0,0,0.35)', border: '1.5px solid rgba(255,255,255,0.5)',
+                    background: 'rgba(0,0,0,0.75)', color: '#fff', fontSize: '10.5px', fontWeight: 700,
+                    padding: '5px 10px', borderRadius: '100px', whiteSpace: 'nowrap' as const,
+                    boxShadow: '0 3px 10px rgba(0,0,0,0.4)', border: `1.5px solid ${accent}`,
                   }}>
                     ✓ {p.label}
                   </div>
@@ -73,21 +77,23 @@ export default function AvatarPhotoGuide({
             </div>
 
             {/* Checklist */}
-            <div style={{ background: `${accent}0d`, border: `1px solid ${border}`, borderRadius: '14px', padding: '14px 16px', marginBottom: '18px' }}>
+      <div style={{ background: `${accent}0d`, border: `1px solid ${border}`, borderRadius: '14px', padding: '14px 16px', marginBottom: '18px' }}>
               {(locale === 'de' ? [
+                '📷 Lass dich von jemandem fotografieren, oder stell das Handy hin (Timer/Stativ) — kein Spiegel-Selfie, da wirkt alles seitenverkehrt und das Ergebnis wird schlechter',
                 'Ganzkörper — Kopf bis Füße muss sichtbar sein',
                 'Gerade und aufrecht stehen, kein Winkel von oben/unten',
                 'Arme locker seitlich, nichts vor dem Körper halten',
                 'Helles, gleichmäßiges Licht — keine Rückenbeleuchtung',
                 'Einfacher, ruhiger Hintergrund ohne viel Durcheinander',
               ] : [
+                '📷 Have someone take the photo, or prop your phone up (timer/tripod) — not a mirror selfie, it comes out flipped and lowers the result quality',
                 'Full body — head to feet must be visible',
                 'Stand straight, no angle from above or below',
                 'Arms relaxed at your sides, nothing in front of your body',
                 'Bright, even lighting — avoid backlighting',
                 'Simple, uncluttered background',
               ]).map((tip, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: i < 4 ? '8px' : 0 }}>
+                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: i < 5 ? '8px' : 0 }}>
                   <span style={{ color: accent, fontSize: '13px', fontWeight: 700, flexShrink: 0 }}>✓</span>
                   <span style={{ fontSize: '12.5px', color: text, lineHeight: 1.5 }}>{tip}</span>
                 </div>
