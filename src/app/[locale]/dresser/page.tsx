@@ -1593,7 +1593,7 @@ onClick={() => {
             <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }}
               transition={{ type: 'spring', damping: 20 }}
               onClick={e => e.stopPropagation()}
-              style={{ background: card, borderRadius: '28px', width: '100%', maxWidth: '400px', border: `1px solid ${border}`, maxHeight: 'min(72vh, 620px)', marginBottom: 'calc(90px + env(safe-area-inset-bottom))', display: 'flex', flexDirection: 'column' as const, position: 'relative' as const, overflow: 'hidden' }}>
+              style={{ background: card, borderRadius: '28px', width: '100%', maxWidth: '400px', border: `1px solid ${border}`, maxHeight: 'calc(100dvh - 140px - env(safe-area-inset-bottom))', display: 'flex', flexDirection: 'column' as const, position: 'relative' as const, overflow: 'hidden' }}>
 
               {/* Fester Header */}
               <div style={{ padding: '24px 20px 16px', position: 'relative' as const, flexShrink: 0 }}>
