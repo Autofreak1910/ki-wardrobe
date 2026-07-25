@@ -298,8 +298,9 @@ const pillMutedDim = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(36,33,27,0.32)'
         onMouseMove={onDragMove}
         onMouseUp={onDragEnd}
         onMouseLeave={onLeave}
-    style={{
+   style={{
           position: 'fixed',
+          zIndex: 60,
           bottom: 'calc(14px + env(safe-area-inset-bottom))',
           left: '14px', right: '14px',
           height: `${NAV_H}px`,
