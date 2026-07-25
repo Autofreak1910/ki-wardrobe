@@ -172,6 +172,8 @@ const [weekOutfitsUsed, setWeekOutfitsUsed] = useState(0)
   const [userId, setUserId] = useState<string | null>(null)
 const [streakReward, setStreakReward] = useState<{ days?: number; milestone: number; type?: string; outfits?: number; tryons?: number } | null>(null)
   const [showStreakInfo, setShowStreakInfo] = useState(false)
+  const [streakBump, setStreakBump] = useState<number | null>(null)
+  const prevStreakRef = useRef<number>(stylistCache?.streak ?? 0)
 useEffect(() => {
   setGreeting(getGreeting(locale))
 }, [locale])
@@ -262,8 +264,18 @@ async function loadStreak() {
     const { data } = await supabase.from('profiles').select('current_streak, last_outfit_date').eq('id', session.user.id).single()
     if (data?.current_streak !== undefined) {
       setStreak(data.current_streak ?? 0)
+      prevStreakRef.current = data.current_streak ?? 0
       stylistCache = { ...(stylistCache ?? { wardrobeItems: [], username: '', isPremium: false, premiumUntil: null, dailyFreeOutfit: null }), streak: data.current_streak ?? 0 }
     }
+  }
+
+function handleStreakUpdate(newStreak: number) {
+    if (newStreak > prevStreakRef.current) {
+      setStreakBump(newStreak)
+      setTimeout(() => setStreakBump(null), 2200)
+    }
+    prevStreakRef.current = newStreak
+    setStreak(newStreak)
   }
 
   async function loadWardrobe() {
@@ -534,7 +546,7 @@ setOutfit({ outfits: mappedOutfits, active: 0 })
           body: JSON.stringify({ timezone: tz }),
         })
         const streakData = await streakRes.json()
-        if (streakData.streak) setStreak(streakData.streak)
+        if (streakData.streak) handleStreakUpdate(streakData.streak)
         if (streakData.streakReward) setStreakReward(streakData.streakReward)
       } catch {}
    try {
@@ -1024,6 +1036,54 @@ onClick={() => {
 </AnimatePresence>
 
       <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
+        <AnimatePresence>
+  {streakBump !== null && (
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        display: 'flex', flexDirection: 'column' as const,
+        alignItems: 'center', justifyContent: 'center',
+        background: isDark ? 'rgba(8,12,24,0.92)' : 'rgba(255,250,240,0.94)',
+        backdropFilter: 'blur(16px)', overflow: 'hidden', pointerEvents: 'none',
+      }}>
+
+      {[...Array(16)].map((_, i) => (
+        <motion.div key={i}
+          initial={{ opacity: 0, x: 0, y: 0, scale: 0 }}
+          animate={{ opacity: [0, 1, 1, 0], x: Math.cos(i * 22.5 * Math.PI / 180) * (120 + (i % 3) * 24), y: Math.sin(i * 22.5 * Math.PI / 180) * (120 + (i % 3) * 24), scale: [0, 1.2, 1, 0] }}
+          transition={{ delay: 0.15 + i * 0.02, duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
+          style={{ position: 'absolute', width: i % 3 === 0 ? '9px' : '6px', height: i % 3 === 0 ? '9px' : '6px', borderRadius: '50%', background: i % 2 === 0 ? '#f97316' : '#fbbf24' }}
+        />
+      ))}
+
+      <motion.p
+        initial={{ scale: 0.4, opacity: 0, rotate: -8 }}
+        animate={{ scale: [0.4, 1.25, 1], opacity: 1, rotate: 0 }}
+        transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+        style={{ fontSize: '76px', marginBottom: '4px' }}>
+        🔥
+      </motion.p>
+
+      <motion.p
+        initial={{ opacity: 0, y: 14, scale: 0.85 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ delay: 0.18, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        style={{ fontSize: '58px', fontWeight: 800, color: '#f97316', letterSpacing: '-0.04em', lineHeight: 1, fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+        {streakBump}
+      </motion.p>
+
+      <motion.p
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.32 }}
+        style={{ fontSize: '15px', fontWeight: 700, color: text, marginTop: '6px', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+        {locale === 'de' ? `Tag${streakBump === 1 ? '' : 'e'} Streak!` : `Day Streak!`}
+      </motion.p>
+    </motion.div>
+  )}
+</AnimatePresence>
+
+      <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}></div>
         <div style={{ position: 'absolute', top: '-120px', right: '-80px', width: '420px', height: '420px', borderRadius: '50%', background: isDark ? 'rgba(14,164,114,0.06)' : 'rgba(14,164,114,0.12)', filter: 'blur(90px)' }} />
         <div style={{ position: 'absolute', bottom: '60px', left: '-100px', width: '350px', height: '350px', borderRadius: '50%', background: isDark ? 'rgba(8,145,178,0.04)' : 'rgba(8,145,178,0.08)', filter: 'blur(90px)' }} />
         {!isDark && (
@@ -1122,7 +1182,7 @@ onClick={() => {
                   })
                   const streakData = await streakRes.json()
                   console.log('streak update response:', streakRes.status, streakData)
-                  if (typeof streakData.streak === 'number') setStreak(streakData.streak)
+                  if (typeof streakData.streak === 'number') handleStreakUpdate(streakData.streak)
                   if (streakData.streakReward) setStreakReward(streakData.streakReward)
                 } catch (err) {
                   console.error('streak update failed:', err)
