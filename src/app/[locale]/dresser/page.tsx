@@ -176,6 +176,7 @@ const [streakReward, setStreakReward] = useState<{ days?: number; milestone: num
   const [showFirstOutfitTip, setShowFirstOutfitTip] = useState(false)
   const [streakBump, setStreakBump] = useState<number | null>(null)
   const prevStreakRef = useRef<number>(stylistCache?.streak ?? 0)
+  const [doneToday, setDoneToday] = useState(false)
 useEffect(() => {
   setGreeting(getGreeting(locale))
 }, [locale])
@@ -286,6 +287,11 @@ async function loadStreak() {
       prevStreakRef.current = data.current_streak ?? 0
       stylistCache = { ...(stylistCache ?? { wardrobeItems: [], username: '', isPremium: false, premiumUntil: null, dailyFreeOutfit: null }), streak: data.current_streak ?? 0 }
     }
+    if (data?.last_outfit_date) {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+      const todayStr = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
+      setDoneToday(data.last_outfit_date === todayStr)
+    }
   }
 
 function handleStreakUpdate(newStreak: number) {
@@ -295,6 +301,7 @@ function handleStreakUpdate(newStreak: number) {
     }
     prevStreakRef.current = newStreak
     setStreak(newStreak)
+    setDoneToday(true)
   }
 
   async function loadWardrobe() {
@@ -1621,7 +1628,19 @@ onClick={() => {
                     )
                   })()}
 
-                  {(() => {
+          {doneToday ? (
+                    <div style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                      background: isDark ? 'rgba(34,197,94,0.12)' : 'rgba(34,197,94,0.1)',
+                      border: '1px solid rgba(34,197,94,0.3)',
+                      borderRadius: '100px', padding: '7px 16px', marginBottom: '10px',
+                    }}>
+                      <span style={{ fontSize: '15px' }}>✅</span>
+                      <p style={{ fontSize: '12.5px', fontWeight: 700, color: '#16a34a' }}>
+                        {locale === 'de' ? 'Heute erledigt — Streak sicher!' : 'Done for today — streak secured!'}
+                      </p>
+                    </div>
+                  ) : (() => {
                     const now = new Date()
                     const midnight = new Date(now)
                     midnight.setHours(24, 0, 0, 0)
