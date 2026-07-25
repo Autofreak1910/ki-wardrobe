@@ -177,6 +177,23 @@ const [streakReward, setStreakReward] = useState<{ days?: number; milestone: num
 useEffect(() => {
   setGreeting(getGreeting(locale))
 }, [locale])
+const [streakTimeLeft, setStreakTimeLeft] = useState('')
+
+useEffect(() => {
+  function updateCountdown() {
+    const now = new Date()
+    const midnight = new Date(now)
+    midnight.setHours(24, 0, 0, 0)
+    const diffMs = midnight.getTime() - now.getTime()
+    const h = Math.floor(diffMs / (1000 * 60 * 60))
+    const m = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
+    const s = Math.floor((diffMs % (1000 * 60)) / 1000)
+    setStreakTimeLeft(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`)
+  }
+  updateCountdown()
+  const interval = setInterval(updateCountdown, 1000)
+  return () => clearInterval(interval)
+}, [])
 useEffect(() => {
   try {
     localStorage.removeItem('kw_current_outfit')
@@ -1564,13 +1581,47 @@ onClick={() => {
                       { min: 60, label: locale === 'de' ? 'Legende' : 'Legend',   emoji: '👑' },
                       { min: 100, label: locale === 'de' ? 'Ikone' : 'Icon',      emoji: '💎' },
                     ]
-                    const current = [...levels].reverse().find(l => streak >= l.min) ?? levels[0]
+                   const current = [...levels].reverse().find(l => streak >= l.min) ?? levels[0]
                     return (
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: accentDim, borderRadius: '100px', padding: '5px 14px', fontSize: '12px', fontWeight: 700, color: accent, marginBottom: '10px' }}>
                         {current.emoji} {current.label}
                       </span>
                     )
                   })()}
+
+                  {(() => {
+                    const now = new Date()
+                    const midnight = new Date(now)
+                    midnight.setHours(24, 0, 0, 0)
+                    const hoursLeft = (midnight.getTime() - now.getTime()) / (1000 * 60 * 60)
+                    const urgent = hoursLeft < 3
+
+                    return (
+                      <motion.div
+                        animate={urgent ? { scale: [1, 1.04, 1] } : {}}
+                        transition={urgent ? { duration: 1.1, repeat: Infinity, ease: 'easeInOut' } : {}}
+                        style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                          background: urgent ? 'rgba(239,68,68,0.14)' : (isDark ? 'rgba(249,115,22,0.1)' : 'rgba(249,115,22,0.08)'),
+                          border: urgent ? '1.5px solid rgba(239,68,68,0.5)' : '1px solid rgba(249,115,22,0.25)',
+                          borderRadius: '100px', padding: '7px 16px', marginBottom: '10px',
+                          boxShadow: urgent ? '0 0 0 4px rgba(239,68,68,0.12)' : 'none',
+                        }}>
+                        <motion.span animate={{ rotate: [0, 180, 360] }} transition={{ duration: urgent ? 1.2 : 2.4, repeat: Infinity, ease: 'linear' }} style={{ fontSize: '15px', display: 'inline-block' }}>
+                          {urgent ? '⚠️' : '⏳'}
+                        </motion.span>
+                        <p style={{ fontSize: '13px', fontWeight: 800, color: urgent ? '#dc2626' : '#c2410c', fontVariantNumeric: 'tabular-nums' as const, letterSpacing: '0.02em' }}>
+                          {streakTimeLeft}
+                        </p>
+                        <p style={{ fontSize: '10px', color: urgent ? '#dc2626' : '#c2410c', opacity: 0.85, fontWeight: urgent ? 700 : 500 }}>
+                          {urgent
+                            ? (locale === 'de' ? 'Gleich weg — jetzt generieren!' : 'Almost gone — generate now!')
+                            : (locale === 'de' ? 'bis Streak-Reset' : 'until streak reset')}
+                        </p>
+                      </motion.div>
+                    )
+                  })()}
+
                   {isPremium && (() => {
                     const currentMonth = new Intl.DateTimeFormat('en-CA', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, year: 'numeric', month: '2-digit' }).format(new Date())
                     const freezeAvailable = freezeUsedMonth !== currentMonth
