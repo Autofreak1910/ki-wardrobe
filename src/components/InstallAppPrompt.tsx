@@ -151,19 +151,42 @@ export function InstallInstructionsModal({
 }) {
   const { card, border, text, muted, accent, sageGradient } = theme
 
-  const stepsIOS = locale === 'de'
+  const stepsIOSSafari = locale === 'de'
     ? [
-        { icon: '📤', title: 'Share-Icon antippen', desc: 'Unten (Safari) oder oben (manche Versionen) auf das Viereck mit dem Pfeil nach oben tippen.' },
-        { icon: '📜', title: 'Runterscrollen', desc: 'Im aufklappenden Menü nach unten scrollen, bis "Zum Home-Bildschirm" erscheint.' },
+        { icon: '📤', title: 'Teilen-Icon antippen', desc: 'Ganz unten in der Mitte der Leiste (das Viereck mit dem Pfeil nach oben) — auf manchen iPhones erst nach kurzem Antippen der Adresszeile sichtbar, falls die Leiste ausgeblendet ist.' },
+        { icon: '📜', title: 'Im Menü nach unten scrollen', desc: 'Es öffnet sich eine Liste mit App-Vorschlägen und Aktionen. "Zum Home-Bildschirm" steht meist erst weiter unten — so lange scrollen, bis du es siehst.' },
         { icon: '➕', title: '"Zum Home-Bildschirm" wählen', desc: 'Antippen, dann oben rechts auf "Hinzufügen" tippen.' },
         { icon: '✅', title: 'Fertig!', desc: 'KiWardrobe erscheint jetzt als Icon auf deinem Home-Bildschirm — startet ohne Browserleiste, wie eine echte App.' },
       ]
     : [
-        { icon: '📤', title: 'Tap the share icon', desc: 'In Safari, tap the square-with-arrow icon at the bottom (or top, on some versions).' },
-        { icon: '📜', title: 'Scroll down', desc: 'In the menu that opens, scroll down until you see "Add to Home Screen".' },
+        { icon: '📤', title: 'Tap the Share icon', desc: 'Bottom center of the toolbar (square with an arrow pointing up) — if the toolbar is hidden, tap the address bar first to bring it back.' },
+        { icon: '📜', title: 'Scroll down in the menu', desc: 'A list of apps and actions opens. "Add to Home Screen" is usually further down — keep scrolling until you see it.' },
         { icon: '➕', title: 'Tap "Add to Home Screen"', desc: 'Then tap "Add" in the top right corner.' },
         { icon: '✅', title: 'Done!', desc: 'KiWardrobe now appears as an icon on your home screen — opens without the browser bar, just like a native app.' },
       ]
+
+  const stepsIOSChrome = locale === 'de'
+    ? [
+        { icon: '⋯', title: 'Menü öffnen', desc: 'Unten rechts (oder oben rechts, je nach Version) auf die drei Punkte "•••" tippen.' },
+        { icon: '📤', title: '"Teilen" antippen', desc: 'Im aufklappenden Menü auf "Teilen" tippen.' },
+        { icon: '📜', title: 'Runterscrollen zu "Zum Home-Bildschirm"', desc: 'In der sich öffnenden Liste nach unten scrollen (unter den einzelnen Kontakten/Apps), bis die Option "Zum Home-Bildschirm" erscheint.' },
+        { icon: '➕', title: 'Hinzufügen bestätigen', desc: '"Zum Home-Bildschirm" antippen, dann oben rechts auf "Hinzufügen" tippen.' },
+        { icon: '✅', title: 'Fertig!', desc: 'KiWardrobe erscheint jetzt als Icon auf deinem Home-Bildschirm — startet ohne Browserleiste, wie eine echte App.' },
+      ]
+    : [
+        { icon: '⋯', title: 'Open the menu', desc: 'Tap the three dots "•••" — bottom right (or top right, depending on version).' },
+        { icon: '📤', title: 'Tap "Share"', desc: 'In the menu that opens, tap "Share".' },
+        { icon: '📜', title: 'Scroll down to "Add to Home Screen"', desc: 'In the list that opens, scroll down past the contacts/apps row until you see "Add to Home Screen".' },
+        { icon: '➕', title: 'Confirm', desc: 'Tap "Add to Home Screen", then tap "Add" in the top right corner.' },
+        { icon: '✅', title: 'Done!', desc: 'KiWardrobe now appears as an icon on your home screen — opens without the browser bar, just like a native app.' },
+      ]
+
+  function detectIOSBrowser(): 'safari' | 'chrome' {
+    if (typeof window === 'undefined') return 'safari'
+    return /CriOS/.test(window.navigator.userAgent) ? 'chrome' : 'safari'
+  }
+
+  const [iosBrowser, setIosBrowser] = useState<'safari' | 'chrome'>(detectIOSBrowser())
 
   const stepsAndroidManual = locale === 'de'
     ? [
@@ -177,9 +200,9 @@ export function InstallInstructionsModal({
         { icon: '✅', title: 'Confirm', desc: 'Tap "Add" or "Install" — done!' },
       ]
 
-  const steps = platform === 'ios' ? stepsIOS : stepsAndroidManual
+  const steps = platform === 'ios' ? (iosBrowser === 'safari' ? stepsIOSSafari : stepsIOSChrome) : stepsAndroidManual
   const title = locale === 'de' ? 'App installieren' : 'Install app'
-  const showVideo = platform === 'ios' // Video optional, nur wenn Datei existiert
+  const showVideo = platform === 'ios' && iosBrowser === 'safari' // Video optional, nur für Safari-Anleitung vorhanden
 
   return (
     <AnimatePresence>
@@ -197,6 +220,23 @@ export function InstallInstructionsModal({
               <button onClick={onClose}
                 style={{ background: 'transparent', border: `1px solid ${border}`, borderRadius: '10px', width: '32px', height: '32px', cursor: 'pointer', fontSize: '14px', color: muted }}>✕</button>
             </div>
+
+            {platform === 'ios' && (
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '18px' }}>
+                {(['safari', 'chrome'] as const).map(b => (
+                  <button key={b} onClick={() => setIosBrowser(b)}
+                    style={{
+                      flex: 1, padding: '9px', borderRadius: '10px', cursor: 'pointer',
+                      fontSize: '12.5px', fontWeight: 700, fontFamily: "'Poppins', 'Inter', sans-serif",
+                      border: `1.5px solid ${iosBrowser === b ? accent : border}`,
+                      background: iosBrowser === b ? `${accent}14` : 'transparent',
+                      color: iosBrowser === b ? accent : muted,
+                    }}>
+                    {b === 'safari' ? 'Safari' : 'Chrome'}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {showVideo && (
               <div style={{ borderRadius: '14px', overflow: 'hidden', marginBottom: '18px', border: `1px solid ${border}`, background: '#000' }}>
