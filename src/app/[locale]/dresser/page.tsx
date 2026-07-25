@@ -172,6 +172,8 @@ const [weekOutfitsUsed, setWeekOutfitsUsed] = useState(0)
   const [userId, setUserId] = useState<string | null>(null)
 const [streakReward, setStreakReward] = useState<{ days?: number; milestone: number; type?: string; outfits?: number; tryons?: number } | null>(null)
   const [showStreakInfo, setShowStreakInfo] = useState(false)
+  const [firstOutfitTipSeen, setFirstOutfitTipSeen] = useState<boolean | null>(null)
+  const [showFirstOutfitTip, setShowFirstOutfitTip] = useState(false)
   const [streakBump, setStreakBump] = useState<number | null>(null)
   const prevStreakRef = useRef<number>(stylistCache?.streak ?? 0)
 useEffect(() => {
@@ -333,7 +335,8 @@ supabase.from('profiles').update({ timezone: tz }).eq('id', session.user.id)
 
 const { data } = await supabase.from('clothing_items').select('*').eq('user_id', session.user.id)
     if (data) { setWardrobeItems(data); setHasItems(data.length >= 3) }
-const { data: profile } = await supabase.from('profiles').select('username, premium_until, streak_freeze_used_month, bonus_outfits_this_week, bonus_tryons_this_week').eq('id', session.user.id).single()
+const { data: profile } = await supabase.from('profiles').select('username, premium_until, streak_freeze_used_month, bonus_outfits_this_week, bonus_tryons_this_week, first_outfit_tip_seen').eq('id', session.user.id).single()
+    setFirstOutfitTipSeen(profile?.first_outfit_tip_seen ?? false)
     setFreezeUsedMonth(profile?.streak_freeze_used_month ?? null)
     setBonusOutfitsThisWeek(profile?.bonus_outfits_this_week ?? 0)
     setBonusTryonsThisWeek(profile?.bonus_tryons_this_week ?? 0)
@@ -554,6 +557,11 @@ setLoading(true); setSaved(false); setOutfit(null)
       })
 setOutfit({ outfits: mappedOutfits, active: 0 })
       setWeekOutfitsUsed(c => c + 1)
+      if (firstOutfitTipSeen === false) {
+        setFirstOutfitTipSeen(true)
+        setTimeout(() => setShowFirstOutfitTip(true), 900)
+        supabase.from('profiles').update({ first_outfit_tip_seen: true }).eq('id', session.user.id)
+      }
       try {
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
        const streakRes = await fetch('/api/update-streak', { 
@@ -709,6 +717,31 @@ onClick={() => {
           style={{ width: '100%', padding: '11px', background: 'transparent', border: 'none', fontSize: '13px', color: muted, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
           {locale === 'de' ? 'Vielleicht später' : 'Maybe later'}
         </button>
+   </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
+<AnimatePresence>
+  {showFirstOutfitTip && (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      style={{ position: 'fixed', inset: 0, zIndex: 9996, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+        transition={{ type: 'spring', damping: 24, stiffness: 280 }}
+        style={{ background: card, border: `1px solid ${border}`, borderRadius: '24px', padding: '28px 24px', maxWidth: '360px', textAlign: 'center' as const }}>
+        <p style={{ fontSize: '40px', marginBottom: '12px' }}>💾</p>
+        <h2 style={{ fontSize: '19px', fontWeight: 800, color: text, marginBottom: '8px', letterSpacing: '-0.02em' }}>
+          {locale === 'de' ? 'Kleiner Tipp' : 'Quick tip'}
+        </h2>
+        <p style={{ fontSize: '13px', color: muted, lineHeight: 1.6, marginBottom: '20px' }}>
+          {locale === 'de'
+            ? 'Jedes Outfit, das du generierst und nicht speicherst, ist danach komplett weg. Tipp einfach auf "♡ Speichern", wenn dir eins gefällt!'
+            : "Every outfit you generate and don't save is gone for good afterwards. Just tap \"♡ Save\" whenever you like one!"}
+        </p>
+        <motion.button whileTap={{ scale: 0.97 }}
+          onClick={() => setShowFirstOutfitTip(false)}
+          style={{ width: '100%', padding: '13px', background: sageGradient, border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+          {locale === 'de' ? 'Alles klar ✦' : 'Got it ✦'}
+        </motion.button>
       </motion.div>
     </motion.div>
   )}
@@ -1052,8 +1085,7 @@ onClick={() => {
   )}
 </AnimatePresence>
 
-      <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
-        <AnimatePresence>
+      <AnimatePresence>
   {streakBump !== null && (
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -1100,7 +1132,7 @@ onClick={() => {
   )}
 </AnimatePresence>
 
-      <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}></div>
+      <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
         <div style={{ position: 'absolute', top: '-120px', right: '-80px', width: '420px', height: '420px', borderRadius: '50%', background: isDark ? 'rgba(14,164,114,0.06)' : 'rgba(14,164,114,0.12)', filter: 'blur(90px)' }} />
         <div style={{ position: 'absolute', bottom: '60px', left: '-100px', width: '350px', height: '350px', borderRadius: '50%', background: isDark ? 'rgba(8,145,178,0.04)' : 'rgba(8,145,178,0.08)', filter: 'blur(90px)' }} />
         {!isDark && (
