@@ -1593,7 +1593,7 @@ onClick={() => {
             <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }}
               transition={{ type: 'spring', damping: 20 }}
               onClick={e => e.stopPropagation()}
-              style={{ background: card, borderRadius: '28px', width: '100%', maxWidth: '400px', border: `1px solid ${border}`, maxHeight: '85vh', display: 'flex', flexDirection: 'column' as const, position: 'relative' as const, overflow: 'hidden' }}>
+              style={{ background: card, borderRadius: '28px', width: '100%', maxWidth: '400px', border: `1px solid ${border}`, maxHeight: 'min(72vh, 620px)', marginBottom: 'calc(90px + env(safe-area-inset-bottom))', display: 'flex', flexDirection: 'column' as const, position: 'relative' as const, overflow: 'hidden' }}>
 
               {/* Fester Header */}
               <div style={{ padding: '24px 20px 16px', position: 'relative' as const, flexShrink: 0 }}>
@@ -1604,7 +1604,7 @@ onClick={() => {
 
                 <div style={{ textAlign: 'center' as const }}>
                   <motion.p animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 0.5 }}
-                    style={{ fontSize: '48px', marginBottom: '8px' }}>🔥</motion.p>
+                    style={{ fontSize: '36px', marginBottom: '4px' }}>🔥</motion.p>
                   <p style={{ fontSize: '28px', fontWeight: 800, color: streak >= 7 ? '#f97316' : text, letterSpacing: '-0.04em', marginBottom: '4px' }}>
                     {streak} {locale === 'de' ? 'Tage' : 'Days'}
                   </p>
