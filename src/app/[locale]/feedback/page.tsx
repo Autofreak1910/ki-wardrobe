@@ -12,6 +12,7 @@ const [type, setType] = useState('feedback')
   const [message, setMessage] = useState('')
   const [email, setEmail] = useState('')
   const [wantsReply, setWantsReply] = useState(false)
+  const [rating, setRating] = useState(0)
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
   const { theme } = useTheme()
@@ -34,9 +35,10 @@ async function handleSubmit() {
     setLoading(true)
     const { data: { session } } = await supabase.auth.getSession()
     const finalEmail = email || session?.user?.email
-    await supabase.from('feedback').insert({
+ await supabase.from('feedback').insert({
       user_id: session?.user?.id ?? null,
       type, message, email: finalEmail, wants_reply: wantsReply,
+      rating: rating > 0 ? rating : null,
     })
     try {
       await fetch('/api/send-feedback-email', {
@@ -97,6 +99,25 @@ return (
           </motion.div>
         ) : (
           <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+            {/* Sterne-Bewertung */}
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', padding: '20px', marginBottom: '16px', textAlign: 'center' as const }}>
+              <p style={{ fontSize: '13px', fontWeight: 500, color: text, marginBottom: '10px' }}>
+                {locale === 'de' ? 'Wie gefällt dir KiWardrobe bisher?' : 'How do you like KiWardrobe so far?'}
+              </p>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '6px' }}>
+                {[1, 2, 3, 4, 5].map(n => (
+                  <button key={n} onClick={() => setRating(n)}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '30px', padding: '2px', lineHeight: 1, filter: n <= rating ? 'none' : 'grayscale(1) opacity(0.35)', transition: 'transform 0.15s, filter 0.15s', transform: n <= rating ? 'scale(1.08)' : 'scale(1)' }}>
+                    ⭐
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Type Selection */}
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '20px' }}></motion.div>
             {/* Type Selection */}
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
               style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '20px' }}>
