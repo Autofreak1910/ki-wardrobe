@@ -179,10 +179,10 @@ function isValidEmail(e: string): boolean {
         }
       }
 
-      fetch('/api/send-welcome-email', {
+    fetch('/api/send-welcome-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: existingSession.user.email, username, language: lang }),
+        body: JSON.stringify({ email: existingSession.user.email, username, language: lang, invitedBonusDays: refCode ? 7 : undefined }),
       }).catch(err => console.error('Welcome email failed:', err))
 
       localStorage.removeItem('kw_onboarding_seen')
