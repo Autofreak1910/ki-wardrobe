@@ -6,6 +6,7 @@ import { useLocale } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { InstallInstructionsModal } from '@/components/InstallAppPrompt'
 import { useRouter } from 'next/navigation'
+import { ShareIcon } from '@/components/ShareIcon'
 import { motion, AnimatePresence } from 'framer-motion'
 import UpgradeModal from '@/components/UpgradeModal'
 type Profile = { id: string; username: string; is_premium: boolean; age?: string; country?: string; created_at: string; email?: string; gender?: string; style_preferences?: string[]; budget_range?: string; referral_code?: string; premium_until?: string; invites_this_month?: number; bonus_month_claimed_this_period?: boolean; avatar_tries_left?: number; streak_freeze_used_month?: string }
@@ -616,7 +617,9 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
       else { await navigator.clipboard.writeText(shareText); alert(locale === 'de' ? 'Link kopiert!' : 'Link copied!') }
     }}
     style={{ width: '100%', background: 'linear-gradient(135deg, #EFB43A, #C9963C)', border: 'none', borderRadius: '10px', padding: '11px', fontSize: '13px', fontWeight: 700, color: '#24211B', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
-    {locale === 'de' ? '📤 Einladungslink teilen' : '📤 Share invite link'}
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+  <ShareIcon size={14} color="#24211B" /> {locale === 'de' ? 'Einladungslink teilen' : 'Share invite link'}
+</span>
   </motion.button>
 </motion.div>
 

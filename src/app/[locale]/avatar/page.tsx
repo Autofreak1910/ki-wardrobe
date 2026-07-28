@@ -6,6 +6,7 @@ import { useLocale } from 'next-intl'
 import AvatarPhotoGuide from '@/components/AvatarPhotoGuide'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { ShareIcon } from '@/components/ShareIcon'
 import { motion, AnimatePresence } from 'framer-motion'
 const DRESSING_ROOM_BG_URL = '/dressing-room-bg.jpg'
 import UpgradeModal from '@/components/UpgradeModal'
@@ -760,7 +761,7 @@ const steps = locale === 'de' ? [
                         {locale === 'de' ? 'Erstelle...' : 'Creating...'}
                       </>
                     ) : (
-                      <>📤 {locale === 'de' ? 'Vorher/Nachher teilen' : 'Share before/after'}</>
+                     <><ShareIcon size={15} color="#fff" /> {locale === 'de' ? 'Vorher/Nachher teilen' : 'Share before/after'}</>
                     )}
                   </motion.button>
                   <button
