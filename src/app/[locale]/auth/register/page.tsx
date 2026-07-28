@@ -167,9 +167,9 @@ function isValidEmail(e: string): boolean {
           const result = await res.json()
           if (result.success) {
             const proUntil = new Date()
-            proUntil.setDate(proUntil.getDate() + 14)
+            proUntil.setDate(proUntil.getDate() + 7)
             localStorage.setItem('kw_pro_welcome_pending', JSON.stringify({
-              days: 14,
+              days: 7,
               until: proUntil.toLocaleDateString(lang === 'en' ? 'en-GB' : 'de-DE', { day: 'numeric', month: 'long', year: 'numeric' }),
               fromInvite: true,
             }))

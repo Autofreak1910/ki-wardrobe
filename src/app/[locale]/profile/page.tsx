@@ -610,9 +610,9 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
   <motion.button whileTap={{ scale: 0.97 }}
     onClick={async () => {
       const inviteUrl = `https://kiwardrobe-app.vercel.app/${locale}/auth/register?ref=${profile?.referral_code ?? ''}`
-      const shareText = locale === 'de'
-        ? `Ich hab gerade meinen eigenen Avatar erstellt und KI sagt mir jeden Morgen was ich anziehen soll 🤯 KiWardrobe ist echt krass — probier's aus, mit meinem Link bekommst du 14 Tage Pro komplett gratis: ${inviteUrl}`
-        : `I just made my own AI avatar and it tells me what to wear every morning 🤯 KiWardrobe is actually insane — try it, my link gets you 14 days Pro completely free: ${inviteUrl}`
+     const shareText = locale === 'de'
+        ? `Ich hab gerade meinen eigenen Avatar erstellt und KI sagt mir jeden Morgen was ich anziehen soll 🤯 KiWardrobe ist echt krass — probier's aus, mit meinem Link bekommst du 7 Tage Pro komplett gratis: ${inviteUrl}`
+        : `I just made my own AI avatar and it tells me what to wear every morning 🤯 KiWardrobe is actually insane — try it, my link gets you 7 days Pro completely free: ${inviteUrl}`
       if (navigator.share) { try { await navigator.share({ title: 'KiWardrobe', text: shareText, url: inviteUrl }) } catch {} }
       else { await navigator.clipboard.writeText(shareText); alert(locale === 'de' ? 'Link kopiert!' : 'Link copied!') }
     }}

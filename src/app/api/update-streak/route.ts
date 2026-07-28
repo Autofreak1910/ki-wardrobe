@@ -65,6 +65,7 @@ const milestones = [
           if (premiumUntil < new Date()) premiumUntil.setTime(Date.now())
           premiumUntil.setDate(premiumUntil.getDate() + m.freeDays)
           updates.premium_until = premiumUntil.toISOString()
+          updates.premium_expiry_warning_sent = false
           streakReward = { milestone: m.at, type: 'days', days: m.freeDays }
         }
         break
