@@ -50,7 +50,8 @@ export async function POST(request: NextRequest) {
               referral_popup_pending: JSON.stringify({
                 newUserName,
                 bonusDays: 7,
-              })
+              }),
+              premium_expiry_warning_sent: false,
             })
             .eq('id', referrerProfile.id)
 
