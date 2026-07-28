@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useTheme } from '@/context/ThemeContext'
 import { useTranslations, useLocale } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
+import { ShareIcon } from '@/components/ShareIcon'
 import { useRouter } from 'next/navigation'
 import UpgradeModal from '@/components/UpgradeModal'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -344,18 +345,25 @@ const byFavorite = filter === 'favorites' ? outfits.filter(o => o.is_favorite) :
                         <p style={{ fontSize: '11px', color: muted }}>{outfitItems.length} {t('outfits.pieces')}</p>
                       </div>
                       <div style={{ display: 'flex', gap: '5px', flexShrink: 0 }}>
-                        <motion.button whileTap={{ scale: 0.88 }} onClick={() => shareOutfit(outfit)}
-                          style={{
-                            background: isPremium ? goldDim : 'transparent',
-                            border: `1px solid ${isPremium ? goldAccent : border}`,
-                            borderRadius: '8px', padding: '6px 9px', cursor: 'pointer', fontSize: '13px',
-                            color: isPremium ? goldText : muted, transition: 'all 0.15s',
-                            opacity: sharingId === outfit.id ? 0.5 : 1,
-                            pointerEvents: sharingId === outfit.id ? 'none' : 'auto',
-                          }}
-                          title={isPremium ? (locale === 'de' ? 'Outfit teilen' : 'Share outfit') : (locale === 'de' ? 'Nur mit Premium' : 'Premium only')}>
-                          {sharingId === outfit.id ? '…' : (isPremium ? '📤' : '🔒')}
-                        </motion.button>
+                    <motion.button whileTap={{ scale: 0.88 }} onClick={() => shareOutfit(outfit)}
+  style={{
+    background: isPremium ? goldDim : 'transparent',
+    border: `1px solid ${isPremium ? goldAccent : border}`,
+    borderRadius: '8px', padding: '6px 9px', cursor: 'pointer',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    color: isPremium ? goldText : muted, transition: 'all 0.15s',
+    opacity: sharingId === outfit.id ? 0.5 : 1,
+    pointerEvents: sharingId === outfit.id ? 'none' : 'auto',
+  }}
+  title={isPremium ? (locale === 'de' ? 'Outfit teilen' : 'Share outfit') : (locale === 'de' ? 'Nur mit Premium' : 'Premium only')}>
+  {sharingId === outfit.id ? (
+    <span style={{ fontSize: '13px' }}>…</span>
+  ) : isPremium ? (
+    <ShareIcon size={14} color={goldText} />
+  ) : (
+    <span style={{ fontSize: '13px' }}>🔒</span>
+  )}
+</motion.button>
                         <motion.button whileTap={{ scale: 0.88 }} onClick={() => toggleFavorite(outfit)}
                           style={{ background: outfit.is_favorite ? goldDim : 'transparent', border: `1px solid ${outfit.is_favorite ? goldAccent : border}`, borderRadius: '8px', padding: '6px 9px', cursor: 'pointer', fontSize: '13px', color: outfit.is_favorite ? goldAccent : muted, transition: 'all 0.15s' }}>
                           {outfit.is_favorite ? '★' : '☆'}
