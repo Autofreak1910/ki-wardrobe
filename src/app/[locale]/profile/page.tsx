@@ -200,6 +200,7 @@ const [showFeedbackModal, setShowFeedbackModal] = useState(false)
 const [showLegalModal, setShowLegalModal] = useState(false)
 const [showNoSubscriptionModal, setShowNoSubscriptionModal] = useState(false)
 const [showCancelModal, setShowCancelModal] = useState(false)
+const [subCancelledUntil, setSubCancelledUntil] = useState<string | null>(null)
 const [withdrawalConsent, setWithdrawalConsent] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -237,6 +238,18 @@ const [showInstallModal, setShowInstallModal] = useState(false)
 const [installPlatform, setInstallPlatform] = useState<'ios' | 'android-native' | 'android-manual' | 'desktop' | 'installed'>('desktop')
 
 useEffect(() => { loadProfile() }, [])
+useEffect(() => {
+  if (!profile?.id) return
+  try {
+    const saved = localStorage.getItem('kw_sub_cancelled_' + profile.id)
+    if (saved) {
+      const until = new Date(saved)
+      // Nur anzeigen solange das Kuendigungs-Enddatum noch in der Zukunft liegt
+      if (until.getTime() > Date.now()) setSubCancelledUntil(saved)
+      else localStorage.removeItem('kw_sub_cancelled_' + profile.id)
+    }
+  } catch {}
+}, [profile?.id])
   useEffect(() => {
     setWeatherEnabled(localStorage.getItem('kw_weather_disabled') !== 'true')
   }, [])
@@ -854,10 +867,23 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
               {profile?.premium_source === 'stripe' && (
                 <>
                   <div style={{ height: '1px', background: border, margin: '0 16px' }} />
-                  <button onClick={() => setShowCancelModal(true)}
-                    style={{ width: '100%', padding: '14px 16px', background: 'transparent', border: 'none', fontSize: '14px', color: '#ef4444', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", fontWeight: 600, textAlign: 'left' as const }}>
-                    {locale === 'de' ? 'Jetzt kündigen' : 'Cancel now'}
-                  </button>
+                  {subCancelledUntil ? (
+                    <div style={{ width: '100%', padding: '14px 16px', display: 'flex', flexDirection: 'column' as const, gap: '2px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: 600, color: muted }}>
+                        {locale === 'de' ? 'Gekündigt' : 'Cancelled'}
+                      </span>
+                      <span style={{ fontSize: '12px', color: muted }}>
+                        {locale === 'de'
+                          ? `Läuft noch bis ${new Date(subCancelledUntil).toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' })}`
+                          : `Active until ${new Date(subCancelledUntil).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}`}
+                      </span>
+                    </div>
+                  ) : (
+                    <button onClick={() => setShowCancelModal(true)}
+                      style={{ width: '100%', padding: '14px 16px', background: 'transparent', border: 'none', fontSize: '14px', color: '#ef4444', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", fontWeight: 600, textAlign: 'left' as const }}>
+                      {locale === 'de' ? 'Jetzt kündigen' : 'Cancel now'}
+                    </button>
+                  )}
                 </>
               )}
             </div>
@@ -891,6 +917,10 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
   onClose={() => setShowCancelModal(false)}
   onCancelled={(accessUntil) => {
     setProfile(prev => prev ? { ...prev, premium_until: accessUntil } : prev)
+    setSubCancelledUntil(accessUntil)
+    if (profile?.id) {
+      try { localStorage.setItem('kw_sub_cancelled_' + profile.id, accessUntil) } catch {}
+    }
   }}
 />
 {/* Keine aktive (bezahlte) Mitgliedschaft */}
