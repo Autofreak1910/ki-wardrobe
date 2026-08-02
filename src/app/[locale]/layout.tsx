@@ -7,9 +7,57 @@ import { ThemeProvider } from '@/context/ThemeContext'
 import AppWrapper from '@/components/AppWrapper'
 import '../globals.css'
 
-export const metadata: Metadata = {
-  title: 'KiWardrobe',
-  description: 'Dein persönlicher KI-Stylist',
+const APP_URL = 'https://www.kiwardrobe.com'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const isDe = locale === 'de'
+
+  const title = isDe
+    ? 'KiWardrobe — Dein KI-Stylist für den Alltag'
+    : 'KiWardrobe — Your AI Stylist for Everyday Outfits'
+  const description = isDe
+    ? 'Digitalisiere deinen Kleiderschrank und lass dir jeden Tag ein passendes Outfit von der KI vorschlagen — abgestimmt auf Wetter und Anlass. Plus Virtual Try-On: probier Kleidung virtuell an einem Foto von dir aus.'
+    : 'Digitize your wardrobe and get a matching outfit suggested by AI every day — tailored to weather and occasion. Plus Virtual Try-On: try on clothes virtually on a photo of yourself.'
+
+  return {
+    metadataBase: new URL(APP_URL),
+    title,
+    description,
+    keywords: isDe
+      ? ['KI Kleiderschrank', 'Outfit Generator', 'Virtual Try-On', 'KI Stylist', 'Kleiderschrank App', 'Outfit App', 'KiWardrobe']
+      : ['AI wardrobe', 'outfit generator', 'virtual try-on', 'AI stylist', 'wardrobe app', 'outfit app', 'KiWardrobe'],
+    alternates: {
+      canonical: `${APP_URL}/${locale}`,
+      languages: {
+        de: `${APP_URL}/de`,
+        en: `${APP_URL}/en`,
+      },
+    },
+    openGraph: {
+      title,
+      description,
+      url: `${APP_URL}/${locale}`,
+      siteName: 'KiWardrobe',
+      images: [{ url: `${APP_URL}/icon-512.png`, width: 512, height: 512, alt: 'KiWardrobe' }],
+      locale: isDe ? 'de_DE' : 'en_US',
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary',
+      title,
+      description,
+      images: [`${APP_URL}/icon-512.png`],
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
+  }
 }
 
 export default async function LocaleLayout({
