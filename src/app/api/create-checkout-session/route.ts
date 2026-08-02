@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
 
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('is_founder, signup_number, stripe_customer_id')
+      .select('is_founder, signup_number, stripe_customer_id, is_premium, premium_until')
       .eq('id', userId)
       .single()
 
@@ -49,6 +49,20 @@ export async function POST(request: NextRequest) {
       trialDays = 3
       tier = 'early'
     }
+
+    // Falls der Nutzer aktuell noch eine kostenlose Pro-Phase hat (z.B. durch eine
+    // Einladung geschenkt bekommen), darf Stripe erst NACH deren Ablauf abbuchen --
+    // sonst würde sofort abgerechnet, obwohl noch gratis Pro-Zeit übrig ist.
+    if (profile.is_premium && profile.premium_until) {
+      const remainingMs = new Date(profile.premium_until).getTime() - Date.now()
+      const remainingDays = Math.ceil(remainingMs / (1000 * 60 * 60 * 24))
+      if (remainingDays > trialDays) {
+        trialDays = remainingDays
+        tier = tier === 'none' ? 'remaining_free_period' : tier
+      }
+    }
+    // Stripe erlaubt max. 730 Tage Trial -- zur Sicherheit deckeln
+    trialDays = Math.min(trialDays, 730)
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
