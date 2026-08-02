@@ -595,16 +595,8 @@ const steps = locale === 'de' ? [
       <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, transparent 0%, transparent 50%, ${bg} 100%)`, maskImage: 'linear-gradient(to bottom, transparent 0%, black 100%)', WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 100%)' }} />
           <div style={{ position: 'absolute', inset: '40% 0 0 0', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', background: 'rgba(0,0,0,0.25)', maskImage: 'linear-gradient(to bottom, transparent 0%, black 40%, black 100%)', WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 40%, black 100%)' }} />
 
-          {/* Top row: PRO Badge + Gallery button */}
-          <div style={{ position: 'absolute' as const, top: '16px', left: '20px', right: '18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 2 }}>
-            <motion.button whileTap={{ scale: 0.95 }} onClick={openGallery}
-              style={{ background: isPremium ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.35)', borderRadius: '10px', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', opacity: isPremium ? 1 : 0.6 }}>
-              {isPremium ? <ImageIcon size={13} color="#fff" /> : <LockIcon size={13} color="#fff" />}
-              <span style={{ fontSize: '11px', fontWeight: 700, color: '#fff' }}>
-                {locale === 'de' ? 'Meine Avatare' : 'My Avatars'}
-              </span>
-            </motion.button>
-
+          {/* Top row: PRO Badge */}
+          <div style={{ position: 'absolute' as const, top: '16px', right: '18px', zIndex: 2 }}>
             {isPremium ? (
               <div style={{ background: goldAccent, borderRadius: '10px', padding: '6px 14px', boxShadow: '0 4px 12px rgba(241,185,81,0.5)' }}>
                 <p style={{ fontSize: '11px', fontWeight: 700, color: '#1D1D20', letterSpacing: '0.04em', textAlign: 'right' as const }}>✦ PRO · {usedThisPeriod}/{periodLimit} {locale === 'de' ? 'Woche' : 'week'}</p>
@@ -625,19 +617,8 @@ const steps = locale === 'de' ? [
             </p>
           </div>
         </motion.div>
-{/* Tips */}
-        <div style={{ padding: '12px 20px 0', marginBottom: '14px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' as const, marginBottom: '8px' }}>
-            <LightbulbIcon size={13} color={accent} />
-           {[
-              locale === 'de' ? 'Ganzkörper-Foto' : 'Full-body photo',
-              locale === 'de' ? 'Heller Hintergrund' : 'Bright background',
-              locale === 'de' ? 'Ein Kleidungsstück pro Versuch' : 'One item per try',
-              locale === 'de' ? 'Kein Spiegel-Selfie' : 'No mirror selfie',
-            ].map((tip, i) => (
-              <span key={i} style={{ fontSize: '12px', fontWeight: 600, color: accent, background: accentDim, borderRadius: '100px', padding: '4px 10px', border: `1px solid ${accent}30` }}>{tip}</span>
-            ))}
-          </div>
+{/* Anleitung + Meine Avatare -- jetzt gut sichtbar statt oben im Bild versteckt */}
+        <div style={{ padding: '12px 20px 0', marginBottom: '14px', display: 'flex', flexDirection: 'column' as const, gap: '8px' }}>
           <motion.button whileTap={{ scale: 0.98 }} onClick={() => setShowPhotoGuide(true)}
             style={{ width: '100%', background: sageGradient, border: 'none', borderRadius: '12px', padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer' }}>
             <CameraIcon size={14} color="#fff" />
@@ -645,7 +626,15 @@ const steps = locale === 'de' ? [
               {locale === 'de' ? 'Foto-Anleitung mit Beispielbild ansehen' : 'View photo guide with example'}
             </span>
           </motion.button>
+          <motion.button whileTap={{ scale: 0.98 }} onClick={openGallery}
+            style={{ width: '100%', background: isPremium ? accentDim : (isDark ? 'rgba(251,191,36,0.1)' : 'rgba(251,191,36,0.12)'), border: `1px solid ${isPremium ? border : 'rgba(251,191,36,0.3)'}`, borderRadius: '12px', padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', opacity: isPremium ? 1 : 0.85 }}>
+            {isPremium ? <ImageIcon size={14} color={accent} /> : <LockIcon size={14} color="#92610a" />}
+            <span style={{ fontSize: '12.5px', fontWeight: 700, color: isPremium ? accent : '#92610a' }}>
+              {locale === 'de' ? 'Meine Avatare ansehen' : 'View my avatars'}
+            </span>
+          </motion.button>
         </div>
+
 
         {/* Limit info -- ersetzt die alte grosse Upgrade-Wand, blockiert nichts mehr */}
         <div style={{ padding: '0 20px' }}>
