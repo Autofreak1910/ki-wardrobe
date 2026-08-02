@@ -9,6 +9,36 @@ import { motion, AnimatePresence } from 'framer-motion'
 import UpgradeModal from '@/components/UpgradeModal'
 const categories = ['all', 'tops', 'hosen', 'jacken', 'schuhe', 'acc'] as const
 
+function LockIcon({ size = 14, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="5" y="11" width="14" height="10" rx="2"/>
+      <path d="M8 11V7a4 4 0 018 0v4"/>
+    </svg>
+  )
+}
+function DnaIcon({ size = 24, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 3c0 4 4 6 6 9s6 5 6 9"/>
+      <path d="M18 3c0 4-4 6-6 9s-6 5-6 9"/>
+      <line x1="7.5" y1="7" x2="16.5" y2="7"/>
+      <line x1="9" y1="10.5" x2="15" y2="10.5"/>
+      <line x1="9" y1="13.5" x2="15" y2="13.5"/>
+      <line x1="7.5" y1="17" x2="16.5" y2="17"/>
+    </svg>
+  )
+}
+function QuestionIcon({ size = 24, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M9.5 9a2.5 2.5 0 015 0c0 1.5-2.5 2-2.5 3.5"/>
+      <line x1="12" y1="17" x2="12" y2="17.01"/>
+    </svg>
+  )
+}
+
 type ClothingItem = {
   id: string; image_url: string; category: string; color: string
   name?: string; brand?: string; style_tags: string[]
@@ -506,8 +536,9 @@ const catLabels: Record<string, string> = locale === 'de'
               fontFamily: "'Poppins', 'Inter', sans-serif",
               boxShadow: `0 4px 20px ${accent}50`,
               maxWidth: '320px', textAlign: 'center' as const,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
             }}>
-            🔒 {limitMsg}
+            <LockIcon size={13} color="#fff" /> {limitMsg}
           </motion.div>
         )}
       </AnimatePresence>
@@ -595,7 +626,7 @@ const catLabels: Record<string, string> = locale === 'de'
                   <rect x="2" y="6" width="20" height="16" rx="2"/><circle cx="12" cy="14" r="3"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
                 </svg>
               ) : (
-                <span style={{ fontSize: '22px' }}>🔒</span>
+                <LockIcon size={20} color="#92610a" />
               )}
             </div>
          <p style={{ fontWeight: 700, color: isPremium ? text : '#92610a', fontSize: '13px', marginBottom: '3px', letterSpacing: '-0.02em' }}>
@@ -639,7 +670,7 @@ const dnaLocked = !isPremium || styleDnaUsedToday || needsMoreItems
     }}>
   {dnaLocked && (
       <div style={{ position: 'absolute', top: '14px', right: '16px', zIndex: 5, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(8px)', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ fontSize: '16px' }}>🔒</span>
+        <LockIcon size={16} color="#fff" />
       </div>
     )}
     {/* Glow Effekte */}
@@ -667,9 +698,9 @@ const dnaLocked = !isPremium || styleDnaUsedToday || needsMoreItems
     {!isPremium ? (
   <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: goldAccent, borderRadius: '5px', padding: '2px 7px', boxShadow: '0 2px 8px rgba(251,191,36,0.4)' }}>PRO</span>
 ) : needsMoreItems ? (
-  <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: 'rgba(255,255,255,0.2)', borderRadius: '5px', padding: '2px 7px' }}>🔒 {items.length}/3</span>
+  <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: 'rgba(255,255,255,0.2)', borderRadius: '5px', padding: '2px 7px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}><LockIcon size={9} color="#fff" /> {items.length}/3</span>
 ) : styleDnaUsedToday ? (
-  <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: 'rgba(255,255,255,0.2)', borderRadius: '5px', padding: '2px 7px' }}>🔒 {locale === 'de' ? 'Heute genutzt' : 'Used today'}</span>
+  <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', background: 'rgba(255,255,255,0.2)', borderRadius: '5px', padding: '2px 7px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}><LockIcon size={9} color="#fff" /> {locale === 'de' ? 'Heute genutzt' : 'Used today'}</span>
 ) : (
   <span style={{ fontSize: '9px', fontWeight: 700, color: '#a855f7', background: 'rgba(168,85,247,0.2)', borderRadius: '5px', padding: '2px 7px', border: '1px solid rgba(168,85,247,0.3)' }}>✦ AKTIV</span>
 )}
@@ -871,8 +902,10 @@ const dnaLocked = !isPremium || styleDnaUsedToday || needsMoreItems
 
               <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '160px', height: '160px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(168,85,247,0.3), transparent 70%)', filter: 'blur(20px)', pointerEvents: 'none' }} />
 
-              <motion.p animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 2, repeat: Infinity }}
-                style={{ fontSize: '52px', marginBottom: '16px', position: 'relative', zIndex: 1 }}>🧬</motion.p>
+              <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 2, repeat: Infinity }}
+                style={{ marginBottom: '16px', position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'center' }}>
+                <DnaIcon size={52} color="#a855f7" />
+              </motion.div>
 
               <p style={{ fontSize: '11px', fontWeight: 700, color: '#a855f7', letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '10px', position: 'relative', zIndex: 1 }}>
                 {locale === 'de' ? '✦ Schon erledigt' : '✦ Already done'}
@@ -903,8 +936,9 @@ const dnaLocked = !isPremium || styleDnaUsedToday || needsMoreItems
     setDnaLoading(false)
   }
 }}
-                style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: 'linear-gradient(135deg, #a855f7, #6b9fff)', color: '#fff', fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: '0 6px 24px rgba(168,85,247,0.4)', marginBottom: '8px', position: 'relative', zIndex: 1 }}>
-                {locale === 'de' ? '🧬 Heutige DNA ansehen' : '🧬 View today\'s DNA'}
+                style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: 'linear-gradient(135deg, #a855f7, #6b9fff)', color: '#fff', fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: '0 6px 24px rgba(168,85,247,0.4)', marginBottom: '8px', position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <DnaIcon size={16} color="#fff" />
+                {locale === 'de' ? 'Heutige DNA ansehen' : "View today's DNA"}
               </motion.button>
 
               <button onClick={() => setShowDnaUsedToday(false)}
@@ -1070,7 +1104,9 @@ const dnaLocked = !isPremium || styleDnaUsedToday || needsMoreItems
               onClick={e => e.stopPropagation()}
               style={{ background: card, borderRadius: '24px', padding: '32px 24px', textAlign: 'center' as const, maxWidth: '340px', width: '100%', border: `1px solid ${border}`, boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
 
-              <p style={{ fontSize: '44px', marginBottom: '16px' }}>🤔</p>
+              <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'center' }}>
+                <QuestionIcon size={44} color={muted} />
+              </div>
 
               <p style={{ fontSize: '17px', fontWeight: 800, color: text, letterSpacing: '-0.02em', marginBottom: '8px' }}>
                 {locale === 'de' ? 'Kein Kleidungsstück erkannt' : 'No clothing item detected'}
