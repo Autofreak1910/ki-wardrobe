@@ -4,6 +4,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
+  themeColor: '#061712',
 }
 
 export const metadata: Metadata = {
@@ -19,6 +20,9 @@ export const metadata: Metadata = {
     'mobile-web-app-capable': 'yes',
     'apple-mobile-web-app-capable': 'yes',
     'apple-mobile-web-app-status-bar-style': 'black-translucent',
+  },
+  verification: {
+    google: 'Hm8TQYL0FaKLMbsndH9pdWjZUptrXfgs_b_MLj6nuVk',
   },
 }
 
