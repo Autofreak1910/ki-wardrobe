@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
 await resend.emails.send({
      from: 'KiWardrobe <noreply@kiwardrobe.com>',
-      to: 'support.kiwardrobe@gmail.com',
+      to: 'support@kiwardrobe.com',   // statt 'support.kiwardrobe@gmail.com'
       subject: `${typeLabels[type] ?? 'Feedback'} — neue Nachricht`,
       text: `Typ: ${typeLabels[type] ?? type}\nVon: ${email ?? 'unbekannt'}\n\nNachricht:\n${message}\n\n---\nIch melde mich.`,
       html: `

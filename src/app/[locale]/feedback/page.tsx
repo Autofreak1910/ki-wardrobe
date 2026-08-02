@@ -173,7 +173,7 @@ return (
                 onBlur={e => e.target.style.borderColor = border}
               />
               <p style={{ fontSize: '11px', color: muted, marginTop: '6px' }}>
-                {locale === 'de' ? 'Wir antworten von: support.kiwardrobe@gmail.com' : 'We reply from: support.kiwardrobe@gmail.com'}
+                {locale === 'de' ? 'Wir antworten von: support@kiwardrobe.com' : 'We reply from: support@kiwardrobe.com'}
               </p>
             </motion.div>
 
