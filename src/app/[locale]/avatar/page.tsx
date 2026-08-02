@@ -11,6 +11,122 @@ import { motion, AnimatePresence } from 'framer-motion'
 const DRESSING_ROOM_BG_URL = '/dressing-room-bg.jpg'
 import UpgradeModal from '@/components/UpgradeModal'
 
+function LockIcon({ size = 14, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="5" y="11" width="14" height="10" rx="2"/>
+      <path d="M8 11V7a4 4 0 018 0v4"/>
+    </svg>
+  )
+}
+function ImageIcon({ size = 14, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2"/>
+      <circle cx="8.5" cy="8.5" r="1.5"/>
+      <path d="M21 15l-5-5L5 21"/>
+    </svg>
+  )
+}
+function CameraIcon({ size = 14, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
+      <circle cx="12" cy="13" r="4"/>
+    </svg>
+  )
+}
+function UploadIcon({ size = 14, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+    </svg>
+  )
+}
+function ScissorsIcon({ size = 14, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/>
+      <line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/>
+    </svg>
+  )
+}
+function SearchIcon({ size = 14, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+  )
+}
+function ShirtIcon({ size = 14, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.57a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.57a2 2 0 00-1.34-2.23z"/>
+    </svg>
+  )
+}
+function WandIcon({ size = 14, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M15 4V2M15 16v-2M8 9h2M20 9h2M17.8 11.8L19 13M15 9h.01M17.8 6.2L19 5M3 21l9-9M12.2 6.2L11 5"/>
+    </svg>
+  )
+}
+function PaletteIcon({ size = 14, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2a10 10 0 100 20 3 3 0 003-3 2 2 0 012-2h1a3 3 0 003-3c0-6-4-12-9-12z"/>
+      <circle cx="7.5" cy="10.5" r="1"/><circle cx="10.5" cy="7" r="1"/><circle cx="15" cy="7.5" r="1"/><circle cx="17" cy="11.5" r="1"/>
+    </svg>
+  )
+}
+function LightbulbIcon({ size = 14, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 18h6"/><path d="M10 22h4"/>
+      <path d="M12 2a7 7 0 00-4 12.7c.6.5 1 1.3 1 2.1V17h6v-2.2c0-.8.4-1.6 1-2.1A7 7 0 0012 2z"/>
+    </svg>
+  )
+}
+function HourglassIcon({ size = 14, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 2h12M6 22h12M6 2c0 5 12 5 12 10s-12 5-12 10M18 2c0 5-12 5-12 10s12 5 12 10"/>
+    </svg>
+  )
+}
+function SelfieIcon({ size = 14, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="4" y="2" width="16" height="20" rx="2"/>
+      <circle cx="12" cy="10" r="3"/>
+      <path d="M8 18c0-2.2 1.8-4 4-4s4 1.8 4 4"/>
+    </svg>
+  )
+}
+function LinkIcon({ size = 14, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
+      <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
+    </svg>
+  )
+}
+function StepIcon({ name, size = 56, color = 'currentColor' }: { name: string; size?: number; color?: string }) {
+  switch (name) {
+    case 'upload': return <UploadIcon size={size} color={color} />
+    case 'scissors': return <ScissorsIcon size={size} color={color} />
+    case 'search': return <SearchIcon size={size} color={color} />
+    case 'shirt': return <ShirtIcon size={size} color={color} />
+    case 'wand': return <WandIcon size={size} color={color} />
+    case 'palette': return <PaletteIcon size={size} color={color} />
+    case 'lightbulb': return <LightbulbIcon size={size} color={color} />
+    case 'sparkle': return <span style={{ fontSize: size * 0.7, color, lineHeight: 1 }}>✦</span>
+    case 'hourglass': return <HourglassIcon size={size} color={color} />
+    default: return <UploadIcon size={size} color={color} />
+  }
+}
+
 type ClothingItem = { id: string; image_url: string; category: string; color: string; name?: string; brand?: string }
 function getCategoryLabel(category: string): string {
   const map: Record<string, string> = {
@@ -238,7 +354,7 @@ export default function AvatarPage() {
   const [sharing, setSharing] = useState(false)
 const [genStep, setGenStep] = useState('')
 const [genProgress, setGenProgress] = useState(0)
-  const [genIcon, setGenIcon] = useState('📤')
+  const [genIcon, setGenIcon] = useState('upload')
   const [showUpgrade, setShowUpgrade] = useState(false)
   const [showGallery, setShowGallery] = useState(false)
   const [galleryAvatars, setGalleryAvatars] = useState<{ id: string; image_url: string; created_at: string }[]>([])
@@ -367,25 +483,25 @@ async function generateAvatar() {
     setGenProgress(0)
 
 const steps = locale === 'de' ? [
-      { at: 0,  label: 'Foto wird hochgeladen...', icon: '📤' },
-      { at: 12, label: 'Hintergrund wird entfernt...', icon: '✂️' },
-      { at: 25, label: 'Foto wird geprüft...', icon: '🔍' },
-      { at: 38, label: 'KI zieht dir das Outfit an...', icon: '👕' },
-      { at: 52, label: 'Falten werden geglättet...', icon: '🪄' },
-      { at: 64, label: 'Farben werden abgestimmt...', icon: '🎨' },
-      { at: 76, label: 'Licht wird angepasst...', icon: '💡' },
-      { at: 87, label: 'Letzte Details...', icon: '✨' },
-      { at: 94, label: 'Fast fertig...', icon: '⏳' },
+      { at: 0,  label: 'Foto wird hochgeladen...', icon: 'upload' },
+      { at: 12, label: 'Hintergrund wird entfernt...', icon: 'scissors' },
+      { at: 25, label: 'Foto wird geprüft...', icon: 'search' },
+      { at: 38, label: 'KI zieht dir das Outfit an...', icon: 'shirt' },
+      { at: 52, label: 'Falten werden geglättet...', icon: 'wand' },
+      { at: 64, label: 'Farben werden abgestimmt...', icon: 'palette' },
+      { at: 76, label: 'Licht wird angepasst...', icon: 'lightbulb' },
+      { at: 87, label: 'Letzte Details...', icon: 'sparkle' },
+      { at: 94, label: 'Fast fertig...', icon: 'hourglass' },
     ] : [
-      { at: 0,  label: 'Uploading photo...', icon: '📤' },
-      { at: 12, label: 'Removing background...', icon: '✂️' },
-      { at: 25, label: 'Checking photo quality...', icon: '🔍' },
-      { at: 38, label: 'AI is dressing you...', icon: '👕' },
-      { at: 52, label: 'Smoothing out wrinkles...', icon: '🪄' },
-      { at: 64, label: 'Matching the colors...', icon: '🎨' },
-      { at: 76, label: 'Adjusting the lighting...', icon: '💡' },
-      { at: 87, label: 'Final touches...', icon: '✨' },
-      { at: 94, label: 'Almost there...', icon: '⏳' },
+      { at: 0,  label: 'Uploading photo...', icon: 'upload' },
+      { at: 12, label: 'Removing background...', icon: 'scissors' },
+      { at: 25, label: 'Checking photo quality...', icon: 'search' },
+      { at: 38, label: 'AI is dressing you...', icon: 'shirt' },
+      { at: 52, label: 'Smoothing out wrinkles...', icon: 'wand' },
+      { at: 64, label: 'Matching the colors...', icon: 'palette' },
+      { at: 76, label: 'Adjusting the lighting...', icon: 'lightbulb' },
+      { at: 87, label: 'Final touches...', icon: 'sparkle' },
+      { at: 94, label: 'Almost there...', icon: 'hourglass' },
     ]
  setGenStep(steps[0].label)
     setGenIcon(steps[0].icon)
@@ -483,7 +599,7 @@ const steps = locale === 'de' ? [
           <div style={{ position: 'absolute' as const, top: '16px', left: '20px', right: '18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 2 }}>
             <motion.button whileTap={{ scale: 0.95 }} onClick={openGallery}
               style={{ background: isPremium ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.35)', borderRadius: '10px', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', opacity: isPremium ? 1 : 0.6 }}>
-              <span style={{ fontSize: '13px' }}>{isPremium ? '🖼️' : '🔒'}</span>
+              {isPremium ? <ImageIcon size={13} color="#fff" /> : <LockIcon size={13} color="#fff" />}
               <span style={{ fontSize: '11px', fontWeight: 700, color: '#fff' }}>
                 {locale === 'de' ? 'Meine Avatare' : 'My Avatars'}
               </span>
@@ -512,7 +628,7 @@ const steps = locale === 'de' ? [
 {/* Tips */}
         <div style={{ padding: '12px 20px 0', marginBottom: '14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' as const, marginBottom: '8px' }}>
-            <span style={{ fontSize: '12px' }}>💡</span>
+            <LightbulbIcon size={13} color={accent} />
            {[
               locale === 'de' ? 'Ganzkörper-Foto' : 'Full-body photo',
               locale === 'de' ? 'Heller Hintergrund' : 'Bright background',
@@ -524,7 +640,7 @@ const steps = locale === 'de' ? [
           </div>
           <motion.button whileTap={{ scale: 0.98 }} onClick={() => setShowPhotoGuide(true)}
             style={{ width: '100%', background: sageGradient, border: 'none', borderRadius: '12px', padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer' }}>
-            <span style={{ fontSize: '14px' }}>📸</span>
+            <CameraIcon size={14} color="#fff" />
             <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#fff' }}>
               {locale === 'de' ? 'Foto-Anleitung mit Beispielbild ansehen' : 'View photo guide with example'}
             </span>
@@ -537,7 +653,7 @@ const steps = locale === 'de' ? [
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
              onClick={() => { if (!isPremium) setShowUpgrade(true) }}
               style={{ background: isPremium ? accentDim : sageGradient, borderRadius: '14px', padding: '12px 16px', marginBottom: '16px', cursor: isPremium ? 'default' : 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '18px' }}>🔒</span>
+              <LockIcon size={18} color={isPremium ? accent : '#fff'} />
               <div>
                 <p style={{ fontSize: '13px', fontWeight: 700, color: isPremium ? accent : '#fff' }}>
                   {isPremium
@@ -563,14 +679,16 @@ const steps = locale === 'de' ? [
           <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '20px', overflow: 'hidden', boxShadow: isDark ? 'none' : '0 2px 8px rgba(29,29,32,0.04)', position: 'relative' as const, opacity: canGenerate ? 1 : 0.5, pointerEvents: canGenerate ? 'auto' : 'none' as const }}>
             {!canGenerate && (
               <div style={{ position: 'absolute', inset: 0, zIndex: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', background: isDark ? 'rgba(29,29,32,0.4)' : 'rgba(255,255,255,0.4)' }}>
-                <span style={{ fontSize: '28px' }}>🔒</span>
+                <LockIcon size={28} color={text} />
               </div>
             )}
             <div style={{ padding: '8px' }}>
               {!selfie ? (
                 <motion.div whileTap={{ scale: 0.98 }} onClick={() => fileRef.current?.click()}
                   style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}>
-                  <div style={{ width: '52px', height: '52px', borderRadius: '16px', background: accentDim, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px', flexShrink: 0 }}>🤳</div>
+                  <div style={{ width: '52px', height: '52px', borderRadius: '16px', background: accentDim, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <SelfieIcon size={26} color={accent} />
+                  </div>
                   <div style={{ textAlign: 'left' as const }}>
                     <p style={{ fontSize: '14px', fontWeight: 700, color: text, marginBottom: '2px', letterSpacing: '-0.02em' }}>
                       {locale === 'de' ? 'Selfie hochladen' : 'Upload selfie'}
@@ -604,7 +722,7 @@ const steps = locale === 'de' ? [
           <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '20px', overflow: 'hidden', boxShadow: isDark ? 'none' : '0 2px 8px rgba(29,29,32,0.04)', position: 'relative' as const, opacity: canGenerate ? 1 : 0.5, pointerEvents: canGenerate ? 'auto' : 'none' as const }}>
             {!canGenerate && (
               <div style={{ position: 'absolute', inset: 0, zIndex: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', background: isDark ? 'rgba(29,29,32,0.4)' : 'rgba(255,255,255,0.4)' }}>
-                <span style={{ fontSize: '28px' }}>🔒</span>
+                <LockIcon size={28} color={text} />
               </div>
             )}
             <div style={{ padding: '16px' }}>
@@ -638,14 +756,14 @@ const steps = locale === 'de' ? [
             <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
               style={{ background: isDark ? 'rgba(239,68,68,0.1)' : '#fef2f2', border: `1px solid ${isDark ? 'rgba(239,68,68,0.25)' : '#fecaca'}`, borderRadius: '14px', padding: '16px', marginBottom: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: errorTips ? '10px' : 0 }}>
-                <span style={{ fontSize: '18px', flexShrink: 0 }}>📸</span>
+                <CameraIcon size={18} color="#ef4444" />
                 <p style={{ fontSize: '13px', color: '#ef4444', fontWeight: 600, lineHeight: 1.5 }}>{error}</p>
               </div>
 
               {errorTips && (
                 <div style={{ background: isDark ? 'rgba(255,255,255,0.04)' : '#ffffff', borderRadius: '10px', padding: '12px 14px', marginTop: '4px' }}>
-                  <p style={{ fontSize: '11px', fontWeight: 700, color: text, marginBottom: '8px', textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>
-                    {locale === 'de' ? '💡 So klappt\'s besser' : '💡 Tips for better results'}
+                  <p style={{ fontSize: '11px', fontWeight: 700, color: text, marginBottom: '8px', textTransform: 'uppercase' as const, letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <LightbulbIcon size={12} color={text} /> {locale === 'de' ? "So klappt's besser" : 'Tips for better results'}
                   </p>
                   {errorTips.map((tip, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: i < errorTips.length - 1 ? '6px' : 0 }}>
@@ -716,7 +834,7 @@ const steps = locale === 'de' ? [
                           div.style.padding = '20px'
                           div.style.textAlign = 'center'
                           div.style.color = accent
-                          div.innerHTML = `<a href="${result}" target="_blank" style="color:${accent};font-weight:600">🔗 ${locale === 'de' ? 'Bild öffnen →' : 'Open image →'}</a>`
+                          div.innerHTML = `<a href="${result}" target="_blank" style="color:${accent};font-weight:600">${locale === 'de' ? 'Bild öffnen →' : 'Open image →'}</a>`
                           e.currentTarget.parentNode?.appendChild(div)
                         }}
                       />
@@ -766,8 +884,8 @@ const steps = locale === 'de' ? [
                   </motion.button>
                   <button
                     onClick={() => window.open(result, '_blank')}
-                    style={{ width: '100%', background: accentDim, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px', fontSize: '13px', fontWeight: 600, color: accent, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
-                    🔗 {locale === 'de' ? 'In neuem Tab öffnen' : 'Open in new tab'}
+                    style={{ width: '100%', background: accentDim, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px', fontSize: '13px', fontWeight: 600, color: accent, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                    <LinkIcon size={13} color={accent} /> {locale === 'de' ? 'In neuem Tab öffnen' : 'Open in new tab'}
                   </button>
                 </div>
               </motion.div>
@@ -792,7 +910,7 @@ const steps = locale === 'de' ? [
                 </span>
               ) : !canGenerate ? (
                 <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                  🔒 {locale === 'de' ? 'Kein Kontingent mehr' : 'No quota left'}
+                  <LockIcon size={15} color="#fff" /> {locale === 'de' ? 'Kein Kontingent mehr' : 'No quota left'}
                 </span>
               ) : (
                 <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
@@ -819,8 +937,8 @@ const steps = locale === 'de' ? [
 
             <motion.div key={genIcon} initial={{ scale: 0.5, opacity: 0, rotate: -10 }} animate={{ scale: 1, opacity: 1, rotate: 0 }}
               transition={{ type: 'spring', damping: 12 }}
-              style={{ fontSize: '56px', marginBottom: '20px' }}>
-              {genIcon}
+              style={{ marginBottom: '20px' }}>
+              <StepIcon name={genIcon} size={56} color={accent} />
             </motion.div>
 
             <motion.p key={genStep} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
@@ -864,8 +982,8 @@ const steps = locale === 'de' ? [
               <div style={{ width: '36px', height: '4px', background: border, borderRadius: '2px', margin: '0 auto 16px' }} />
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h2 style={{ fontSize: '18px', fontWeight: 800, color: text, letterSpacing: '-0.02em' }}>
-                  🖼️ {locale === 'de' ? 'Meine Avatare' : 'My Avatars'}
+                <h2 style={{ fontSize: '18px', fontWeight: 800, color: text, letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <ImageIcon size={16} color={text} /> {locale === 'de' ? 'Meine Avatare' : 'My Avatars'}
                 </h2>
                 <button onClick={() => setShowGallery(false)}
                   style={{ background: card, border: `1px solid ${border}`, borderRadius: '10px', width: '32px', height: '32px', cursor: 'pointer', fontSize: '14px', color: muted }}>✕</button>
@@ -908,8 +1026,8 @@ const steps = locale === 'de' ? [
               <img src={galleryFullscreen} style={{ width: '100%', borderRadius: '16px', maxHeight: '70vh', objectFit: 'contain' }} />
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button onClick={() => window.open(galleryFullscreen, '_blank')}
-                  style={{ flex: 1, background: sageGradient, border: 'none', borderRadius: '12px', padding: '12px', fontSize: '13px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
-                  🔗 {locale === 'de' ? 'Öffnen' : 'Open'}
+                  style={{ flex: 1, background: sageGradient, border: 'none', borderRadius: '12px', padding: '12px', fontSize: '13px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                  <LinkIcon size={13} color="#fff" /> {locale === 'de' ? 'Öffnen' : 'Open'}
                 </button>
                 <button onClick={() => setGalleryFullscreen(null)}
                   style={{ flex: 1, background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '12px', padding: '12px', fontSize: '13px', fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
