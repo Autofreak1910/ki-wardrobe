@@ -31,6 +31,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [pendingConfirmation, setPendingConfirmation] = useState(false)
+  const [manualLoginLoading, setManualLoginLoading] = useState(false)
   const [username, setUsername] = useState('')
 const [birthdate, setBirthdate] = useState('')
 const [agbAccepted, setAgbAccepted] = useState(false)
@@ -88,6 +89,28 @@ useEffect(() => {
       clearInterval(interval)
     }
   }, [pendingConfirmation])
+
+  // Falls die Bestaetigung auf einem ANDEREN Geraet passiert (z.B. Handy-Link,
+  // waehrend hier PC-Browser wartet), kann dieser Browser das nie automatisch
+  // mitbekommen -- Sessions sind pro Browser getrennt. Deshalb: manueller
+  // Login-Button, der ganz normal mit Email+Passwort einloggt. Das klappt,
+  // sobald die Email irgendwo bestaetigt wurde, unabhaengig vom Geraet.
+  async function tryManualLoginAfterConfirmation() {
+    setManualLoginLoading(true)
+    setError('')
+    const { data, error: loginError } = await supabase.auth.signInWithPassword({ email, password })
+    setManualLoginLoading(false)
+    if (loginError) {
+      setError(locale === 'de'
+        ? 'Noch nicht bestätigt oder falsches Passwort. Hast du schon auf den Link in der E-Mail geklickt?'
+        : 'Not confirmed yet or wrong password. Did you click the link in the email already?')
+      return
+    }
+    if (data.session) {
+      setPendingConfirmation(false)
+      setStep(2)
+    }
+  }
 
   async function checkGoogleSession() {
     const { data: { session } } = await supabase.auth.getSession()
@@ -281,9 +304,24 @@ function isValidEmail(e: string): boolean {
               </p>
               <p style={{ color: muted, fontSize: '13px', lineHeight: 1.6, marginBottom: '20px' }}>
                 {locale === 'de'
-                  ? 'Klick auf den Link in der E-Mail — danach geht es hier automatisch weiter.'
-                  : 'Click the link in the email — this page will continue automatically after that.'}
+                  ? 'Klick auf den Link in der E-Mail. Falls du die Mail auf einem ANDEREN Gerät (z.B. Handy) geöffnet hast, klick hier unten auf "Ich hab bestätigt" — dieser Bildschirm merkt das sonst nicht automatisch.'
+                  : 'Click the link in the email. If you opened the email on a DIFFERENT device (e.g. phone), click "I confirmed" below — this screen otherwise won\'t notice automatically.'}
               </p>
+
+              {error && (
+                <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#ef4444', fontSize: '12px', padding: '10px 14px', borderRadius: '10px', marginBottom: '16px', textAlign: 'left' as const }}>
+                  {error}
+                </div>
+              )}
+
+              <motion.button whileTap={{ scale: 0.97 }} disabled={manualLoginLoading}
+                onClick={tryManualLoginAfterConfirmation}
+                style={{ width: '100%', background: manualLoginLoading ? (isDark ? '#1D1D20' : '#EDE7D8') : sageGradient, border: 'none', borderRadius: '12px', padding: '13px', fontSize: '14px', fontWeight: 700, color: manualLoginLoading ? muted : '#fff', cursor: manualLoginLoading ? 'wait' : 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", marginBottom: '10px' }}>
+                {manualLoginLoading
+                  ? (locale === 'de' ? 'Prüfe...' : 'Checking...')
+                  : (locale === 'de' ? '✓ Ich hab bestätigt — weiter' : "✓ I confirmed — continue")}
+              </motion.button>
+
               <button onClick={() => setPendingConfirmation(false)}
                 style={{ fontSize: '12px', color: muted, background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
                 {locale === 'de' ? '← Zurück' : '← Back'}
@@ -660,14 +698,14 @@ function isValidEmail(e: string): boolean {
                     { title: '2. Leistungsbeschreibung', content: 'KiWardrobe bietet eine KI-gestützte Anwendung zur Verwaltung des persönlichen Kleiderschranks, zur Erstellung von Outfit-Vorschlägen sowie zur virtuellen Anprobe von Kleidung (Virtual Try-On). Ein Teil der Funktionen ist kostenlos nutzbar (KiWardrobe Free), erweiterte Funktionen sind im kostenpflichtigen Abonnement (KiWardrobe Pro) enthalten.' },
                     { title: '3. Vertragsschluss', content: 'Der Vertrag über die Free-Nutzung kommt durch erfolgreiche Registrierung zustande. Der Vertrag über ein Pro-Abonnement kommt durch Abschluss des Bezahlvorgangs über unseren Zahlungsdienstleister Stripe zustande.' },
                     { title: '4. Preise und Zahlung', content: 'Der aktuelle Preis für KiWardrobe Pro wird vor Vertragsschluss in der App angezeigt (Stand: €4,99/Monat). Die Zahlung erfolgt monatlich im Voraus über Stripe. Preisänderungen werden mit angemessener Vorlaufzeit angekündigt.' },
-                    { title: '5. Laufzeit und Kündigung', content: 'Das Pro-Abonnement verlängert sich automatisch um jeweils einen Monat, sofern es nicht rechtzeitig vor Ablauf des laufenden Abrechnungszeitraums gekündigt wird. Die Kündigung ist jederzeit über die Profileinstellungen in der App oder per E-Mail an support.kiwardrobe@gmail.com möglich. Bereits bezahlte Zeiträume werden bei einer Kündigung nicht anteilig zurückerstattet; der Zugang zu Pro-Funktionen bleibt bis zum Ende des bezahlten Zeitraums bestehen.' },
+                    { title: '5. Laufzeit und Kündigung', content: 'Das Pro-Abonnement verlängert sich automatisch um jeweils einen Monat, sofern es nicht rechtzeitig vor Ablauf des laufenden Abrechnungszeitraums gekündigt wird. Die Kündigung ist jederzeit über den Button "Abo verwalten / kündigen" in den Profileinstellungen möglich — dieser öffnet das sichere Kundenportal unseres Zahlungsdienstleisters Stripe. Alternativ ist die Kündigung auch per E-Mail an support@kiwardrobe.com möglich. Bereits bezahlte Zeiträume werden bei einer Kündigung nicht anteilig zurückerstattet; der Zugang zu Pro-Funktionen bleibt bis zum Ende des bezahlten Zeitraums bestehen.' },
                     { title: '6. Widerrufsrecht', content: 'Verbrauchern steht grundsätzlich ein gesetzliches Widerrufsrecht von 14 Tagen nach Vertragsschluss zu. Da es sich bei KiWardrobe Pro um digitale Inhalte handelt, die sofort nach Zahlung bereitgestellt werden, erlischt das Widerrufsrecht vorzeitig, wenn du der sofortigen Ausführung ausdrücklich zustimmst und bestätigst, dass du dadurch dein Widerrufsrecht verlierst. Diese Zustimmung wird im Bestellprozess eingeholt.' }, { title: '7. Nutzungsrechte und Pflichten', content: 'Du erhältst ein einfaches, nicht übertragbares Nutzungsrecht an der App für die Dauer deines Accounts. Du verpflichtest dich, keine missbräuchlichen, rechtswidrigen oder die Rechte Dritter verletzenden Inhalte (z. B. Bilder) hochzuladen. Bei Verstößen kann der Account gesperrt oder gelöscht werden.' },
                     { title: '8. KI-generierte Inhalte', content: 'Outfit-Vorschläge und virtuelle Anprobe-Ergebnisse werden mithilfe von KI-Modellen Dritter (u. a. OpenAI, Replicate) erzeugt. Der Anbieter übernimmt keine Garantie für die optische Genauigkeit, Eignung oder Fehlerfreiheit der KI-generierten Ergebnisse.' },
                     { title: '9. Referral-Programm', content: 'Im Rahmen des Einladungsprogramms können Nutzer durch das Einladen neuer Nutzer zeitlich begrenzte kostenlose Pro-Zeiträume erhalten. Der Anbieter behält sich vor, das Programm jederzeit anzupassen, einzuschränken oder zu beenden sowie Belohnungen bei Missbrauch (z. B. Fake-Accounts) zu widerrufen.' },
                     { title: '10. Haftung', content: 'Der Anbieter haftet unbeschränkt bei Vorsatz und grober Fahrlässigkeit sowie nach den Vorschriften des Produkthaftungsgesetzes. Bei leicht fahrlässiger Verletzung wesentlicher Vertragspflichten ist die Haftung auf den vorhersehbaren, vertragstypischen Schaden begrenzt. Im Übrigen ist die Haftung ausgeschlossen, soweit gesetzlich zulässig.' },
                     { title: '11. Verfügbarkeit', content: 'Der Anbieter bemüht sich um eine möglichst unterbrechungsfreie Verfügbarkeit der App, übernimmt jedoch keine Garantie für eine bestimmte Verfügbarkeit, insbesondere bei Wartungsarbeiten oder Ausfällen von Drittanbietern (Hosting, KI-Dienste).' },
                     { title: '12. Änderung der AGB', content: 'Der Anbieter kann diese AGB mit Wirkung für die Zukunft ändern. Über wesentliche Änderungen wirst du rechtzeitig informiert. Widersprichst du nicht innerhalb von 30 Tagen, gelten die neuen AGB als akzeptiert.' },
-                    { title: '13. Schlussbestimmungen', content: 'Es gilt deutsches Recht. Sollte eine Bestimmung dieser AGB unwirksam sein, bleibt die Wirksamkeit der übrigen Bestimmungen unberührt.\n\nKontakt: support.kiwardrobe@gmail.com' },    ].map(section => (
+                    { title: '13. Schlussbestimmungen', content: 'Es gilt deutsches Recht. Sollte eine Bestimmung dieser AGB unwirksam sein, bleibt die Wirksamkeit der übrigen Bestimmungen unberührt.\n\nKontakt: support@kiwardrobe.com' },    ].map(section => (
                     <div key={section.title} style={{ marginBottom: '16px' }}>
                       <h3 style={{ fontSize: '12px', fontWeight: 700, color: accent, textTransform: 'uppercase' as const, letterSpacing: '0.06em', marginBottom: '6px' }}>{section.title}</h3>
                       <p style={{ fontSize: '13px', color: text, lineHeight: 1.6, whiteSpace: 'pre-line' as const }}>{section.content}</p>
@@ -677,14 +715,15 @@ function isValidEmail(e: string): boolean {
               ) : (
                 <>
                   {[
-                    { title: 'Verantwortlicher', content: 'Luca Darvas\nBernd-Rosemeyer-Straße 14\n85551 Kirchheim bei München\nE-Mail: support.kiwardrobe@gmail.com' },
-                 { title: 'Welche Daten wir speichern', content: '• E-Mail-Adresse und Passwort (verschlüsselt)\n• Benutzername, Geburtsdatum, Land\n• Hochgeladene Kleidungsbilder\n• Selfie-/Körperfotos für die Virtual-Try-On-Funktion\n• Generierte Outfits und Avatar-Bilder\n• Standortdaten für die Wetteranzeige und tägliche Outfit-Vorschläge\n• Push-Notification-Anmeldedaten (falls aktiviert)\n• Zahlungsbezogene Daten bei Abschluss eines Pro-Abonnements (über Stripe)\n• Referral-Code und Einladungsstatistiken\n• Bevorzugte Einkaufs-Shops (optional, für personalisierte Empfehlungen)\n• Nutzungsstatistiken der App' },
-                    { title: 'Wofür wir Daten nutzen', content: '• Bereitstellung der App-Funktionen\n• KI-basierte Outfit-Generierung und virtuelle Anprobe (Virtual Try-On)\n• Tagesaktuelle, wetterbasierte Outfit-Vorschläge\n• Versand von Push-Benachrichtigungen (nur mit deiner Zustimmung)\n• Abwicklung von Pro-Abonnements\n• Personalisierung der Nutzererfahrung\n• Verbesserung des Services' },
+                    { title: 'Verantwortlicher', content: 'Luca Darvas\nBernd-Rosemeyer-Straße 14\n85551 Kirchheim bei München\nE-Mail: support@kiwardrobe.com' },
+                 { title: 'Welche Daten wir speichern', content: '• E-Mail-Adresse und Passwort (verschlüsselt)\n• Benutzername, Geburtsdatum, Land\n• Hochgeladene Kleidungsbilder\n• Selfie-/Körperfotos für die Virtual-Try-On-Funktion\n• Generierte Outfits und Avatar-Bilder\n• Standortdaten für die Wetteranzeige und tägliche Outfit-Vorschläge\n• Push-Notification-Anmeldedaten (falls aktiviert)\n• Zahlungsbezogene Daten bei Abschluss eines Pro-Abonnements (über Stripe)\n• Referral-Code und Einladungsstatistiken\n• Bevorzugte Einkaufs-Shops (optional, für personalisierte Empfehlungen)\n• Feedback-Nachrichten, Bewertungen und optional angegebene Kontakt-E-Mail\n• Nutzungsstatistiken der App' },
+                    { title: 'Wofür wir Daten nutzen', content: '• Bereitstellung der App-Funktionen\n• KI-basierte Outfit-Generierung und virtuelle Anprobe (Virtual Try-On)\n• Tagesaktuelle, wetterbasierte Outfit-Vorschläge\n• Versand von Push-Benachrichtigungen (nur mit deiner Zustimmung)\n• Abwicklung von Pro-Abonnements\n• Bearbeitung und Beantwortung von Feedback und Support-Anfragen\n• Personalisierung der Nutzererfahrung\n• Verbesserung des Services' },
                     { title: 'Standortdaten', content: 'Mit deiner Erlaubnis erfassen wir deinen ungefähren Standort (GPS-Koordinaten), um dir aktuelle Wetterdaten und passende Outfit-Vorschläge anzuzeigen. Du kannst die Standortfreigabe jederzeit über die Berechtigungen deines Geräts/Browsers widerrufen.' },
                     { title: 'Push-Benachrichtigungen', content: 'Wenn du Push-Benachrichtigungen aktivierst, speichern wir ein technisches Abonnement deines Geräts, um dir tägliche Outfit-Erinnerungen zu schicken. Du kannst dies jederzeit in deinem Profil deaktivieren.' },     { title: 'Zahlungen', content: 'Bei Abschluss eines KiWardrobe Pro-Abonnements werden Zahlungsdaten ausschließlich von unserem Zahlungsdienstleister Stripe verarbeitet. Wir selbst speichern keine vollständigen Kreditkartendaten.' },
                     { title: 'Freunde einladen (Referral-Programm)', content: 'Wenn du Freunde über deinen persönlichen Einladungslink einlädst, wird gespeichert, welcher Account über welchen Code registriert wurde, um die vereinbarten Prämien zu vergeben.' },
+                    { title: 'Feedback', content: 'Wenn du uns über die Feedback-Funktion in der App eine Nachricht schickst, speichern wir den Nachrichtentext, die gewählte Kategorie, eine optionale Sternebewertung sowie — falls gewünscht — deine Kontakt-E-Mail, um dein Anliegen zu bearbeiten.' },
                     { title: 'Drittanbieter', content: '• Supabase (Datenspeicherung, EU-Server Frankfurt)\n• OpenAI (KI-Analyse für Outfit-Vorschläge und Stilanalyse)\n• Replicate (KI-Bildverarbeitung für Virtual Try-On/Avatar-Generierung und Hintergrundentfernung)\n• Stripe (Zahlungsabwicklung für Pro-Abonnements)\n• Vercel (Hosting, inkl. Server in den USA)\n• Open-Meteo / OpenStreetMap (Wetter- und Standortdaten)' },
-                    { title: 'Deine Rechte', content: '• Auskunft über gespeicherte Daten\n• Berichtigung falscher Daten\n• Löschung deiner Daten\n• Datenportabilität\n• Widerspruch gegen die Verarbeitung\n\nKontakt: support.kiwardrobe@gmail.com' },
+                    { title: 'Deine Rechte', content: '• Auskunft über gespeicherte Daten\n• Berichtigung falscher Daten\n• Löschung deiner Daten\n• Datenportabilität\n• Widerspruch gegen die Verarbeitung\n\nKontakt: support@kiwardrobe.com' },
                     { title: 'Datenlöschung', content: 'Du kannst dein Konto inklusive aller gespeicherten Daten jederzeit selbst über die App löschen (Profil → Account löschen). Diese Löschung ist sofort wirksam und unwiderruflich.' },
                     { title: 'Speicherdauer', content: 'Deine Daten werden gespeichert, solange dein Account aktiv ist. Nach Löschung werden alle personenbezogenen Daten unverzüglich entfernt, mit Ausnahme gesetzlich vorgeschriebener Aufbewahrungsfristen für Rechnungsdaten.' },
                     { title: 'Cookies', content: 'Wir verwenden nur technisch notwendige Cookies für die Authentifizierung. Keine Werbe-Cookies, kein Tracking durch Dritte zu Werbezwecken.' },
