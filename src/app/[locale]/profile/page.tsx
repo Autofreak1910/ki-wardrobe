@@ -97,7 +97,7 @@ function SnowflakeIcon({ size = 12, color = 'currentColor' }: { size?: number; c
   )
 }
 
-type Profile = { id: string; username: string; is_premium: boolean; age?: string; country?: string; created_at: string; email?: string; gender?: string; style_preferences?: string[]; budget_range?: string; referral_code?: string; premium_until?: string; invites_this_month?: number; bonus_month_claimed_this_period?: boolean; avatar_tries_left?: number; streak_freeze_used_month?: string; stripe_customer_id?: string | null }
+type Profile = { id: string; username: string; is_premium: boolean; age?: string; country?: string; created_at: string; email?: string; gender?: string; style_preferences?: string[]; budget_range?: string; referral_code?: string; premium_until?: string; invites_this_month?: number; bonus_month_claimed_this_period?: boolean; avatar_tries_left?: number; streak_freeze_used_month?: string; stripe_customer_id?: string | null; premium_source?: string | null }
 
 function getWeekStartUTC(): Date {
   const now = new Date()
@@ -368,10 +368,11 @@ async function openBillingPortal() {
   }
 }
 function handleManageSubscriptionClick() {
-  // Wer Pro nur geschenkt bekommen hat (z.B. durch Einladungen), hat gar keinen
-  // Stripe-Kunden-Datensatz -- das Portal wuerde nur einen Fehler werfen.
-  // Stattdessen zeigen wir denen einen eigenen Hinweis mit Ablaufdatum + Upgrade-CTA.
-  if (profile?.stripe_customer_id) {
+  // Ein stripe_customer_id allein reicht NICHT als Beweis fuer eine echte Zahlung --
+  // der wird schon angelegt, sobald jemand den Checkout nur startet (auch ohne
+  // abzuschliessen). premium_source === 'stripe' wird dagegen erst vom Webhook
+  // gesetzt, wenn eine Zahlung tatsaechlich bestaetigt wurde.
+  if (profile?.premium_source === 'stripe') {
     openBillingPortal()
   } else {
     setShowNoSubscriptionModal(true)
