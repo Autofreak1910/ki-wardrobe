@@ -28,16 +28,23 @@ export async function POST(request: NextRequest) {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
     const userId = session.metadata?.userId
+    console.log('checkout.session.completed received. userId:', userId, 'subscription:', session.subscription)
     if (userId && session.subscription) {
       try {
         const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
         const premiumUntil = new Date(subscription.current_period_end * 1000)
 
-        await supabase.from('profiles').update({
+        const { error: updateError } = await supabase.from('profiles').update({
           is_premium: true,
           premium_until: premiumUntil.toISOString(),
           premium_source: 'stripe',
         }).eq('id', userId)
+
+        if (updateError) {
+          console.error('checkout.session.completed: profiles update FAILED for userId', userId, updateError)
+        } else {
+          console.log('checkout.session.completed: profiles updated OK for userId', userId, 'until', premiumUntil.toISOString())
+        }
 
         try {
           const { data: { user } } = await supabase.auth.admin.getUserById(userId)
@@ -74,11 +81,16 @@ export async function POST(request: NextRequest) {
         const userId = subscription.metadata?.userId
         if (userId) {
           const premiumUntil = new Date(subscription.current_period_end * 1000)
-          await supabase.from('profiles').update({
+          const { error: updateError } = await supabase.from('profiles').update({
             is_premium: true,
             premium_until: premiumUntil.toISOString(),
             premium_source: 'stripe',
           }).eq('id', userId)
+          if (updateError) {
+            console.error('invoice.payment_succeeded: profiles update FAILED for userId', userId, updateError)
+          } else {
+            console.log('invoice.payment_succeeded: profiles updated OK for userId', userId)
+          }
         }
       } catch (err) {
         console.error('Failed to process invoice.payment_succeeded:', err)
@@ -124,10 +136,13 @@ export async function POST(request: NextRequest) {
     if (userId) {
       const { data: profileBefore } = await supabase.from('profiles').select('premium_until, username, language').eq('id', userId).single()
 
-      await supabase.from('profiles').update({
+      const { error: updateError } = await supabase.from('profiles').update({
         is_premium: false,
         premium_until: null,
       }).eq('id', userId)
+      if (updateError) {
+        console.error('customer.subscription.deleted: profiles update FAILED for userId', userId, updateError)
+      }
 
       try {
         const { data: { user } } = await supabase.auth.admin.getUserById(userId)
