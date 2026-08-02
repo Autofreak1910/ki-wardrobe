@@ -129,7 +129,7 @@ export default function FeedbackModal({ open, onClose }: { open: boolean; onClos
           <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
             transition={{ type: 'spring', damping: 28, stiffness: 300 }}
             onClick={e => e.stopPropagation()}
-            style={{ width: '100%', maxWidth: '480px', maxHeight: '88vh', overflowY: 'auto' as const, background: bg, border: `1px solid ${border}`, borderRadius: '28px 28px 0 0', padding: '20px 20px 32px', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+            style={{ width: '100%', maxWidth: '480px', maxHeight: '88vh', overflowY: 'auto' as const, background: bg, border: `1px solid ${border}`, borderRadius: '28px', padding: '20px 20px 32px', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
 
             <div style={{ width: '36px', height: '4px', background: border, borderRadius: '2px', margin: '0 auto 20px' }} />
 
