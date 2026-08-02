@@ -60,10 +60,13 @@ async function setupPushNotifications() {
   }
 }
 
+// Feedback & Legal sind inhaltlich Unterseiten vom Profil -- die Navbar soll dort
+// stehen bleiben (mit "Profil" aktiv markiert), statt komplett zu verschwinden.
 function getActivePage(pathname: string): string | null {
   for (const tab of NAV_ORDER) {
     if (pathname.includes(tab)) return tab
   }
+  if (pathname.includes('feedback') || pathname.includes('legal')) return 'profile'
   return null
 }
 

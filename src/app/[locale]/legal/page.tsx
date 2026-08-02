@@ -75,7 +75,7 @@ const searchParams = useSearchParams()
   return (
   <div className="app-container" style={{ height: '100vh', display: 'flex', flexDirection: 'column' as const, background: bg, fontFamily: "'Poppins', 'Inter', sans-serif", overflow: 'hidden' }}>
       <motion.main initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '600px', width: '100%', margin: '0 auto', padding: '32px 16px 40px 16px' }}>
+        style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '600px', width: '100%', margin: '0 auto', padding: '32px 16px 108px 16px' }}>
 
         <motion.button initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           whileTap={{ scale: 0.96, x: -2 }}
