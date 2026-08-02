@@ -97,7 +97,7 @@ function SnowflakeIcon({ size = 12, color = 'currentColor' }: { size?: number; c
   )
 }
 
-type Profile = { id: string; username: string; is_premium: boolean; age?: string; country?: string; created_at: string; email?: string; gender?: string; style_preferences?: string[]; budget_range?: string; referral_code?: string; premium_until?: string; invites_this_month?: number; bonus_month_claimed_this_period?: boolean; avatar_tries_left?: number; streak_freeze_used_month?: string }
+type Profile = { id: string; username: string; is_premium: boolean; age?: string; country?: string; created_at: string; email?: string; gender?: string; style_preferences?: string[]; budget_range?: string; referral_code?: string; premium_until?: string; invites_this_month?: number; bonus_month_claimed_this_period?: boolean; avatar_tries_left?: number; streak_freeze_used_month?: string; stripe_customer_id?: string | null }
 
 function getWeekStartUTC(): Date {
   const now = new Date()
@@ -197,6 +197,7 @@ const [showUpgrade, setShowUpgrade] = useState(false)
 const [showAccountSettings, setShowAccountSettings] = useState(false)
 const [showFeedbackModal, setShowFeedbackModal] = useState(false)
 const [showLegalModal, setShowLegalModal] = useState(false)
+const [showNoSubscriptionModal, setShowNoSubscriptionModal] = useState(false)
 const [withdrawalConsent, setWithdrawalConsent] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -364,6 +365,16 @@ async function openBillingPortal() {
     }
   } catch {
     setPortalLoading(false)
+  }
+}
+function handleManageSubscriptionClick() {
+  // Wer Pro nur geschenkt bekommen hat (z.B. durch Einladungen), hat gar keinen
+  // Stripe-Kunden-Datensatz -- das Portal wuerde nur einen Fehler werfen.
+  // Stattdessen zeigen wir denen einen eigenen Hinweis mit Ablaufdatum + Upgrade-CTA.
+  if (profile?.stripe_customer_id) {
+    openBillingPortal()
+  } else {
+    setShowNoSubscriptionModal(true)
   }
 }
  async function handleDeleteAccount() {
@@ -830,7 +841,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
           {isPremium && (
             <div>
               <div style={{ height: '1px', background: border, margin: '0 16px' }} />
-              <button onClick={openBillingPortal} disabled={portalLoading}
+              <button onClick={handleManageSubscriptionClick} disabled={portalLoading}
                 style={{ width: '100%', padding: '14px 16px', background: 'transparent', border: 'none', fontSize: '14px', color: text, cursor: portalLoading ? 'wait' : 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", fontWeight: 500, textAlign: 'left' as const, display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: portalLoading ? 0.6 : 1 }}>
                 {portalLoading
                   ? (locale === 'de' ? 'Einen Moment...' : 'One moment...')
@@ -863,6 +874,61 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
 <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
 <FeedbackModal open={showFeedbackModal} onClose={() => setShowFeedbackModal(false)} />
 <LegalModal open={showLegalModal} onClose={() => setShowLegalModal(false)} />
+{/* Keine aktive (bezahlte) Mitgliedschaft */}
+<AnimatePresence>
+  {showNoSubscriptionModal && (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      onClick={() => setShowNoSubscriptionModal(false)}
+      style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '16px' }}>
+      <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
+        transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+        onClick={e => e.stopPropagation()}
+        style={{ width: '100%', maxWidth: '420px', background: bg, border: `1px solid ${border}`, borderRadius: '28px', padding: '28px 24px 32px' }}>
+
+        <div style={{ width: '36px', height: '4px', background: border, borderRadius: '2px', margin: '0 auto 20px' }} />
+
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '14px' }}>
+          <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: goldDim, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <GiftIcon size={24} color={gold} />
+          </div>
+        </div>
+
+        <h2 style={{ fontSize: '19px', fontWeight: 800, color: text, textAlign: 'center' as const, marginBottom: '10px', letterSpacing: '-0.02em' }}>
+          {locale === 'de' ? 'Keine aktive Mitgliedschaft' : 'No active membership'}
+        </h2>
+        <p style={{ fontSize: '13px', color: muted, lineHeight: 1.6, textAlign: 'center' as const, marginBottom: '20px' }}>
+          {locale === 'de'
+            ? profile?.premium_until
+              ? `Du hast Pro aktuell kostenlos — z.B. durch eine Einladung. Es läuft am ${new Date(profile.premium_until).toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' })} automatisch ab. Kein Abo, keine Kündigung nötig.`
+              : 'Du hast Pro aktuell kostenlos — z.B. durch eine Einladung. Es endet automatisch, es gibt kein Abo zum Kündigen.'
+            : profile?.premium_until
+              ? `Your Pro is currently free — e.g. from an invite. It will automatically end on ${new Date(profile.premium_until).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}. No subscription, nothing to cancel.`
+              : 'Your Pro is currently free — e.g. from an invite. It ends automatically, there is no subscription to cancel.'}
+        </p>
+
+        <motion.button whileTap={{ scale: 0.97 }}
+          onClick={async () => {
+            const { data: { session } } = await supabase.auth.getSession()
+            if (!session?.user) return
+            const res = await fetch('/api/create-checkout-session', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId: session.user.id, userEmail: session.user.email, locale }),
+            })
+            const data = await res.json()
+            if (data.url) window.location.href = data.url
+          }}
+          style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: `linear-gradient(135deg, ${gold}, #E8B45E)`, color: '#24211B', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", marginBottom: '8px' }}>
+          ✦ {locale === 'de' ? 'Jetzt Pro werden (danach echtes Abo)' : 'Become Pro now (real subscription after)'}
+        </motion.button>
+        <button onClick={() => setShowNoSubscriptionModal(false)}
+          style={{ width: '100%', padding: '11px', background: 'transparent', border: 'none', fontSize: '13px', color: muted, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+          {locale === 'de' ? 'Schließen' : 'Close'}
+        </button>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
 <InstallInstructionsModal
   open={showInstallModal}
   onClose={() => setShowInstallModal(false)}
