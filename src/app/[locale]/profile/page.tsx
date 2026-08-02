@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import UpgradeModal from '@/components/UpgradeModal'
 import FeedbackModal from '@/components/FeedbackModal'
 import LegalModal from '@/components/LegalModal'
+import CancelSubscriptionModal from '@/components/CancelSubscriptionModal'
 
 function HourglassIcon({ size = 14, color = 'currentColor' }: { size?: number; color?: string }) {
   return (
@@ -198,6 +199,7 @@ const [showAccountSettings, setShowAccountSettings] = useState(false)
 const [showFeedbackModal, setShowFeedbackModal] = useState(false)
 const [showLegalModal, setShowLegalModal] = useState(false)
 const [showNoSubscriptionModal, setShowNoSubscriptionModal] = useState(false)
+const [showCancelModal, setShowCancelModal] = useState(false)
 const [withdrawalConsent, setWithdrawalConsent] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -846,9 +848,18 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
                 style={{ width: '100%', padding: '14px 16px', background: 'transparent', border: 'none', fontSize: '14px', color: text, cursor: portalLoading ? 'wait' : 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", fontWeight: 500, textAlign: 'left' as const, display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: portalLoading ? 0.6 : 1 }}>
                 {portalLoading
                   ? (locale === 'de' ? 'Einen Moment...' : 'One moment...')
-                  : (locale === 'de' ? 'Abo verwalten / kündigen' : 'Manage / cancel subscription')}
+                  : (locale === 'de' ? 'Zahlungsmethode & Rechnungen' : 'Payment method & invoices')}
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
               </button>
+              {profile?.premium_source === 'stripe' && (
+                <>
+                  <div style={{ height: '1px', background: border, margin: '0 16px' }} />
+                  <button onClick={() => setShowCancelModal(true)}
+                    style={{ width: '100%', padding: '14px 16px', background: 'transparent', border: 'none', fontSize: '14px', color: '#ef4444', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", fontWeight: 600, textAlign: 'left' as const }}>
+                    {locale === 'de' ? 'Jetzt kündigen' : 'Cancel now'}
+                  </button>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -875,6 +886,13 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
 <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
 <FeedbackModal open={showFeedbackModal} onClose={() => setShowFeedbackModal(false)} />
 <LegalModal open={showLegalModal} onClose={() => setShowLegalModal(false)} />
+<CancelSubscriptionModal
+  open={showCancelModal}
+  onClose={() => setShowCancelModal(false)}
+  onCancelled={(accessUntil) => {
+    setProfile(prev => prev ? { ...prev, premium_until: accessUntil } : prev)
+  }}
+/>
 {/* Keine aktive (bezahlte) Mitgliedschaft */}
 <AnimatePresence>
   {showNoSubscriptionModal && (
@@ -920,7 +938,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
             if (data.url) window.location.href = data.url
           }}
           style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: `linear-gradient(135deg, ${gold}, #E8B45E)`, color: '#24211B', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", marginBottom: '8px' }}>
-          ✦ {locale === 'de' ? 'Jetzt Pro werden (danach echtes Abo)' : 'Become Pro now (real subscription after)'}
+          ✦ {locale === 'de' ? 'Jetzt kostenpflichtiges Abo abschließen' : 'Start paid subscription now'}
         </motion.button>
         <button onClick={() => setShowNoSubscriptionModal(false)}
           style={{ width: '100%', padding: '11px', background: 'transparent', border: 'none', fontSize: '13px', color: muted, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
