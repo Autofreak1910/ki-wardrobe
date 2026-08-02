@@ -9,6 +9,15 @@ import { useRouter } from 'next/navigation'
 import UpgradeModal from '@/components/UpgradeModal'
 import { motion, AnimatePresence } from 'framer-motion'
 
+function LockIcon({ size = 14, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="5" y="11" width="14" height="10" rx="2"/>
+      <path d="M8 11V7a4 4 0 018 0v4"/>
+    </svg>
+  )
+}
+
 type Outfit = { id: string; name: string; occasion: string; item_ids: string[]; is_favorite: boolean; created_at: string }
 type ClothingItem = { id: string; image_url: string; name?: string; color: string; category: string }
 
@@ -361,7 +370,7 @@ const byFavorite = filter === 'favorites' ? outfits.filter(o => o.is_favorite) :
   ) : isPremium ? (
     <ShareIcon size={14} color={goldText} />
   ) : (
-    <span style={{ fontSize: '13px' }}>🔒</span>
+    <LockIcon size={13} color={muted} />
   )}
 </motion.button>
                         <motion.button whileTap={{ scale: 0.88 }} onClick={() => toggleFavorite(outfit)}
