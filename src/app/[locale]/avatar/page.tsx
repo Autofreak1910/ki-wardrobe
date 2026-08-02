@@ -491,11 +491,11 @@ const steps = locale === 'de' ? [
 
             {isPremium ? (
               <div style={{ background: goldAccent, borderRadius: '10px', padding: '6px 14px', boxShadow: '0 4px 12px rgba(241,185,81,0.5)' }}>
-                <p style={{ fontSize: '11px', fontWeight: 700, color: '#1D1D20', letterSpacing: '0.04em' }}>✦ PRO · {usedThisPeriod}/{periodLimit} {locale === 'de' ? 'diese Woche' : 'this week'}</p>
+                <p style={{ fontSize: '11px', fontWeight: 700, color: '#1D1D20', letterSpacing: '0.04em', textAlign: 'right' as const }}>✦ PRO · {usedThisPeriod}/{periodLimit} {locale === 'de' ? 'Woche' : 'week'}</p>
               </div>
             ) : (
-              <div style={{ background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '10px', padding: '6px 14px' }}>
-                <p style={{ fontSize: '11px', fontWeight: 700, color: '#fff' }}>{usedThisPeriod}/{periodLimit} {locale === 'de' ? 'diesen Monat' : 'this month'}</p>
+              <div style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '10px', padding: '6px 14px' }}>
+                <p style={{ fontSize: '11px', fontWeight: 700, color: '#1D1D20', textAlign: 'right' as const }}>{usedThisPeriod}/{periodLimit} {locale === 'de' ? 'Monat' : 'month'}</p>
               </div>
             )}
           </div>
