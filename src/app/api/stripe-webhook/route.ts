@@ -21,6 +21,21 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 
+// Stripe hat in neueren API-Versionen current_period_end vom Subscription-Objekt
+// auf die einzelnen Abo-Positionen (subscription.items) verschoben. Dieser Helper
+// funktioniert mit beiden Varianten, damit's unabhaengig von der API-Version klappt.
+function getPeriodEnd(subscription: Stripe.Subscription): number {
+  const itemPeriodEnd = (subscription as any).items?.data?.[0]?.current_period_end
+  const topLevelPeriodEnd = (subscription as any).current_period_end
+  const periodEnd = itemPeriodEnd ?? topLevelPeriodEnd
+  if (!periodEnd) {
+    console.error('getPeriodEnd: could not find current_period_end on subscription', subscription.id)
+    // Fallback: 1 Monat ab jetzt, damit der Webhook nie crasht
+    return Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60
+  }
+  return periodEnd
+}
+
   // --- Checkout abgeschlossen: erstes Abo-Setup -----------------------------------
   // WICHTIG: premium_until kommt jetzt direkt von Stripe (current_period_end) statt
   // fix "+1 Monat" -- das beruecksichtigt automatisch eine evtl. laufende Trial-Zeit
@@ -32,7 +47,7 @@ export async function POST(request: NextRequest) {
     if (userId && session.subscription) {
       try {
         const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
-        const premiumUntil = new Date(subscription.current_period_end * 1000)
+        const premiumUntil = new Date(getPeriodEnd(subscription) * 1000)
 
         const { error: updateError } = await supabase.from('profiles').update({
           is_premium: true,
@@ -80,7 +95,7 @@ export async function POST(request: NextRequest) {
         const subscription = await stripe.subscriptions.retrieve(subscriptionId)
         const userId = subscription.metadata?.userId
         if (userId) {
-          const premiumUntil = new Date(subscription.current_period_end * 1000)
+          const premiumUntil = new Date(getPeriodEnd(subscription) * 1000)
           const { error: updateError } = await supabase.from('profiles').update({
             is_premium: true,
             premium_until: premiumUntil.toISOString(),

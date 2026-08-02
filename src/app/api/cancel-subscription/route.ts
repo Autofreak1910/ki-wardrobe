@@ -2,6 +2,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase/server'
 
+// Stripe hat in neueren API-Versionen current_period_end vom Subscription-Objekt
+// auf die einzelnen Abo-Positionen (subscription.items) verschoben. Dieser Helper
+// funktioniert mit beiden Varianten.
+function getPeriodEnd(subscription: Stripe.Subscription): number {
+  const itemPeriodEnd = (subscription as any).items?.data?.[0]?.current_period_end
+  const topLevelPeriodEnd = (subscription as any).current_period_end
+  const periodEnd = itemPeriodEnd ?? topLevelPeriodEnd
+  if (!periodEnd) {
+    console.error('getPeriodEnd: could not find current_period_end on subscription', subscription.id)
+    return Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60
+  }
+  return periodEnd
+}
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
@@ -38,7 +52,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         alreadyCancelled: true,
-        accessUntil: new Date(subscription.current_period_end * 1000).toISOString(),
+        accessUntil: new Date(getPeriodEnd(subscription) * 1000).toISOString(),
       })
     }
 
@@ -52,7 +66,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       alreadyCancelled: false,
-      accessUntil: new Date(updated.current_period_end * 1000).toISOString(),
+      accessUntil: new Date(getPeriodEnd(updated) * 1000).toISOString(),
     })
   } catch (error) {
     console.error('Cancel subscription error:', error)
