@@ -511,16 +511,6 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
     )}
   </div>
 </motion.div>
-{isPremium && (
-  <motion.button whileTap={{ scale: 0.97 }}
-    onClick={openBillingPortal}
-    disabled={portalLoading}
-    style={{ width: '100%', marginTop: '14px', padding: '12px', background: 'transparent', border: `1.5px solid ${isDark ? '#5C82A0' : '#355C7D'}`, borderRadius: '10px', fontSize: '13px', fontWeight: 700, color: isDark ? '#7A96AC' : '#355C7D', cursor: portalLoading ? 'wait' : 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
-    {portalLoading
-      ? (locale === 'de' ? 'Einen Moment...' : 'One moment...')
-      : (locale === 'de' ? 'Abo verwalten / kündigen' : 'Manage / cancel subscription')}
-  </motion.button>
-)}
 {/* Upgrade Banner */}
 {!isPremium && (
   <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
@@ -740,6 +730,18 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
               </button>
             </div>
           ))}
+          {isPremium && (
+            <div>
+              <div style={{ height: '1px', background: border, margin: '0 16px' }} />
+              <button onClick={openBillingPortal} disabled={portalLoading}
+                style={{ width: '100%', padding: '14px 16px', background: 'transparent', border: 'none', fontSize: '14px', color: text, cursor: portalLoading ? 'wait' : 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", fontWeight: 500, textAlign: 'left' as const, display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: portalLoading ? 0.6 : 1 }}>
+                {portalLoading
+                  ? (locale === 'de' ? 'Einen Moment...' : 'One moment...')
+                  : (locale === 'de' ? 'Abo verwalten / kündigen' : 'Manage / cancel subscription')}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+          )}
         </div>
 
       {/* Sign out */}
