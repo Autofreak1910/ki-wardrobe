@@ -7,6 +7,54 @@ import { useLocale } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
+function StarIcon({ size = 24, filled = false, color = 'currentColor' }: { size?: number; filled?: boolean; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? color : 'none'} stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+    </svg>
+  )
+}
+function ChatIcon({ size = 20, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>
+    </svg>
+  )
+}
+function SparkleIcon({ size = 20, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/>
+    </svg>
+  )
+}
+function BugIcon({ size = 20, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="8" y="6" width="8" height="12" rx="4"/>
+      <path d="M12 2v4M9 4l1.5 2M15 4l-1.5 2M4 10h4M16 10h4M4 14h4M16 14h4M6 20l2-2M18 20l-2-2"/>
+    </svg>
+  )
+}
+function NoteIcon({ size = 20, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <line x1="8" y1="13" x2="16" y2="13"/>
+      <line x1="8" y1="17" x2="13" y2="17"/>
+    </svg>
+  )
+}
+function CheckCircleIcon({ size = 56, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <polyline points="8 12.5 11 15.5 16 9"/>
+    </svg>
+  )
+}
+
 export default function FeedbackPage() {
 const [type, setType] = useState('feedback')
   const [message, setMessage] = useState('')
@@ -54,10 +102,10 @@ async function handleSubmit() {
   }
 
   const types = [
-    { key: 'feedback', emoji: '💬', label: locale === 'de' ? 'Feedback' : 'Feedback' },
-    { key: 'feature', emoji: '✨', label: locale === 'de' ? 'Feature Idee' : 'Feature Idea' },
-    { key: 'bug', emoji: '🐛', label: locale === 'de' ? 'Bug melden' : 'Report Bug' },
-    { key: 'other', emoji: '📝', label: locale === 'de' ? 'Sonstiges' : 'Other' },
+    { key: 'feedback', Icon: ChatIcon, label: locale === 'de' ? 'Feedback' : 'Feedback' },
+    { key: 'feature', Icon: SparkleIcon, label: locale === 'de' ? 'Feature Idee' : 'Feature Idea' },
+    { key: 'bug', Icon: BugIcon, label: locale === 'de' ? 'Bug melden' : 'Report Bug' },
+    { key: 'other', Icon: NoteIcon, label: locale === 'de' ? 'Sonstiges' : 'Other' },
   ]
 
 return (
@@ -85,7 +133,9 @@ return (
             transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
             style={{ textAlign: 'center', padding: '48px 24px', background: card, border: `1px solid ${border}`, borderRadius: '20px' }}>
             <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.15, type: 'spring', damping: 10, stiffness: 200 }}
-              style={{ fontSize: '56px', marginBottom: '16px' }}>🎉</motion.div>
+              style={{ marginBottom: '16px', display: 'flex', justifyContent: 'center' }}>
+              <CheckCircleIcon size={56} color={accent} />
+            </motion.div>
             <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '24px', fontWeight: 500, color: text, marginBottom: '8px' }}>
               {locale === 'de' ? 'Danke!' : 'Thank you!'}
             </h2>
@@ -107,24 +157,21 @@ return (
               </p>
               <div style={{ display: 'flex', justifyContent: 'center', gap: '6px' }}>
                 {[1, 2, 3, 4, 5].map(n => (
-                  <button key={n} onClick={() => setRating(n)}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '30px', padding: '2px', lineHeight: 1, filter: n <= rating ? 'none' : 'grayscale(1) opacity(0.35)', transition: 'transform 0.15s, filter 0.15s', transform: n <= rating ? 'scale(1.08)' : 'scale(1)' }}>
-                    ⭐
-                  </button>
+                  <motion.button key={n} onClick={() => setRating(n)} whileTap={{ scale: 0.85 }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1, transition: 'transform 0.15s', transform: n <= rating ? 'scale(1.08)' : 'scale(1)' }}>
+                    <StarIcon size={28} filled={n <= rating} color={n <= rating ? gold : border} />
+                  </motion.button>
                 ))}
               </div>
             </motion.div>
 
             {/* Type Selection */}
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-              style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '20px' }}></motion.div>
-            {/* Type Selection */}
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
               style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '20px' }}>
               {types.map(t => (
                 <button key={t.key} onClick={() => setType(t.key)}
                   style={{ padding: '14px', borderRadius: '14px', border: type === t.key ? 'none' : `1px solid ${border}`, background: type === t.key ? navyGradient : card, color: type === t.key ? '#fff' : text, fontSize: '14px', fontWeight: 500, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.15s' }}>
-                  <span style={{ fontSize: '20px' }}>{t.emoji}</span>
+                  <t.Icon size={18} color={type === t.key ? '#fff' : accent} />
                   {t.label}
                 </button>
               ))}
