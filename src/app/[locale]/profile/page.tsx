@@ -9,6 +9,8 @@ import { useRouter } from 'next/navigation'
 import { ShareIcon } from '@/components/ShareIcon'
 import { motion, AnimatePresence } from 'framer-motion'
 import UpgradeModal from '@/components/UpgradeModal'
+import FeedbackModal from '@/components/FeedbackModal'
+import LegalModal from '@/components/LegalModal'
 
 function HourglassIcon({ size = 14, color = 'currentColor' }: { size?: number; color?: string }) {
   return (
@@ -193,6 +195,8 @@ const [savedAge, setSavedAge] = useState(false)
   const [showDna, setShowDna] = useState(false)
 const [showUpgrade, setShowUpgrade] = useState(false)
 const [showAccountSettings, setShowAccountSettings] = useState(false)
+const [showFeedbackModal, setShowFeedbackModal] = useState(false)
+const [showLegalModal, setShowLegalModal] = useState(false)
 const [withdrawalConsent, setWithdrawalConsent] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -811,12 +815,12 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
         {/* Links */}
         <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden', marginBottom: '10px' }}>
           {[
-            { label: 'Feedback', path: '/feedback' },
-            { label: locale === 'de' ? 'Impressum & Datenschutz' : 'Legal & Privacy', path: '/legal' },
+            { label: 'Feedback', action: () => setShowFeedbackModal(true) },
+            { label: locale === 'de' ? 'Impressum & Datenschutz' : 'Legal & Privacy', action: () => setShowLegalModal(true) },
           ].map((item, i) => (
-            <div key={item.path}>
+            <div key={item.label}>
               {i > 0 && <div style={{ height: '1px', background: border, margin: '0 16px' }} />}
-              <button onClick={() => router.push('/' + locale + item.path)}
+              <button onClick={item.action}
                 style={{ width: '100%', padding: '14px 16px', background: 'transparent', border: 'none', fontSize: '14px', color: text, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", fontWeight: 500, textAlign: 'left' as const, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 {item.label}
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
@@ -857,6 +861,8 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
       </main>
 
 <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
+<FeedbackModal open={showFeedbackModal} onClose={() => setShowFeedbackModal(false)} />
+<LegalModal open={showLegalModal} onClose={() => setShowLegalModal(false)} />
 <InstallInstructionsModal
   open={showInstallModal}
   onClose={() => setShowInstallModal(false)}
