@@ -9,6 +9,92 @@ import { useRouter } from 'next/navigation'
 import { ShareIcon } from '@/components/ShareIcon'
 import { motion, AnimatePresence } from 'framer-motion'
 import UpgradeModal from '@/components/UpgradeModal'
+
+function HourglassIcon({ size = 14, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 2h12M6 22h12M6 2c0 5 12 5 12 10s-12 5-12 10M18 2c0 5-12 5-12 10s12 5 12 10"/>
+    </svg>
+  )
+}
+function GiftIcon({ size = 14, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="8" width="18" height="4" rx="1"/>
+      <path d="M12 8v13"/>
+      <path d="M19 12v7a2 2 0 01-2 2H7a2 2 0 01-2-2v-7"/>
+      <path d="M12 8c-1.5 0-3-1-3-2.5S10.5 3 12 4.5C13.5 3 15 3.5 15 5.5S13.5 8 12 8z"/>
+    </svg>
+  )
+}
+function GearIcon({ size = 14, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09A1.65 1.65 0 0015 4.6a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+    </svg>
+  )
+}
+function CloudSunIcon({ size = 14, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17.5 19a4.5 4.5 0 000-9 6 6 0 00-11.4 2.1A4 4 0 006 20h11.5z"/>
+      <path d="M12 3v1M5 5l.7.7M19 5l-.7.7M3 11h1"/>
+    </svg>
+  )
+}
+function SunIcon({ size = 14, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="4"/>
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+    </svg>
+  )
+}
+function PhoneDownloadIcon({ size = 14, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="6" y="2" width="12" height="20" rx="2"/>
+      <path d="M12 9v6M9 12l3 3 3-3"/>
+    </svg>
+  )
+}
+function MailIcon({ size = 14, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="4" width="20" height="16" rx="2"/>
+      <path d="M2 6l10 7 10-7"/>
+    </svg>
+  )
+}
+function WarningIcon({ size = 14, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+      <line x1="12" y1="9" x2="12" y2="13"/>
+      <line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+  )
+}
+function TrashIcon({ size = 14, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 6 5 6 21 6"/>
+      <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+      <path d="M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+    </svg>
+  )
+}
+function SnowflakeIcon({ size = 12, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="2" x2="12" y2="22"/>
+      <line x1="4" y1="7" x2="20" y2="17"/>
+      <line x1="20" y1="7" x2="4" y2="17"/>
+    </svg>
+  )
+}
+
 type Profile = { id: string; username: string; is_premium: boolean; age?: string; country?: string; created_at: string; email?: string; gender?: string; style_preferences?: string[]; budget_range?: string; referral_code?: string; premium_until?: string; invites_this_month?: number; bonus_month_claimed_this_period?: boolean; avatar_tries_left?: number; streak_freeze_used_month?: string }
 
 function getWeekStartUTC(): Date {
@@ -456,7 +542,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
 ...(isPremium ? [
     { label: locale === 'de' ? 'Multi-Upload' : 'Multi-upload', value: multiScansThisWeek, max: 3 },
     { label: 'Style DNA', value: styleDnaToday, max: 1 },
-    { label: locale === 'de' ? '🧊 Streak-Schutz' : '🧊 Streak Freeze', value: (profile?.streak_freeze_used_month === new Date().toISOString().slice(0,7)) ? 1 : 0, max: 1 },
+    { label: locale === 'de' ? 'Streak-Schutz' : 'Streak Freeze', value: (profile?.streak_freeze_used_month === new Date().toISOString().slice(0,7)) ? 1 : 0, max: 1, icon: true },
   ] : []),
 ]
       return (
@@ -466,7 +552,10 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
               <p style={{ fontSize: '14px', fontWeight: 800, color: stat.max && stat.value >= stat.max ? '#ef4444' : (isPremium ? '#F5F3EE' : text), letterSpacing: '-0.02em', marginBottom: '1px' }}>
                 {stat.value}{stat.max ? `/${stat.max}` : ''}
               </p>
-              <p style={{ fontSize: '9px', color: isPremium ? '#9a978f' : muted, fontWeight: 500, whiteSpace: 'nowrap' as const, overflow: 'hidden', textOverflow: 'ellipsis' as const }}>{stat.label}</p>
+              <p style={{ fontSize: '9px', color: isPremium ? '#9a978f' : muted, fontWeight: 500, whiteSpace: 'nowrap' as const, overflow: 'hidden', textOverflow: 'ellipsis' as const, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}>
+                {(stat as any).icon && <SnowflakeIcon size={9} color={isPremium ? '#9a978f' : muted} />}
+                {stat.label}
+              </p>
             </div>
           ))}
         </div>
@@ -475,8 +564,8 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
 
     {isPremium && daysLeft !== null && daysLeft <= 3 && (
       <div style={{ background: isDark ? 'rgba(239,68,68,0.1)' : '#fef2f2', border: `1px solid ${isDark ? 'rgba(239,68,68,0.2)' : '#fecaca'}`, borderRadius: '12px', padding: '12px 14px' }}>
-        <p style={{ fontSize: '12px', fontWeight: 700, color: '#ef4444', marginBottom: '8px' }}>
-          ⏳ {locale === 'de'
+        <p style={{ fontSize: '12px', fontWeight: 700, color: '#ef4444', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <HourglassIcon size={12} color="#ef4444" /> {locale === 'de'
             ? daysLeft <= 0 ? 'Läuft heute ab!' : `Läuft in ${daysLeft} Tag${daysLeft > 1 ? 'en' : ''} ab`
             : daysLeft <= 0 ? 'Expires today!' : `Expires in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`}
         </p>
@@ -489,8 +578,8 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
               if (navigator.share) { try { await navigator.share({ title: 'KiWardrobe', text: shareText, url: inviteUrl }) } catch {} }
               else { await navigator.clipboard.writeText(shareText); alert(locale === 'de' ? 'Link kopiert!' : 'Link copied!') }
             }}
-            style={{ flex: 1, background: card, border: `1px solid ${border}`, borderRadius: '8px', padding: '9px', fontSize: '11px', fontWeight: 700, color: gold, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
-            🎁 {locale === 'de' ? 'Freunde einladen' : 'Invite friends'}
+            style={{ flex: 1, background: card, border: `1px solid ${border}`, borderRadius: '8px', padding: '9px', fontSize: '11px', fontWeight: 700, color: gold, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+            <GiftIcon size={12} color={gold} /> {locale === 'de' ? 'Freunde einladen' : 'Invite friends'}
           </button>
           <button onClick={async () => {
               const { data: { session } } = await supabase.auth.getSession()
@@ -539,7 +628,9 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
   {/* Kompakte Zeile — immer sichtbar, ausklappbar */}
   <motion.div whileTap={{ scale: 0.99 }} onClick={() => setShowInviteStats(v => !v)}
     style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px', cursor: 'pointer' }}>
-    <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>🎁</div>
+    <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      <GiftIcon size={20} color="#fff" />
+    </div>
     <div style={{ flex: 1 }}>
       <p style={{ fontSize: '14px', fontWeight: 800, color: '#fff', marginBottom: '2px', letterSpacing: '-0.02em' }}>
         {locale === 'de' ? 'Freunde einladen' : 'Invite friends'}
@@ -578,7 +669,9 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
             <>
               <div style={{ height: '1px', background: 'rgba(255,255,255,0.2)', margin: '8px 0' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <p style={{ fontSize: '11px', fontWeight: 700, color: '#fff' }}>🎁 {locale === 'de' ? 'Bonus-Monat' : 'Bonus month'}</p>
+                <p style={{ fontSize: '11px', fontWeight: 700, color: '#fff', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <GiftIcon size={11} color="#fff" /> {locale === 'de' ? 'Bonus-Monat' : 'Bonus month'}
+                </p>
                 <p style={{ fontSize: '11px', color: '#fff' }}>{profile?.invites_this_month ?? 0}/15</p>
               </div>
               <div style={{ height: '5px', background: 'rgba(255,255,255,0.25)', borderRadius: '3px', overflow: 'hidden' }}>
@@ -619,7 +712,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
 <button onClick={() => setShowAccountSettings(true)}
   style={{ width: '100%', background: card, border: `1px solid ${border}`, borderRadius: '16px', padding: '14px 16px', marginBottom: '10px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-    <span style={{ fontSize: '16px' }}>⚙️</span>
+    <GearIcon size={16} color={text} />
     <p style={{ fontSize: '14px', fontWeight: 600, color: text }}>{locale === 'de' ? 'Kontoeinstellungen' : 'Account settings'}</p>
   </div>
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
@@ -640,8 +733,8 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
             <div style={{ height: '1px', background: border, margin: '0 16px' }} />
   <div ref={weatherSettingRef} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderRadius: '12px', background: highlightWeather ? accentDim : 'transparent', boxShadow: highlightWeather ? `0 0 0 2px ${accent}` : 'none', transition: 'background 0.3s, box-shadow 0.3s' }}>
               <div>
-                <p style={{ fontSize: '14px', color: text, fontWeight: 500 }}>
-                  {locale === 'de' ? '🌤️ Wetter & Standort' : '🌤️ Weather & location'}
+                <p style={{ fontSize: '14px', color: text, fontWeight: 500, display: 'flex', alignItems: 'center', gap: '7px' }}>
+                  <CloudSunIcon size={14} color={text} /> {locale === 'de' ? 'Wetter & Standort' : 'Weather & location'}
                 </p>
                 <p style={{ fontSize: '11px', color: muted, marginTop: '2px' }}>
                   {locale === 'de' ? 'Outfit passend zum Wetter' : 'Outfit matched to weather'}
@@ -663,8 +756,8 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
             <div style={{ height: '1px', background: border, margin: '0 16px' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px' }}>
               <div>
-                <p style={{ fontSize: '14px', color: text, fontWeight: 500 }}>
-                  {locale === 'de' ? '☀️ Outfit-Erinnerung' : '☀️ Outfit reminder'}
+                <p style={{ fontSize: '14px', color: text, fontWeight: 500, display: 'flex', alignItems: 'center', gap: '7px' }}>
+                  <SunIcon size={14} color={text} /> {locale === 'de' ? 'Outfit-Erinnerung' : 'Outfit reminder'}
                 </p>
                 <p style={{ fontSize: '11px', color: muted, marginTop: '2px' }}>
                   {locale === 'de' ? 'Tägliche Push-Benachrichtigung' : 'Daily push notification'}
@@ -701,8 +794,8 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
                 <button onClick={() => setShowInstallModal(true)}
                   style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' as const }}>
                   <div>
-                    <p style={{ fontSize: '14px', color: text, fontWeight: 500 }}>
-                      {locale === 'de' ? '📲 Als App installieren' : '📲 Install as app'}
+                    <p style={{ fontSize: '14px', color: text, fontWeight: 500, display: 'flex', alignItems: 'center', gap: '7px' }}>
+                      <PhoneDownloadIcon size={14} color={text} /> {locale === 'de' ? 'Als App installieren' : 'Install as app'}
                     </p>
                     <p style={{ fontSize: '11px', color: muted, marginTop: '2px' }}>
                       {locale === 'de' ? 'Schneller starten, ohne Browserleiste' : 'Faster launch, no browser bar'}
@@ -895,8 +988,8 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
 
             {pendingEmailChange && (
               <div style={{ marginTop: '10px', background: isDark ? 'rgba(251,191,36,0.1)' : '#fffbeb', border: `1px solid ${isDark ? 'rgba(251,191,36,0.3)' : '#fde68a'}`, borderRadius: '10px', padding: '12px 14px' }}>
-                <p style={{ fontSize: '12px', fontWeight: 700, color: '#b45309', marginBottom: '4px' }}>
-                  📬 {locale === 'de' ? 'Bestätigung ausstehend' : 'Confirmation pending'}
+                <p style={{ fontSize: '12px', fontWeight: 700, color: '#b45309', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <MailIcon size={12} color="#b45309" /> {locale === 'de' ? 'Bestätigung ausstehend' : 'Confirmation pending'}
                 </p>
                 <p style={{ fontSize: '12px', color: muted, marginBottom: '8px', lineHeight: 1.5 }}>
                   {locale === 'de'
@@ -941,7 +1034,9 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
         onClick={e => e.stopPropagation()}
         style={{ width: '100%', maxWidth: '400px', background: card, border: `1px solid ${border}`, borderRadius: '24px', padding: '28px 24px' }}>
 
-        <p style={{ fontSize: '36px', textAlign: 'center' as const, marginBottom: '12px' }}>⚠️</p>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}>
+          <WarningIcon size={36} color="#ef4444" />
+        </div>
         <h2 style={{ fontSize: '19px', fontWeight: 800, color: text, textAlign: 'center' as const, marginBottom: '10px', letterSpacing: '-0.02em' }}>
           {locale === 'de' ? 'Account wirklich löschen?' : 'Really delete account?'}
         </h2>
@@ -969,8 +1064,14 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
             color: deleteConfirmText === (locale === 'de' ? 'LÖSCHEN' : 'DELETE') && !deleting ? '#fff' : muted,
             cursor: deleteConfirmText === (locale === 'de' ? 'LÖSCHEN' : 'DELETE') && !deleting ? 'pointer' : 'not-allowed',
             fontFamily: "'Poppins', 'Inter', sans-serif", marginBottom: '8px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
           }}>
-          {deleting ? (locale === 'de' ? 'Lösche...' : 'Deleting...') : (locale === 'de' ? '🗑️ Endgültig löschen' : '🗑️ Delete permanently')}
+          {deleting ? (locale === 'de' ? 'Lösche...' : 'Deleting...') : (
+            <>
+              <TrashIcon size={14} color={deleteConfirmText === (locale === 'de' ? 'LÖSCHEN' : 'DELETE') ? '#fff' : muted} />
+              {locale === 'de' ? 'Endgültig löschen' : 'Delete permanently'}
+            </>
+          )}
         </motion.button>
         <button
           disabled={deleting}
