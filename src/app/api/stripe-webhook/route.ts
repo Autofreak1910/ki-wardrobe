@@ -21,42 +21,107 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 
+  // --- Checkout abgeschlossen: erstes Abo-Setup -----------------------------------
+  // WICHTIG: premium_until kommt jetzt direkt von Stripe (current_period_end) statt
+  // fix "+1 Monat" -- das beruecksichtigt automatisch eine evtl. laufende Trial-Zeit
+  // (z.B. wenn noch gratis Pro-Tage durch Einladungen uebrig waren).
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
     const userId = session.metadata?.userId
-    if (userId) {
-      const premiumUntil = new Date()
-      premiumUntil.setMonth(premiumUntil.getMonth() + 1)
-      await supabase.from('profiles').update({
-        is_premium: true,
-        premium_until: premiumUntil.toISOString(),
-        premium_source: 'stripe',
-      }).eq('id', userId)
-
+    if (userId && session.subscription) {
       try {
-        const { data: { user } } = await supabase.auth.admin.getUserById(userId)
-        const { data: profile } = await supabase.from('profiles').select('username, language').eq('id', userId).single()
+        const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
+        const premiumUntil = new Date(subscription.current_period_end * 1000)
 
-        if (user?.email) {
-          await sendProWelcomeEmail({
-            email: user.email,
-            username: profile?.username,
-            language: profile?.language ?? 'de',
-            premiumUntil,
-          })
+        await supabase.from('profiles').update({
+          is_premium: true,
+          premium_until: premiumUntil.toISOString(),
+          premium_source: 'stripe',
+        }).eq('id', userId)
+
+        try {
+          const { data: { user } } = await supabase.auth.admin.getUserById(userId)
+          const { data: profile } = await supabase.from('profiles').select('username, language').eq('id', userId).single()
+
+          if (user?.email) {
+            await sendProWelcomeEmail({
+              email: user.email,
+              username: profile?.username,
+              language: profile?.language ?? 'de',
+              premiumUntil,
+            })
+          }
+        } catch (emailErr) {
+          console.error('Pro welcome email failed:', emailErr)
         }
-      } catch (emailErr) {
-        console.error('Pro welcome email failed:', emailErr)
+      } catch (err) {
+        console.error('Failed to retrieve subscription on checkout.session.completed:', err)
       }
     }
   }
 
+  // --- Jede erfolgreiche Zahlung (erste Abbuchung nach Trial ODER jede spaetere ---
+  // monatliche Verlaengerung) -- das ist der zuverlaessige Ort, um premium_until
+  // bei jedem Abrechnungszyklus zu verlaengern. Ohne diesen Handler wuerde is_premium
+  // nach Ablauf des ersten Monats faelschlicherweise auslaufen, obwohl der Nutzer
+  // weiterbezahlt.
+  if (event.type === 'invoice.payment_succeeded') {
+    const invoice = event.data.object as Stripe.Invoice
+    const subscriptionId = (invoice as any).subscription as string | null
+    if (subscriptionId) {
+      try {
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+        const userId = subscription.metadata?.userId
+        if (userId) {
+          const premiumUntil = new Date(subscription.current_period_end * 1000)
+          await supabase.from('profiles').update({
+            is_premium: true,
+            premium_until: premiumUntil.toISOString(),
+            premium_source: 'stripe',
+          }).eq('id', userId)
+        }
+      } catch (err) {
+        console.error('Failed to process invoice.payment_succeeded:', err)
+      }
+    }
+  }
+
+  // --- Zahlung fehlgeschlagen (z.B. Karte abgelaufen) ------------------------------
+  // Wir entziehen den Zugang HIER noch nicht -- Stripe versucht automatisch mehrfach
+  // erneut abzubuchen und schickt erst 'customer.subscription.deleted', wenn das
+  // Abo endgueltig beendet wird. Wir informieren den Nutzer nur, damit er seine
+  // Zahlungsmethode aktualisieren kann, bevor der Zugang tatsaechlich ausläuft.
+  if (event.type === 'invoice.payment_failed') {
+    const invoice = event.data.object as Stripe.Invoice
+    const subscriptionId = (invoice as any).subscription as string | null
+    if (subscriptionId) {
+      try {
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+        const userId = subscription.metadata?.userId
+        if (userId) {
+          const { data: { user } } = await supabase.auth.admin.getUserById(userId)
+          const { data: profile } = await supabase.from('profiles').select('username, language').eq('id', userId).single()
+          if (user?.email) {
+            await sendPaymentFailedEmail({
+              email: user.email,
+              username: profile?.username,
+              language: profile?.language ?? 'de',
+            })
+          }
+        }
+      } catch (err) {
+        console.error('Failed to process invoice.payment_failed:', err)
+      }
+    }
+  }
+
+  // --- Abo tatsaechlich beendet (nach Kuendigung oder endgueltig fehlgeschlagener --
+  // Zahlung) -- Zugang entziehen und Bestaetigungs-Mail schicken.
   if (event.type === 'customer.subscription.deleted') {
     const subscription = event.data.object as Stripe.Subscription
     const userId = subscription.metadata?.userId
 
     if (userId) {
-      // Zugriffsdatum VOR dem Update auslesen, damit wir "Zugriff bis wann" in der Mail nennen können
       const { data: profileBefore } = await supabase.from('profiles').select('premium_until, username, language').eq('id', userId).single()
 
       await supabase.from('profiles').update({
@@ -180,6 +245,74 @@ async function sendProWelcomeEmail({ email, username, language, premiumUntil }: 
   await resend.emails.send({ from: 'KiWardrobe <noreply@kiwardrobe.com>', to: email, subject, html })
 }
 
+async function sendPaymentFailedEmail({ email, username, language }: { email: string; username?: string; language: string }) {
+  const resend = new Resend(process.env.RESEND_API_KEY)
+  const isDe = language === 'de'
+  const name = username || (isDe ? 'da' : 'there')
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://kiwardrobe.com'
+  const lang = isDe ? 'de' : 'en'
+
+  const subject = isDe ? '⚠ Zahlung für KiWardrobe Pro fehlgeschlagen' : '⚠ Payment for KiWardrobe Pro failed'
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<body style="margin:0; padding:0; background:#F7F4EC;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#F7F4EC; padding: 32px 0;">
+    <tr>
+      <td align="center">
+        <table width="480" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:20px; overflow:hidden; font-family: -apple-system, 'Poppins', sans-serif;">
+          <tr>
+            <td style="background:#1D1D20; padding: 28px 32px; text-align:center;">
+              <p style="margin:0; font-size: 18px; font-weight: 800; color:#F5F3EE;">KiWardrobe</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 32px;">
+              <h1 style="margin:0 0 10px; font-size: 20px; font-weight:700; color:#1D1D20;">
+                ${isDe ? `Hey ${name}, deine Zahlung hat nicht geklappt` : `Hey ${name}, your payment didn't go through`}
+              </h1>
+              <p style="margin:0 0 20px; font-size: 14px; color:#8C8776; line-height:1.6;">
+                ${isDe
+                  ? 'Wir konnten die fällige Zahlung für dein KiWardrobe Pro-Abo nicht abbuchen — meist liegt das an einer abgelaufenen Karte oder unzureichender Deckung. Stripe versucht es automatisch nochmal, du kannst deine Zahlungsmethode aber auch direkt aktualisieren.'
+                  : "We couldn't process the payment for your KiWardrobe Pro subscription — usually due to an expired card or insufficient funds. Stripe will automatically retry, but you can also update your payment method directly."}
+              </p>
+
+              <table cellpadding="0" cellspacing="0" style="width:100%; margin-bottom: 8px;">
+                <tr>
+                  <td align="center">
+                    <a href="${appUrl}/${lang}/profile" style="display:inline-block; background: linear-gradient(135deg, #F1B951, #C98A3A); color:#24211B; font-size:14px; font-weight:700; text-decoration:none; padding:13px 28px; border-radius:12px;">
+                      ${isDe ? 'Zahlungsmethode aktualisieren' : 'Update payment method'}
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:16px 0 0; font-size: 12px; color:#8C8776; line-height:1.6;">
+                ${isDe
+                  ? 'Falls die Zahlung weiterhin fehlschlägt, wird dein Pro-Zugang automatisch beendet.'
+                  : 'If the payment keeps failing, your Pro access will end automatically.'}
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 20px 32px; border-top: 1px solid #E7E2D5; text-align:center;">
+              <p style="margin:0; font-size: 11px; color:#B0AA9A;">
+                KiWardrobe · Luca Darvas · Bernd-Rosemeyer-Straße 14, 85551 Kirchheim bei München
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `
+
+  await resend.emails.send({ from: 'KiWardrobe <noreply@kiwardrobe.com>', to: email, subject, html })
+}
+
 async function sendCancellationEmail({ email, username, language, accessUntil }: { email: string; username?: string; language: string; accessUntil: Date }) {
   const resend = new Resend(process.env.RESEND_API_KEY)
   const isDe = language === 'de'
@@ -262,5 +395,5 @@ async function sendCancellationEmail({ email, username, language, accessUntil }:
 </html>
   `
 
-  await resend.emails.send({ from: 'KiWardrobe <noreply@kiwardrobe.com>', to: email, subject, html, replyTo: 'support.kiwardrobe@gmail.com' })
+  await resend.emails.send({ from: 'KiWardrobe <noreply@kiwardrobe.com>', to: email, subject, html, replyTo: 'support@kiwardrobe.com' })
 }
