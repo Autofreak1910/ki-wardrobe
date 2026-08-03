@@ -856,16 +856,16 @@ const dnaLocked = !isPremium || styleDnaUsedToday || needsMoreItems
                   </div>
                 </div>
               </div>
-   <div style={{ display: 'flex', gap: '10px', marginBottom: '24px' }}>
+<div style={{ display: 'flex', gap: '18px', marginBottom: '24px' }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <label style={{ fontSize: '11px', fontWeight: 600, color: muted, display: 'block', marginBottom: '6px', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>{t('wardrobe.purchaseDate')}</label>
                   <input type="date" value={editDate} onChange={e => setEditDate(e.target.value)}
-                    style={{ width: '100%', minWidth: 0, boxSizing: 'border-box' as const, background: card, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 8px', fontSize: '12px', color: text, outline: 'none', fontFamily: "'Poppins', 'Inter', sans-serif" }} />
+                    style={{ width: '100%', minWidth: 0, boxSizing: 'border-box' as const, background: card, border: `1px solid ${border}`, borderRadius: '14px', padding: '10px 8px', fontSize: '12px', color: text, outline: 'none', fontFamily: "'Poppins', 'Inter', sans-serif" }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <label style={{ fontSize: '11px', fontWeight: 600, color: muted, display: 'block', marginBottom: '6px', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>{t('wardrobe.purchasePrice')}</label>
                   <input type="number" value={editPrice} onChange={e => setEditPrice(e.target.value)} placeholder="0.00"
-                    style={{ width: '100%', minWidth: 0, boxSizing: 'border-box' as const, background: card, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 12px', fontSize: '13px', color: text, outline: 'none', fontFamily: "'Poppins', 'Inter', sans-serif" }} />
+                    style={{ width: '100%', minWidth: 0, boxSizing: 'border-box' as const, background: card, border: `1px solid ${border}`, borderRadius: '14px', padding: '10px 12px', fontSize: '13px', color: text, outline: 'none', fontFamily: "'Poppins', 'Inter', sans-serif" }} />
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '10px' }}>

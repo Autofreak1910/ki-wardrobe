@@ -11,8 +11,9 @@ export async function POST(request: NextRequest) {
     }
     // --- ENDE AUTH CHECK ---
 
-    const { imageBase64, mimeType } = await request.json()
+const { imageBase64, mimeType, locale: bodyLocale } = await request.json()
     const safeMimeType = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(mimeType) ? mimeType : 'image/jpeg'
+    const locale = request.headers.get('x-locale') || bodyLocale || 'de'
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -48,9 +49,9 @@ If it is NOT a clothing/fashion item:
 Rules when is_clothing is true:
 - category must be exactly one of these English words: top, pants, shorts, skirt, dress, jacket, shoes, accessory
 - "top" = shirts, t-shirts, blouses, sweaters, hoodies. "pants" = long pants/jeans/trousers. "shorts" = shorts/bermudas (anything ending above or at the knee). "skirt" = skirts of any length (mini, midi, maxi). "dress" = dresses, jumpsuits, overalls (one-piece garments covering both upper and lower body). "jacket" = jackets, coats, blazers. "shoes" = any footwear. "accessory" = bags, belts, hats, jewelry, scarves.
-- Always respond with the English category word above, regardless of what language the garment name or description is in.
-- name: specific product name if recognizable, otherwise short descriptive name in English, max 3 words
-- color: main color in English (e.g. Black, White, Navy, Grey, Beige, Blue)
+- Always respond with the English category word above for the "category" field specifically, regardless of what language everything else is in.
+- name: specific product name if recognizable, otherwise short descriptive name, max 3 words. Respond in ${locale === 'de' ? 'German' : 'English'}.
+- color: main color. Respond in ${locale === 'de' ? 'German (e.g. Schwarz, Weiß, Marineblau, Grau, Beige, Blau)' : 'English (e.g. Black, White, Navy, Grey, Beige, Blue)'}.
 - style_tags: array from: streetwear, casual, formal, vintage, sporty, minimalist, luxury
 - season: array from: spring, summer, autumn, winter
 - brand: brand name if logo visible, otherwise omit
