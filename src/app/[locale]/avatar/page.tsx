@@ -373,7 +373,8 @@ const [showPhotoGuide, setShowPhotoGuide] = useState(false)
 const [savedSelfies, setSavedSelfies] = useState<{ id: string; image_url: string }[]>([])
   const [savingSelfie, setSavingSelfie] = useState(false)
   const [justUploadedNew, setJustUploadedNew] = useState(false)
-  const [activeTryOnCategory, setActiveTryOnCategory] = useState('all')
+const [activeTryOnCategory, setActiveTryOnCategory] = useState('all')
+  const [showAllTryOnItems, setShowAllTryOnItems] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const { theme } = useTheme()
   const locale = useLocale()
@@ -732,20 +733,28 @@ const steps = locale === 'de' ? [
 <div style={{ padding: '12px' }}>
               {!selfie ? (
                 <>
-         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
-                    {savedSelfies.map(s => (
-                      <div key={s.id} style={{ position: 'relative' as const, aspectRatio: '1', maxWidth: '90px' }}>
-                        <motion.div whileTap={{ scale: 0.95 }} onClick={() => { setSelfie(s.image_url); setJustUploadedNew(false) }}
-                          style={{ width: '100%', height: '100%', borderRadius: '14px', overflow: 'hidden', border: `1.5px solid ${border}`, cursor: 'pointer' }}>
-                          <img src={s.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                    <AnimatePresence mode="popLayout">
+                      {savedSelfies.map(s => (
+                        <motion.div key={s.id} layout
+                          initial={{ opacity: 0, scale: 0.7 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.7 }}
+                          transition={{ type: 'spring', damping: 22, stiffness: 300 }}
+                          style={{ position: 'relative' as const, aspectRatio: '1', maxWidth: '90px' }}>
+                          <motion.div whileTap={{ scale: 0.93 }} onClick={() => { setSelfie(s.image_url); setJustUploadedNew(false) }}
+                            style={{ width: '100%', height: '100%', borderRadius: '14px', overflow: 'hidden', border: `1.5px solid ${border}`, cursor: 'pointer' }}>
+                            <img src={s.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          </motion.div>
+                          <motion.button whileTap={{ scale: 0.85 }} onClick={(e) => { e.stopPropagation(); deleteSavedSelfie(s.id) }}
+                            style={{ position: 'absolute', top: '-4px', right: '-4px', background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', width: '18px', height: '18px', color: '#fff', cursor: 'pointer', fontSize: '10px', lineHeight: 1 }}>
+                            ×
+                          </motion.button>
                         </motion.div>
-                        <button onClick={(e) => { e.stopPropagation(); deleteSavedSelfie(s.id) }}
-                          style={{ position: 'absolute', top: '-4px', right: '-4px', background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', width: '18px', height: '18px', color: '#fff', cursor: 'pointer', fontSize: '10px', lineHeight: 1 }}>
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                    <motion.div whileTap={{ scale: 0.95 }} onClick={() => fileRef.current?.click()}
+                      ))}
+                    </AnimatePresence>
+                    <motion.div layout whileTap={{ scale: 0.93 }} onClick={() => fileRef.current?.click()}
+                      transition={{ type: 'spring', damping: 22, stiffness: 300 }}
                       style={{ aspectRatio: '1', maxWidth: '90px', borderRadius: '14px', border: `1.5px dashed ${border}`, background: accentDim, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', gap: '4px', cursor: 'pointer' }}>
                       <SelfieIcon size={20} color={accent} />
                       <span style={{ fontSize: '9px', fontWeight: 700, color: accent, textAlign: 'center' as const, lineHeight: 1.2, padding: '0 4px' }}>
@@ -768,14 +777,21 @@ const steps = locale === 'de' ? [
                       ×
                     </button>
                   </div>
-                  {justUploadedNew && savedSelfies.length < 3 && (
-                    <motion.button whileTap={{ scale: 0.97 }} onClick={saveSelfieToGallery} disabled={savingSelfie}
-                      style={{ width: '100%', marginTop: '10px', padding: '10px', background: accentDim, border: `1px solid ${border}`, borderRadius: '10px', fontSize: '12.5px', fontWeight: 700, color: accent, cursor: savingSelfie ? 'wait' : 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
-                      {savingSelfie
-                        ? (locale === 'de' ? 'Wird gespeichert...' : 'Saving...')
-                        : (locale === 'de' ? `↓ Selfie merken (${savedSelfies.length}/3)` : `↓ Save selfie (${savedSelfies.length}/3)`)}
-                    </motion.button>
-                  )}
+                <AnimatePresence>
+                    {justUploadedNew && savedSelfies.length < 3 && (
+                      <motion.button
+                        initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                        animate={{ opacity: 1, height: 'auto', marginTop: 10 }}
+                        exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                        transition={{ duration: 0.25 }}
+                        whileTap={{ scale: 0.97 }} onClick={saveSelfieToGallery} disabled={savingSelfie}
+                        style={{ width: '100%', padding: '10px', background: accentDim, border: `1px solid ${border}`, borderRadius: '10px', fontSize: '12.5px', fontWeight: 700, color: accent, cursor: savingSelfie ? 'wait' : 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", overflow: 'hidden' }}>
+                        {savingSelfie
+                          ? (locale === 'de' ? 'Wird gespeichert...' : 'Saving...')
+                          : (locale === 'de' ? `↓ Selfie merken (${savedSelfies.length}/3)` : `↓ Save selfie (${savedSelfies.length}/3)`)}
+                      </motion.button>
+                    )}
+                  </AnimatePresence>
                 </div>
               )}
               <input ref={fileRef} type="file" accept="image/*" onChange={handleSelfie} style={{ display: 'none' }} />
@@ -805,7 +821,7 @@ const steps = locale === 'de' ? [
                 </p>
               ) : (
                 <>
-                  {(() => {
+           {(() => {
                     const tryOnItems = items.filter(item => !['schuhe', 'roecke', 'kleider'].includes(item.category))
                     const availableCategories = Array.from(new Set(tryOnItems.map(i => i.category)))
                     const tabs = ['all', ...availableCategories]
@@ -814,7 +830,7 @@ const steps = locale === 'de' ? [
                         {tabs.map(cat => {
                           const isOn = activeTryOnCategory === cat
                           return (
-                            <button key={cat} onClick={() => setActiveTryOnCategory(cat)}
+                            <button key={cat} onClick={() => { setActiveTryOnCategory(cat); setShowAllTryOnItems(false) }}
                               style={{ flexShrink: 0, padding: '6px 12px', borderRadius: '100px', border: `1px solid ${isOn ? accent : border}`, background: isOn ? accentDim : 'transparent', color: isOn ? accent : muted, fontSize: '12px', fontWeight: isOn ? 700 : 500, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", whiteSpace: 'nowrap' as const }}>
                               {getCategoryTabLabel(cat, locale)}
                             </button>
@@ -823,8 +839,13 @@ const steps = locale === 'de' ? [
                       </div>
                     )
                   })()}
+                  {(() => {
+                    const filteredTryOnItems = items.filter(item => !['schuhe', 'roecke', 'kleider'].includes(item.category) && (activeTryOnCategory === 'all' || item.category === activeTryOnCategory))
+                    const visibleItems = showAllTryOnItems ? filteredTryOnItems : filteredTryOnItems.slice(0, 6)
+                    return (
+                      <>
                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-                  {items.filter(item => !['schuhe', 'roecke', 'kleider'].includes(item.category) && (activeTryOnCategory === 'all' || item.category === activeTryOnCategory)).map(item => (
+                  {visibleItems.map(item => (
                     <motion.div key={item.id} whileTap={{ scale: 0.96 }}
                       onClick={() => setSelectedItem(selectedItem?.id === item.id ? null : item)}
                       style={{ background: card, borderRadius: '16px', overflow: 'hidden', border: `1.5px solid ${selectedItem?.id === item.id ? accent : border}`, cursor: 'pointer', position: 'relative' as const, padding: '6px', boxShadow: selectedItem?.id === item.id ? `0 4px 16px ${accent}25` : 'none' }}>
@@ -837,6 +858,17 @@ const steps = locale === 'de' ? [
 </motion.div>
                   ))}
                 </div>
+                {filteredTryOnItems.length > 6 && (
+                  <button onClick={() => setShowAllTryOnItems(v => !v)}
+                    style={{ width: '100%', marginTop: '10px', padding: '10px', background: 'transparent', border: `1px solid ${border}`, borderRadius: '10px', fontSize: '12.5px', fontWeight: 600, color: accent, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+                    {showAllTryOnItems
+                      ? (locale === 'de' ? '▲ Weniger anzeigen' : '▲ Show less')
+                      : (locale === 'de' ? `▼ Alle ${filteredTryOnItems.length} anzeigen` : `▼ Show all ${filteredTryOnItems.length}`)}
+                  </button>
+                )}
+                      </>
+                    )
+                  })()}
                 </>
               )}
             </div>
