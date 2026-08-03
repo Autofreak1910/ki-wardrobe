@@ -1,10 +1,10 @@
 export const maxDuration = 60
 
-import Replicate from 'replicate'
+import { fal } from '@fal-ai/client'
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
-const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN })
+fal.config({ credentials: process.env.FAL_KEY })
 
 function getMonthStartUTC(): Date {
   const now = new Date()
@@ -55,12 +55,10 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'weekly_limit' }, { status: 403 })
       }
     }
-// personImage kann entweder ein neu hochgeladenes Base64-Bild sein
+
+    // personImage kann entweder ein neu hochgeladenes Base64-Bild sein
     // (data:image/...;base64,...) ODER bereits eine fertige URL, falls der
     // Nutzer ein gespeichertes Selfie aus der Galerie ausgewaehlt hat.
-    // Beide Faelle muessen unterschiedlich behandelt werden -- vorher wurde
-    // eine URL faelschlicherweise als Base64 dekodiert, was eine kaputte
-    // Bilddatei erzeugt hat.
     let originalPublicUrl: string
 
     if (personImage.startsWith('http')) {
@@ -82,10 +80,7 @@ export async function POST(req: Request) {
     console.log('originalPublicUrl (selfie):', originalPublicUrl)
 
     // Kurz warten und pruefen, ob die frisch hochgeladene Datei wirklich
-    // oeffentlich abrufbar ist -- direkt nach dem Upload kann es (selten,
-    // aber vorkommend) einen kurzen Verzoegerungsmoment geben, bis Supabase
-    // Storage die Datei tatsaechlich ausliefert. Ohne diesen Check bekommt
-    // Replicate manchmal eine leere/fehlerhafte Antwort statt des Bildes.
+    // oeffentlich abrufbar ist, bevor sie an die Try-On-KI geht.
     async function waitForImageReady(url: string, maxAttempts = 4): Promise<void> {
       for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         try {
@@ -103,13 +98,10 @@ export async function POST(req: Request) {
     // Hintergrund vom Selfie entfernen für bessere Try-On-Qualität
     let publicUrl = originalPublicUrl
     try {
-     const bgRes = await fetch(new URL('/api/remove-background', req.url).toString(), {
+      const bgRes = await fetch(new URL('/api/remove-background', req.url).toString(), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // Cookies der urspruenglichen Anfrage weiterreichen, sonst schlaegt
-          // die Auth-Pruefung in remove-background mit 401 fehl, weil
-          // interne Server-zu-Server-Fetches sonst keine Session mitbekommen.
           Cookie: req.headers.get('cookie') || '',
         },
         body: JSON.stringify({ imageUrl: originalPublicUrl }),
@@ -118,10 +110,10 @@ export async function POST(req: Request) {
       if (bgData.success && bgData.imageUrl) {
         publicUrl = bgData.imageUrl
       }
-  } catch (bgErr) {
+    } catch (bgErr) {
       console.error('Background removal on selfie failed, using original:', bgErr)
     }
-    console.log('Final publicUrl sent to Replicate as human_img:', publicUrl)
+    console.log('Final publicUrl sent to try-on as model_image:', publicUrl)
 
     // Selfie-Qualität prüfen bevor teure Generierung läuft
     try {
@@ -153,39 +145,38 @@ export async function POST(req: Request) {
       // Bei Fehler im Check einfach weitermachen, nicht blockieren
     }
 
-const categoryMap: Record<string, string> = {
-      tops: 'upper_body',
-      jacken: 'upper_body',
-      acc: 'upper_body',
-      hosen: 'lower_body',
-      kurze_hosen: 'lower_body',
-      roecke: 'lower_body',
-      kleider: 'dresses',
+    // FASHN erkennt die Kleidungs-Kategorie automatisch ('auto'), was gerade
+    // bei Roecken/Kleidern deutlich robuster ist als manuelles Mapping.
+    // Wir mappen trotzdem explizit, wo wir sicher sind, und lassen den Rest
+    // dem Modell.
+    const fashnCategoryMap: Record<string, string> = {
+      tops: 'tops',
+      jacken: 'tops',
+      hosen: 'bottoms',
+      kurze_hosen: 'bottoms',
+      roecke: 'bottoms',
+      kleider: 'one-pieces',
     }
-    const garmentCategory = categoryMap[category] ?? 'upper_body'
+    const fashnCategory = fashnCategoryMap[category] ?? 'auto'
 
-    // Run Replicate
-// Roecke und Kleider profitieren von mehr Denoise-Steps -- komplexere
-    // Formen (fliessender Stoff, keine klar getrennten Beine) brauchen mehr
-    // Rechenschritte fuer ein sauberes Ergebnis.
-    const isComplexGarment = category === 'roecke' || category === 'kleider'
+    // Run FASHN v1.6 auf fal.ai -- aktuell bestes Try-On-Modell fuer
+    // Detailtreue und volle Unterstuetzung von Tops, Hosen, Roecken UND
+    // Kleidern (die dokumentierte Schwachstelle des alten IDM-VTON-Modells).
+    const falResult = await fal.subscribe('fal-ai/fashn/tryon/v1.6', {
+      input: {
+        model_image: publicUrl,
+        garment_image: garmentImage,
+        category: fashnCategory,
+        mode: 'balanced',
+      },
+    })
 
-    const output = await replicate.run(
-      'cuuupid/idm-vton:906425dbca90663ff5427624839572cc56ea7d380343d13e2a4c4b09d3f0c30f',
-      {
-        input: {
-          human_img: publicUrl,
-          garm_img: garmentImage,
-          garment_des: garmentDescription || 'clothing item',
-          category: garmentCategory,
-        is_checked: true,
-          is_checked_crop: true,
-          denoise_steps: isComplexGarment ? 40 : 30,
-        }
-      }
-    )
+    const imageUrl = (falResult as any)?.data?.images?.[0]?.url
+    if (!imageUrl) {
+      console.error('FASHN result had no image:', JSON.stringify(falResult))
+      throw new Error('Try-on generation returned no image')
+    }
 
-    const imageUrl = Array.isArray(output) ? output[0] : output
     // Download und in Supabase speichern
     const imgResponse = await fetch(imageUrl as string)
     const imgBuffer = await imgResponse.arrayBuffer()
@@ -193,7 +184,7 @@ const categoryMap: Record<string, string> = {
     await supabase.storage.from('avatars').upload(resultFileName, Buffer.from(imgBuffer), { contentType: 'image/jpeg', upsert: true })
     const { data: { publicUrl: savedUrl } } = supabase.storage.from('avatars').getPublicUrl(resultFileName)
 
-    // Save result -- created_at wird jetzt explizit gesetzt, damit sich der Zaehler
+    // Save result -- created_at wird explizit gesetzt, damit sich der Zaehler
     // niemals auf einen (evtl. fehlenden) DB-Standardwert verlassen muss.
     const { error: insertError } = await supabase.from('avatar_results').insert({
       user_id: user.id,
@@ -209,8 +200,6 @@ const categoryMap: Record<string, string> = {
     return NextResponse.json({
       success: true,
       imageUrl: savedUrl,
-      // Nur zur Fehlersuche -- zeigt direkt in der Netzwerk-Antwort, falls das Speichern
-      // des Ergebnisses (fuer die Try-On-Zaehlung) im Hintergrund fehlschlaegt.
       _debugSaveError: insertError ? insertError.message ?? String(insertError) : null,
     })
   } catch (err: any) {
