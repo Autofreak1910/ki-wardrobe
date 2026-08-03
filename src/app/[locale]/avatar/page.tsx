@@ -725,9 +725,9 @@ const steps = locale === 'de' ? [
 <div style={{ padding: '12px' }}>
               {!selfie ? (
                 <>
-                  <div style={{ display: 'flex', gap: '8px' }}>
+         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
                     {savedSelfies.map(s => (
-                      <div key={s.id} style={{ position: 'relative' as const, flex: 1, aspectRatio: '1' }}>
+                      <div key={s.id} style={{ position: 'relative' as const, aspectRatio: '1', maxWidth: '90px' }}>
                         <motion.div whileTap={{ scale: 0.95 }} onClick={() => { setSelfie(s.image_url); setJustUploadedNew(false) }}
                           style={{ width: '100%', height: '100%', borderRadius: '14px', overflow: 'hidden', border: `1.5px solid ${border}`, cursor: 'pointer' }}>
                           <img src={s.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -739,7 +739,7 @@ const steps = locale === 'de' ? [
                       </div>
                     ))}
                     <motion.div whileTap={{ scale: 0.95 }} onClick={() => fileRef.current?.click()}
-                      style={{ flex: 1, aspectRatio: '1', borderRadius: '14px', border: `1.5px dashed ${border}`, background: accentDim, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', gap: '4px', cursor: 'pointer' }}>
+                      style={{ aspectRatio: '1', maxWidth: '90px', borderRadius: '14px', border: `1.5px dashed ${border}`, background: accentDim, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', gap: '4px', cursor: 'pointer' }}>
                       <SelfieIcon size={20} color={accent} />
                       <span style={{ fontSize: '9px', fontWeight: 700, color: accent, textAlign: 'center' as const, lineHeight: 1.2, padding: '0 4px' }}>
                         {locale === 'de' ? 'Neu' : 'New'}
