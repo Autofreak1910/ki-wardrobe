@@ -650,20 +650,7 @@ const steps = locale === 'de' ? [
       <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, transparent 0%, transparent 50%, ${bg} 100%)`, maskImage: 'linear-gradient(to bottom, transparent 0%, black 100%)', WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 100%)' }} />
           <div style={{ position: 'absolute', inset: '40% 0 0 0', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', background: 'rgba(0,0,0,0.25)', maskImage: 'linear-gradient(to bottom, transparent 0%, black 40%, black 100%)', WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 40%, black 100%)' }} />
 
-          {/* Top row: PRO Badge */}
-          <div style={{ position: 'absolute' as const, top: '16px', right: '18px', zIndex: 2 }}>
-            {isPremium ? (
-              <div style={{ background: goldAccent, borderRadius: '10px', padding: '6px 14px', boxShadow: '0 4px 12px rgba(241,185,81,0.5)' }}>
-                <p style={{ fontSize: '11px', fontWeight: 700, color: '#1D1D20', letterSpacing: '0.04em', textAlign: 'right' as const }}>✦ PRO · {usedThisPeriod}/{periodLimit} {locale === 'de' ? 'Woche' : 'week'}</p>
-              </div>
-            ) : (
-              <div style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '10px', padding: '6px 14px' }}>
-                <p style={{ fontSize: '11px', fontWeight: 700, color: '#1D1D20', textAlign: 'right' as const }}>{usedThisPeriod}/{periodLimit} {locale === 'de' ? 'Monat' : 'month'}</p>
-              </div>
-            )}
-          </div>
-
-          <div style={{ position: 'absolute' as const, bottom: '20px', left: '20px', zIndex: 2 }}>
+<div style={{ position: 'absolute' as const, bottom: '20px', left: '20px', zIndex: 2 }}>
             <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: '4px', textShadow: '0 1px 8px rgba(0,0,0,0.4)' }}>
               Virtual Try-On
             </h1>
@@ -672,20 +659,29 @@ const steps = locale === 'de' ? [
             </p>
           </div>
         </motion.div>
-{/* Anleitung + Meine Avatare -- jetzt gut sichtbar statt oben im Bild versteckt */}
-        <div style={{ padding: '12px 20px 0', marginBottom: '14px', display: 'flex', flexDirection: 'column' as const, gap: '8px' }}>
-          <motion.button whileTap={{ scale: 0.98 }} onClick={() => setShowPhotoGuide(true)}
-            style={{ width: '100%', background: sageGradient, border: 'none', borderRadius: '12px', padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer' }}>
-            <CameraIcon size={14} color="#fff" />
-            <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#fff' }}>
-              {locale === 'de' ? 'Foto-Anleitung mit Beispielbild ansehen' : 'View photo guide with example'}
+{/* Kompakte Pillen-Reihe: PRO-Kontingent + Anleitung + Meine Avatare -- alles in einer Zeile statt grosser Balken */}
+        <div style={{ padding: '12px 20px 0', marginBottom: '14px', display: 'flex', gap: '8px', overflowX: 'auto' as const }}>
+          {isPremium ? (
+            <div style={{ flexShrink: 0, background: goldAccent, borderRadius: '100px', padding: '8px 14px', boxShadow: '0 4px 12px rgba(241,185,81,0.35)' }}>
+              <p style={{ fontSize: '11.5px', fontWeight: 700, color: '#1D1D20', whiteSpace: 'nowrap' as const }}>✦ PRO · {usedThisPeriod}/{periodLimit} {locale === 'de' ? 'Woche' : 'week'}</p>
+            </div>
+          ) : (
+            <div style={{ flexShrink: 0, background: card, border: `1px solid ${border}`, borderRadius: '100px', padding: '8px 14px' }}>
+              <p style={{ fontSize: '11.5px', fontWeight: 700, color: text, whiteSpace: 'nowrap' as const }}>{usedThisPeriod}/{periodLimit} {locale === 'de' ? 'Monat' : 'month'}</p>
+            </div>
+          )}
+          <motion.button whileTap={{ scale: 0.96 }} onClick={() => setShowPhotoGuide(true)}
+            style={{ flexShrink: 0, background: card, border: `1px solid ${border}`, borderRadius: '100px', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+            <CameraIcon size={13} color={text} />
+            <span style={{ fontSize: '11.5px', fontWeight: 700, color: text, whiteSpace: 'nowrap' as const }}>
+              {locale === 'de' ? 'Photo Guide' : 'Photo Guide'}
             </span>
           </motion.button>
-          <motion.button whileTap={{ scale: 0.98 }} onClick={openGallery}
-            style={{ width: '100%', background: isPremium ? accentDim : (isDark ? 'rgba(251,191,36,0.1)' : 'rgba(251,191,36,0.12)'), border: `1px solid ${isPremium ? border : 'rgba(251,191,36,0.3)'}`, borderRadius: '12px', padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', opacity: isPremium ? 1 : 0.85 }}>
-            {isPremium ? <ImageIcon size={14} color={accent} /> : <LockIcon size={14} color="#92610a" />}
-            <span style={{ fontSize: '12.5px', fontWeight: 700, color: isPremium ? accent : '#92610a' }}>
-              {locale === 'de' ? 'Meine Avatare ansehen' : 'View my avatars'}
+          <motion.button whileTap={{ scale: 0.96 }} onClick={openGallery}
+            style={{ flexShrink: 0, background: card, border: `1px solid ${border}`, borderRadius: '100px', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', opacity: isPremium ? 1 : 0.85 }}>
+            {isPremium ? <ImageIcon size={13} color={text} /> : <LockIcon size={13} color={text} />}
+            <span style={{ fontSize: '11.5px', fontWeight: 700, color: text, whiteSpace: 'nowrap' as const }}>
+              {locale === 'de' ? 'My Avatars' : 'My Avatars'}
             </span>
           </motion.button>
         </div>
