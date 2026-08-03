@@ -80,6 +80,27 @@ Respond with ONLY the JSON, no explanation, no markdown.`
     }
 const analysis = JSON.parse(jsonMatch[0])
 
+    // Normalisiert die Kategorie -- falls die KI mal ein englisches Wort oder Synonym
+    // statt unseres exakten Kategorie-Keys zurückgibt (z.B. "skirt" statt "roecke"),
+    // wird das hier abgefangen statt roh in die DB zu wandern.
+    const categoryAliases: Record<string, string> = {
+      skirt: 'roecke', skirts: 'roecke', rock: 'roecke', röcke: 'roecke',
+      dress: 'kleider', dresses: 'kleider', kleid: 'kleider',
+      shorts: 'kurze_hosen', short: 'kurze_hosen', 'kurze hose': 'kurze_hosen',
+      pants: 'hosen', trousers: 'hosen', jeans: 'hosen', hose: 'hosen',
+      shirt: 'tops', top: 'tops', oberteil: 'tops',
+      jacket: 'jacken', jacke: 'jacken',
+      shoes: 'schuhe', shoe: 'schuhe',
+      accessory: 'acc', accessories: 'acc',
+    }
+    if (analysis.category) {
+      const normalized = String(analysis.category).toLowerCase().trim()
+      const validKeys = ['tops', 'hosen', 'kurze_hosen', 'roecke', 'kleider', 'jacken', 'schuhe', 'acc']
+      if (!validKeys.includes(normalized)) {
+        analysis.category = categoryAliases[normalized] ?? 'tops'
+      }
+    }
+
     if (analysis.is_clothing === false) {
       return NextResponse.json({ success: false, notClothing: true, reason: analysis.reason }, { status: 200 })
     }

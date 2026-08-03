@@ -856,7 +856,7 @@ const dnaLocked = !isPremium || styleDnaUsedToday || needsMoreItems
                   </div>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
+           <div style={{ display: 'flex', gap: '10px', marginBottom: '24px' }}>
                 <div style={{ flex: 1 }}>
                   <label style={{ fontSize: '11px', fontWeight: 600, color: muted, display: 'block', marginBottom: '6px', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>{t('wardrobe.purchaseDate')}</label>
                   <input type="date" value={editDate} onChange={e => setEditDate(e.target.value)}
@@ -874,7 +874,7 @@ const dnaLocked = !isPremium || styleDnaUsedToday || needsMoreItems
                   {t('wardrobe.delete')}
                 </button>
                 <button onClick={handleSaveDetails} disabled={saving}
-                  style={{ flex: 2, padding: '13px', background: `linear-gradient(135deg, ${accent}, #0891b2)`, border: 'none', borderRadius: '12px', fontSize: '14px', color: '#fff', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", fontWeight: 600, letterSpacing: '-0.01em', boxShadow: '0 4px 16px rgba(14,164,114,0.35)' }}>
+                  style={{ flex: 2, padding: '13px', background: `linear-gradient(135deg, ${accent}, #0891b2)`, border: 'none', borderRadius: '12px', fontSize: '14px', color: '#fff', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", fontWeight: 600, letterSpacing: '-0.01em', boxShadow: '0 2px 8px rgba(14,164,114,0.25)' }}>
                   {saving ? t('wardrobe.saving') : t('wardrobe.save')}
                 </button>
               </div>

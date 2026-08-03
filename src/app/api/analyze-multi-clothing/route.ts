@@ -30,13 +30,35 @@ const prompt = locale === 'de'
       }),
     })
 
-    const data = await response.json()
+ const data = await response.json()
     const text = data.choices?.[0]?.message?.content ?? ''
     const jsonMatch = text.match(/\{[\s\S]*\}/)
     if (!jsonMatch) throw new Error('No JSON in response')
     const parsed = JSON.parse(jsonMatch[0])
 
-    return NextResponse.json({ success: true, items: parsed.items ?? [] })
+    // Normalisiert die Kategorie pro erkanntem Teil -- falls die KI mal ein englisches
+    // Wort oder Synonym statt unseres exakten Kategorie-Keys zurückgibt.
+    const categoryAliases: Record<string, string> = {
+      skirt: 'roecke', skirts: 'roecke', rock: 'roecke', röcke: 'roecke',
+      dress: 'kleider', dresses: 'kleider', kleid: 'kleider',
+      shorts: 'kurze_hosen', short: 'kurze_hosen', 'kurze hose': 'kurze_hosen',
+      pants: 'hosen', trousers: 'hosen', jeans: 'hosen', hose: 'hosen',
+      shirt: 'tops', top: 'tops', oberteil: 'tops',
+      jacket: 'jacken', jacke: 'jacken',
+      shoes: 'schuhe', shoe: 'schuhe',
+      accessory: 'acc', accessories: 'acc',
+    }
+    const validKeys = ['tops', 'hosen', 'kurze_hosen', 'roecke', 'kleider', 'jacken', 'schuhe', 'acc']
+    const items = (parsed.items ?? []).map((item: any) => {
+      if (!item.category) return item
+      const normalized = String(item.category).toLowerCase().trim()
+      if (!validKeys.includes(normalized)) {
+        return { ...item, category: categoryAliases[normalized] ?? 'tops' }
+      }
+      return item
+    })
+
+    return NextResponse.json({ success: true, items })
   } catch (err: any) {
     console.error('Multi-clothing analyze error:', err)
     return NextResponse.json({ success: false, error: err.message }, { status: 500 })
