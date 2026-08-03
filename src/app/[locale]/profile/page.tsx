@@ -232,6 +232,11 @@ const [showInviteStats, setShowInviteStats] = useState(false)
 const [pushEnabled, setPushEnabled] = useState(false)
 const [pushLoading, setPushLoading] = useState(false)
 const [weatherEnabled, setWeatherEnabled] = useState(true)
+const [showLocationEdit, setShowLocationEdit] = useState(false)
+const [cityQuery, setCityQuery] = useState('')
+const [citySearchResults, setCitySearchResults] = useState<{ name: string; admin1?: string; country: string; latitude: number; longitude: number }[]>([])
+const [citySearching, setCitySearching] = useState(false)
+const [locationSaved, setLocationSaved] = useState(false)
 const [highlightWeather, setHighlightWeather] = useState(false)
 const weatherSettingRef = useRef<HTMLDivElement>(null)
 const [showInstallModal, setShowInstallModal] = useState(false)
@@ -467,9 +472,43 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
 
   const budgetLabel = (b?: string) => {
     if (!b) return '—'
-    if (b === 'low') return '< €50'
+ if (b === 'low') return '< €50'
     if (b === 'mid') return '€50–200'
     return '> €200'
+  }
+
+  async function searchCity(query: string) {
+    setCityQuery(query)
+    if (query.trim().length < 2) { setCitySearchResults([]); return }
+    setCitySearching(true)
+    try {
+      const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=${locale}`)
+      const data = await res.json()
+      setCitySearchResults(data.results ?? [])
+    } catch (err) {
+      console.error('City search failed:', err)
+      setCitySearchResults([])
+    }
+    setCitySearching(false)
+  }
+
+  async function selectCity(city: { name: string; latitude: number; longitude: number }) {
+    try {
+      localStorage.setItem('kw_coords', JSON.stringify({ lat: city.latitude, lon: city.longitude }))
+      localStorage.removeItem('kw_weather_disabled')
+      setWeatherEnabled(true)
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        await supabase.from('profiles').update({ last_lat: city.latitude, last_lon: city.longitude }).eq('id', session.user.id)
+      }
+      setLocationSaved(true)
+      setShowLocationEdit(false)
+      setCityQuery('')
+      setCitySearchResults([])
+      setTimeout(() => setLocationSaved(false), 3000)
+    } catch (err) {
+      console.error('Save city failed:', err)
+    }
   }
 
   if (loading) return (
@@ -772,7 +811,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
                 </p>
               </div>
               <button
-                onClick={() => {
+              onClick={() => {
                   const newVal = !weatherEnabled
                   setWeatherEnabled(newVal)
                   try {
@@ -784,6 +823,49 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
                 <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#fff', position: 'absolute', top: '3px', transition: 'left 0.2s', left: weatherEnabled ? '21px' : '3px', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
               </button>
             </div>
+            {weatherEnabled && (
+              <div style={{ padding: '0 16px 14px' }}>
+                {!showLocationEdit ? (
+                  <button onClick={() => setShowLocationEdit(true)}
+                    style={{ fontSize: '12px', fontWeight: 600, color: accent, background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", padding: 0 }}>
+                    {locale === 'de' ? 'Standort falsch? Manuell ändern →' : 'Location wrong? Change manually →'}
+                  </button>
+                ) : (
+                  <div>
+                    <input
+                      type="text"
+                      value={cityQuery}
+                      onChange={(e) => searchCity(e.target.value)}
+                      placeholder={locale === 'de' ? 'Stadt suchen...' : 'Search city...'}
+                      autoFocus
+                      style={{ width: '100%', boxSizing: 'border-box' as const, background: bg, border: `1px solid ${border}`, borderRadius: '10px', padding: '10px 12px', fontSize: '13px', color: text, outline: 'none', fontFamily: "'Poppins', 'Inter', sans-serif" }}
+                    />
+                    {citySearching && (
+                      <p style={{ fontSize: '11px', color: muted, marginTop: '6px' }}>{locale === 'de' ? 'Suche...' : 'Searching...'}</p>
+                    )}
+                    {citySearchResults.length > 0 && (
+                      <div style={{ marginTop: '6px', border: `1px solid ${border}`, borderRadius: '10px', overflow: 'hidden' }}>
+                        {citySearchResults.map((c, i) => (
+                          <button key={i} onClick={() => selectCity(c)}
+                            style={{ width: '100%', textAlign: 'left' as const, padding: '10px 12px', background: card, border: 'none', borderBottom: i < citySearchResults.length - 1 ? `1px solid ${border}` : 'none', cursor: 'pointer', fontSize: '13px', color: text, fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+                            {c.name}{c.admin1 ? `, ${c.admin1}` : ''}, {c.country}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    <button onClick={() => { setShowLocationEdit(false); setCityQuery(''); setCitySearchResults([]) }}
+                      style={{ fontSize: '11px', color: muted, background: 'transparent', border: 'none', cursor: 'pointer', marginTop: '8px', fontFamily: "'Poppins', 'Inter', sans-serif", padding: 0 }}>
+                      {locale === 'de' ? 'Abbrechen' : 'Cancel'}
+                    </button>
+                  </div>
+                )}
+                {locationSaved && (
+                  <p style={{ fontSize: '11.5px', color: '#16a34a', fontWeight: 600, marginTop: '8px' }}>
+                    ✓ {locale === 'de' ? 'Standort gespeichert' : 'Location saved'}
+                  </p>
+                )}
+              </div>
+            )}
             <div style={{ height: '1px', background: border, margin: '0 16px' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px' }}>
               <div>
