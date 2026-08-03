@@ -67,7 +67,26 @@ export async function POST(req: Request) {
 
     if (uploadError) throw uploadError
 
-    const { data: { publicUrl: originalPublicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName)
+ const { data: { publicUrl: originalPublicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName)
+
+    // Kurz warten und pruefen, ob die frisch hochgeladene Datei wirklich
+    // oeffentlich abrufbar ist -- direkt nach dem Upload kann es (selten,
+    // aber vorkommend) einen kurzen Verzoegerungsmoment geben, bis Supabase
+    // Storage die Datei tatsaechlich ausliefert. Ohne diesen Check bekommt
+    // Replicate manchmal eine leere/fehlerhafte Antwort statt des Bildes.
+    async function waitForImageReady(url: string, maxAttempts = 4): Promise<void> {
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          const check = await fetch(url, { cache: 'no-store' })
+          const contentType = check.headers.get('content-type') || ''
+          if (check.ok && contentType.startsWith('image/')) return
+        } catch {}
+        if (attempt < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 500 * attempt))
+        }
+      }
+    }
+    await waitForImageReady(originalPublicUrl)
 
     // Hintergrund vom Selfie entfernen für bessere Try-On-Qualität
     let publicUrl = originalPublicUrl
