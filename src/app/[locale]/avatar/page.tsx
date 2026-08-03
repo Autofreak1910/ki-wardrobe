@@ -708,8 +708,11 @@ const steps = locale === 'de' ? [
         {/* Step 2 — Kleidung wählen */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
           style={{ background: 'transparent', marginBottom: '12px', padding: '0 20px' }}>
-          <p style={{ fontSize: '11px', fontWeight: 800, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>
+         <p style={{ fontSize: '11px', fontWeight: 800, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>
             {locale === 'de' ? 'Schritt 2 · Kleidung wählen' : 'Step 2 · Choose clothing'}
+          </p>
+          <p style={{ fontSize: '11px', color: muted, marginBottom: '6px' }}>
+            {locale === 'de' ? 'Röcke & Kleider werden beim Try-On aktuell noch nicht unterstützt' : "Skirts & dresses aren't supported for try-on yet"}
           </p>
           <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '20px', overflow: 'hidden', boxShadow: isDark ? 'none' : '0 2px 8px rgba(29,29,32,0.04)', position: 'relative' as const, opacity: canGenerate ? 1 : 0.5, pointerEvents: canGenerate ? 'auto' : 'none' as const }}>
             {!canGenerate && (
@@ -723,8 +726,8 @@ const steps = locale === 'de' ? [
                   {locale === 'de' ? 'Keine Kleidung im Schrank' : 'No clothes in wardrobe'}
                 </p>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-                  {items.filter(item => item.category !== 'schuhe').map(item => (
+               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                  {items.filter(item => !['schuhe', 'roecke', 'kleider'].includes(item.category)).map(item => (
                     <motion.div key={item.id} whileTap={{ scale: 0.96 }}
                       onClick={() => setSelectedItem(selectedItem?.id === item.id ? null : item)}
                       style={{ background: card, borderRadius: '16px', overflow: 'hidden', border: `1.5px solid ${selectedItem?.id === item.id ? accent : border}`, cursor: 'pointer', position: 'relative' as const, padding: '6px', boxShadow: selectedItem?.id === item.id ? `0 4px 16px ${accent}25` : 'none' }}>
