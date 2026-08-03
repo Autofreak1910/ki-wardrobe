@@ -178,8 +178,8 @@ const categoryMap: Record<string, string> = {
           garm_img: garmentImage,
           garment_des: garmentDescription || 'clothing item',
           category: garmentCategory,
-          is_checked: true,
-          is_checked_crop: false,
+        is_checked: true,
+          is_checked_crop: true,
           denoise_steps: isComplexGarment ? 40 : 30,
         }
       }
