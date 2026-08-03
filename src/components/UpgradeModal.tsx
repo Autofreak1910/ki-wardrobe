@@ -67,7 +67,7 @@ export default function UpgradeModal({ open, onClose }: { open: boolean; onClose
                   { title: locale === 'de' ? '3 Outfits pro Woche' : '3 outfits per week', sub: '', missing: false },
                   { title: locale === 'de' ? 'Max. 20 Kleidungsstücke' : 'Max. 20 items', sub: '', missing: false },
                   { title: locale === 'de' ? 'Max. 5 Outfits speichern' : 'Max. 5 saved outfits', sub: '', missing: false },
-                  { title: locale === 'de' ? '2 Virtual Try-Ons' : '2 virtual try-ons', sub: locale === 'de' ? 'pro Monat' : 'per month', missing: false },
+                  { title: locale === 'de' ? '2 Virtual Try-Ons' : '2 virtual try-ons', sub: locale === 'de' ? 'pro Monat · nur Oberteile & Hosen' : 'per month · tops & pants only', missing: false },
                   { title: locale === 'de' ? 'Kein Style DNA' : 'No Style DNA', sub: '', missing: true },
                   { title: locale === 'de' ? 'Kein Mehrfach-Upload' : 'No multi-upload', sub: '', missing: true },
                 ].map((f, i) => (
@@ -101,7 +101,7 @@ export default function UpgradeModal({ open, onClose }: { open: boolean; onClose
                     { title: '14 Outfits', sub: locale === 'de' ? 'pro Woche' : 'per week', isNew: false },
                     { title: locale === 'de' ? 'Unbegrenzt Kleidung' : 'Unlimited items', sub: '', isNew: false },
                     { title: locale === 'de' ? 'Unbegrenzt speichern' : 'Unlimited saved', sub: '', isNew: false },
-                    { title: locale === 'de' ? '6× Virtual Try-On' : '6× Virtual Try-On', sub: locale === 'de' ? 'pro Woche' : 'per week', isNew: false },
+                    { title: locale === 'de' ? '6× Virtual Try-On' : '6× Virtual Try-On', sub: locale === 'de' ? 'pro Woche · nur Oberteile & Hosen' : 'per week · tops & pants only', isNew: false },
                     { title: 'Style DNA', sub: locale === 'de' ? 'KI Stil-Analyse' : 'AI style analysis', isNew: true },
                    { title: locale === 'de' ? 'Mehrfach-Upload' : 'Multi-upload', sub: locale === 'de' ? 'Bis zu 10 Fotos · 3× pro Woche' : 'Up to 10 photos · 3× per week', isNew: true },
                     { title: locale === 'de' ? '🧊 Streak-Schutz' : '🧊 Streak Freeze', sub: locale === 'de' ? '1× kostenlose Wiederherstellung/Monat' : '1× free restore per month', isNew: true },
