@@ -556,7 +556,7 @@ async function generateAvatar() {
     setErrorTips(null)
     setGenProgress(0)
 
-const steps = locale === 'de' ? [
+    const steps = locale === 'de' ? [
       { at: 0,  label: 'Foto wird hochgeladen...', icon: 'upload' },
       { at: 12, label: 'Hintergrund wird entfernt...', icon: 'scissors' },
       { at: 25, label: 'Foto wird geprüft...', icon: 'search' },
@@ -577,11 +577,11 @@ const steps = locale === 'de' ? [
       { at: 87, label: 'Final touches...', icon: 'sparkle' },
       { at: 94, label: 'Almost there...', icon: 'hourglass' },
     ]
- setGenStep(steps[0].label)
+    setGenStep(steps[0].label)
     setGenIcon(steps[0].icon)
     const interval = setInterval(() => {
       setGenProgress(p => {
-        const next = Math.min(p + Math.random() * 2.5 + 1, 95)
+        const next = Math.min(p + Math.random() * 1.2 + 0.4, 95)
         const current = [...steps].reverse().find(s => next >= s.at)
         if (current) { setGenStep(current.label); setGenIcon(current.icon) }
         return next
@@ -600,15 +600,23 @@ const steps = locale === 'de' ? [
         })
       })
       const data = await res.json()
-      clearInterval(interval)
-      setGenProgress(100)
-      setGenStep(locale === 'de' ? 'Fertig!' : 'Done!')
 
       if (data.error === 'monthly_limit') {
+        clearInterval(interval)
         setError(locale === 'de' ? 'Du hast deine 2 kostenlosen Avatare diesen Monat aufgebraucht. Upgrade auf Pro!' : 'You used your 2 free avatars this month. Upgrade to Pro!')
-      } else if (data.error === 'weekly_limit') {
+        setLoading(false); setGenProgress(0)
+        window.dispatchEvent(new CustomEvent('kw-generating', { detail: false }))
+        return
+      }
+      if (data.error === 'weekly_limit') {
+        clearInterval(interval)
         setError(locale === 'de' ? 'Du hast diese Woche bereits 6 Avatare erstellt. Nächste Woche wieder!' : 'You already created 6 avatars this week. Come back next week!')
-      } else if (data.error === 'bad_selfie') {
+        setLoading(false); setGenProgress(0)
+        window.dispatchEvent(new CustomEvent('kw-generating', { detail: false }))
+        return
+      }
+      if (data.error === 'bad_selfie') {
+        clearInterval(interval)
         setError(locale === 'de' ? 'Dein Foto eignet sich nicht gut für Try-On' : "Your photo isn't well suited for try-on")
         setErrorTips(locale === 'de' ? [
           'Handy hinstellen (z.B. anlehnen) statt in der Hand halten',
@@ -623,17 +631,49 @@ const steps = locale === 'de' ? [
           'Bright, even lighting — avoid backlighting',
           'Simple, uncluttered background',
         ])
-      } else if (data.success) {
-        setResult(data.imageUrl)
+        setLoading(false); setGenProgress(0)
+        window.dispatchEvent(new CustomEvent('kw-generating', { detail: false }))
+        return
+      }
+      if (!data.pending || !data.requestId) {
+        clearInterval(interval)
+        setError(locale === 'de' ? 'Fehler beim Generieren' : 'Error generating')
+        setLoading(false); setGenProgress(0)
+        window.dispatchEvent(new CustomEvent('kw-generating', { detail: false }))
+        return
+      }
+
+      // Job wurde eingereiht -- jetzt in kurzen Abstaenden nachfragen, ob
+      // das Ergebnis fertig ist (max. ~3 Minuten), statt blockierend zu
+      // warten (das hat vorher zu Vercel-Timeouts gefuehrt).
+      const requestId = data.requestId
+      const model = data.model
+      let finalData: any = null
+
+      for (let attempt = 0; attempt < 60; attempt++) {
+        await new Promise(resolve => setTimeout(resolve, 3000))
+        const statusRes = await fetch(`/api/generate-avatar/status?requestId=${encodeURIComponent(requestId)}&model=${encodeURIComponent(model)}`)
+        const statusData = await statusRes.json()
+
+        if (statusData.success) { finalData = statusData; break }
+        if (statusData.error) throw new Error(statusData.error)
+      }
+
+      clearInterval(interval)
+      setGenProgress(100)
+      setGenStep(locale === 'de' ? 'Fertig!' : 'Done!')
+
+      if (finalData?.success) {
+        setResult(finalData.imageUrl)
         await loadData()
       } else {
-        setError(locale === 'de' ? 'Fehler beim Generieren' : 'Error generating')
+        setError(locale === 'de' ? 'Generierung hat zu lange gedauert, bitte nochmal versuchen' : 'Generation took too long, please try again')
       }
     } catch {
       clearInterval(interval)
       setError(locale === 'de' ? 'Fehler beim Generieren' : 'Error generating')
     }
- setLoading(false)
+    setLoading(false)
     setGenProgress(0)
     window.dispatchEvent(new CustomEvent('kw-generating', { detail: false }))
   }

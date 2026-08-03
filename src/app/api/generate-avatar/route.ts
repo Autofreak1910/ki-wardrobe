@@ -1,4 +1,4 @@
-export const maxDuration = 120
+export const maxDuration = 60
 
 import { fal } from '@fal-ai/client'
 import { createClient } from '@/lib/supabase/server'
@@ -26,8 +26,7 @@ export async function POST(req: Request) {
     const { personImage, garmentImage, garmentDescription, category } = await req.json()
     console.log('garmentImage type:', typeof garmentImage, 'value:', garmentImage)
 
-    // Check limits -- ueber die RPC, damit ein abgelaufenes Premium korrekt als abgelaufen erkannt wird,
-    // genau wie ueberall sonst in der App (Dresser, Profil, Avatar-Frontend).
+    // Check limits -- ueber die RPC, damit ein abgelaufenes Premium korrekt als abgelaufen erkannt wird.
     const { data: profile } = await supabase.from('profiles').select('is_premium').eq('id', user.id).single()
     if (!profile) return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
 
@@ -35,7 +34,6 @@ export async function POST(req: Request) {
     const isPremium = stillPremium ?? false
 
     if (!isPremium) {
-      // Free: 2 Avatare pro Kalendermonat
       const monthStart = getMonthStartUTC()
       const { count } = await supabase.from('avatar_results')
         .select('*', { count: 'exact', head: true })
@@ -45,7 +43,6 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'monthly_limit' }, { status: 403 })
       }
     } else {
-      // Pro: 6 Avatare pro Woche (Reset Montag 00:00 UTC)
       const weekStart = getWeekStartUTC()
       const { count } = await supabase.from('avatar_results')
         .select('*', { count: 'exact', head: true })
@@ -57,8 +54,7 @@ export async function POST(req: Request) {
     }
 
     // personImage kann entweder ein neu hochgeladenes Base64-Bild sein
-    // (data:image/...;base64,...) ODER bereits eine fertige URL, falls der
-    // Nutzer ein gespeichertes Selfie aus der Galerie ausgewaehlt hat.
+    // ODER bereits eine fertige URL (gespeichertes Selfie aus der Galerie).
     let originalPublicUrl: string
 
     if (personImage.startsWith('http')) {
@@ -79,8 +75,6 @@ export async function POST(req: Request) {
     }
     console.log('originalPublicUrl (selfie):', originalPublicUrl)
 
-    // Kurz warten und pruefen, ob die frisch hochgeladene Datei wirklich
-    // oeffentlich abrufbar ist, bevor sie an die Try-On-KI geht.
     async function waitForImageReady(url: string, maxAttempts = 4): Promise<void> {
       for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         try {
@@ -142,75 +136,37 @@ export async function POST(req: Request) {
       }
     } catch (checkErr) {
       console.error('Selfie quality check failed:', checkErr)
-      // Bei Fehler im Check einfach weitermachen, nicht blockieren
     }
 
-    // FASHN funktioniert nachweislich super bei Hosen/kurzen Hosen (zwei
-    // getrennte Beine, viele Trainingsbeispiele). Roecke UND Kleider sind
-    // aber ein einzelnes, geschlossenes Stoffstueck OHNE Beintrennung -- ein
-    // Formprinzip, das FASHN erkennbar seltener sauber beherrscht (alte
-    // lange Hose scheint durch/bleibt sichtbar). Fuer genau diese beiden
-    // Kategorien nutzen wir deshalb Leffa, das eine eigene, dedizierte
-    // "dresses"-Kategorie hat, statt Roecke wie eine gewoehnliche Hose zu
-    // behandeln.
+    // Roecke/Kleider -> Leffa (eigene "dresses"-Kategorie), alles andere -> FASHN.
     const useLeffaForDress = category === 'roecke' || category === 'kleider'
+    const modelEndpoint = useLeffaForDress ? 'fal-ai/leffa/virtual-tryon' : 'fal-ai/fashn/tryon/v1.6'
 
-    let imageUrl: string | undefined
-
-    if (useLeffaForDress) {
-      const leffaResult = await fal.subscribe('fal-ai/leffa/virtual-tryon', {
-        input: {
+    const input = useLeffaForDress
+      ? {
           human_image_url: publicUrl,
           garment_image_url: garmentImage,
           garment_type: 'dresses',
-        },
-      })
-      imageUrl = (leffaResult as any)?.data?.image?.url
-      if (!imageUrl) {
-        console.error('Leffa result had no image:', JSON.stringify(leffaResult))
-        throw new Error('Try-on generation returned no image')
-      }
-    } else {
-    const falResult = await fal.subscribe('fal-ai/fashn/tryon/v1.6', {
-        input: {
+        }
+      : {
           model_image: publicUrl,
           garment_image: garmentImage,
           category: 'auto',
           mode: 'balanced',
           garment_photo_type: 'flat-lay',
-        },
-      })
-      imageUrl = (falResult as any)?.data?.images?.[0]?.url
-      if (!imageUrl) {
-        console.error('FASHN result had no image:', JSON.stringify(falResult))
-        throw new Error('Try-on generation returned no image')
-      }
-    }
+        }
 
-    // Download und in Supabase speichern
-    const imgResponse = await fetch(imageUrl as string)
-    const imgBuffer = await imgResponse.arrayBuffer()
-    const resultFileName = `results/${user.id}/${Date.now()}.jpg`
-    await supabase.storage.from('avatars').upload(resultFileName, Buffer.from(imgBuffer), { contentType: 'image/jpeg', upsert: true })
-    const { data: { publicUrl: savedUrl } } = supabase.storage.from('avatars').getPublicUrl(resultFileName)
-
-    // Save result -- created_at wird explizit gesetzt, damit sich der Zaehler
-    // niemals auf einen (evtl. fehlenden) DB-Standardwert verlassen muss.
-    const { error: insertError } = await supabase.from('avatar_results').insert({
-      user_id: user.id,
-      image_url: savedUrl,
-      created_at: new Date().toISOString(),
-    })
-    if (insertError) {
-      console.error('avatar_results insert FAILED:', JSON.stringify(insertError))
-    } else {
-      console.log('avatar_results insert OK')
-    }
+    // WICHTIG: Nicht mehr blockierend auf das Ergebnis warten (fal.subscribe),
+    // das hat bei laengeren Generierungen zu Vercel-Timeouts gefuehrt, selbst
+    // wenn die KI kurz vor dem Fertigwerden war. Stattdessen: Job einreihen
+    // und SOFORT die request_id zurueckgeben. Das Frontend fragt danach in
+    // kurzen Abstaenden bei /api/generate-avatar/status nach, ob es fertig ist.
+    const { request_id } = await fal.queue.submit(modelEndpoint, { input })
 
     return NextResponse.json({
-      success: true,
-      imageUrl: savedUrl,
-      _debugSaveError: insertError ? insertError.message ?? String(insertError) : null,
+      pending: true,
+      requestId: request_id,
+      model: modelEndpoint,
     })
   } catch (err: any) {
     console.error(err)
