@@ -90,9 +90,10 @@ export default function WeatherLocationPanel({
         exit={{ opacity: 0, y: -8, scale: 0.96 }}
         transition={{ duration: 0.18 }}
         onClick={(e) => e.stopPropagation()}
-        style={{
-          position: 'absolute', top: '70px', right: '18px', zIndex: 5,
-          width: '260px', background: card, border: `1px solid ${border}`,
+      style={{
+          position: 'fixed', top: '86px', right: '18px', zIndex: 50,
+          width: '280px', maxHeight: 'calc(100dvh - 120px)', overflowY: 'auto' as const,
+          background: card, border: `1px solid ${border}`,
           borderRadius: '18px', padding: '14px', boxShadow: '0 12px 40px rgba(0,0,0,0.25)',
         }}
       >
