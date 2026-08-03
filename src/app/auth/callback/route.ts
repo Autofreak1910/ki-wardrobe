@@ -23,7 +23,10 @@ export async function GET(request: Request) {
       }
 
       if (profile && profile.onboarding_completed === false) {
-        return NextResponse.redirect(origin + '/' + locale + '/auth/register')
+        // WICHTIG: den ref-Code bei der Weiterleitung mitgeben, sonst geht er hier verloren
+        // und die Register-Seite kann apply-referral-server nie aufrufen (Referral-Bonus faellt weg).
+        const refParam = refCode ? '?ref=' + refCode : ''
+        return NextResponse.redirect(origin + '/' + locale + '/auth/register' + refParam)
       }
     }
   }
