@@ -346,7 +346,7 @@ async function createShareCard(selfieUrl: string, resultUrl: string, locale: str
 }
 
 // Modul-Level-Cache -- ueberlebt Seitenwechsel, kein Blank-Screen mehr beim erneuten Besuch
-let avatarCache: { profile: any; items: ClothingItem[] } | null = null
+let avatarCache: { profile: any; items: ClothingItem[]; savedSelfies: { id: string; image_url: string }[] } | null = null
 
 export default function AvatarPage() {
   const [errorTips, setErrorTips] = useState<string[] | null>(null)
@@ -370,7 +370,7 @@ const [genProgress, setGenProgress] = useState(0)
   const [galleryLoading, setGalleryLoading] = useState(false)
 const [galleryFullscreen, setGalleryFullscreen] = useState<string | null>(null)
 const [showPhotoGuide, setShowPhotoGuide] = useState(false)
-const [savedSelfies, setSavedSelfies] = useState<{ id: string; image_url: string }[]>([])
+const [savedSelfies, setSavedSelfies] = useState<{ id: string; image_url: string }[]>(avatarCache?.savedSelfies ?? [])
   const [savingSelfie, setSavingSelfie] = useState(false)
   const [justUploadedNew, setJustUploadedNew] = useState(false)
 const [activeTryOnCategory, setActiveTryOnCategory] = useState('all')
@@ -394,11 +394,14 @@ const [activeTryOnCategory, setActiveTryOnCategory] = useState('all')
 
 useEffect(() => { loadData(); loadSavedSelfies() }, [])
 
-  async function loadSavedSelfies() {
+async function loadSavedSelfies() {
     try {
       const res = await fetch('/api/saved-selfies')
       const data = await res.json()
-      if (data.success) setSavedSelfies(data.selfies ?? [])
+      if (data.success) {
+        setSavedSelfies(data.selfies ?? [])
+        avatarCache = { ...(avatarCache ?? { profile: null, items: [] }), savedSelfies: data.selfies ?? [] }
+      }
     } catch (err) {
       console.error('Load saved selfies failed:', err)
     }
@@ -648,27 +651,27 @@ const steps = locale === 'de' ? [
       <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '560px', width: '100%', margin: '0 auto', padding: '68px 0 170px', position: 'relative', zIndex: 1 }}>
 
         {/* Hero Banner */}
- <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-          style={{ position: 'relative' as const, height: '220px', marginBottom: '0', overflow: 'hidden', borderRadius: '0 0 28px 28px' }}>
+<motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+          style={{ position: 'relative' as const, height: '130px', marginBottom: '0', overflow: 'hidden', borderRadius: '0 0 24px 24px' }}>
           <img
             src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80&auto=format&fit=crop"
             alt=""
             style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', position: 'absolute', inset: 0 }}
           />
-      <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, transparent 0%, transparent 50%, ${bg} 100%)`, maskImage: 'linear-gradient(to bottom, transparent 0%, black 100%)', WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 100%)' }} />
-          <div style={{ position: 'absolute', inset: '40% 0 0 0', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', background: 'rgba(0,0,0,0.25)', maskImage: 'linear-gradient(to bottom, transparent 0%, black 40%, black 100%)', WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 40%, black 100%)' }} />
+      <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, transparent 0%, transparent 40%, ${bg} 100%)`, maskImage: 'linear-gradient(to bottom, transparent 0%, black 100%)', WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 100%)' }} />
+          <div style={{ position: 'absolute', inset: '40% 0 0 0', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', background: 'rgba(0,0,0,0.25)', maskImage: 'linear-gradient(to bottom, transparent 0%, black 40%, black 100%)', WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 40%, black 100%)' }} />
 
-<div style={{ position: 'absolute' as const, bottom: '20px', left: '20px', zIndex: 2 }}>
-            <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: '4px', textShadow: '0 1px 8px rgba(0,0,0,0.4)' }}>
+<div style={{ position: 'absolute' as const, bottom: '14px', left: '18px', zIndex: 2 }}>
+            <h1 style={{ fontSize: '19px', fontWeight: 800, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '2px', textShadow: '0 1px 8px rgba(0,0,0,0.4)' }}>
               Virtual Try-On
             </h1>
-            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.9)', fontWeight: 500, textShadow: '0 1px 6px rgba(0,0,0,0.4)' }}>
+            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.9)', fontWeight: 500, textShadow: '0 1px 6px rgba(0,0,0,0.4)' }}>
               {locale === 'de' ? 'Probiere Klamotten virtuell an deinem Foto an' : 'Try clothes on your photo virtually'}
             </p>
           </div>
         </motion.div>
 {/* Kompakte Pillen-Reihe: PRO-Kontingent + Anleitung + Meine Avatare -- alles in einer Zeile statt grosser Balken */}
-        <div style={{ padding: '12px 20px 0', marginBottom: '14px', display: 'flex', gap: '8px', overflowX: 'auto' as const }}>
+        <div style={{ padding: '10px 20px 0', marginBottom: '10px', display: 'flex', gap: '8px', overflowX: 'auto' as const }}>
           {isPremium ? (
             <div style={{ flexShrink: 0, background: goldAccent, borderRadius: '100px', padding: '8px 14px', boxShadow: '0 4px 12px rgba(241,185,81,0.35)' }}>
               <p style={{ fontSize: '11.5px', fontWeight: 700, color: '#1D1D20', whiteSpace: 'nowrap' as const }}>✦ PRO · {usedThisPeriod}/{periodLimit} {locale === 'de' ? 'Woche' : 'week'}</p>
