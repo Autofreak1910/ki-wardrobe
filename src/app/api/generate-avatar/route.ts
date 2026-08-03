@@ -55,19 +55,30 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'weekly_limit' }, { status: 403 })
       }
     }
+// personImage kann entweder ein neu hochgeladenes Base64-Bild sein
+    // (data:image/...;base64,...) ODER bereits eine fertige URL, falls der
+    // Nutzer ein gespeichertes Selfie aus der Galerie ausgewaehlt hat.
+    // Beide Faelle muessen unterschiedlich behandelt werden -- vorher wurde
+    // eine URL faelschlicherweise als Base64 dekodiert, was eine kaputte
+    // Bilddatei erzeugt hat.
+    let originalPublicUrl: string
 
-    // Upload selfie to Supabase Storage
-    const base64Data = personImage.replace(/^data:image\/\w+;base64,/, '')
-    const buffer = Buffer.from(base64Data, 'base64')
-    const fileName = `avatars/${user.id}/${Date.now()}.jpg`
+    if (personImage.startsWith('http')) {
+      originalPublicUrl = personImage
+    } else {
+      const base64Data = personImage.replace(/^data:image\/\w+;base64,/, '')
+      const buffer = Buffer.from(base64Data, 'base64')
+      const fileName = `avatars/${user.id}/${Date.now()}.jpg`
 
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('avatars')
-      .upload(fileName, buffer, { contentType: 'image/jpeg', upsert: true })
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, buffer, { contentType: 'image/jpeg', upsert: true })
 
-    if (uploadError) throw uploadError
+      if (uploadError) throw uploadError
 
-const { data: { publicUrl: originalPublicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName)
+      const result = supabase.storage.from('avatars').getPublicUrl(fileName)
+      originalPublicUrl = result.data.publicUrl
+    }
     console.log('originalPublicUrl (selfie):', originalPublicUrl)
 
     // Kurz warten und pruefen, ob die frisch hochgeladene Datei wirklich
