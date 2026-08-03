@@ -47,7 +47,8 @@ If it is NOT a clothing/fashion item:
 {"is_clothing":false,"reason":"short description of what the image actually shows"}
 
 Rules when is_clothing is true:
-- category must be exactly one of: tops, hosen, jacken, schuhe, acc
+- category must be exactly one of: tops, hosen, kurze_hosen, roecke, kleider, jacken, schuhe, acc
+- "hosen" = long pants/jeans/trousers. "kurze_hosen" = shorts/bermudas (anything ending above or at the knee). "roecke" = skirts (mini, midi, maxi — bottom-only garment). "kleider" = dresses, jumpsuits, overalls (one-piece garments covering both upper and lower body).
 - name: specific product name if recognizable, otherwise short descriptive name in English, max 3 words
 - color: main color in English (e.g. Black, White, Navy, Grey, Beige, Blue)
 - style_tags: array from: streetwear, casual, formal, vintage, sporty, minimalist, luxury
