@@ -1,4 +1,4 @@
-﻿export const CURRENT_VERSION = '1.1.0'
+﻿export const CURRENT_VERSION = '1.0.0'
 
 export type ChangelogEntry = {
   version: string
@@ -8,16 +8,6 @@ export type ChangelogEntry = {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
-  {
-    version: '1.1.0',
-    date: '2026-08-03',
-    notesDe: [
-      'Test-Update um zu schauen ob alles klappt 🎉',
-    ],
-    notesEn: [
-      'Test update to check everything works 🎉',
-    ],
-  },
   {
     version: '1.0.0',
     date: '2026-08-03',

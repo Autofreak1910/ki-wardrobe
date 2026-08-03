@@ -131,8 +131,13 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
   }
   // ─────────────────────────────────────────────────────────────────────────
 
-  useEffect(() => {
+useEffect(() => {
     checkForForceUpdate()
+
+    function onVisible() {
+      if (document.visibilityState === 'visible') checkForForceUpdate()
+    }
+    document.addEventListener('visibilitychange', onVisible)
 
     const isAppPage = TAB_ORDER.some(t => pathname.includes(t))
     if (!isAppPage) { setShowSplash(false); return }
@@ -155,11 +160,13 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
       }
     }
 
-    supabase.auth.onAuthStateChange((event) => {
+supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') {
         router.push('/' + pathname.split('/')[1] + '/auth/login')
       }
     })
+
+    return () => document.removeEventListener('visibilitychange', onVisible)
   }, [pathname])
 
   async function checkOnboardingStatus() {
