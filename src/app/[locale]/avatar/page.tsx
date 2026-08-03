@@ -133,8 +133,11 @@ function getCategoryLabel(category: string): string {
     tops: 'shirt',
     hosen: 'long pants',
     kurze_hosen: 'shorts',
-    roecke: 'skirt',
-    kleider: 'dress',
+    // Explizit beschrieben, damit die Try-On-KI versteht, dass ein Rock ein
+    // einzelnes, geschlossenes Kleidungsstueck ist -- keine zwei separaten
+    // Hosenbeine wie bei einer Hose.
+    roecke: 'skirt, a single flowing garment worn around the waist and hips with no separate leg openings',
+    kleider: 'dress, a one-piece garment that covers the torso and continues down over the legs as a single connected piece',
     jacken: 'jacket',
     schuhe: 'shoes',
     acc: 'accessory',
@@ -816,9 +819,6 @@ const steps = locale === 'de' ? [
          <p style={{ fontSize: '11px', fontWeight: 800, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>
             {locale === 'de' ? 'Schritt 2 · Kleidung wählen' : 'Step 2 · Choose clothing'}
           </p>
-          <p style={{ fontSize: '11px', color: muted, marginBottom: '6px' }}>
-            {locale === 'de' ? 'Röcke & Kleider werden beim Try-On aktuell noch nicht unterstützt' : "Skirts & dresses aren't supported for try-on yet"}
-          </p>
           <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '20px', overflow: 'hidden', boxShadow: isDark ? 'none' : '0 2px 8px rgba(29,29,32,0.04)', position: 'relative' as const, opacity: canGenerate ? 1 : 0.5, pointerEvents: canGenerate ? 'auto' : 'none' as const }}>
             {!canGenerate && (
               <div style={{ position: 'absolute', inset: 0, zIndex: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', background: isDark ? 'rgba(29,29,32,0.4)' : 'rgba(255,255,255,0.4)' }}>
@@ -833,7 +833,7 @@ const steps = locale === 'de' ? [
               ) : (
                 <>
            {(() => {
-                    const tryOnItems = items.filter(item => !['schuhe', 'roecke', 'kleider'].includes(item.category))
+                    const tryOnItems = items.filter(item => item.category !== 'schuhe')
                     const availableCategories = Array.from(new Set(tryOnItems.map(i => i.category)))
                     const tabs = ['all', ...availableCategories]
                     return (
@@ -851,7 +851,7 @@ const steps = locale === 'de' ? [
                     )
                   })()}
                   {(() => {
-                    const filteredTryOnItems = items.filter(item => !['schuhe', 'roecke', 'kleider'].includes(item.category) && (activeTryOnCategory === 'all' || item.category === activeTryOnCategory))
+                   const filteredTryOnItems = items.filter(item => item.category !== 'schuhe' && (activeTryOnCategory === 'all' || item.category === activeTryOnCategory))
                     const visibleItems = showAllTryOnItems ? filteredTryOnItems : filteredTryOnItems.slice(0, 3)
                     return (
                       <>

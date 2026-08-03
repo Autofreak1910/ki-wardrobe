@@ -127,17 +127,22 @@ const categoryMap: Record<string, string> = {
     const garmentCategory = categoryMap[category] ?? 'upper_body'
 
     // Run Replicate
+// Roecke und Kleider profitieren von mehr Denoise-Steps -- komplexere
+    // Formen (fliessender Stoff, keine klar getrennten Beine) brauchen mehr
+    // Rechenschritte fuer ein sauberes Ergebnis.
+    const isComplexGarment = category === 'roecke' || category === 'kleider'
+
     const output = await replicate.run(
       'cuuupid/idm-vton:906425dbca90663ff5427624839572cc56ea7d380343d13e2a4c4b09d3f0c30f',
       {
-input: {
+        input: {
           human_img: publicUrl,
           garm_img: garmentImage,
           garment_des: garmentDescription || 'clothing item',
           category: garmentCategory,
           is_checked: true,
           is_checked_crop: false,
-          denoise_steps: 30,
+          denoise_steps: isComplexGarment ? 40 : 30,
         }
       }
     )
