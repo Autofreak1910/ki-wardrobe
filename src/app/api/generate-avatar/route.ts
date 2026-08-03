@@ -72,9 +72,15 @@ export async function POST(req: Request) {
     // Hintergrund vom Selfie entfernen für bessere Try-On-Qualität
     let publicUrl = originalPublicUrl
     try {
-      const bgRes = await fetch(new URL('/api/remove-background', req.url).toString(), {
+     const bgRes = await fetch(new URL('/api/remove-background', req.url).toString(), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          // Cookies der urspruenglichen Anfrage weiterreichen, sonst schlaegt
+          // die Auth-Pruefung in remove-background mit 401 fehl, weil
+          // interne Server-zu-Server-Fetches sonst keine Session mitbekommen.
+          Cookie: req.headers.get('cookie') || '',
+        },
         body: JSON.stringify({ imageUrl: originalPublicUrl }),
       })
       const bgData = await bgRes.json()
