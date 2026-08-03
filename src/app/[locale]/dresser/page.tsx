@@ -67,8 +67,14 @@ const categoryConfig = [
     icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.57a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.57a2 2 0 00-1.34-2.23z"/></svg> },
   { key: 'jacken', labelDe: 'Jacke',    labelEn: 'Jacket',
     icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 2l4 4-2 2 2 14H4L6 8 4 6l4-4"/><path d="M12 2v7"/><path d="M8 2c0 2.5 1.5 4 4 4s4-1.5 4-4"/></svg> },
+  { key: 'kleider', labelDe: 'Kleid', labelEn: 'Dress',
+    icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 3l-2 4 2 2-3 12h12L15 9l2-2-2-4"/><path d="M9 3c0 1.5 1.3 2 3 2s3-.5 3-2"/></svg> },
   { key: 'hosen',  labelDe: 'Hose',     labelEn: 'Pants',
     icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3h18v4l-4 14h-4l-1-8-1 8H7L3 7V3z"/></svg> },
+  { key: 'kurze_hosen', labelDe: 'Kurze Hose', labelEn: 'Shorts',
+    icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3h18v4l-2 6h-4l-1-4-1 4H8l-2-6V3z"/></svg> },
+  { key: 'roecke', labelDe: 'Rock', labelEn: 'Skirt',
+    icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3h8l1 5-9 13H8L4 8l4-5z"/><path d="M8 3c0 2 1.8 3 4 3s4-1 4-3"/></svg> },
   { key: 'schuhe', labelDe: 'Schuhe',   labelEn: 'Shoes',
     icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 18h20v2a1 1 0 01-1 1H3a1 1 0 01-1-1v-2z"/><path d="M2 18l4-9h3l2 4 3-7h4l2 12"/></svg> },
 ]
@@ -122,7 +128,7 @@ const [dailyFreeOutfitExpanded, setDailyFreeOutfitExpanded] = useState(false)
   const [saved, setSaved] = useState(false)
   const [wardrobeItems, setWardrobeItems] = useState<ClothingItem[]>(stylistCache?.wardrobeItems ?? [])
   const [hasItems, setHasItems] = useState(stylistCache ? stylistCache.wardrobeItems.length >= 3 : true)
- const [activeCategories, setActiveCategories] = useState<string[]>(['tops', 'hosen', 'jacken', 'schuhe'])
+ const [activeCategories, setActiveCategories] = useState<string[]>(['tops', 'hosen', 'kurze_hosen', 'roecke', 'kleider', 'jacken', 'schuhe'])
 const [weatherAware, setWeatherAware] = useState(true)
   const [weather, setWeather] = useState<Weather | null>(null)
   const [weatherLoading, setWeatherLoading] = useState(true)

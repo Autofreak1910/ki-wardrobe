@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import UpgradeModal from '@/components/UpgradeModal'
-const categories = ['all', 'tops', 'hosen', 'jacken', 'schuhe', 'acc'] as const
+const categories = ['all', 'tops', 'hosen', 'kurze_hosen', 'roecke', 'kleider', 'jacken', 'schuhe', 'acc'] as const
 
 function LockIcon({ size = 14, color = 'currentColor' }: { size?: number; color?: string }) {
   return (
@@ -491,8 +491,8 @@ const res = await fetch('/api/style-dna', {
   }
 
 const catLabels: Record<string, string> = locale === 'de'
-    ? { tops: 'Oberteil', hosen: 'Hose', jacken: 'Jacke', schuhe: 'Schuhe', acc: 'Acc' }
-    : { tops: 'Top', hosen: 'Pants', jacken: 'Jacket', schuhe: 'Shoes', acc: 'Acc' }
+   ? { tops: 'Oberteil', hosen: 'Hose', kurze_hosen: 'Kurze Hose', roecke: 'Rock', kleider: 'Kleid', jacken: 'Jacke', schuhe: 'Schuhe', acc: 'Acc' }
+    : { tops: 'Top', hosen: 'Pants', kurze_hosen: 'Shorts', roecke: 'Skirt', kleider: 'Dress', jacken: 'Jacket', schuhe: 'Shoes', acc: 'Acc' }
 
   const filtered = (filter === 'all' ? items : items.filter(i => i.category === filter))
     .sort((a, b) => {
