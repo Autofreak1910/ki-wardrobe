@@ -125,18 +125,17 @@ const categoryMap: Record<string, string> = {
       kleider: 'dresses',
     }
     const garmentCategory = categoryMap[category] ?? 'upper_body'
-    const isChecked = category !== 'roecke'
 
     // Run Replicate
     const output = await replicate.run(
       'cuuupid/idm-vton:906425dbca90663ff5427624839572cc56ea7d380343d13e2a4c4b09d3f0c30f',
       {
-  input: {
+input: {
           human_img: publicUrl,
           garm_img: garmentImage,
-          garment_des: (garmentDescription || 'clothing item') + (category === 'roecke' ? ', short skirt, not pants, not trousers' : ''),
+          garment_des: garmentDescription || 'clothing item',
           category: garmentCategory,
-          is_checked: isChecked,
+          is_checked: true,
           is_checked_crop: false,
           denoise_steps: 30,
         }
