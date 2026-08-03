@@ -145,34 +145,46 @@ export async function POST(req: Request) {
       // Bei Fehler im Check einfach weitermachen, nicht blockieren
     }
 
-    // FASHN erkennt die Kleidungs-Kategorie automatisch ('auto'), was gerade
-    // bei Roecken/Kleidern deutlich robuster ist als manuelles Mapping.
-    // Wir mappen trotzdem explizit, wo wir sicher sind, und lassen den Rest
-    // dem Modell.
- // Laut FASHN-Doku erkennt 'auto' die Kategorie bei sauberen Flat-Lay-/
-    // Produktfotos (wie unseren freigestellten clean.png-Bildern) meist
-    // zuverlaessiger als eine manuelle Vorgabe -- unser bisheriges manuelles
-    // Mapping ('bottoms') hat das Modell vermutlich eher in Richtung
-    // typische Hose gedraengt, statt die tatsaechliche Rock-Form zu erkennen.
-    const fashnCategory = 'auto'
+    // FASHN funktioniert nachweislich super bei Hosen/kurzen Hosen (zwei
+    // getrennte Beine, viele Trainingsbeispiele). Roecke UND Kleider sind
+    // aber ein einzelnes, geschlossenes Stoffstueck OHNE Beintrennung -- ein
+    // Formprinzip, das FASHN erkennbar seltener sauber beherrscht (alte
+    // lange Hose scheint durch/bleibt sichtbar). Fuer genau diese beiden
+    // Kategorien nutzen wir deshalb Leffa, das eine eigene, dedizierte
+    // "dresses"-Kategorie hat, statt Roecke wie eine gewoehnliche Hose zu
+    // behandeln.
+    const useLeffaForDress = category === 'roecke' || category === 'kleider'
 
-    // Run FASHN v1.6 auf fal.ai -- aktuell bestes Try-On-Modell fuer
-    // Detailtreue und volle Unterstuetzung von Tops, Hosen, Roecken UND
-    // Kleidern (die dokumentierte Schwachstelle des alten IDM-VTON-Modells).
-const falResult = await fal.subscribe('fal-ai/fashn/tryon/v1.6', {
-      input: {
-        model_image: publicUrl,
-        garment_image: garmentImage,
-        category: fashnCategory,
-        mode: 'quality',
-        garment_photo_type: 'flat-lay',
-      },
-    })
+    let imageUrl: string | undefined
 
-    const imageUrl = (falResult as any)?.data?.images?.[0]?.url
-    if (!imageUrl) {
-      console.error('FASHN result had no image:', JSON.stringify(falResult))
-      throw new Error('Try-on generation returned no image')
+    if (useLeffaForDress) {
+      const leffaResult = await fal.subscribe('fal-ai/leffa/virtual-tryon', {
+        input: {
+          human_image_url: publicUrl,
+          garment_image_url: garmentImage,
+          garment_type: 'dresses',
+        },
+      })
+      imageUrl = (leffaResult as any)?.data?.image?.url
+      if (!imageUrl) {
+        console.error('Leffa result had no image:', JSON.stringify(leffaResult))
+        throw new Error('Try-on generation returned no image')
+      }
+    } else {
+      const falResult = await fal.subscribe('fal-ai/fashn/tryon/v1.6', {
+        input: {
+          model_image: publicUrl,
+          garment_image: garmentImage,
+          category: 'auto',
+          mode: 'quality',
+          garment_photo_type: 'flat-lay',
+        },
+      })
+      imageUrl = (falResult as any)?.data?.images?.[0]?.url
+      if (!imageUrl) {
+        console.error('FASHN result had no image:', JSON.stringify(falResult))
+        throw new Error('Try-on generation returned no image')
+      }
     }
 
     // Download und in Supabase speichern
