@@ -163,11 +163,11 @@ export async function POST(req: Request) {
     // Detailtreue und volle Unterstuetzung von Tops, Hosen, Roecken UND
     // Kleidern (die dokumentierte Schwachstelle des alten IDM-VTON-Modells).
     const falResult = await fal.subscribe('fal-ai/fashn/tryon/v1.6', {
-      input: {
+    input: {
         model_image: publicUrl,
         garment_image: garmentImage,
         category: fashnCategory,
-        mode: 'balanced',
+        mode: 'quality',
       },
     })
 
