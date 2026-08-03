@@ -650,53 +650,52 @@ const steps = locale === 'de' ? [
 
       <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '560px', width: '100%', margin: '0 auto', padding: '68px 0 170px', position: 'relative', zIndex: 1 }}>
 
-        {/* Hero Banner */}
+{/* Hero Banner */}
 <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-          style={{ position: 'relative' as const, height: '210px', marginBottom: '24px', overflow: 'visible', borderRadius: '0 0 24px 24px' }}>
-          <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', borderRadius: '0 0 24px 24px' }}>
-            <img
-              src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80&auto=format&fit=crop"
-              alt=""
-              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', position: 'absolute', inset: 0 }}
-            />
-            <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, transparent 0%, transparent 40%, rgba(0,0,0,0.75) 100%)` }} />
-            <div style={{ position: 'absolute', inset: '40% 0 0 0', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', background: 'rgba(0,0,0,0.2)', maskImage: 'linear-gradient(to bottom, transparent 0%, black 40%, black 100%)', WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 40%, black 100%)' }} />
-            <div style={{ position: 'absolute' as const, bottom: '52px', left: '18px', zIndex: 2 }}>
-              <h1 style={{ fontSize: '22px', fontWeight: 800, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '2px', textShadow: '0 1px 8px rgba(0,0,0,0.4)' }}>
-                Virtual Try-On
-              </h1>
-              <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.9)', fontWeight: 500, textShadow: '0 1px 6px rgba(0,0,0,0.4)' }}>
-                {locale === 'de' ? 'Probiere Klamotten virtuell an deinem Foto an' : 'Try clothes on your photo virtually'}
-              </p>
-            </div>
-          </div>
-       {/* Badges als Overlay -- ragen unten aus dem Bild raus, wie im Referenzdesign */}
-          <div style={{ position: 'absolute' as const, bottom: '-18px', left: '18px', right: '0px', zIndex: 3, display: 'flex', gap: '8px', overflowX: 'auto' as const, paddingRight: '18px', maskImage: 'linear-gradient(to right, black 85%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to right, black 85%, transparent 100%)' }}>
-            {isPremium ? (
-              <div style={{ flexShrink: 0, background: goldAccent, borderRadius: '100px', padding: '8px 14px', boxShadow: '0 4px 14px rgba(0,0,0,0.25)' }}>
-                <p style={{ fontSize: '11.5px', fontWeight: 700, color: '#1D1D20', whiteSpace: 'nowrap' as const }}>✦ PRO · {usedThisPeriod}/{periodLimit} {locale === 'de' ? 'Woche' : 'week'}</p>
-              </div>
-            ) : (
-              <div style={{ flexShrink: 0, background: card, border: `1px solid ${border}`, borderRadius: '100px', padding: '8px 14px', boxShadow: '0 4px 14px rgba(0,0,0,0.15)' }}>
-                <p style={{ fontSize: '11.5px', fontWeight: 700, color: text, whiteSpace: 'nowrap' as const }}>{usedThisPeriod}/{periodLimit} {locale === 'de' ? 'Monat' : 'month'}</p>
-              </div>
-            )}
-            <motion.button whileTap={{ scale: 0.96 }} onClick={() => setShowPhotoGuide(true)}
-              style={{ flexShrink: 0, background: card, border: `1px solid ${border}`, borderRadius: '100px', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', boxShadow: '0 4px 14px rgba(0,0,0,0.15)' }}>
-              <CameraIcon size={13} color={text} />
-              <span style={{ fontSize: '11.5px', fontWeight: 700, color: text, whiteSpace: 'nowrap' as const }}>
-                {locale === 'de' ? 'Photo Guide' : 'Photo Guide'}
-              </span>
-            </motion.button>
-            <motion.button whileTap={{ scale: 0.96 }} onClick={openGallery}
-              style={{ flexShrink: 0, background: card, border: `1px solid ${border}`, borderRadius: '100px', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', opacity: isPremium ? 1 : 0.85, boxShadow: '0 4px 14px rgba(0,0,0,0.15)' }}>
-              {isPremium ? <ImageIcon size={13} color={text} /> : <LockIcon size={13} color={text} />}
-              <span style={{ fontSize: '11.5px', fontWeight: 700, color: text, whiteSpace: 'nowrap' as const }}>
-                {locale === 'de' ? 'My Avatars' : 'My Avatars'}
-              </span>
-            </motion.button>
+          style={{ position: 'relative' as const, height: '220px', marginBottom: '0', overflow: 'hidden', borderRadius: '0 0 28px 28px' }}>
+          <img
+            src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80&auto=format&fit=crop"
+            alt=""
+            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', position: 'absolute', inset: 0 }}
+          />
+      <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, transparent 0%, transparent 50%, ${bg} 100%)`, maskImage: 'linear-gradient(to bottom, transparent 0%, black 100%)', WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 100%)' }} />
+          <div style={{ position: 'absolute', inset: '40% 0 0 0', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', background: 'rgba(0,0,0,0.25)', maskImage: 'linear-gradient(to bottom, transparent 0%, black 40%, black 100%)', WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 40%, black 100%)' }} />
+
+<div style={{ position: 'absolute' as const, bottom: '20px', left: '20px', zIndex: 2 }}>
+            <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: '4px', textShadow: '0 1px 8px rgba(0,0,0,0.4)' }}>
+              Virtual Try-On
+            </h1>
+            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.9)', fontWeight: 500, textShadow: '0 1px 6px rgba(0,0,0,0.4)' }}>
+              {locale === 'de' ? 'Probiere Klamotten virtuell an deinem Foto an' : 'Try clothes on your photo virtually'}
+            </p>
           </div>
         </motion.div>
+{/* Kompakte Pillen-Reihe direkt unter dem Banner, nicht ueberlappend */}
+        <div style={{ padding: '12px 20px 0', marginBottom: '14px', display: 'flex', gap: '8px', overflowX: 'auto' as const }}>
+          {isPremium ? (
+            <div style={{ flexShrink: 0, background: goldAccent, borderRadius: '100px', padding: '8px 14px', boxShadow: '0 4px 12px rgba(241,185,81,0.35)' }}>
+              <p style={{ fontSize: '11.5px', fontWeight: 700, color: '#1D1D20', whiteSpace: 'nowrap' as const }}>✦ PRO · {usedThisPeriod}/{periodLimit} {locale === 'de' ? 'Woche' : 'week'}</p>
+            </div>
+          ) : (
+            <div style={{ flexShrink: 0, background: card, border: `1px solid ${border}`, borderRadius: '100px', padding: '8px 14px' }}>
+              <p style={{ fontSize: '11.5px', fontWeight: 700, color: text, whiteSpace: 'nowrap' as const }}>{usedThisPeriod}/{periodLimit} {locale === 'de' ? 'Monat' : 'month'}</p>
+            </div>
+          )}
+          <motion.button whileTap={{ scale: 0.96 }} onClick={() => setShowPhotoGuide(true)}
+            style={{ flexShrink: 0, background: card, border: `1px solid ${border}`, borderRadius: '100px', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+            <CameraIcon size={13} color={text} />
+            <span style={{ fontSize: '11.5px', fontWeight: 700, color: text, whiteSpace: 'nowrap' as const }}>
+              {locale === 'de' ? 'Photo Guide' : 'Photo Guide'}
+            </span>
+          </motion.button>
+          <motion.button whileTap={{ scale: 0.96 }} onClick={openGallery}
+            style={{ flexShrink: 0, background: card, border: `1px solid ${border}`, borderRadius: '100px', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', opacity: isPremium ? 1 : 0.85 }}>
+            {isPremium ? <ImageIcon size={13} color={text} /> : <LockIcon size={13} color={text} />}
+            <span style={{ fontSize: '11.5px', fontWeight: 700, color: text, whiteSpace: 'nowrap' as const }}>
+              {locale === 'de' ? 'My Avatars' : 'My Avatars'}
+            </span>
+          </motion.button>
+        </div>
 
 
         {/* Limit info -- ersetzt die alte grosse Upgrade-Wand, blockiert nichts mehr */}
