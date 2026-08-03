@@ -437,20 +437,15 @@ async function fetchWeather() {
 
     setWeather({ temp: Math.round(wd.current.temperature_2m), condition, icon, city })
 
-  } catch (err: any) {
-    try {
-      const ipRes = await fetch('https://ipapi.co/json/')
-      const ipData = await ipRes.json()
-      const { latitude: lat, longitude: lon, city } = ipData
-
-      const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode,is_day&timezone=auto`)
-      const wd = await weatherRes.json()
-      const { icon, condition } = parseWeatherCode(wd.current.weathercode, wd.current.is_day === 1)
-
-      setWeather({ temp: Math.round(wd.current.temperature_2m), condition, icon, city: city || '' })
-    } catch {
-      setWeather({ temp: 18, condition: locale === 'de' ? 'Schönes Wetter' : 'Nice weather', icon: '🌤️', city: '' })
-    }
+} catch (err: any) {
+    // WICHTIG (DSGVO): Wenn der Nutzer den Standortzugriff ablehnt oder er fehlschlaegt,
+    // NIE automatisch auf IP-basierte Standortermittlung ausweichen -- das wuerde eine
+    // bewusste Ablehnung umgehen. Stattdessen Wetter einfach deaktivieren; der Nutzer
+    // kann es jederzeit manuell im Profil wieder aktivieren (expliziter Opt-in).
+    setWeather(null)
+    setWeatherDisabled(true)
+    setWeatherAware(false)
+    try { localStorage.setItem('kw_weather_disabled', 'true') } catch {}
   } finally {
     setWeatherLoading(false)
   }
