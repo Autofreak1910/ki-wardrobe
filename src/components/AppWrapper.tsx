@@ -70,6 +70,30 @@ function getActivePage(pathname: string): string | null {
   return null
 }
 
+async function checkForNewVersion() {
+  try {
+    const res = await fetch('/api/version', { cache: 'no-store' })
+    const data = await res.json()
+    const currentVersion = data.version
+
+    const storedVersion = sessionStorage.getItem('kw_app_version')
+
+    if (!storedVersion) {
+      // Erster Aufruf in dieser Session -- Version nur merken, nicht neu laden
+      sessionStorage.setItem('kw_app_version', currentVersion)
+      return
+    }
+
+    if (storedVersion !== currentVersion) {
+      // Neue Version deployed seit dem letzten Laden -- einmalig neu laden
+      sessionStorage.setItem('kw_app_version', currentVersion)
+      window.location.reload()
+    }
+  } catch (err) {
+    console.error('Version check failed:', err)
+  }
+}
+
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
 const [showSplash, setShowSplash] = useState(true)
   const [showOnboarding, setShowOnboarding] = useState(false)
@@ -80,7 +104,8 @@ const [showSplash, setShowSplash] = useState(true)
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
- useEffect(() => {
+useEffect(() => {
+    checkForNewVersion()
     const isAppPage = TAB_ORDER.some(t => pathname.includes(t))
     if (!isAppPage) { setShowSplash(false); return }
 
@@ -102,12 +127,20 @@ const [showSplash, setShowSplash] = useState(true)
       }
     }
 
-    supabase.auth.onAuthStateChange((event) => {
+supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') {
         router.push('/' + pathname.split('/')[1] + '/auth/login')
       }
     })
   }, [pathname])
+
+  useEffect(() => {
+    function onVisible() {
+      if (document.visibilityState === 'visible') checkForNewVersion()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [])
 
   async function checkOnboardingStatus() {
     const { data: { session } } = await supabase.auth.getSession()
