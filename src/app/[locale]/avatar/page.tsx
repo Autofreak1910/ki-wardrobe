@@ -396,7 +396,7 @@ useEffect(() => { loadData(); loadSavedSelfies() }, [])
     }
   }
 
-  async function saveSelfieToGallery() {
+async function saveSelfieToGallery() {
     if (!selfie) return
     setSavingSelfie(true)
     try {
@@ -406,9 +406,16 @@ useEffect(() => { loadData(); loadSavedSelfies() }, [])
         body: JSON.stringify({ image: selfie }),
       })
       const data = await res.json()
-      if (data.success) { setJustUploadedNew(false); await loadSavedSelfies() }
+      console.log('Save selfie response:', res.status, data)
+      if (data.success) {
+        setJustUploadedNew(false)
+        await loadSavedSelfies()
+      } else {
+        alert('Speichern fehlgeschlagen: ' + (data.error ?? 'unbekannter Fehler'))
+      }
     } catch (err) {
       console.error('Save selfie failed:', err)
+      alert('Speichern fehlgeschlagen: ' + String(err))
     }
     setSavingSelfie(false)
   }
@@ -720,7 +727,7 @@ const steps = locale === 'de' ? [
               </div>
             )}
    <div style={{ padding: '8px' }}>
-              {savedSelfies.length > 0 && !selfie && (
+ {!selfie && (
                 <div style={{ display: 'flex', gap: '8px', padding: '8px 8px 4px', overflowX: 'auto' as const }}>
                   {savedSelfies.map(s => (
                     <div key={s.id} style={{ position: 'relative' as const, flexShrink: 0 }}>
@@ -732,6 +739,12 @@ const steps = locale === 'de' ? [
                         style={{ position: 'absolute', top: '-4px', right: '-4px', background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', width: '18px', height: '18px', color: '#fff', cursor: 'pointer', fontSize: '10px', lineHeight: 1 }}>
                         ×
                       </button>
+                    </div>
+                  ))}
+                  {Array.from({ length: Math.max(0, 3 - savedSelfies.length) }).map((_, i) => (
+                    <div key={'empty-' + i}
+                      style={{ width: '64px', height: '64px', borderRadius: '14px', flexShrink: 0, border: `1.5px dashed ${border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: muted }}>
+                      <SelfieIcon size={20} color={muted} />
                     </div>
                   ))}
                 </div>
