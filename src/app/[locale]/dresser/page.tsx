@@ -1201,8 +1201,8 @@ onClick={() => {
           </div>
 
          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}
-            onClick={() => { if (weatherDisabled) setShowWeatherPanel(v => !v) }}
-           style={{ position: 'absolute' as const, top: '16px', right: '18px',background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '16px', padding: '10px 14px', textAlign: 'center' as const, zIndex: 2, cursor: weatherDisabled ? 'pointer' : 'default', minWidth: '70px', boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}>
+           onClick={() => setShowWeatherPanel(v => !v)}
+           style={{ position: 'absolute' as const, top: '16px', right: '18px',background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '16px', padding: '10px 14px', textAlign: 'center' as const, zIndex: 2, cursor: 'pointer', minWidth: '70px', boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}>
             {weatherDisabled ? (
               <><div style={{ fontSize: '20px' }}>🔒</div><p style={{ fontSize: '9px', color: muted, marginTop: '2px' }}>Wetter aus</p></>
             ) : weatherLoading ? (
