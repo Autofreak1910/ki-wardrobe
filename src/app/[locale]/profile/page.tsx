@@ -12,6 +12,10 @@ import UpgradeModal from '@/components/UpgradeModal'
 import FeedbackModal from '@/components/FeedbackModal'
 import LegalModal from '@/components/LegalModal'
 import CancelSubscriptionModal from '@/components/CancelSubscriptionModal'
+import { loadStripe } from '@stripe/stripe-js'
+import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js'
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
 function HourglassIcon({ size = 14, color = 'currentColor' }: { size?: number; color?: string }) {
   return (
@@ -206,6 +210,7 @@ const [withdrawalConsent, setWithdrawalConsent] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [portalLoading, setPortalLoading] = useState(false)
+  const [checkoutSecret, setCheckoutSecret] = useState<string | null>(null)
   const { theme, toggle } = useTheme()
   const locale = useLocale()
   const router = useRouter()
@@ -397,6 +402,17 @@ function handleManageSubscriptionClick() {
   } else {
     setShowNoSubscriptionModal(true)
   }
+}
+async function startCheckout() {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) return
+  const res = await fetch('/api/create-checkout-session', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId: session.user.id, userEmail: session.user.email, locale }),
+  })
+  const data = await res.json()
+  if (data.clientSecret) setCheckoutSecret(data.clientSecret)
 }
  async function handleDeleteAccount() {
     setDeleting(true)
@@ -651,17 +667,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
             style={{ flex: 1, background: card, border: `1px solid ${border}`, borderRadius: '8px', padding: '9px', fontSize: '11px', fontWeight: 700, color: gold, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
             <GiftIcon size={12} color={gold} /> {locale === 'de' ? 'Freunde einladen' : 'Invite friends'}
           </button>
-          <button onClick={async () => {
-              const { data: { session } } = await supabase.auth.getSession()
-              if (!session?.user) return
-              const res = await fetch('/api/create-checkout-session', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: session.user.id, userEmail: session.user.email, locale }),
-              })
-              const data = await res.json()
-              if (data.url) window.location.href = data.url
-            }}
+          <button onClick={startCheckout}
             style={{ flex: 1, background: `linear-gradient(135deg, ${gold}, #E8B45E)`, border: 'none', borderRadius: '8px', padding: '9px', fontSize: '11px', fontWeight: 700, color: '#24211B', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
             ✦ {locale === 'de' ? 'Jetzt zahlen' : 'Pay now'}
           </button>
@@ -1038,17 +1044,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
         </p>
 
         <motion.button whileTap={{ scale: 0.97 }}
-          onClick={async () => {
-            const { data: { session } } = await supabase.auth.getSession()
-            if (!session?.user) return
-            const res = await fetch('/api/create-checkout-session', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ userId: session.user.id, userEmail: session.user.email, locale }),
-            })
-            const data = await res.json()
-            if (data.url) window.location.href = data.url
-          }}
+          onClick={startCheckout}
           style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: `linear-gradient(135deg, ${gold}, #E8B45E)`, color: '#24211B', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", marginBottom: '8px' }}>
           ✦ {locale === 'de' ? 'Jetzt kostenpflichtiges Abo abschließen' : 'Start paid subscription now'}
         </motion.button>
@@ -1056,6 +1052,22 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
           style={{ width: '100%', padding: '11px', background: 'transparent', border: 'none', fontSize: '13px', color: muted, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
           {locale === 'de' ? 'Schließen' : 'Close'}
         </button>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
+{/* Embedded Checkout Modal */}
+<AnimatePresence>
+  {checkoutSecret && (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+        style={{ width: '100%', maxWidth: '480px', maxHeight: '90vh', overflowY: 'auto' as const, background: '#fff', borderRadius: '20px', padding: '8px', position: 'relative' as const }}>
+        <button onClick={() => setCheckoutSecret(null)}
+          style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 10, background: '#F2EFE7', border: 'none', borderRadius: '10px', width: '32px', height: '32px', cursor: 'pointer', fontSize: '14px', color: '#24211B' }}>✕</button>
+        <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret: checkoutSecret }}>
+          <EmbeddedCheckout />
+        </EmbeddedCheckoutProvider>
       </motion.div>
     </motion.div>
   )}

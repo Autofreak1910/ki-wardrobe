@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       await supabase.from('profiles').update({ stripe_customer_id: customerId }).eq('id', userId)
     }
 
-  let trialDays = 0
+    let trialDays = 0
     let tier = 'none'
 
     if (profile.is_founder) {
@@ -66,11 +66,11 @@ export async function POST(request: NextRequest) {
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
+      ui_mode: 'embedded',
       payment_method_types: ['card'],
       customer: customerId,
       line_items: [{ price: process.env.STRIPE_PRICE_ID!, quantity: 1 }],
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://kiwardrobe-app.vercel.app'}/${lang}/profile?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://kiwardrobe-app.vercel.app'}/${lang}/profile?canceled=true`,
+      return_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://kiwardrobe-app.vercel.app'}/${lang}/profile?session_id={CHECKOUT_SESSION_ID}`,
       metadata: { userId, tier },
       subscription_data: {
         metadata: { userId, tier },
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    return NextResponse.json({ url: session.url })
+    return NextResponse.json({ clientSecret: session.client_secret })
   } catch (error) {
     console.error('Stripe error:', error)
     return NextResponse.json({ error: String(error) }, { status: 500 })
