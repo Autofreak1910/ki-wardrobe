@@ -74,11 +74,7 @@ export default function AvatarPhotoGuide({
                 </div>
               ))}
 
-              <div style={{
-                position: 'absolute' as const, top: '2%', left: '25%', width: '50%', height: '96%',
-                border: `2.5px dashed ${accent}`, borderRadius: '10px', pointerEvents: 'none' as const,
-              }} />
-            </div>
+           </div>
 
             {/* Checklist */}
       <div style={{ background: `${accent}0d`, border: `1px solid ${border}`, borderRadius: '14px', padding: '14px 16px', marginBottom: '18px' }}>
