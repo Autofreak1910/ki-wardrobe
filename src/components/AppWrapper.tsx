@@ -8,6 +8,9 @@ import SplashScreen from './SplashScreen'
 import OnboardingCarousel from './OnboardingCarousel'
 import WelcomeAnimation from './WelcomeAnimation'
 import Navbar from './Navbar'
+import UpdateAvailableModal from '@/components/UpdateAvailableModal'
+import { useTheme } from '@/context/ThemeContext'
+import { useLocale } from 'next-intl'
 
 const TAB_ORDER = ['dresser', 'wardrobe', 'outfits', 'profile']
 
@@ -70,6 +73,8 @@ function getActivePage(pathname: string): string | null {
   return null
 }
 
+let notifyNewVersion: ((version: string) => void) | null = null
+
 async function checkForNewVersion() {
   try {
     const res = await fetch('/api/version', { cache: 'no-store' })
@@ -85,9 +90,9 @@ async function checkForNewVersion() {
     }
 
     if (storedVersion !== currentVersion) {
-      // Neue Version deployed seit dem letzten Laden -- einmalig neu laden
-      sessionStorage.setItem('kw_app_version', currentVersion)
-      window.location.reload()
+      // Neue Version verfuegbar -- NICHT automatisch neu laden, sondern
+      // dem Nutzer ein Popup zeigen. Reload passiert erst nach Klick.
+      if (notifyNewVersion) notifyNewVersion(currentVersion)
     }
   } catch (err) {
     console.error('Version check failed:', err)
@@ -100,10 +105,38 @@ const [showSplash, setShowSplash] = useState(true)
   const [showWelcome, setShowWelcome] = useState(false)
   const [isPremium, setIsPremium] = useState(false)
   const [dbOnboardingSeen, setDbOnboardingSeen] = useState<boolean | null>(null)
-  const pathname = usePathname()
+const pathname = usePathname()
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
+  const [showUpdateModal, setShowUpdateModal] = useState(false)
+  const [pendingVersion, setPendingVersion] = useState<string | null>(null)
+  const { theme } = useTheme()
+  const locale = useLocale()
+  const isDark = theme === 'dark'
+
+  const card = isDark ? '#1D1D20' : '#ffffff'
+  const border = isDark ? '#2a2a2e' : '#E7E2D5'
+  const text = isDark ? '#F5F3EE' : '#24211B'
+  const muted = isDark ? '#9a978f' : '#8C8776'
+  const accent = isDark ? '#5C82A0' : '#355C7D'
+  const sageGradient = 'linear-gradient(135deg, #7FA98E, #355C7D)'
+
+  useEffect(() => {
+    notifyNewVersion = (version: string) => {
+      setPendingVersion(version)
+      setShowUpdateModal(true)
+    }
+    return () => { notifyNewVersion = null }
+  }, [])
+
+  function handleUpdateClick() {
+    if (pendingVersion) {
+      sessionStorage.setItem('kw_app_version', pendingVersion)
+    }
+    window.location.reload()
+  }
+
 useEffect(() => {
     checkForNewVersion()
     const isAppPage = TAB_ORDER.some(t => pathname.includes(t))
@@ -187,11 +220,17 @@ async function handleOnboardingDone() {
 
   const activePage = getActivePage(pathname)
 
-  return (
+return (
     <>
      {showSplash && <SplashScreen onDone={handleSplashDone} isPremium={isPremium} />}
       {showOnboarding && <OnboardingCarousel onDone={handleOnboardingDone} />}
       {showWelcome && <WelcomeAnimation onDone={handleWelcomeDone} />}
+      <UpdateAvailableModal
+        open={showUpdateModal}
+        onUpdate={handleUpdateClick}
+        locale={locale}
+        theme={{ card, border, text, muted, accent, sageGradient }}
+      />
       <div style={{
         opacity: showSplash ? 0 : 1,
         transition: 'opacity 0.3s ease',
