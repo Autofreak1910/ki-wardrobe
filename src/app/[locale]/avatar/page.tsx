@@ -131,7 +131,10 @@ type ClothingItem = { id: string; image_url: string; category: string; color: st
 function getCategoryLabel(category: string): string {
   const map: Record<string, string> = {
     tops: 'shirt',
-    hosen: 'pants',
+    hosen: 'long pants',
+    kurze_hosen: 'shorts',
+    roecke: 'skirt',
+    kleider: 'dress',
     jacken: 'jacket',
     schuhe: 'shoes',
     acc: 'accessory',
