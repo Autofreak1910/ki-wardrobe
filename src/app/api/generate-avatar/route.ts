@@ -1,4 +1,4 @@
-export const maxDuration = 60
+export const maxDuration = 120
 
 import { fal } from '@fal-ai/client'
 import { createClient } from '@/lib/supabase/server'
@@ -171,12 +171,12 @@ export async function POST(req: Request) {
         throw new Error('Try-on generation returned no image')
       }
     } else {
-      const falResult = await fal.subscribe('fal-ai/fashn/tryon/v1.6', {
+    const falResult = await fal.subscribe('fal-ai/fashn/tryon/v1.6', {
         input: {
           model_image: publicUrl,
           garment_image: garmentImage,
           category: 'auto',
-          mode: 'quality',
+          mode: 'balanced',
           garment_photo_type: 'flat-lay',
         },
       })
