@@ -64,19 +64,19 @@ export async function POST(request: NextRequest) {
     // Stripe erlaubt max. 730 Tage Trial -- zur Sicherheit deckeln
     trialDays = Math.min(trialDays, 730)
 
-    const session = await stripe.checkout.sessions.create({
-      mode: 'subscription',
-      ui_mode: 'embedded',
-      payment_method_types: ['card'],
-      customer: customerId,
-      line_items: [{ price: process.env.STRIPE_PRICE_ID!, quantity: 1 }],
-      return_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://kiwardrobe-app.vercel.app'}/${lang}/profile?session_id={CHECKOUT_SESSION_ID}`,
-      metadata: { userId, tier },
-      subscription_data: {
-        metadata: { userId, tier },
-        ...(trialDays > 0 ? { trial_period_days: trialDays } : {}),
-      },
-    })
+const session = await stripe.checkout.sessions.create({
+  mode: 'subscription',
+  ui_mode: 'embedded_page', // <- geändert von 'embedded'
+  payment_method_types: ['card'],
+  customer: customerId,
+  line_items: [{ price: process.env.STRIPE_PRICE_ID!, quantity: 1 }],
+  return_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://kiwardrobe-app.vercel.app'}/${lang}/profile?session_id={CHECKOUT_SESSION_ID}`,
+  metadata: { userId, tier },
+  subscription_data: {
+    metadata: { userId, tier },
+    ...(trialDays > 0 ? { trial_period_days: trialDays } : {}),
+  },
+})
 
     return NextResponse.json({ clientSecret: session.client_secret })
   } catch (error) {
