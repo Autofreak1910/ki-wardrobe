@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server'
+import { CURRENT_VERSION, getLatestChangelogEntry } from '@/lib/app-version'
 
 export const dynamic = 'force-dynamic'
 
-// VERCEL_GIT_COMMIT_SHA wird von Vercel automatisch bei jedem Deployment gesetzt.
-// Lokal (kein Deployment) fällt es auf den Server-Start-Zeitpunkt zurück, das reicht
-// für lokale Entwicklung völlig aus.
-const BUILD_VERSION = process.env.VERCEL_GIT_COMMIT_SHA || String(Date.now())
-
 export async function GET() {
-  return NextResponse.json({ version: BUILD_VERSION })
+  const entry = getLatestChangelogEntry()
+  return NextResponse.json({
+    version: CURRENT_VERSION,
+    date: entry.date,
+    notesDe: entry.notesDe,
+    notesEn: entry.notesEn,
+  })
 }

@@ -12,6 +12,7 @@ import UpgradeModal from '@/components/UpgradeModal'
 import FeedbackModal from '@/components/FeedbackModal'
 import LegalModal from '@/components/LegalModal'
 import CancelSubscriptionModal from '@/components/CancelSubscriptionModal'
+import CheckForUpdateButton from '@/components/CheckForUpdateButton'
 import { loadStripe } from '@stripe/stripe-js'
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js'
 
@@ -925,6 +926,10 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
               </>
             )}
           </div>
+        </div>
+
+<div style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden', marginBottom: '10px' }}>
+          <CheckForUpdateButton locale={locale} theme={{ card, border, text, muted, accent, accentDim, sageGradient }} />
         </div>
 
         {/* Links */}
