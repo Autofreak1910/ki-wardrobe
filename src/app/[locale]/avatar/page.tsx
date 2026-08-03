@@ -392,16 +392,19 @@ const [activeTryOnCategory, setActiveTryOnCategory] = useState('all')
   const goldAccent = '#F1B951'
   const sageGradient = 'linear-gradient(135deg, #7FA98E, #355C7D)'
 
-useEffect(() => { loadData(); loadSavedSelfies() }, [])
+useEffect(() => { loadData() }, [])
 
 async function loadSavedSelfies() {
     try {
-      const res = await fetch('/api/saved-selfies')
-      const data = await res.json()
-      if (data.success) {
-        setSavedSelfies(data.selfies ?? [])
-        avatarCache = { ...(avatarCache ?? { profile: null, items: [] }), savedSelfies: data.selfies ?? [] }
-      }
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.user) return
+      const { data } = await supabase
+        .from('saved_selfies')
+        .select('id, image_url')
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: false })
+      setSavedSelfies(data ?? [])
+      avatarCache = { ...(avatarCache ?? { profile: null, items: [] }), savedSelfies: data ?? [] }
     } catch (err) {
       console.error('Load saved selfies failed:', err)
     }
@@ -475,13 +478,14 @@ async function saveSelfieToGallery() {
     return () => { cancelled = true }
   }, [result])
 
-  async function loadData() {
+async function loadData() {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
-      const [profileRes, itemsRes] = await Promise.all([
+      const [profileRes, itemsRes, selfiesRes] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', session.user.id).single(),
-        supabase.from('clothing_items').select('*').eq('user_id', session.user.id)
+        supabase.from('clothing_items').select('*').eq('user_id', session.user.id),
+        supabase.from('saved_selfies').select('id, image_url').eq('user_id', session.user.id).order('created_at', { ascending: false }),
       ])
       let freshProfile: any = null
       if (profileRes.data) {
@@ -496,7 +500,8 @@ async function saveSelfieToGallery() {
         setProfile(freshProfile)
       }
       if (itemsRes.data) setItems(itemsRes.data)
-      avatarCache = { profile: freshProfile, items: itemsRes.data ?? [] }
+      if (selfiesRes.data) setSavedSelfies(selfiesRes.data)
+      avatarCache = { profile: freshProfile, items: itemsRes.data ?? [], savedSelfies: selfiesRes.data ?? [] }
     } catch (err) {
       console.error('loadData failed:', err)
     } finally {
