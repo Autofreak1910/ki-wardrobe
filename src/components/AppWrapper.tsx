@@ -8,7 +8,9 @@ import SplashScreen from './SplashScreen'
 import OnboardingCarousel from './OnboardingCarousel'
 import WelcomeAnimation from './WelcomeAnimation'
 import Navbar from './Navbar'
-
+import ForceUpdateModal from '@/components/ForceUpdateModal'
+import { useTheme } from '@/context/ThemeContext'
+import { useLocale } from 'next-intl'
 
 const TAB_ORDER = ['dresser', 'wardrobe', 'outfits', 'profile']
 
@@ -71,21 +73,67 @@ function getActivePage(pathname: string): string | null {
   return null
 }
 
-
-
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
-const [showSplash, setShowSplash] = useState(true)
+  const [showSplash, setShowSplash] = useState(true)
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [showWelcome, setShowWelcome] = useState(false)
   const [isPremium, setIsPremium] = useState(false)
   const [dbOnboardingSeen, setDbOnboardingSeen] = useState<boolean | null>(null)
-const pathname = usePathname()
+  const pathname = usePathname()
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
 
+  // ── Force-Update State & Theme ──────────────────────────────────────────
+  const [showForceUpdate, setShowForceUpdate] = useState(false)
+  const [updateVersion, setUpdateVersion] = useState('')
+  const [updateNotes, setUpdateNotes] = useState<string[]>([])
+  const { theme } = useTheme()
+  const locale = useLocale()
+  const isDark = theme === 'dark'
 
-useEffect(() => {
+  const bg = isDark ? '#161616' : '#F2EFE7'
+  const card = isDark ? '#1D1D20' : '#ffffff'
+  const border = isDark ? '#2a2a2e' : '#E7E2D5'
+  const text = isDark ? '#F5F3EE' : '#24211B'
+  const muted = isDark ? '#9a978f' : '#8C8776'
+  const accent = isDark ? '#5C82A0' : '#355C7D'
+  const sageGradient = 'linear-gradient(135deg, #7FA98E, #355C7D)'
+
+  async function checkForForceUpdate() {
+    try {
+      const res = await fetch('/api/version', { cache: 'no-store' })
+      const data = await res.json()
+      const currentVersion = data.version
+
+      const storedVersion = localStorage.getItem('kw_app_version')
+
+      if (!storedVersion) {
+        // Erster Start ueberhaupt -- Version merken, keine Sperre zeigen
+        localStorage.setItem('kw_app_version', currentVersion)
+        return
+      }
+
+      if (storedVersion !== currentVersion) {
+        const notes = locale === 'de' ? data.notesDe : data.notesEn
+        setUpdateVersion(currentVersion)
+        setUpdateNotes(notes ?? [])
+        setShowForceUpdate(true)
+      }
+    } catch (err) {
+      console.error('Version check failed:', err)
+    }
+  }
+
+  function handleForceUpdateClick() {
+    localStorage.setItem('kw_app_version', updateVersion)
+    window.location.reload()
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
+  useEffect(() => {
+    checkForForceUpdate()
+
     const isAppPage = TAB_ORDER.some(t => pathname.includes(t))
     if (!isAppPage) { setShowSplash(false); return }
 
@@ -107,13 +155,12 @@ useEffect(() => {
       }
     }
 
-supabase.auth.onAuthStateChange((event) => {
+    supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') {
         router.push('/' + pathname.split('/')[1] + '/auth/login')
       }
     })
   }, [pathname])
-
 
   async function checkOnboardingStatus() {
     const { data: { session } } = await supabase.auth.getSession()
@@ -124,7 +171,7 @@ supabase.auth.onAuthStateChange((event) => {
     if (!seen) setShowOnboarding(true)
   }
 
- async function preloadData() {
+  async function preloadData() {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) return
     const [,, profileRes] = await Promise.all([
@@ -145,7 +192,8 @@ supabase.auth.onAuthStateChange((event) => {
       checkOnboardingStatus()
     }
   }
-async function handleOnboardingDone() {
+
+  async function handleOnboardingDone() {
     setShowOnboarding(false)
     setShowWelcome(true)
     const { data: { session } } = await supabase.auth.getSession()
@@ -160,12 +208,21 @@ async function handleOnboardingDone() {
 
   const activePage = getActivePage(pathname)
 
-return (
+  return (
     <>
-     {showSplash && <SplashScreen onDone={handleSplashDone} isPremium={isPremium} />}
+      <ForceUpdateModal
+        open={showForceUpdate}
+        version={updateVersion}
+        notes={updateNotes}
+        onUpdate={handleForceUpdateClick}
+        locale={locale}
+        theme={{ bg, card, border, text, muted, accent, sageGradient }}
+      />
+
+      {showSplash && <SplashScreen onDone={handleSplashDone} isPremium={isPremium} />}
       {showOnboarding && <OnboardingCarousel onDone={handleOnboardingDone} />}
       {showWelcome && <WelcomeAnimation onDone={handleWelcomeDone} />}
-    
+
       <div style={{
         opacity: showSplash ? 0 : 1,
         transition: 'opacity 0.3s ease',
