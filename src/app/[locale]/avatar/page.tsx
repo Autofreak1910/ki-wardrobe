@@ -363,7 +363,10 @@ const [genProgress, setGenProgress] = useState(0)
   const [galleryAvatars, setGalleryAvatars] = useState<{ id: string; image_url: string; created_at: string }[]>([])
   const [galleryLoading, setGalleryLoading] = useState(false)
 const [galleryFullscreen, setGalleryFullscreen] = useState<string | null>(null)
-  const [showPhotoGuide, setShowPhotoGuide] = useState(false)
+const [showPhotoGuide, setShowPhotoGuide] = useState(false)
+  const [savedSelfies, setSavedSelfies] = useState<{ id: string; image_url: string }[]>([])
+  const [savingSelfie, setSavingSelfie] = useState(false)
+  const [justUploadedNew, setJustUploadedNew] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const { theme } = useTheme()
   const locale = useLocale()
@@ -381,7 +384,48 @@ const [galleryFullscreen, setGalleryFullscreen] = useState<string | null>(null)
   const goldAccent = '#F1B951'
   const sageGradient = 'linear-gradient(135deg, #7FA98E, #355C7D)'
 
-  useEffect(() => { loadData() }, [])
+useEffect(() => { loadData(); loadSavedSelfies() }, [])
+
+  async function loadSavedSelfies() {
+    try {
+      const res = await fetch('/api/saved-selfies')
+      const data = await res.json()
+      if (data.success) setSavedSelfies(data.selfies ?? [])
+    } catch (err) {
+      console.error('Load saved selfies failed:', err)
+    }
+  }
+
+  async function saveSelfieToGallery() {
+    if (!selfie) return
+    setSavingSelfie(true)
+    try {
+      const res = await fetch('/api/saved-selfies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: selfie }),
+      })
+      const data = await res.json()
+      if (data.success) { setJustUploadedNew(false); await loadSavedSelfies() }
+    } catch (err) {
+      console.error('Save selfie failed:', err)
+    }
+    setSavingSelfie(false)
+  }
+
+  async function deleteSavedSelfie(id: string) {
+    try {
+      await fetch('/api/saved-selfies', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      })
+      setSavedSelfies(prev => prev.filter(s => s.id !== id))
+    } catch (err) {
+      console.error('Delete saved selfie failed:', err)
+    }
+  }
+
   useEffect(() => {
     if (!localStorage.getItem('kw_avatar_guide_seen')) {
       const t = setTimeout(() => setShowPhotoGuide(true), 500)
@@ -457,7 +501,7 @@ const [galleryFullscreen, setGalleryFullscreen] = useState<string | null>(null)
     setGalleryLoading(false)
   }
 
-  function handleSelfie(e: React.ChangeEvent<HTMLInputElement>) {
+function handleSelfie(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     const reader = new FileReader()
@@ -470,6 +514,7 @@ const [galleryFullscreen, setGalleryFullscreen] = useState<string | null>(null)
         const ctx = canvas.getContext('2d')!
         ctx.drawImage(img, 0, 0)
         setSelfie(canvas.toDataURL('image/jpeg', 0.9))
+        setJustUploadedNew(true)
       }
       img.src = reader.result as string
     }
@@ -674,7 +719,23 @@ const steps = locale === 'de' ? [
                 <LockIcon size={28} color={text} />
               </div>
             )}
-            <div style={{ padding: '8px' }}>
+   <div style={{ padding: '8px' }}>
+              {savedSelfies.length > 0 && !selfie && (
+                <div style={{ display: 'flex', gap: '8px', padding: '8px 8px 4px', overflowX: 'auto' as const }}>
+                  {savedSelfies.map(s => (
+                    <div key={s.id} style={{ position: 'relative' as const, flexShrink: 0 }}>
+                      <motion.div whileTap={{ scale: 0.95 }} onClick={() => { setSelfie(s.image_url); setJustUploadedNew(false) }}
+                        style={{ width: '64px', height: '64px', borderRadius: '14px', overflow: 'hidden', border: `1.5px solid ${border}`, cursor: 'pointer' }}>
+                        <img src={s.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </motion.div>
+                      <button onClick={(e) => { e.stopPropagation(); deleteSavedSelfie(s.id) }}
+                        style={{ position: 'absolute', top: '-4px', right: '-4px', background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', width: '18px', height: '18px', color: '#fff', cursor: 'pointer', fontSize: '10px', lineHeight: 1 }}>
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
               {!selfie ? (
                 <motion.div whileTap={{ scale: 0.98 }} onClick={() => fileRef.current?.click()}
                   style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}>
@@ -683,7 +744,7 @@ const steps = locale === 'de' ? [
                   </div>
                   <div style={{ textAlign: 'left' as const }}>
                     <p style={{ fontSize: '14px', fontWeight: 700, color: text, marginBottom: '2px', letterSpacing: '-0.02em' }}>
-                      {locale === 'de' ? 'Selfie hochladen' : 'Upload selfie'}
+                      {locale === 'de' ? 'Neues Selfie hochladen' : 'Upload new selfie'}
                     </p>
                     <p style={{ fontSize: '12px', color: muted }}>
                       {locale === 'de' ? 'Ganzkörper Foto für beste Ergebnisse' : 'Full body photo for best results'}
@@ -692,12 +753,22 @@ const steps = locale === 'de' ? [
                   <svg style={{ marginLeft: 'auto', flexShrink: 0 }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
                 </motion.div>
               ) : (
-                <div style={{ position: 'relative' as const }}>
-                  <img src={selfie} style={{ width: '100%', borderRadius: '12px', maxHeight: '300px', objectFit: 'cover' }} />
-                  <button onClick={() => setSelfie(null)}
-                    style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', color: '#fff', cursor: 'pointer', fontSize: '14px' }}>
-                    ×
-                  </button>
+                <div>
+                  <div style={{ position: 'relative' as const }}>
+                    <img src={selfie} style={{ width: '100%', borderRadius: '12px', maxHeight: '300px', objectFit: 'cover' }} />
+                    <button onClick={() => { setSelfie(null); setJustUploadedNew(false) }}
+                      style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', color: '#fff', cursor: 'pointer', fontSize: '14px' }}>
+                      ×
+                    </button>
+                  </div>
+                  {justUploadedNew && savedSelfies.length < 3 && (
+                    <motion.button whileTap={{ scale: 0.97 }} onClick={saveSelfieToGallery} disabled={savingSelfie}
+                      style={{ width: '100%', marginTop: '10px', padding: '10px', background: accentDim, border: `1px solid ${border}`, borderRadius: '10px', fontSize: '12.5px', fontWeight: 700, color: accent, cursor: savingSelfie ? 'wait' : 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+                      {savingSelfie
+                        ? (locale === 'de' ? 'Wird gespeichert...' : 'Saving...')
+                        : (locale === 'de' ? `↓ Selfie merken (${savedSelfies.length}/3)` : `↓ Save selfie (${savedSelfies.length}/3)`)}
+                    </motion.button>
+                  )}
                 </div>
               )}
               <input ref={fileRef} type="file" accept="image/*" onChange={handleSelfie} style={{ display: 'none' }} />
