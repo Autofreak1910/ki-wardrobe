@@ -5,6 +5,10 @@ import { createClient } from '@/lib/supabase/client'
 import { useLocale } from 'next-intl'
 import { useTheme } from '@/context/ThemeContext'
 import { motion, AnimatePresence } from 'framer-motion'
+import { loadStripe } from '@stripe/stripe-js'
+import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js'
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
 export default function UpgradeModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { theme } = useTheme()
@@ -12,6 +16,7 @@ export default function UpgradeModal({ open, onClose }: { open: boolean; onClose
   const supabase = createClient()
   const isDark = theme === 'dark'
   const [withdrawalConsent, setWithdrawalConsent] = useState(false)
+  const [checkoutSecret, setCheckoutSecret] = useState<string | null>(null)
 
   const bg     = isDark ? '#161616' : '#F2EFE7'
   const card   = isDark ? '#1D1D20' : '#ffffff'
@@ -30,7 +35,7 @@ export default function UpgradeModal({ open, onClose }: { open: boolean; onClose
       body: JSON.stringify({ userId: session.user.id, userEmail: session.user.email, locale }),
     })
     const data = await res.json()
-    if (data.url) window.location.href = data.url
+    if (data.clientSecret) setCheckoutSecret(data.clientSecret)
   }
 
   return (
@@ -134,10 +139,23 @@ export default function UpgradeModal({ open, onClose }: { open: boolean; onClose
               style={{ width: '100%', padding: '15px', background: withdrawalConsent ? `linear-gradient(135deg, ${gold}, #E8B45E)` : (isDark ? '#1D1D20' : '#EDE7D8'), border: 'none', borderRadius: '14px', fontSize: '15px', fontWeight: 700, color: withdrawalConsent ? '#24211B' : muted, cursor: withdrawalConsent ? 'pointer' : 'not-allowed', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: withdrawalConsent ? `0 4px 20px ${gold}40` : 'none', marginBottom: '10px', transition: 'all 0.2s' }}>
               {locale === 'de' ? '✦ Jetzt freischalten — €4,99/Monat' : '✦ Unlock now — €4.99/month'}
             </motion.button>
-
-            <p style={{ textAlign: 'center' as const, fontSize: '11px', color: muted }}>
+<p style={{ textAlign: 'center' as const, fontSize: '11px', color: muted }}>
               {locale === 'de' ? 'Jederzeit kündbar · Sofort freigeschaltet' : 'Cancel anytime · Instant access'}
             </p>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {checkoutSecret && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+            style={{ width: '100%', maxWidth: '480px', maxHeight: '90vh', overflowY: 'auto' as const, background: '#fff', borderRadius: '20px', padding: '8px', position: 'relative' as const }}>
+            <button onClick={() => setCheckoutSecret(null)}
+              style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 10, background: '#F2EFE7', border: 'none', borderRadius: '10px', width: '32px', height: '32px', cursor: 'pointer', fontSize: '14px', color: '#24211B' }}>✕</button>
+            <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret: checkoutSecret }}>
+              <EmbeddedCheckout />
+            </EmbeddedCheckoutProvider>
           </motion.div>
         </motion.div>
       )}
