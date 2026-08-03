@@ -149,25 +149,23 @@ export async function POST(req: Request) {
     // bei Roecken/Kleidern deutlich robuster ist als manuelles Mapping.
     // Wir mappen trotzdem explizit, wo wir sicher sind, und lassen den Rest
     // dem Modell.
-    const fashnCategoryMap: Record<string, string> = {
-      tops: 'tops',
-      jacken: 'tops',
-      hosen: 'bottoms',
-      kurze_hosen: 'bottoms',
-      roecke: 'bottoms',
-      kleider: 'one-pieces',
-    }
-    const fashnCategory = fashnCategoryMap[category] ?? 'auto'
+ // Laut FASHN-Doku erkennt 'auto' die Kategorie bei sauberen Flat-Lay-/
+    // Produktfotos (wie unseren freigestellten clean.png-Bildern) meist
+    // zuverlaessiger als eine manuelle Vorgabe -- unser bisheriges manuelles
+    // Mapping ('bottoms') hat das Modell vermutlich eher in Richtung
+    // typische Hose gedraengt, statt die tatsaechliche Rock-Form zu erkennen.
+    const fashnCategory = 'auto'
 
     // Run FASHN v1.6 auf fal.ai -- aktuell bestes Try-On-Modell fuer
     // Detailtreue und volle Unterstuetzung von Tops, Hosen, Roecken UND
     // Kleidern (die dokumentierte Schwachstelle des alten IDM-VTON-Modells).
-    const falResult = await fal.subscribe('fal-ai/fashn/tryon/v1.6', {
-    input: {
+const falResult = await fal.subscribe('fal-ai/fashn/tryon/v1.6', {
+      input: {
         model_image: publicUrl,
         garment_image: garmentImage,
         category: fashnCategory,
         mode: 'quality',
+        garment_photo_type: 'flat-lay',
       },
     })
 
