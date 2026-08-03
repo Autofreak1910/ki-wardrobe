@@ -141,6 +141,12 @@ function getCategoryLabel(category: string): string {
   }
   return map[category] ?? category
 }
+function getCategoryTabLabel(category: string, locale: string): string {
+  const de: Record<string, string> = { all: 'Alle', tops: 'Oberteil', hosen: 'Hose', kurze_hosen: 'Kurze Hose', jacken: 'Jacke', acc: 'Acc' }
+  const en: Record<string, string> = { all: 'All', tops: 'Top', hosen: 'Pants', kurze_hosen: 'Shorts', jacken: 'Jacket', acc: 'Acc' }
+  const map = locale === 'de' ? de : en
+  return map[category] ?? category
+}
 function getMonthStartUTC(): Date {
   const now = new Date()
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0))
@@ -364,9 +370,10 @@ const [genProgress, setGenProgress] = useState(0)
   const [galleryLoading, setGalleryLoading] = useState(false)
 const [galleryFullscreen, setGalleryFullscreen] = useState<string | null>(null)
 const [showPhotoGuide, setShowPhotoGuide] = useState(false)
-  const [savedSelfies, setSavedSelfies] = useState<{ id: string; image_url: string }[]>([])
+const [savedSelfies, setSavedSelfies] = useState<{ id: string; image_url: string }[]>([])
   const [savingSelfie, setSavingSelfie] = useState(false)
   const [justUploadedNew, setJustUploadedNew] = useState(false)
+  const [activeTryOnCategory, setActiveTryOnCategory] = useState('all')
   const fileRef = useRef<HTMLInputElement>(null)
   const { theme } = useTheme()
   const locale = useLocale()
@@ -791,14 +798,33 @@ const steps = locale === 'de' ? [
                 <LockIcon size={28} color={text} />
               </div>
             )}
-            <div style={{ padding: '16px' }}>
+     <div style={{ padding: '16px' }}>
               {items.length === 0 ? (
                 <p style={{ fontSize: '13px', color: muted, textAlign: 'center' as const }}>
                   {locale === 'de' ? 'Keine Kleidung im Schrank' : 'No clothes in wardrobe'}
                 </p>
               ) : (
+                <>
+                  {(() => {
+                    const tryOnItems = items.filter(item => !['schuhe', 'roecke', 'kleider'].includes(item.category))
+                    const availableCategories = Array.from(new Set(tryOnItems.map(i => i.category)))
+                    const tabs = ['all', ...availableCategories]
+                    return (
+                      <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', overflowX: 'auto' as const, paddingBottom: '2px' }}>
+                        {tabs.map(cat => {
+                          const isOn = activeTryOnCategory === cat
+                          return (
+                            <button key={cat} onClick={() => setActiveTryOnCategory(cat)}
+                              style={{ flexShrink: 0, padding: '6px 12px', borderRadius: '100px', border: `1px solid ${isOn ? accent : border}`, background: isOn ? accentDim : 'transparent', color: isOn ? accent : muted, fontSize: '12px', fontWeight: isOn ? 700 : 500, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", whiteSpace: 'nowrap' as const }}>
+                              {getCategoryTabLabel(cat, locale)}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )
+                  })()}
                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-                  {items.filter(item => !['schuhe', 'roecke', 'kleider'].includes(item.category)).map(item => (
+                  {items.filter(item => !['schuhe', 'roecke', 'kleider'].includes(item.category) && (activeTryOnCategory === 'all' || item.category === activeTryOnCategory)).map(item => (
                     <motion.div key={item.id} whileTap={{ scale: 0.96 }}
                       onClick={() => setSelectedItem(selectedItem?.id === item.id ? null : item)}
                       style={{ background: card, borderRadius: '16px', overflow: 'hidden', border: `1.5px solid ${selectedItem?.id === item.id ? accent : border}`, cursor: 'pointer', position: 'relative' as const, padding: '6px', boxShadow: selectedItem?.id === item.id ? `0 4px 16px ${accent}25` : 'none' }}>
@@ -808,9 +834,10 @@ const steps = locale === 'de' ? [
                       {selectedItem?.id === item.id && (
                         <div style={{ position: 'absolute', top: '10px', right: '10px', background: accent, borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>✓</div>
                       )}
-                    </motion.div>
+</motion.div>
                   ))}
                 </div>
+                </>
               )}
             </div>
           </div>
