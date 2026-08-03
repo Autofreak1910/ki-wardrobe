@@ -5,9 +5,11 @@ export async function POST(req: NextRequest) {
     const { imageBase64, mimeType } = await req.json()
     const locale = req.headers.get('x-locale') || 'de'
 
-const prompt = locale === 'de'
-      ? `Du siehst ein Foto eines Kleiderschranks oder mehrerer Kleidungsstücke. Identifiziere JEDES einzelne, klar erkennbare Kleidungsstück. Gib für jedes Teil eine großzügige Bounding Box in Prozent (x, y = obere linke Ecke, width, height), Kategorie (tops, hosen, kurze_hosen, roecke, kleider, jacken, schuhe, acc), Farbe, Namen und Marke falls erkennbar. "hosen" = lange Hosen/Jeans. "kurze_hosen" = Shorts/Bermudas. "roecke" = Röcke jeder Länge. "kleider" = Kleider, Jumpsuits, Overalls. Lieber etwas zu groß als zu klein. Ignoriere verdeckte oder unscharfe Teile. Antworte NUR mit JSON: {"items": [{"x": 5, "y": 8, "width": 25, "height": 60, "category": "tops", "color": "Grau", "name": "Grauer Hoodie", "brand": null}]}`
-      : `You see a photo of a closet or multiple clothing items. Identify EVERY clearly visible clothing item. Give a generous bounding box in percent (x, y = top-left, width, height), category (tops, hosen, kurze_hosen, roecke, kleider, jacken, schuhe, acc), color, name and brand if visible. "hosen" = long pants/jeans. "kurze_hosen" = shorts/bermudas. "roecke" = skirts of any length. "kleider" = dresses, jumpsuits, overalls. Err on the side of too large rather than too small. Ignore obscured or blurry items. Respond ONLY with JSON: {"items": [{"x": 5, "y": 8, "width": 25, "height": 60, "category": "tops", "color": "Gray", "name": "Gray Hoodie", "brand": null}]}`
+const categoryInstruction = 'category must be exactly one of these English words: top, pants, shorts, skirt, dress, jacket, shoes, accessory. Always use the English word regardless of what language you respond in otherwise. "top" = shirts/t-shirts/sweaters/hoodies. "pants" = long pants/jeans. "shorts" = shorts/bermudas. "skirt" = skirts of any length. "dress" = dresses/jumpsuits/overalls. "jacket" = jackets/coats/blazers. "shoes" = any footwear. "accessory" = bags/belts/hats/jewelry.'
+
+    const prompt = locale === 'de'
+      ? `Du siehst ein Foto eines Kleiderschranks oder mehrerer Kleidungsstücke. Identifiziere JEDES einzelne, klar erkennbare Kleidungsstück. Gib für jedes Teil eine großzügige Bounding Box in Prozent (x, y = obere linke Ecke, width, height), Kategorie, Farbe, Namen und Marke falls erkennbar. ${categoryInstruction} Lieber etwas zu groß als zu klein. Ignoriere verdeckte oder unscharfe Teile. Antworte NUR mit JSON: {"items": [{"x": 5, "y": 8, "width": 25, "height": 60, "category": "top", "color": "Grau", "name": "Grauer Hoodie", "brand": null}]}`
+      : `You see a photo of a closet or multiple clothing items. Identify EVERY clearly visible clothing item. Give a generous bounding box in percent (x, y = top-left, width, height), category, color, name and brand if visible. ${categoryInstruction} Err on the side of too large rather than too small. Ignore obscured or blurry items. Respond ONLY with JSON: {"items": [{"x": 5, "y": 8, "width": 25, "height": 60, "category": "top", "color": "Gray", "name": "Gray Hoodie", "brand": null}]}`
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -36,26 +38,22 @@ const prompt = locale === 'de'
     if (!jsonMatch) throw new Error('No JSON in response')
     const parsed = JSON.parse(jsonMatch[0])
 
-    // Normalisiert die Kategorie pro erkanntem Teil -- falls die KI mal ein englisches
-    // Wort oder Synonym statt unseres exakten Kategorie-Keys zurückgibt.
-    const categoryAliases: Record<string, string> = {
-      skirt: 'roecke', skirts: 'roecke', rock: 'roecke', röcke: 'roecke',
-      dress: 'kleider', dresses: 'kleider', kleid: 'kleider',
-      shorts: 'kurze_hosen', short: 'kurze_hosen', 'kurze hose': 'kurze_hosen',
-      pants: 'hosen', trousers: 'hosen', jeans: 'hosen', hose: 'hosen',
-      shirt: 'tops', top: 'tops', oberteil: 'tops',
-      jacket: 'jacken', jacke: 'jacken',
-      shoes: 'schuhe', shoe: 'schuhe',
-      accessory: 'acc', accessories: 'acc',
+// Die KI antwortet immer mit einem festen englischen Wort (siehe Prompt oben).
+    // Hier wird das 1:1 auf unseren internen Datenbank-Kategorie-Key gemappt.
+    const categoryMap: Record<string, string> = {
+      top: 'tops',
+      pants: 'hosen',
+      shorts: 'kurze_hosen',
+      skirt: 'roecke',
+      dress: 'kleider',
+      jacket: 'jacken',
+      shoes: 'schuhe',
+      accessory: 'acc',
     }
-    const validKeys = ['tops', 'hosen', 'kurze_hosen', 'roecke', 'kleider', 'jacken', 'schuhe', 'acc']
     const items = (parsed.items ?? []).map((item: any) => {
       if (!item.category) return item
       const normalized = String(item.category).toLowerCase().trim()
-      if (!validKeys.includes(normalized)) {
-        return { ...item, category: categoryAliases[normalized] ?? 'tops' }
-      }
-      return item
+      return { ...item, category: categoryMap[normalized] ?? 'tops' }
     })
 
     return NextResponse.json({ success: true, items })

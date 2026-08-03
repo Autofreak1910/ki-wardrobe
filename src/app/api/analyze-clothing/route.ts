@@ -45,10 +45,10 @@ If it IS a clothing/fashion item:
 
 If it is NOT a clothing/fashion item:
 {"is_clothing":false,"reason":"short description of what the image actually shows"}
-
 Rules when is_clothing is true:
-- category must be exactly one of: tops, hosen, kurze_hosen, roecke, kleider, jacken, schuhe, acc
-- "hosen" = long pants/jeans/trousers. "kurze_hosen" = shorts/bermudas (anything ending above or at the knee). "roecke" = skirts (mini, midi, maxi — bottom-only garment). "kleider" = dresses, jumpsuits, overalls (one-piece garments covering both upper and lower body).
+- category must be exactly one of these English words: top, pants, shorts, skirt, dress, jacket, shoes, accessory
+- "top" = shirts, t-shirts, blouses, sweaters, hoodies. "pants" = long pants/jeans/trousers. "shorts" = shorts/bermudas (anything ending above or at the knee). "skirt" = skirts of any length (mini, midi, maxi). "dress" = dresses, jumpsuits, overalls (one-piece garments covering both upper and lower body). "jacket" = jackets, coats, blazers. "shoes" = any footwear. "accessory" = bags, belts, hats, jewelry, scarves.
+- Always respond with the English category word above, regardless of what language the garment name or description is in.
 - name: specific product name if recognizable, otherwise short descriptive name in English, max 3 words
 - color: main color in English (e.g. Black, White, Navy, Grey, Beige, Blue)
 - style_tags: array from: streetwear, casual, formal, vintage, sporty, minimalist, luxury
@@ -80,25 +80,22 @@ Respond with ONLY the JSON, no explanation, no markdown.`
     }
 const analysis = JSON.parse(jsonMatch[0])
 
-    // Normalisiert die Kategorie -- falls die KI mal ein englisches Wort oder Synonym
-    // statt unseres exakten Kategorie-Keys zurückgibt (z.B. "skirt" statt "roecke"),
-    // wird das hier abgefangen statt roh in die DB zu wandern.
-    const categoryAliases: Record<string, string> = {
-      skirt: 'roecke', skirts: 'roecke', rock: 'roecke', röcke: 'roecke',
-      dress: 'kleider', dresses: 'kleider', kleid: 'kleider',
-      shorts: 'kurze_hosen', short: 'kurze_hosen', 'kurze hose': 'kurze_hosen',
-      pants: 'hosen', trousers: 'hosen', jeans: 'hosen', hose: 'hosen',
-      shirt: 'tops', top: 'tops', oberteil: 'tops',
-      jacket: 'jacken', jacke: 'jacken',
-      shoes: 'schuhe', shoe: 'schuhe',
-      accessory: 'acc', accessories: 'acc',
+    // Die KI antwortet immer mit einem festen englischen Wort (siehe Prompt oben).
+    // Hier wird das 1:1 auf unseren internen Datenbank-Kategorie-Key gemappt.
+    // Die Anzeige auf Deutsch/Englisch passiert dann später rein übers Frontend (catLabels).
+    const categoryMap: Record<string, string> = {
+      top: 'tops',
+      pants: 'hosen',
+      shorts: 'kurze_hosen',
+      skirt: 'roecke',
+      dress: 'kleider',
+      jacket: 'jacken',
+      shoes: 'schuhe',
+      accessory: 'acc',
     }
     if (analysis.category) {
       const normalized = String(analysis.category).toLowerCase().trim()
-      const validKeys = ['tops', 'hosen', 'kurze_hosen', 'roecke', 'kleider', 'jacken', 'schuhe', 'acc']
-      if (!validKeys.includes(normalized)) {
-        analysis.category = categoryAliases[normalized] ?? 'tops'
-      }
+      analysis.category = categoryMap[normalized] ?? 'tops'
     }
 
     if (analysis.is_clothing === false) {
