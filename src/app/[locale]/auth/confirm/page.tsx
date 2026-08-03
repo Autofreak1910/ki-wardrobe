@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useLocale } from 'next-intl'
@@ -50,7 +50,18 @@ export default function ConfirmPage() {
     const code = searchParams.get('code')
     if (code) {
       const { error } = await supabase.auth.exchangeCodeForSession(code)
-      if (error) { console.error('Code exchange failed:', error); setErrorCode(error.message); setStatus('error'); return }
+      if (error) {
+        console.error('Code exchange failed:', error)
+        // Der Code kann schon verbraucht sein, weil z.B. der E-Mail-Anbieter
+        // (Gmail/Outlook Link-Scanner) den Link vorab automatisch geoeffnet hat.
+        // In dem Fall existiert im Hintergrund oft trotzdem schon eine gueltige
+        // Session -- also trotzdem pruefen und den Referral-Code anwenden.
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session) { await applyReferralIfAny() }
+        setErrorCode(error.message)
+        setStatus('error')
+        return
+      }
       await applyReferralIfAny()
       setStatus('success')
       return
@@ -62,7 +73,13 @@ export default function ConfirmPage() {
     const refreshToken = hashParams.get('refresh_token')
     if (accessToken && refreshToken) {
       const { error } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
-      if (error) { setErrorCode(error.message); setStatus('error'); return }
+      if (error) {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session) { await applyReferralIfAny() }
+        setErrorCode(error.message)
+        setStatus('error')
+        return
+      }
       await applyReferralIfAny()
       setStatus('success')
       return
