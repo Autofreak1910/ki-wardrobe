@@ -115,13 +115,13 @@ export async function POST(req: Request) {
       // Bei Fehler im Check einfach weitermachen, nicht blockieren
     }
 
-  const categoryMap: Record<string, string> = {
+const categoryMap: Record<string, string> = {
       tops: 'upper_body',
       jacken: 'upper_body',
       acc: 'upper_body',
       hosen: 'lower_body',
       kurze_hosen: 'lower_body',
-      roecke: 'lower_body',
+      roecke: 'dresses',
       kleider: 'dresses',
     }
     const garmentCategory = categoryMap[category] ?? 'upper_body'
