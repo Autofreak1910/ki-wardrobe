@@ -39,7 +39,9 @@ const [agbAccepted, setAgbAccepted] = useState(false)
   const [country, setCountry] = useState('')
   const [gender, setGender] = useState('')
 const [stylePrefs, setStylePrefs] = useState<string[]>([])
-  const [budgetRange, setBudgetRange] = useState('')
+ const [budgetRange, setBudgetRange] = useState('')
+  const [showCustomShopInput, setShowCustomShopInput] = useState(false)
+  const [customShopInput, setCustomShopInput] = useState('')
   const [favoriteShops, setFavoriteShops] = useState<string[]>([])
 const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -517,7 +519,7 @@ function isValidEmail(e: string): boolean {
               </p>
               {error && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#ef4444', fontSize: '13px', padding: '12px 16px', borderRadius: '10px', marginBottom: '16px' }}>{error}</div>}
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '7px', marginBottom: '20px', maxHeight: '260px', overflowY: 'auto' as const }}>
+             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '7px', marginBottom: '20px', maxHeight: '260px', overflowY: 'auto' as const, WebkitOverflowScrolling: 'touch' as any, overscrollBehavior: 'contain' as const, touchAction: 'pan-y' as const }}>
                 {countries.map(c => (
                   <motion.button key={c.code} whileTap={{ scale: 0.95 }} onClick={() => { setCountry(c.code); setError('') }}
                     style={{ padding: '10px 12px', borderRadius: '10px', border: `1.5px solid ${country === c.code ? accent : border}`, background: country === c.code ? (isDark ? 'rgba(92,130,160,0.12)' : 'rgba(53,92,125,0.08)') : secondary, color: country === c.code ? accent : text, fontSize: '13px', fontWeight: country === c.code ? 600 : 400, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.12s' }}>
@@ -587,8 +589,8 @@ function isValidEmail(e: string): boolean {
               </div>
 
               {/* Budget */}
-              <p style={{ fontSize: '11px', fontWeight: 600, color: muted, letterSpacing: '0.05em', textTransform: 'uppercase' as const, marginBottom: '8px' }}>
-                {locale === 'de' ? 'Budget pro Kauf' : 'Budget per purchase'}
+             <p style={{ fontSize: '11px', fontWeight: 600, color: muted, letterSpacing: '0.05em', textTransform: 'uppercase' as const, marginBottom: '8px' }}>
+                {locale === 'de' ? 'Was gibst du für 1 Kleidungsstück aus?' : 'What do you spend on 1 clothing item?'}
               </p>
          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '16px' }}>
                 {[
@@ -606,7 +608,7 @@ function isValidEmail(e: string): boolean {
               <p style={{ fontSize: '11px', fontWeight: 600, color: muted, letterSpacing: '0.05em', textTransform: 'uppercase' as const, marginBottom: '8px' }}>
                 {locale === 'de' ? 'Wo kaufst du meistens? (optional)' : 'Where do you usually shop? (optional)'}
               </p>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '24px' }}>
+           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '10px' }}>
                 {[
                   { value: 'zara', label: 'Zara' },
                   { value: 'hm', label: 'H&M' },
@@ -625,6 +627,42 @@ function isValidEmail(e: string): boolean {
                   )
                 })}
               </div>
+              {!showCustomShopInput ? (
+                <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowCustomShopInput(true)}
+                  style={{ width: '100%', padding: '10px 8px', borderRadius: '12px', border: `1.5px dashed ${border}`, background: 'transparent', color: muted, fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", marginBottom: '24px' }}>
+                  + {locale === 'de' ? 'Eigenen Shop hinzufügen' : 'Add your own shop'}
+                </motion.button>
+              ) : (
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
+                  <input type="text" value={customShopInput} onChange={e => setCustomShopInput(e.target.value)}
+                    placeholder={locale === 'de' ? 'Shop-Name eingeben' : 'Enter shop name'}
+                    autoFocus
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && customShopInput.trim()) {
+                        setFavoriteShops(prev => [...prev, customShopInput.trim()])
+                        setCustomShopInput(''); setShowCustomShopInput(false)
+                      }
+                    }}
+                    style={{ flex: 1, boxSizing: 'border-box' as const, padding: '10px 12px', borderRadius: '12px', border: `1.5px solid ${border}`, background: secondary, color: text, fontSize: '13px', outline: 'none', fontFamily: "'Poppins', 'Inter', sans-serif" }} />
+                  <button onClick={() => {
+                      if (customShopInput.trim()) { setFavoriteShops(prev => [...prev, customShopInput.trim()]); setCustomShopInput('') }
+                      setShowCustomShopInput(false)
+                    }}
+                    style={{ padding: '10px 16px', borderRadius: '12px', border: 'none', background: accent, color: '#fff', fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+                    {locale === 'de' ? 'OK' : 'OK'}
+                  </button>
+                </div>
+              )}
+              {favoriteShops.filter(s => !['zara', 'hm', 'shein', 'nike', 'zalando', 'vinted'].includes(s)).length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '6px', marginTop: '-16px', marginBottom: '24px' }}>
+                  {favoriteShops.filter(s => !['zara', 'hm', 'shein', 'nike', 'zalando', 'vinted'].includes(s)).map((s, i) => (
+                    <span key={i} onClick={() => setFavoriteShops(prev => prev.filter(x => x !== s))}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '5px 10px', borderRadius: '100px', background: isDark ? 'rgba(92,130,160,0.12)' : 'rgba(53,92,125,0.08)', color: accent, fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
+                      {s} ✕
+                    </span>
+                  ))}
+                </div>
+              )}
 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '20px' }}>
                 <div onClick={() => setAgbAccepted(!agbAccepted)} style={{ cursor: 'pointer', flexShrink: 0 }}>
                   <div style={{
