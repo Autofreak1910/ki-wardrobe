@@ -67,7 +67,8 @@ export async function POST(req: Request) {
 
     if (uploadError) throw uploadError
 
- const { data: { publicUrl: originalPublicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName)
+const { data: { publicUrl: originalPublicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName)
+    console.log('originalPublicUrl (selfie):', originalPublicUrl)
 
     // Kurz warten und pruefen, ob die frisch hochgeladene Datei wirklich
     // oeffentlich abrufbar ist -- direkt nach dem Upload kann es (selten,
@@ -106,9 +107,10 @@ export async function POST(req: Request) {
       if (bgData.success && bgData.imageUrl) {
         publicUrl = bgData.imageUrl
       }
-    } catch (bgErr) {
+  } catch (bgErr) {
       console.error('Background removal on selfie failed, using original:', bgErr)
     }
+    console.log('Final publicUrl sent to Replicate as human_img:', publicUrl)
 
     // Selfie-Qualität prüfen bevor teure Generierung läuft
     try {
