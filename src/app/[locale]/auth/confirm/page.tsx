@@ -25,6 +25,25 @@ export default function ConfirmPage() {
   const accent = isDark ? '#5C82A0' : '#355C7D'
   const sageGradient = 'linear-gradient(135deg, #7FA98E, #355C7D)'
 
+  // Wendet den Referral-Code an, sobald die Session bestaetigt ist -- unabhaengig
+  // davon, ob der Nutzer je in den urspruenglichen Registrierungs-Tab zurueckgeht.
+  // Der ref_code steckt in den User-Metadaten (wurde bei signUp() mitgegeben).
+  async function applyReferralIfAny() {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const refCode = session?.user?.user_metadata?.ref_code
+      if (session?.user && refCode) {
+        await fetch('/api/apply-referral-server', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: session.user.id, referralCode: refCode }),
+        })
+      }
+    } catch (err) {
+      console.error('Referral apply on confirm failed:', err)
+    }
+  }
+
   async function handleConfirm() {
     setStatus('loading')
 
@@ -32,6 +51,7 @@ export default function ConfirmPage() {
     if (code) {
       const { error } = await supabase.auth.exchangeCodeForSession(code)
       if (error) { console.error('Code exchange failed:', error); setErrorCode(error.message); setStatus('error'); return }
+      await applyReferralIfAny()
       setStatus('success')
       return
     }
@@ -43,12 +63,19 @@ export default function ConfirmPage() {
     if (accessToken && refreshToken) {
       const { error } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
       if (error) { setErrorCode(error.message); setStatus('error'); return }
+      await applyReferralIfAny()
       setStatus('success')
       return
     }
 
     const { data: { session } } = await supabase.auth.getSession()
-    if (session) { setStatus('success') } else { setErrorCode('otp_expired'); setStatus('error') }
+    if (session) {
+      await applyReferralIfAny()
+      setStatus('success')
+    } else {
+      setErrorCode('otp_expired')
+      setStatus('error')
+    }
   }
 
   return (

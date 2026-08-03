@@ -182,29 +182,13 @@ function isValidEmail(e: string): boolean {
         onboarding_completed: true,
       }).eq('id', existingSession.user.id)
 
-      if (refCode) {
-        try {
-          const res = await fetch('/api/apply-referral-server', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: existingSession.user.id, referralCode: refCode }),
-          })
-          const result = await res.json()
-          if (result.success) {
-            const proUntil = new Date()
-            proUntil.setDate(proUntil.getDate() + 7)
-            localStorage.setItem('kw_pro_welcome_pending', JSON.stringify({
-              days: 7,
-              until: proUntil.toLocaleDateString(lang === 'en' ? 'en-GB' : 'de-DE', { day: 'numeric', month: 'long', year: 'numeric' }),
-              fromInvite: true,
-            }))
-          }
-        } catch (err) {
-          console.error('Referral failed:', err)
-        }
-      }
+      // HINWEIS: Der Referral-Bonus wird jetzt bereits in der ConfirmPage
+      // (nach E-Mail-Bestaetigung bzw. Google-Login) vergeben, direkt sobald
+      // eine Session existiert -- unabhaengig davon, ob der Nutzer hierher
+      // zurueckkommt. Deshalb wird er hier NICHT mehr erneut aufgerufen
+      // (sonst wuerde invites_this_month beim Referrer doppelt hochgezaehlt).
 
-    fetch('/api/send-welcome-email', {
+      fetch('/api/send-welcome-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: existingSession.user.email, username, language: lang, invitedBonusDays: refCode ? 7 : undefined }),
