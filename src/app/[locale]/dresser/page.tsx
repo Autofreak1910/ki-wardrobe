@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import UpgradeModal from '@/components/UpgradeModal'
+import LocationPermissionHelpModal from '@/components/LocationPermissionHelpModal'
 import InstallAppPrompt from '@/components/InstallAppPrompt'
 
 
@@ -140,6 +141,7 @@ const [username, setUsername] = useState<string>(stylistCache?.username ?? '')
 
 const [showUpgrade, setShowUpgrade] = useState(false)
 const [showProStatus, setShowProStatus] = useState(false)
+const [showLocationHelp, setShowLocationHelp] = useState(false)
   const { theme } = useTheme()
   const t = useTranslations()
   const locale = useLocale()
@@ -446,6 +448,12 @@ async function fetchWeather() {
     setWeatherDisabled(true)
     setWeatherAware(false)
     try { localStorage.setItem('kw_weather_disabled', 'true') } catch {}
+    // err.code === 1 (PERMISSION_DENIED) heisst: der Nutzer/das System hat den
+    // Standort dauerhaft blockiert -- der Browser fragt deswegen nie wieder
+    // automatisch. Zeig dann eine Anleitung, wie man das manuell zuruecksetzt.
+    if (err?.code === 1) {
+      setShowLocationHelp(true)
+    }
   } finally {
     setWeatherLoading(false)
   }
@@ -1819,6 +1827,12 @@ onClick={() => {
 </div>
       </main>
       <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
+<LocationPermissionHelpModal
+  open={showLocationHelp}
+  onClose={() => setShowLocationHelp(false)}
+  locale={locale}
+  theme={{ bg, card, border, text, muted, accent, sageGradient }}
+/>
         <AnimatePresence>
   {showProStatus && (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
