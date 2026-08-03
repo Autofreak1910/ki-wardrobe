@@ -769,13 +769,21 @@ const steps = locale === 'de' ? [
                   </p>
                 </>
               ) : (
-                <div>
-                  <div style={{ position: 'relative' as const }}>
-                    <img src={selfie} style={{ width: '100%', borderRadius: '12px', maxHeight: '300px', objectFit: 'cover' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ position: 'relative' as const, flexShrink: 0 }}>
+                    <img src={selfie} style={{ width: '72px', height: '72px', borderRadius: '14px', objectFit: 'cover', border: `1.5px solid ${border}`, display: 'block' }} />
                     <button onClick={() => { setSelfie(null); setJustUploadedNew(false) }}
-                      style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', color: '#fff', cursor: 'pointer', fontSize: '14px' }}>
+                      style={{ position: 'absolute', top: '-6px', right: '-6px', background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', width: '20px', height: '20px', color: '#fff', cursor: 'pointer', fontSize: '11px', lineHeight: 1 }}>
                       ×
                     </button>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: '13px', fontWeight: 700, color: text, marginBottom: '2px' }}>
+                      {locale === 'de' ? '✓ Foto ausgewählt' : '✓ Photo selected'}
+                    </p>
+                    <p style={{ fontSize: '11px', color: muted }}>
+                      {locale === 'de' ? 'Weiter zu Schritt 2' : 'Continue to step 2'}
+                    </p>
                   </div>
                 <AnimatePresence>
                     {justUploadedNew && savedSelfies.length < 3 && (
