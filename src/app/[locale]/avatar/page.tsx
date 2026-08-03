@@ -670,8 +670,8 @@ const steps = locale === 'de' ? [
               </p>
             </div>
           </div>
-          {/* Badges als Overlay -- ragen unten aus dem Bild raus, wie im Referenzdesign */}
-          <div style={{ position: 'absolute' as const, bottom: '-18px', left: '18px', right: '18px', zIndex: 3, display: 'flex', gap: '8px', overflowX: 'auto' as const }}>
+       {/* Badges als Overlay -- ragen unten aus dem Bild raus, wie im Referenzdesign */}
+          <div style={{ position: 'absolute' as const, bottom: '-18px', left: '18px', right: '0px', zIndex: 3, display: 'flex', gap: '8px', overflowX: 'auto' as const, paddingRight: '18px', maskImage: 'linear-gradient(to right, black 85%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to right, black 85%, transparent 100%)' }}>
             {isPremium ? (
               <div style={{ flexShrink: 0, background: goldAccent, borderRadius: '100px', padding: '8px 14px', boxShadow: '0 4px 14px rgba(0,0,0,0.25)' }}>
                 <p style={{ fontSize: '11.5px', fontWeight: 700, color: '#1D1D20', whiteSpace: 'nowrap' as const }}>✦ PRO · {usedThisPeriod}/{periodLimit} {locale === 'de' ? 'Woche' : 'week'}</p>
