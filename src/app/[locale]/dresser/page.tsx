@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import UpgradeModal from '@/components/UpgradeModal'
 import LocationPermissionHelpModal from '@/components/LocationPermissionHelpModal'
+import WeatherLocationPanel from '@/components/WeatherLocationPanel'
 import InstallAppPrompt from '@/components/InstallAppPrompt'
 
 
@@ -142,6 +143,7 @@ const [username, setUsername] = useState<string>(stylistCache?.username ?? '')
 const [showUpgrade, setShowUpgrade] = useState(false)
 const [showProStatus, setShowProStatus] = useState(false)
 const [showLocationHelp, setShowLocationHelp] = useState(false)
+const [showWeatherPanel, setShowWeatherPanel] = useState(false)
   const { theme } = useTheme()
   const t = useTranslations()
   const locale = useLocale()
@@ -454,9 +456,22 @@ async function fetchWeather() {
     if (err?.code === 1) {
       setShowLocationHelp(true)
     }
-  } finally {
+} finally {
     setWeatherLoading(false)
   }
+}
+
+async function setManualLocation(lat: number, lon: number) {
+  try {
+    localStorage.removeItem('kw_weather_disabled')
+    localStorage.setItem('kw_coords', JSON.stringify({ lat, lon }))
+  } catch {}
+  setWeatherDisabled(false)
+  const { data: { session } } = await supabase.auth.getSession()
+  if (session?.user) {
+    await supabase.from('profiles').update({ last_lat: lat, last_lon: lon }).eq('id', session.user.id)
+  }
+  fetchWeather()
 }
 
   function toggleCategory(cat: string) {
@@ -1185,9 +1200,9 @@ onClick={() => {
             <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.85)', textShadow: '0 1px 6px rgba(0,0,0,0.4)' }}>{today}, {dateStr}</p>
           </div>
 
-          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}
-            onClick={() => { if (weatherDisabled) router.push('/' + locale + '/profile?scrollTo=weather') }}
-           style={{ position: 'absolute' as const, top: '16px', right: '18px', background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '16px', padding: '10px 14px', textAlign: 'center' as const, zIndex: 2, cursor: weatherDisabled ? 'pointer' : 'default', minWidth: '70px', boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}>
+         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}
+            onClick={() => { if (weatherDisabled) setShowWeatherPanel(v => !v) }}
+           style={{ position: 'absolute' as const, top: '16px', right: '18px',background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '16px', padding: '10px 14px', textAlign: 'center' as const, zIndex: 2, cursor: weatherDisabled ? 'pointer' : 'default', minWidth: '70px', boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}>
             {weatherDisabled ? (
               <><div style={{ fontSize: '20px' }}>🔒</div><p style={{ fontSize: '9px', color: muted, marginTop: '2px' }}>Wetter aus</p></>
             ) : weatherLoading ? (
@@ -1197,10 +1212,18 @@ onClick={() => {
               <>
                 <div style={{ fontSize: '24px', lineHeight: 1, marginBottom: '2px' }}>{weather?.icon}</div>
               <p style={{ fontSize: '18px', fontWeight: 800, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1 }}>{weather?.temp}°C</p>
-                {weather?.city && <p style={{ fontSize: '9px', color: 'rgba(255,255,255,0.8)', marginTop: '2px', maxWidth: '70px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>📍 {weather.city}</p>}
+          {weather?.city && <p style={{ fontSize: '9px', color: 'rgba(255,255,255,0.8)', marginTop: '2px', maxWidth: '70px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>📍 {weather.city}</p>}
               </>
             )}
           </motion.div>
+
+          <WeatherLocationPanel
+            open={showWeatherPanel}
+            onClose={() => setShowWeatherPanel(false)}
+            locale={locale}
+            onLocationSet={setManualLocation}
+            theme={{ card, border, text, muted, accent, accentDim }}
+          />
         </motion.div>
 
         <div ref={statsRef} style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', margin: '12px 18px 14px', padding: 0 }}>
