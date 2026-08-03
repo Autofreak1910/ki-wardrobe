@@ -726,45 +726,36 @@ const steps = locale === 'de' ? [
                 <LockIcon size={28} color={text} />
               </div>
             )}
-   <div style={{ padding: '8px' }}>
- {!selfie && (
-                <div style={{ display: 'flex', gap: '8px', padding: '8px 8px 4px', overflowX: 'auto' as const }}>
-                  {savedSelfies.map(s => (
-                    <div key={s.id} style={{ position: 'relative' as const, flexShrink: 0 }}>
-                      <motion.div whileTap={{ scale: 0.95 }} onClick={() => { setSelfie(s.image_url); setJustUploadedNew(false) }}
-                        style={{ width: '64px', height: '64px', borderRadius: '14px', overflow: 'hidden', border: `1.5px solid ${border}`, cursor: 'pointer' }}>
-                        <img src={s.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      </motion.div>
-                      <button onClick={(e) => { e.stopPropagation(); deleteSavedSelfie(s.id) }}
-                        style={{ position: 'absolute', top: '-4px', right: '-4px', background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', width: '18px', height: '18px', color: '#fff', cursor: 'pointer', fontSize: '10px', lineHeight: 1 }}>
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                  {Array.from({ length: Math.max(0, 3 - savedSelfies.length) }).map((_, i) => (
-                    <div key={'empty-' + i}
-                      style={{ width: '64px', height: '64px', borderRadius: '14px', flexShrink: 0, border: `1.5px dashed ${border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: muted }}>
-                      <SelfieIcon size={20} color={muted} />
-                    </div>
-                  ))}
-                </div>
-              )}
+<div style={{ padding: '12px' }}>
               {!selfie ? (
-                <motion.div whileTap={{ scale: 0.98 }} onClick={() => fileRef.current?.click()}
-                  style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}>
-                  <div style={{ width: '52px', height: '52px', borderRadius: '16px', background: accentDim, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <SelfieIcon size={26} color={accent} />
+                <>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    {savedSelfies.map(s => (
+                      <div key={s.id} style={{ position: 'relative' as const, flex: 1, aspectRatio: '1' }}>
+                        <motion.div whileTap={{ scale: 0.95 }} onClick={() => { setSelfie(s.image_url); setJustUploadedNew(false) }}
+                          style={{ width: '100%', height: '100%', borderRadius: '14px', overflow: 'hidden', border: `1.5px solid ${border}`, cursor: 'pointer' }}>
+                          <img src={s.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </motion.div>
+                        <button onClick={(e) => { e.stopPropagation(); deleteSavedSelfie(s.id) }}
+                          style={{ position: 'absolute', top: '-4px', right: '-4px', background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', width: '18px', height: '18px', color: '#fff', cursor: 'pointer', fontSize: '10px', lineHeight: 1 }}>
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                    <motion.div whileTap={{ scale: 0.95 }} onClick={() => fileRef.current?.click()}
+                      style={{ flex: 1, aspectRatio: '1', borderRadius: '14px', border: `1.5px dashed ${border}`, background: accentDim, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', gap: '4px', cursor: 'pointer' }}>
+                      <SelfieIcon size={20} color={accent} />
+                      <span style={{ fontSize: '9px', fontWeight: 700, color: accent, textAlign: 'center' as const, lineHeight: 1.2, padding: '0 4px' }}>
+                        {locale === 'de' ? 'Neu' : 'New'}
+                      </span>
+                    </motion.div>
                   </div>
-                  <div style={{ textAlign: 'left' as const }}>
-                    <p style={{ fontSize: '14px', fontWeight: 700, color: text, marginBottom: '2px', letterSpacing: '-0.02em' }}>
-                      {locale === 'de' ? 'Neues Selfie hochladen' : 'Upload new selfie'}
-                    </p>
-                    <p style={{ fontSize: '12px', color: muted }}>
-                      {locale === 'de' ? 'Ganzkörper Foto für beste Ergebnisse' : 'Full body photo for best results'}
-                    </p>
-                  </div>
-                  <svg style={{ marginLeft: 'auto', flexShrink: 0 }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
-                </motion.div>
+                  <p style={{ fontSize: '11px', color: muted, textAlign: 'center' as const, marginTop: '8px' }}>
+                    {savedSelfies.length > 0
+                      ? (locale === 'de' ? 'Selfie antippen oder neues hochladen' : 'Tap a selfie or upload a new one')
+                      : (locale === 'de' ? 'Ganzkörper Foto für beste Ergebnisse' : 'Full body photo for best results')}
+                  </p>
+                </>
               ) : (
                 <div>
                   <div style={{ position: 'relative' as const }}>
