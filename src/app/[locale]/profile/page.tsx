@@ -768,7 +768,7 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
 
   <motion.button whileTap={{ scale: 0.97 }}
     onClick={async () => {
-     const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.kiwardrobe.com'}/${locale}/auth/register?ref=${profile?.referral_code ?? ''}`
+      const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.kiwardrobe.com'}/${locale}/auth/register?ref=${profile?.referral_code ?? ''}`
      const shareText = locale === 'de'
         ? `Ich hab gerade meinen eigenen Avatar erstellt und KI sagt mir jeden Morgen was ich anziehen soll 🤯 KiWardrobe ist echt krass — probier's aus, mit meinem Link bekommst du 7 Tage Pro komplett gratis: ${inviteUrl}`
         : `I just made my own AI avatar and it tells me what to wear every morning 🤯 KiWardrobe is actually insane — try it, my link gets you 7 days Pro completely free: ${inviteUrl}`
