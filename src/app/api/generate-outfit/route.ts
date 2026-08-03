@@ -92,9 +92,14 @@ export async function POST(request: NextRequest) {
     console.log('Received usage object:', JSON.stringify(usage))
     const blocked = new Set((Array.isArray(blockedNames) ? blockedNames : []).map(normalize))
 
-    const grouped = groupByCategory(items)
+const grouped = groupByCategory(items)
     const tops = grouped['tops'] ?? []
     const hosen = grouped['hosen'] ?? []
+    const kurzeHosen = grouped['kurze_hosen'] ?? []
+    const roecke = grouped['roecke'] ?? []
+    const kleider = grouped['kleider'] ?? []
+    // Hosen, kurze Hosen und Roecke sind alle gleichwertige "Unterteil"-Optionen
+    const bottoms = [...hosen, ...kurzeHosen, ...roecke]
     const schuhe = grouped['schuhe'] ?? []
     const jacken = grouped['jacken'] ?? []
     console.log('All schuhe with usage:', schuhe.map((s: any) => uniqueId(s) + ' -> ' + JSON.stringify(getUsageInfo(usage, uniqueId(s)))))
@@ -130,8 +135,16 @@ export async function POST(request: NextRequest) {
       } else {
         pickedTop = pickLeastUsed(tops, usage, sessionUsedTops)
       }
+// Bei vorhandenen Kleidern manchmal ein Kleid statt Top+Unterteil waehlen (ca. 35% Chance,
+      // wenn welche vorhanden sind), da ein Kleid Ober- und Unterkoerper allein abdeckt.
+      const useDress = kleider.length > 0 && Math.random() < 0.35
+      let pickedDress: any = null
+      if (useDress) {
+        pickedDress = pickLeastUsed(kleider, usage, sessionUsedTops)
+        if (pickedDress) { pickedTop = null; pickedBaseTop = null }
+      }
 
-      const pickedHose = pickLeastUsed(hosen, usage, sessionUsedHosen)
+      const pickedHose = pickedDress ? null : pickLeastUsed(bottoms, usage, sessionUsedHosen)
       const pickedSchuh = pickLeastUsed(schuhe, usage, sessionUsedSchuhe)
       console.log('PICKED hose:', pickedHose ? uniqueId(pickedHose) : 'none', '| PICKED schuh:', pickedSchuh ? uniqueId(pickedSchuh) : 'none')
 
@@ -150,15 +163,16 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      if (pickedTop) sessionUsedTops.add(uniqueId(pickedTop))
+if (pickedTop) sessionUsedTops.add(uniqueId(pickedTop))
       if (pickedBaseTop) sessionUsedTops.add(uniqueId(pickedBaseTop))
+      if (pickedDress) sessionUsedTops.add(uniqueId(pickedDress))
       if (pickedHose) sessionUsedHosen.add(uniqueId(pickedHose))
       if (pickedSchuh) sessionUsedSchuhe.add(uniqueId(pickedSchuh))
 
-      let chosenItems = [pickedTop, pickedBaseTop, pickedHose, pickedSchuh, pickedJacke].filter(Boolean)
+      let chosenItems = [pickedDress, pickedTop, pickedBaseTop, pickedHose, pickedSchuh, pickedJacke].filter(Boolean)
       let comboKey = chosenItems.map((it: any) => uniqueId(it)).sort().join('+')
 
-      if (recentComboSet.has(comboKey)) {
+if (recentComboSet.has(comboKey) && !pickedDress) {
         const altTop = pickLeastUsed(tops.filter((t: any) => uniqueId(t) !== uniqueId(pickedTop)), usage, sessionUsedTops)
         if (altTop) {
           pickedTop = altTop
