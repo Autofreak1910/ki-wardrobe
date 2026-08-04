@@ -23,18 +23,20 @@ export default function RatingPopup({ open, onClose, locale, theme }: RatingPopu
   const [rating, setRating] = useState(0)
   const [hovered, setHovered] = useState(0)
   const [message, setMessage] = useState('')
-  const [sending, setSending] = useState(false)
+const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
+  const [error, setError] = useState('')
 
   const de = locale === 'de'
 
 async function submit() {
     if (rating === 0) return
     setSending(true)
+    setError('')
     try {
       const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.user) { setSending(false); return }
+      if (!session?.user) { setError('Nicht eingeloggt'); setSending(false); return }
 
       const { error: dbError } = await supabase.from('feedback').insert({
         user_id: session.user.id,
@@ -46,12 +48,11 @@ async function submit() {
       })
 
       if (dbError) {
-        console.error('Feedback insert failed:', dbError)
+        setError('DB: ' + dbError.message)
         setSending(false)
         return
       }
 
-      // E-Mail-Benachrichtigung an dich senden
       try {
         await fetch('/api/send-feedback-email', {
           method: 'POST',
@@ -69,10 +70,10 @@ async function submit() {
       localStorage.setItem('kw_rating_done_v2', 'true')
       setTimeout(() => {
         onClose()
-        setTimeout(() => { setSent(false); setRating(0); setMessage('') }, 300)
+        setTimeout(() => { setSent(false); setRating(0); setMessage(''); setError('') }, 300)
       }, 2000)
-    } catch (err) {
-      console.error('Feedback submit error:', err)
+    } catch (err: any) {
+      setError('Fehler: ' + (err?.message ?? String(err)))
     }
     setSending(false)
   }
@@ -177,6 +178,13 @@ async function submit() {
                     </motion.div>
                   )}
                 </AnimatePresence>
+
+               {/* Error */}
+                {error && (
+                  <p style={{ fontSize: '11px', color: '#ef4444', fontWeight: 600, marginBottom: '8px', background: 'rgba(239,68,68,0.1)', borderRadius: '8px', padding: '8px' }}>
+                    {error}
+                  </p>
+                )}
 
                 {/* Submit */}
                 <motion.button whileTap={{ scale: 0.97 }}
