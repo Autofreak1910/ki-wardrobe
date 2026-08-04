@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
+import Script from 'next/script'
 import { routing } from '@/i18n/routing'
 import { ThemeProvider } from '@/context/ThemeContext'
 import AppWrapper from '@/components/AppWrapper'
@@ -26,17 +27,6 @@ export default async function LocaleLayout({
   return (
     <html lang={locale}>
       <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('consent','default',{'analytics_storage':'denied'});`,
-          }}
-        />
-        <script async={true} src="https://www.googletagmanager.com/gtag/js?id=G-S08985T3YF" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-S08985T3YF');`,
-          }}
-        />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -85,6 +75,17 @@ export default async function LocaleLayout({
         <link rel="apple-touch-startup-image" href="/splash-dark/apple-splash-640-1136.jpg" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait) and (prefers-color-scheme: dark)" />
       </head>
       <body>
+        <Script id="ga-consent" strategy="beforeInteractive">
+          {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('consent','default',{'analytics_storage':'denied'});`}
+        </Script>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-S08985T3YF"
+          strategy="beforeInteractive"
+        />
+        <Script id="ga-config" strategy="beforeInteractive">
+          {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-S08985T3YF');`}
+        </Script>
+
         <NextIntlClientProvider locale={locale} messages={messages}>
           <ThemeProvider>
             <AppWrapper>{children}</AppWrapper>
