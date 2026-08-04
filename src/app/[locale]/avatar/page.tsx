@@ -697,6 +697,7 @@ export default function AvatarPage() {
     setGenProgress(0)
     window.dispatchEvent(new CustomEvent('kw-generating', { detail: false }))
   }
+  const selectedSelfieLegType = selfie ? (savedSelfies.find(s => s.image_url === selfie)?.leg_type ?? null) : null
   const isPremium = profile?.is_premium ?? false
   const usedThisPeriod = profile?.used_this_period ?? 0
   const periodLimit = profile?.period_limit ?? (isPremium ? 6 : 2)
@@ -844,6 +845,14 @@ export default function AvatarPage() {
                       ? (locale === 'de' ? 'Selfie antippen oder neues hochladen' : 'Tap a selfie or upload a new one')
                       : (locale === 'de' ? 'Ganzkörper Foto für beste Ergebnisse' : 'Full body photo for best results')}
                   </p>
+                  <div style={{ background: accentDim, borderRadius: '10px', padding: '8px 10px', marginTop: '8px', display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
+                    <span style={{ fontSize: '12px', flexShrink: 0 }}>💡</span>
+                    <p style={{ fontSize: '10.5px', color: accent, lineHeight: 1.5, fontWeight: 600 }}>
+                      {locale === 'de'
+                        ? 'Für Rock & kurze Hose: Foto mit freien Beinen hochladen (Rock oder kurze Hose tragen). Für alles andere (lange Hose, Oberteil, Jacke) geht jedes Foto.'
+                        : 'For skirts & shorts: upload a photo with bare legs (wearing a skirt or shorts). For everything else (long pants, tops, jackets), any photo works.'}
+                    </p>
+                  </div>
                 </>
               ) : (
                 <div>
@@ -921,27 +930,36 @@ export default function AvatarPage() {
                     return (
                       <>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-                          {visibleItems.map(item => (
-                            <motion.div key={item.id} whileTap={{ scale: 0.96 }}
+                          {visibleItems.map(item => {
+                            const isLocked = (item.category === 'roecke' || item.category === 'kurze_hosen') && selectedSelfieLegType === 'long_pants'
+                            return (
+                            <motion.div key={item.id} whileTap={!isLocked ? { scale: 0.96 } : {}}
                               onClick={() => {
-                                const newItem = selectedItem?.id === item.id ? null : item
-                                if (newItem && selfie) {
-                                  const selectedSelfie = savedSelfies.find(s => s.image_url === selfie)
-                                  const conflict = checkLegConflict(selectedSelfie?.leg_type, newItem.category)
-                                  if (conflict) { setError(conflict); setSelectedItem(null); return }
+                                if (isLocked) {
+                                  setError(locale === 'de'
+                                    ? 'Dieses Foto zeigt eine lange Hose. Für Röcke/kurze Hosen brauchst du ein Foto ohne lange Hose.'
+                                    : 'This photo shows long pants. For skirts/shorts you need a photo without long pants.')
+                                  return
                                 }
+                                const newItem = selectedItem?.id === item.id ? null : item
                                 setError(null)
                                 setSelectedItem(newItem)
                               }}
-                              style={{ background: card, borderRadius: '16px', overflow: 'hidden', border: `1.5px solid ${selectedItem?.id === item.id ? accent : border}`, cursor: 'pointer', position: 'relative' as const, padding: '6px', boxShadow: selectedItem?.id === item.id ? `0 4px 16px ${accent}25` : 'none' }}>
+                              style={{ background: card, borderRadius: '16px', overflow: 'hidden', border: `1.5px solid ${selectedItem?.id === item.id ? accent : border}`, cursor: isLocked ? 'not-allowed' : 'pointer', position: 'relative' as const, padding: '6px', boxShadow: selectedItem?.id === item.id ? `0 4px 16px ${accent}25` : 'none', opacity: isLocked ? 0.4 : 1 }}>
                               <div style={{ borderRadius: '10px', overflow: 'hidden' }}>
-                                <img src={item.image_url} style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', display: 'block' }} />
+                                <img src={item.image_url} style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', display: 'block', filter: isLocked ? 'grayscale(1)' : 'none' }} />
                               </div>
-                              {selectedItem?.id === item.id && (
+                              {isLocked && (
+                                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  <LockIcon size={22} color="#fff" />
+                                </div>
+                              )}
+                              {!isLocked && selectedItem?.id === item.id && (
                                 <div style={{ position: 'absolute', top: '10px', right: '10px', background: accent, borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>✓</div>
                               )}
                             </motion.div>
-                          ))}
+                            )
+                          })}
                         </div>
                         {filteredTryOnItems.length > 3 && (
                           <button onClick={() => setShowAllTryOnItems(v => !v)}
