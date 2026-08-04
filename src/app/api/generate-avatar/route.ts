@@ -138,23 +138,28 @@ export async function POST(req: Request) {
       console.error('Selfie quality check failed:', checkErr)
     }
 
-    // Roecke/Kleider -> Leffa (eigene "dresses"-Kategorie), alles andere -> FASHN.
-    const useLeffaForDress = category === 'roecke' || category === 'kleider'
-    const modelEndpoint = useLeffaForDress ? 'fal-ai/leffa/virtual-tryon' : 'fal-ai/fashn/tryon/v1.6'
+    // Ein Rock ist im Prinzip wie eine kurze Hose -- sitzt an der Huefte,
+    // geht bis zum Oberschenkel. Explizite Kategorie 'bottoms' (statt 'auto',
+    // das faelschlich lange Jeans erzeugt hat, oder Leffa 'dresses', das
+    // faelschlich ein langes Kleid mit Aermeln erzeugt hat) ist die simple,
+    // korrekte Angabe fuer Hosen, kurze Hosen UND Roecke gleichermassen.
+    const fashnCategoryMap: Record<string, string> = {
+      tops: 'tops',
+      jacken: 'tops',
+      hosen: 'bottoms',
+      kurze_hosen: 'bottoms',
+      roecke: 'bottoms',
+      kleider: 'one-pieces',
+    }
+    const fashnCategory = fashnCategoryMap[category] ?? 'auto'
 
-    const input = useLeffaForDress
-      ? {
-          human_image_url: publicUrl,
-          garment_image_url: garmentImage,
-          garment_type: 'dresses',
-        }
-      : {
-          model_image: publicUrl,
-          garment_image: garmentImage,
-          category: 'auto',
-          mode: 'balanced',
-          garment_photo_type: 'flat-lay',
-        }
+    const modelEndpoint = 'fal-ai/fashn/tryon/v1.6'
+    const input = {
+      model_image: publicUrl,
+      garment_image: garmentImage,
+      category: fashnCategory,
+      mode: 'quality',
+    }
 
     // WICHTIG: Nicht mehr blockierend auf das Ergebnis warten (fal.subscribe),
     // das hat bei laengeren Generierungen zu Vercel-Timeouts gefuehrt, selbst
