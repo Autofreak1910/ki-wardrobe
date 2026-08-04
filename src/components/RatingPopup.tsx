@@ -67,7 +67,7 @@ async function submit() {
       } catch {}
 
       setSent(true)
-      localStorage.setItem('kw_rating_done_v2', 'true')
+      localStorage.setItem('kw_rating_done_v3', 'true')
       setTimeout(() => {
         onClose()
         setTimeout(() => { setSent(false); setRating(0); setMessage(''); setError('') }, 300)
@@ -80,12 +80,12 @@ async function submit() {
 
   function later() {
   const inThreeDays = Date.now() + 3 * 24 * 60 * 60 * 1000
-    localStorage.setItem('kw_rating_later_v2', String(inThreeDays))
+    localStorage.setItem('kw_rating_later_v3', String(inThreeDays))
     onClose()
   }
 
   function never() {
-    localStorage.setItem('kw_rating_done_v2', 'true')
+    localStorage.setItem('kw_rating_done_v3', 'true')
     onClose()
   }
 
