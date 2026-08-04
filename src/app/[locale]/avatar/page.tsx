@@ -544,7 +544,7 @@ export default function AvatarPage() {
   }
 
   function checkLegConflict(selfieLegType: string | null | undefined, itemCategory: string | undefined): string | null {
-    const needsShortLegs = itemCategory === 'roecke' || itemCategory === 'kurze_hosen'
+    const needsShortLegs = itemCategory === 'roecke' || itemCategory === 'kurze_hosen' || itemCategory === 'kleider'
     if (needsShortLegs && selfieLegType === 'long_pants') {
       return locale === 'de'
         ? 'Dieses Foto zeigt eine lange Hose. Für Röcke/kurze Hosen brauchst du ein Foto ohne lange Hose.'
@@ -932,7 +932,7 @@ export default function AvatarPage() {
                       <>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
                           {visibleItems.map(item => {
-                            const isLocked = (item.category === 'roecke' || item.category === 'kurze_hosen') && selectedSelfieLegType === 'long_pants'
+                            const isLocked = (item.category === 'roecke' || item.category === 'kurze_hosen' || item.category === 'kleider') && selectedSelfieLegType === 'long_pants'
                             return (
                             <motion.div key={item.id} whileTap={!isLocked ? { scale: 0.96 } : {}}
                               onClick={() => {

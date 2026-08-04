@@ -111,7 +111,7 @@ export async function POST(req: Request) {
 
     // Selfie-Qualität prüfen bevor teure Generierung läuft
     try {
-      const isShortLowerBody = category === 'roecke' || category === 'kurze_hosen'
+      const isShortLowerBody = category === 'roecke' || category === 'kurze_hosen' || category === 'kleider'
 
       const questionText = isShortLowerBody
         ? 'Look at this photo. Answer TWO things separated by a comma: (1) Is a person clearly visible, showing at least their upper body, without being extremely blurry or dark? Reply "good" or "bad". (2) Are the person\'s legs covered by long pants/trousers reaching below the knee? Reply "long_pants" or "short_or_bare". Format your entire reply as exactly: "<good|bad>,<long_pants|short_or_bare>"'
