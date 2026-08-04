@@ -43,6 +43,7 @@ type ClothingItem = {
   id: string; image_url: string; category: string; color: string
   name?: string; brand?: string; style_tags: string[]
   season: string[]; purchase_date?: string; purchase_price?: number; created_at: string
+  length?: string
 }
 
 function getTodayStartUTC(): Date {
@@ -68,8 +69,9 @@ const [notClothingReason, setNotClothingReason] = useState('')
 const [pendingLengthItem, setPendingLengthItem] = useState<{ analysis: any; publicUrl: string; userId: string; fallbackName: string } | null>(null)
   const [progress, setProgress] = useState(0)
   const [selectedItem, setSelectedItem] = useState<ClothingItem | null>(null)
-  const [editDate, setEditDate] = useState('')
+const [editDate, setEditDate] = useState('')
   const [editPrice, setEditPrice] = useState('')
+  const [editLength, setEditLength] = useState('')
   const [saving, setSaving] = useState(false)
 const [limitMsg, setLimitMsg] = useState<string | null>(null)
 const [isPremium, setIsPremium] = useState(wardrobeCache?.isPremium ?? false)
@@ -490,12 +492,14 @@ const res = await fetch('/api/style-dna', {
   setDnaLoading(false)
 }
 
-  async function handleSaveDetails() {
+async function handleSaveDetails() {
     if (!selectedItem) return
     setSaving(true)
+    const isSkirtOrDress = selectedItem.category === 'roecke' || selectedItem.category === 'kleider'
     await supabase.from('clothing_items').update({
       purchase_date: editDate || null,
       purchase_price: editPrice ? parseFloat(editPrice) : null,
+      ...(isSkirtOrDress ? { length: editLength || null } : {}),
     }).eq('id', selectedItem.id)
     setSaving(false); setSelectedItem(null); loadItems()
   }
@@ -537,10 +541,11 @@ const res = await fetch('/api/style-dna', {
     })
   }
 
-  function openItem(item: ClothingItem) {
+function openItem(item: ClothingItem) {
     setSelectedItem(item)
     setEditDate(item.purchase_date ?? '')
-    setEditPrice(item.purchase_price?.toString() ?? '') 
+    setEditPrice(item.purchase_price?.toString() ?? '')
+    setEditLength(item.length ?? '')
   }
 
 const catLabels: Record<string, string> = locale === 'de'
@@ -909,7 +914,7 @@ const dnaLocked = !isPremium || styleDnaUsedToday || needsMoreItems
                   </div>
                 </div>
               </div>
-<div style={{ display: 'flex', gap: '18px', marginBottom: '26px' }}>
+<div style={{ display: 'flex', gap: '18px', marginBottom: (selectedItem.category === 'roecke' || selectedItem.category === 'kleider') ? '18px' : '26px' }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <label style={{ fontSize: '11px', fontWeight: 600, color: muted, display: 'block', marginBottom: '7px', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>{t('wardrobe.purchaseDate')}</label>
                   <input type="date" value={editDate} onChange={e => setEditDate(e.target.value)}
@@ -921,6 +926,27 @@ const dnaLocked = !isPremium || styleDnaUsedToday || needsMoreItems
                     style={{ width: '100%', minWidth: 0, boxSizing: 'border-box' as const, background: card, border: `1px solid ${border}`, borderRadius: '14px', padding: '11px 12px', fontSize: '13px', color: text, outline: 'none', fontFamily: "'Poppins', 'Inter', sans-serif", boxShadow: isDark ? 'none' : '0 1px 3px rgba(29,29,32,0.04)' }} />
                 </div>
               </div>
+
+              {(selectedItem.category === 'roecke' || selectedItem.category === 'kleider') && (
+                <div style={{ marginBottom: '26px' }}>
+                  <label style={{ fontSize: '11px', fontWeight: 600, color: muted, display: 'block', marginBottom: '7px', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>
+                    {locale === 'de' ? 'Länge' : 'Length'}
+                  </label>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    {(['kurz', 'midi', 'lang'] as const).map(len => {
+                      const isOn = editLength === len
+                      const labelDe = { kurz: 'Kurz', midi: 'Midi', lang: 'Lang' }[len]
+                      const labelEn = { kurz: 'Short', midi: 'Midi', lang: 'Long' }[len]
+                      return (
+                        <button key={len} onClick={() => setEditLength(len)}
+                          style={{ flex: 1, padding: '11px 0', borderRadius: '12px', border: `1.5px solid ${isOn ? accent : border}`, background: isOn ? accent : card, color: isOn ? '#fff' : text, fontSize: '13px', fontWeight: isOn ? 700 : 500, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+                          {locale === 'de' ? labelDe : labelEn}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button onClick={() => handleDelete(selectedItem.id)}
                   style={{ flex: 1, padding: '13px', background: 'transparent', border: '1px solid rgba(239,68,68,0.4)', borderRadius: '12px', fontSize: '14px', color: '#ef4444', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", fontWeight: 600, letterSpacing: '-0.01em' }}>
