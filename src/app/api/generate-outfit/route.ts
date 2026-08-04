@@ -263,6 +263,19 @@ const weatherTier = getWeatherTier(tempValue)
         } else {
           pickedTop = pickLeastUsed(tops, usage, sessionUsedTops)
         }
+      } else if (useWeather && weatherTier === 'warm') {
+        // Bei Hitze: dicke Layer-Teile (Pulli, Hoodie) aktiv ausschliessen, falls Alternativen da sind
+        const lightTops = tops.filter((t: any) => t.layer_type !== 'layer')
+        pickedTop = pickLeastUsed(lightTops.length > 0 ? lightTops : tops, usage, sessionUsedTops)
+      } else if (useWeather && weatherTier === 'mild') {
+        // Bei mildem Wetter: Layer-Teile nicht verbieten, aber leicht benachteiligen (nur 20% Chance)
+        const lightTops = tops.filter((t: any) => t.layer_type !== 'layer')
+        const heavyTops = tops.filter((t: any) => t.layer_type === 'layer')
+        if (lightTops.length > 0 && (heavyTops.length === 0 || Math.random() > 0.2)) {
+          pickedTop = pickLeastUsed(lightTops, usage, sessionUsedTops)
+        } else {
+          pickedTop = pickLeastUsed(tops, usage, sessionUsedTops)
+        }
       } else {
         pickedTop = pickLeastUsed(tops, usage, sessionUsedTops)
       }
