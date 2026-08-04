@@ -11,23 +11,14 @@ export function hasAnalyticsConsent(): boolean {
   return localStorage.getItem('kw_cookie_consent') === 'accepted'
 }
 
-// GA laden (wird nur aufgerufen wenn Consent gegeben wurde)
+// GA Consent freigeben (Script ist schon im Head, sammelt aber erst nach Consent Daten)
 export function loadGoogleAnalytics() {
   if (typeof window === 'undefined') return
-  if (document.getElementById('ga-script')) return // schon geladen
-
-  const script = document.createElement('script')
-  script.id = 'ga-script'
-  script.async = true
-  script.src = 'https://www.googletagmanager.com/gtag/js?id=G-S08985T3YF'
-  document.head.appendChild(script)
-
-  script.onload = () => {
-    ;(window as any).dataLayer = (window as any).dataLayer || []
-    function gtag(...args: any[]) { (window as any).dataLayer.push(args) }
-    gtag('js', new Date())
-    gtag('config', 'G-S08985T3YF')
-  }
+  ;(window as any).dataLayer = (window as any).dataLayer || []
+  function gtag(...args: any[]) { (window as any).dataLayer.push(args) }
+  gtag('consent', 'update', {
+    'analytics_storage': 'granted'
+  })
 }
 
 export default function CookieConsent() {
