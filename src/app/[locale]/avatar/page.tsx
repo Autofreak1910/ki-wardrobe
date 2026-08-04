@@ -1125,7 +1125,7 @@ const fileRef = useRef<HTMLInputElement>(null)
         </div>
 
       </main>
-      <div style={{ position: 'fixed', bottom: 'calc(80px + env(safe-area-inset-bottom))', left: 0, right: 0, zIndex: 40, pointerEvents: 'none' }}>
+      <div style={{ position: 'fixed', bottom: 'calc(90px + env(safe-area-inset-bottom))', left: 0, right: 0, zIndex: 40, pointerEvents: 'none' }}>
         <div style={{ maxWidth: '560px', margin: '0 auto', padding: '0 20px', pointerEvents: 'auto' }}>
           <div style={{ padding: '0' }}>
             <motion.button whileTap={{ scale: 0.97 }}
