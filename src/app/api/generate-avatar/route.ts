@@ -148,7 +148,7 @@ export async function POST(req: Request) {
     // genau umgekehrt -- super bei kurzen Hosen, macht aber Roecke kaputt
     // (werden zu langen Jeans). Deshalb pro Kategorie das, was nachweislich
     // funktioniert.
-    const fashnCategoryMap: Record<string, string> = {
+const fashnCategoryMap: Record<string, string> = {
       tops: 'tops',
       jacken: 'tops',
       hosen: 'bottoms',
@@ -164,6 +164,10 @@ export async function POST(req: Request) {
       garment_image: garmentImage,
       category: fashnCategory,
       mode: 'quality',
+      // Diese Kombination hat bei kurzen Hosen nachweislich einwandfrei
+      // funktioniert -- sagt der KI explizit, dass es ein sauberes,
+      // freigestelltes Produktfoto ist.
+      garment_photo_type: 'flat-lay',
     }
 
     // WICHTIG: Nicht mehr blockierend auf das Ergebnis warten (fal.subscribe),
