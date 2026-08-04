@@ -506,11 +506,11 @@ async function setManualLocation(lat: number, lon: number) {
   fetchWeather()
 }
 
- function toggleCategory(cat: string) {
+function toggleCategory(cat: string) {
     setActiveCategories(prev => {
-      const next = prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
-      // Mindestens 2 Kategorien müssen aktiv bleiben
-      if (next.length < 2) return prev
+      const isActive = prev.includes(cat)
+      if (isActive && prev.length <= 2) return prev
+      const next = isActive ? prev.filter(c => c !== cat) : [...prev, cat]
       return next
     })
     setOutfit(null)
