@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { createClient } from '@/lib/supabase/client'
 
 interface RatingPopupProps {
   open: boolean
@@ -27,25 +28,51 @@ export default function RatingPopup({ open, onClose, locale, theme }: RatingPopu
 
   const de = locale === 'de'
 
-  async function submit() {
+async function submit() {
     if (rating === 0) return
     setSending(true)
     try {
-      const res = await fetch('/api/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rating, message }),
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.user) { setSending(false); return }
+
+      const { error: dbError } = await supabase.from('feedback').insert({
+        user_id: session.user.id,
+        type: 'in_app_rating',
+        rating,
+        message: message?.trim() || '',
+        email: session.user.email || null,
+        wants_reply: false,
       })
-      if (res.ok) {
-        setSent(true)
-        localStorage.setItem('kw_rating_done', 'true')
-        setTimeout(() => {
-          onClose()
-          setTimeout(() => { setSent(false); setRating(0); setMessage('') }, 300)
-        }, 2000)
+
+      if (dbError) {
+        console.error('Feedback insert failed:', dbError)
+        setSending(false)
+        return
       }
-    } catch {
-      // still close
+
+      // E-Mail-Benachrichtigung an dich senden
+      try {
+        await fetch('/api/send-feedback-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'in_app_rating',
+            message: `⭐ ${rating}/5${message?.trim() ? '\n\n' + message.trim() : ''}`,
+            email: session.user.email || null,
+            wantsReply: false,
+          }),
+        })
+      } catch {}
+
+      setSent(true)
+      localStorage.setItem('kw_rating_done', 'true')
+      setTimeout(() => {
+        onClose()
+        setTimeout(() => { setSent(false); setRating(0); setMessage('') }, 300)
+      }, 2000)
+    } catch (err) {
+      console.error('Feedback submit error:', err)
     }
     setSending(false)
   }
