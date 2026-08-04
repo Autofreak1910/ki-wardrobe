@@ -508,6 +508,18 @@ const fileRef = useRef<HTMLInputElement>(null)
       setPageLoading(false)
     }
   }
+async function deleteAvatar(avatarId: string, imageUrl: string) {
+    try {
+      await supabase.from('avatar_results').delete().eq('id', avatarId)
+      const match = imageUrl.match(/avatars\/(.+)$/)
+      if (match) {
+        await supabase.storage.from('avatars').remove([match[1]])
+      }
+      setGalleryAvatars(prev => prev.filter(g => g.id !== avatarId))
+    } catch (err) {
+      console.error('Delete avatar failed:', err)
+    }
+  }
 
   async function openGallery() {
     if (!isPremium) { setShowUpgrade(true); return }
@@ -1074,6 +1086,25 @@ const fileRef = useRef<HTMLInputElement>(null)
                     </>
                   )}
                 </div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px 16px 0' }}>
+                  <span style={{ fontSize: '12px', color: '#0ea472', fontWeight: 600 }}>
+                    ✓ {locale === 'de' ? 'In My Avatars gespeichert' : 'Saved to My Avatars'}
+                  </span>
+                  <button
+                    onClick={async () => {
+                      if (!result) return
+                      const { data } = await supabase.from('avatar_results').select('id').eq('image_url', result).single()
+                      if (data) {
+                        await deleteAvatar(data.id, result)
+                        setResult(null)
+                        setProcessedResult(null)
+                      }
+                    }}
+                    style={{ fontSize: '11px', color: muted, background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", textDecoration: 'underline' }}>
+                    {locale === 'de' ? 'Entfernen' : 'Remove'}
+                  </button>
+                </div>
+
                 <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column' as const, gap: '8px' }}>
                   <motion.button whileTap={{ scale: 0.97 }}
                     onClick={async () => {
@@ -1255,9 +1286,13 @@ const fileRef = useRef<HTMLInputElement>(null)
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
                   {galleryAvatars.map(a => (
                     <motion.div key={a.id} whileTap={{ scale: 0.96 }}
-                      onClick={() => setGalleryFullscreen(a.image_url)}
                       style={{ borderRadius: '12px', overflow: 'hidden', cursor: 'pointer', border: `1px solid ${border}`, aspectRatio: '3/4', position: 'relative' as const }}>
-                      <img src={a.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      <img src={a.image_url} onClick={() => setGalleryFullscreen(a.image_url)} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      <button
+                        onClick={(e) => { e.stopPropagation(); if (confirm(locale === 'de' ? 'Avatar löschen?' : 'Delete avatar?')) deleteAvatar(a.id, a.image_url) }}
+                        style={{ position: 'absolute', top: '6px', right: '6px', width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', border: 'none', color: '#fff', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        🗑
+                      </button>
                     </motion.div>
                   ))}
                 </div>
