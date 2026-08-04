@@ -373,7 +373,7 @@ export default function AvatarPage() {
   const [justUploadedNew, setJustUploadedNew] = useState(false)
   const [activeTryOnCategory, setActiveTryOnCategory] = useState('all')
   const [showAllTryOnItems, setShowAllTryOnItems] = useState(false)
-  const [lockedItemPopup, setLockedItemPopup] = useState<string | null>(null)
+  const [showLegConflictModal, setShowLegConflictModal] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const { theme } = useTheme()
   const locale = useLocale()
@@ -937,7 +937,7 @@ export default function AvatarPage() {
                             <motion.div key={item.id} whileTap={!isLocked ? { scale: 0.96 } : {}}
                               onClick={() => {
                                 if (isLocked) {
-                                  setLockedItemPopup(item.id)
+                                  setShowLegConflictModal(true)
                                   return
                                 }
                                 const newItem = selectedItem?.id === item.id ? null : item
@@ -953,28 +953,6 @@ export default function AvatarPage() {
                                   <LockIcon size={22} color="#fff" />
                                 </div>
                               )}
-                              <AnimatePresence>
-                                {isLocked && lockedItemPopup === item.id && (
-                                  <motion.div
-                                    initial={{ opacity: 0, y: 6, scale: 0.95 }}
-                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    exit={{ opacity: 0, y: 6, scale: 0.95 }}
-                                    transition={{ duration: 0.15 }}
-                                    onClick={(e) => e.stopPropagation()}
-                                    style={{ position: 'absolute', bottom: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)', width: '210px', background: isDark ? '#1D1D20' : '#24211B', borderRadius: '12px', padding: '10px 12px', zIndex: 20, boxShadow: '0 8px 24px rgba(0,0,0,0.35)' }}>
-                                    <p style={{ fontSize: '11.5px', color: '#fff', lineHeight: 1.5, fontWeight: 600, marginBottom: '6px' }}>
-                                      {locale === 'de'
-                                        ? '👖 Du brauchst ein Foto, wo deine Beine zu sehen sind — also einen Rock oder eine kurze Hose tragen.'
-                                        : "👖 You need a photo where your legs are visible — wearing a skirt or shorts."}
-                                    </p>
-                                    <button onClick={(e) => { e.stopPropagation(); setLockedItemPopup(null) }}
-                                      style={{ fontSize: '10.5px', fontWeight: 700, color: '#F1B951', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
-                                      {locale === 'de' ? 'Verstanden' : 'Got it'}
-                                    </button>
-                                    <div style={{ position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)', width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderTop: `6px solid ${isDark ? '#1D1D20' : '#24211B'}` }} />
-                                  </motion.div>
-                                )}
-                              </AnimatePresence>
                               {!isLocked && selectedItem?.id === item.id && (
                                 <div style={{ position: 'absolute', top: '10px', right: '10px', background: accent, borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>✓</div>
                               )}
@@ -1205,6 +1183,32 @@ export default function AvatarPage() {
             <p style={{ fontSize: '12px', color: muted, marginTop: '24px', textAlign: 'center' as const }}>
               {locale === 'de' ? 'Das dauert meist 20-30 Sekunden ✦' : 'This usually takes 20-30 seconds ✦'}
             </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showLegConflictModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setShowLegConflictModal(false)}
+            style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              onClick={e => e.stopPropagation()}
+              style={{ width: '100%', maxWidth: '360px', background: card, border: `1px solid ${border}`, borderRadius: '24px', padding: '28px 24px', textAlign: 'center' as const }}>
+              <div style={{ fontSize: '40px', marginBottom: '14px' }}>👖</div>
+              <h2 style={{ fontSize: '18px', fontWeight: 800, color: text, marginBottom: '10px', letterSpacing: '-0.02em' }}>
+                {locale === 'de' ? 'Foto mit freien Beinen nötig' : 'Photo with visible legs needed'}
+              </h2>
+              <p style={{ fontSize: '13px', color: muted, lineHeight: 1.6, marginBottom: '20px' }}>
+                {locale === 'de'
+                  ? 'Für Röcke und kurze Hosen brauchst du ein Foto, auf dem deine Beine zu sehen sind — trag dafür einen Rock oder eine kurze Hose.'
+                  : 'For skirts and shorts you need a photo where your legs are visible — wear a skirt or shorts for that photo.'}
+              </p>
+              <button onClick={() => setShowLegConflictModal(false)}
+                style={{ width: '100%', padding: '13px', borderRadius: '12px', border: 'none', background: sageGradient, color: '#fff', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+                {locale === 'de' ? 'Verstanden' : 'Got it'}
+              </button>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
