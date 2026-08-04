@@ -250,12 +250,20 @@ const grouped = groupByCategory(items)
 
 const weatherTier = getWeatherTier(tempValue)
       const preferLayerTop = useWeather && (weatherTier === 'freezing' || weatherTier === 'cool')
+      // Wird spaeter garantiert eine Jacke dazukommen? Nur dann darf das Top haeufiger "nur" T-Shirt sein.
+      const jacketWillBeAdded = jacken.length > 0 && wantsJacket && useWeather && (weatherTier === 'freezing' || weatherTier === 'cool')
 
       if (preferLayerTop) {
         const layerPieces = tops.filter((t: any) => t.layer_type === 'layer')
         const basePieces = tops.filter((t: any) => t.layer_type === 'base')
-        // Bei Frost oefter layern (80%), bei "cool" seltener (50%)
-        const layerChance = weatherTier === 'freezing' ? 0.8 : 0.5
+        // Ohne Jacke MUSS bei Frost gelayert werden (kein Zufall mehr). Mit Jacke als Backup
+        // bleibt etwas Spielraum. Bei "cool" ohne Jacke ebenfalls stark bevorzugt.
+        let layerChance: number
+        if (weatherTier === 'freezing') {
+          layerChance = jacketWillBeAdded ? 0.8 : 1.0
+        } else {
+          layerChance = jacketWillBeAdded ? 0.5 : 0.9
+        }
         if (layerPieces.length > 0 && basePieces.length > 0 && Math.random() < layerChance) {
           pickedTop = pickLeastUsed(layerPieces, usage, sessionUsedTops)
           if (pickedTop) sessionUsedTops.add(uniqueId(pickedTop))
