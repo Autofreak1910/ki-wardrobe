@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import UpgradeModal from '@/components/UpgradeModal'
+import RatingPopup from '@/components/RatingPopup'
 import LocationPermissionHelpModal from '@/components/LocationPermissionHelpModal'
 import WeatherLocationPanel from '@/components/WeatherLocationPanel'
 import InstallAppPrompt from '@/components/InstallAppPrompt'
@@ -141,6 +142,24 @@ const [username, setUsername] = useState<string>(stylistCache?.username ?? '')
   const [premiumUntil, setPremiumUntil] = useState<string | null>(stylistCache?.premiumUntil ?? null)
 
 const [showUpgrade, setShowUpgrade] = useState(false)
+const [showRating, setShowRating] = useState(false)
+
+useEffect(() => {
+  const timer = setTimeout(() => {
+    try {
+      if (localStorage.getItem('kw_rating_done')) return
+      const laterUntil = localStorage.getItem('kw_rating_later')
+      if (laterUntil && Date.now() < Number(laterUntil)) return
+      const registered = localStorage.getItem('kw_registered_at')
+      if (registered) {
+        const daysSince = (Date.now() - Number(registered)) / (1000 * 60 * 60 * 24)
+        if (daysSince < 3) return
+      }
+      setShowRating(true)
+    } catch {}
+  }, 5000)
+  return () => clearTimeout(timer)
+}, [])
 const [showProStatus, setShowProStatus] = useState(false)
 const [showLocationHelp, setShowLocationHelp] = useState(false)
 const [showWeatherPanel, setShowWeatherPanel] = useState(false)
@@ -352,12 +371,13 @@ supabase.from('profiles').update({ timezone: tz }).eq('id', session.user.id)
 
 const { data } = await supabase.from('clothing_items').select('*').eq('user_id', session.user.id)
     if (data) { setWardrobeItems(data); setHasItems(data.length >= 3) }
-const { data: profile } = await supabase.from('profiles').select('username, premium_until, streak_freeze_used_month, bonus_outfits_this_week, bonus_tryons_this_week, first_outfit_tip_seen').eq('id', session.user.id).single()
+const { data: profile } = await supabase.from('profiles').select('username, premium_until, streak_freeze_used_month, bonus_outfits_this_week, bonus_tryons_this_week, first_outfit_tip_seen, created_at').eq('id', session.user.id).single()
     setFirstOutfitTipSeen(profile?.first_outfit_tip_seen ?? false)
     setFreezeUsedMonth(profile?.streak_freeze_used_month ?? null)
     setBonusOutfitsThisWeek(profile?.bonus_outfits_this_week ?? 0)
     setBonusTryonsThisWeek(profile?.bonus_tryons_this_week ?? 0)
-    if (profile?.username) setUsername(profile.username)
+   if (profile?.username) setUsername(profile.username)
+    try { if (profile?.created_at && !localStorage.getItem('kw_registered_at')) localStorage.setItem('kw_registered_at', String(new Date(profile.created_at).getTime())) } catch {}
     if (profile?.premium_until) {
       const until = new Date(profile.premium_until)
       if (until > new Date()) {
@@ -1850,6 +1870,12 @@ onClick={() => {
 </div>
       </main>
       <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
+      <RatingPopup
+        open={showRating}
+        onClose={() => setShowRating(false)}
+        locale={locale}
+        theme={{ card, border, text, muted, accent, isDark }}
+      />
 <LocationPermissionHelpModal
   open={showLocationHelp}
   onClose={() => setShowLocationHelp(false)}
