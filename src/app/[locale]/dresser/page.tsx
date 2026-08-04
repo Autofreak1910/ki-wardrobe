@@ -509,9 +509,12 @@ async function setManualLocation(lat: number, lon: number) {
 function toggleCategory(cat: string) {
     setActiveCategories(prev => {
       const isActive = prev.includes(cat)
-      if (isActive && prev.length <= 2) return prev
-      const next = isActive ? prev.filter(c => c !== cat) : [...prev, cat]
-      return next
+      if (isActive && prev.length <= 2) {
+        setLimitMsg(locale === 'de' ? 'Mindestens 2 Kategorien nötig' : 'At least 2 categories required')
+        setTimeout(() => setLimitMsg(null), 2500)
+        return prev
+      }
+      return isActive ? prev.filter(c => c !== cat) : [...prev, cat]
     })
     setOutfit(null)
   }
