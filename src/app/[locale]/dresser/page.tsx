@@ -145,14 +145,21 @@ const [showUpgrade, setShowUpgrade] = useState(false)
 const [showRating, setShowRating] = useState(false)
 
 useEffect(() => {
-  const timer = setTimeout(() => {
+  const timer = setTimeout(async () => {
     try {
-     if (localStorage.getItem('kw_rating_done_v5')) return
+      if (localStorage.getItem('kw_rating_done_v5')) return
       const laterUntil = localStorage.getItem('kw_rating_later_v5')
       if (laterUntil && Date.now() < Number(laterUntil)) return
+
+      // Check ob schon mal Feedback gegeben wurde (DB als Ground Truth)
+      const { count } = await supabase.from('feedback').select('*', { count: 'exact', head: true }).eq('type', 'in_app_rating') as any
+      if ((count ?? 0) > 0) {
+        localStorage.setItem('kw_rating_done_v5', 'true')
+        return
+      }
+
       const registered = localStorage.getItem('kw_registered_at')
       if (!registered) {
-        // Alten Account ohne registered_at: jetzt setzen, erst in 3 Tagen fragen
         try { localStorage.setItem('kw_registered_at', String(Date.now())) } catch {}
         return
       }
