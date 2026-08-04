@@ -8,6 +8,7 @@ import SplashScreen from './SplashScreen'
 import OnboardingCarousel from './OnboardingCarousel'
 import WelcomeAnimation from './WelcomeAnimation'
 import Navbar from './Navbar'
+import CookieConsent from './CookieConsent'
 import ForceUpdateModal from '@/components/ForceUpdateModal'
 import { useTheme } from '@/context/ThemeContext'
 import { useLocale } from 'next-intl'
@@ -18,7 +19,7 @@ const TAB_ORDER = ['dresser', 'wardrobe', 'outfits', 'profile']
 const NAV_ORDER = ['dresser', 'wardrobe', 'avatar', 'outfits', 'profile']
 
 function urlBase64ToUint8Array(base64String: string) {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4)
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
   const rawData = window.atob(base64)
   const outputArray = new Uint8Array(rawData.length)
@@ -131,7 +132,7 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
   }
   // ─────────────────────────────────────────────────────────────────────────
 
-useEffect(() => {
+  useEffect(() => {
     checkForForceUpdate()
 
     function onVisible() {
@@ -139,8 +140,11 @@ useEffect(() => {
     }
     document.addEventListener('visibilitychange', onVisible)
 
-    const isAppPage = TAB_ORDER.some(t => pathname.includes(t))
-    if (!isAppPage) { setShowSplash(false); return }
+    const isAppPage = TAB_ORDER.some((t) => pathname.includes(t))
+    if (!isAppPage) {
+      setShowSplash(false)
+      return
+    }
 
     const forceOnboarding = localStorage.getItem('kw_force_onboarding') === 'true'
 
@@ -160,28 +164,39 @@ useEffect(() => {
       }
     }
 
-supabase.auth.onAuthStateChange((event) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') {
         router.push('/' + pathname.split('/')[1] + '/auth/login')
       }
     })
 
-    return () => document.removeEventListener('visibilitychange', onVisible)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      authListener?.subscription?.unsubscribe()
+    }
   }, [pathname])
 
   async function checkOnboardingStatus() {
-    const { data: { session } } = await supabase.auth.getSession()
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
     if (!session?.user) return
-    const { data } = await supabase.from('profiles').select('onboarding_seen').eq('id', session.user.id).single()
+    const { data } = await supabase
+      .from('profiles')
+      .select('onboarding_seen')
+      .eq('id', session.user.id)
+      .single()
     const seen = data?.onboarding_seen ?? false
     setDbOnboardingSeen(seen)
     if (!seen) setShowOnboarding(true)
   }
 
   async function preloadData() {
-    const { data: { session } } = await supabase.auth.getSession()
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
     if (!session?.user) return
-    const [,, profileRes] = await Promise.all([
+    const [, , profileRes] = await Promise.all([
       supabase.from('clothing_items').select('*').eq('user_id', session.user.id),
       supabase.from('outfits').select('*').eq('user_id', session.user.id),
       supabase.from('profiles').select('is_premium, onboarding_seen').eq('id', session.user.id).single(),
@@ -203,7 +218,9 @@ supabase.auth.onAuthStateChange((event) => {
   async function handleOnboardingDone() {
     setShowOnboarding(false)
     setShowWelcome(true)
-    const { data: { session } } = await supabase.auth.getSession()
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
     if (session?.user) {
       await supabase.from('profiles').update({ onboarding_seen: true }).eq('id', session.user.id)
     }
@@ -230,18 +247,15 @@ supabase.auth.onAuthStateChange((event) => {
       {showOnboarding && <OnboardingCarousel onDone={handleOnboardingDone} />}
       {showWelcome && <WelcomeAnimation onDone={handleWelcomeDone} />}
 
-      <div style={{
-        opacity: showSplash ? 0 : 1,
-        transition: 'opacity 0.3s ease',
-        height: '100%',
-        position: 'relative' as const,
-        overflow: 'hidden',
-      }}>
-        {/*
-          Navbar sitzt jetzt HIER, ausserhalb des animierten Bereichs -- bleibt beim
-          Seitenwechsel absolut ruhig stehen, unabhaengig davon wie stark der Inhalt
-          darunter rutscht/federt. Einzelne Seiten rendern KEINE eigene <Navbar/> mehr.
-        */}
+      <div
+        style={{
+          opacity: showSplash ? 0 : 1,
+          transition: 'opacity 0.3s ease',
+          height: '100%',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
         {activePage && <Navbar activePage={activePage} />}
 
         <AnimatePresence mode="wait" initial={false}>
@@ -257,6 +271,8 @@ supabase.auth.onAuthStateChange((event) => {
           </motion.div>
         </AnimatePresence>
       </div>
+
+      <CookieConsent />
     </>
   )
 }
