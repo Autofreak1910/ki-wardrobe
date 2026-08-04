@@ -131,7 +131,7 @@ const [dailyFreeOutfitExpanded, setDailyFreeOutfitExpanded] = useState(false)
   const [saved, setSaved] = useState(false)
   const [wardrobeItems, setWardrobeItems] = useState<ClothingItem[]>(stylistCache?.wardrobeItems ?? [])
   const [hasItems, setHasItems] = useState(stylistCache ? stylistCache.wardrobeItems.length >= 3 : true)
- const [activeCategories, setActiveCategories] = useState<string[]>(['tops', 'hosen', 'kurze_hosen', 'roecke', 'kleider', 'jacken', 'schuhe'])
+const [activeCategories, setActiveCategories] = useState<string[]>([])
 const [weatherAware, setWeatherAware] = useState(true)
   const [weather, setWeather] = useState<Weather | null>(null)
   const [weatherLoading, setWeatherLoading] = useState(true)
@@ -382,7 +382,15 @@ supabase.from('profiles').update({ timezone: tz }).eq('id', session.user.id)
     }
 
 const { data } = await supabase.from('clothing_items').select('*').eq('user_id', session.user.id)
-    if (data) { setWardrobeItems(data); setHasItems(data.length >= 3) }
+   if (data) {
+      setWardrobeItems(data)
+      setHasItems(data.length >= 3)
+      if (activeCategories.length === 0) {
+        const ownedCats = [...new Set(data.map((i: any) => i.category).filter(Boolean))]
+        const allCats = ['tops', 'jacken', 'hosen', 'kurze_hosen', 'schuhe', 'roecke', 'kleider']
+        setActiveCategories(allCats.filter(c => ownedCats.includes(c)))
+      }
+    }
 const { data: profile } = await supabase.from('profiles').select('username, premium_until, streak_freeze_used_month, bonus_outfits_this_week, bonus_tryons_this_week, first_outfit_tip_seen, created_at').eq('id', session.user.id).single()
     setFirstOutfitTipSeen(profile?.first_outfit_tip_seen ?? false)
     setFreezeUsedMonth(profile?.streak_freeze_used_month ?? null)
@@ -1499,8 +1507,8 @@ onClick={() => {
                     const exists = wardrobeItems.some(item => item.category === cat.key)
                     return (
                       <motion.button key={cat.key} whileTap={{ scale: 0.92 }}
-                        onClick={() => toggleCategory(cat.key)}
-                        style={{ padding: '5px 10px', borderRadius: '100px', border: `1px solid ${isOn ? accent : border}`, background: isOn ? accentDim : 'transparent', color: isOn ? accent : muted, fontSize: '11px', fontWeight: isOn ? 700 : 400, cursor: 'pointer', opacity: exists ? 1 : 0.35, WebkitTapHighlightColor: 'transparent', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+                        onClick={() => exists ? toggleCategory(cat.key) : null}
+                        style={{ padding: '5px 10px', borderRadius: '100px', border: `1px solid ${isOn && exists ? accent : border}`, background: isOn && exists ? accentDim : 'transparent', color: isOn && exists ? accent : muted, fontSize: '11px', fontWeight: isOn && exists ? 700 : 400, cursor: exists ? 'pointer' : 'default', opacity: exists ? 1 : 0.35, WebkitTapHighlightColor: 'transparent', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
                         {locale === 'de' ? cat.labelDe : cat.labelEn}
                       </motion.button>
                     )
