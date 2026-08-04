@@ -373,6 +373,7 @@ export default function AvatarPage() {
   const [justUploadedNew, setJustUploadedNew] = useState(false)
   const [activeTryOnCategory, setActiveTryOnCategory] = useState('all')
   const [showAllTryOnItems, setShowAllTryOnItems] = useState(false)
+  const [lockedItemPopup, setLockedItemPopup] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const { theme } = useTheme()
   const locale = useLocale()
@@ -936,9 +937,7 @@ export default function AvatarPage() {
                             <motion.div key={item.id} whileTap={!isLocked ? { scale: 0.96 } : {}}
                               onClick={() => {
                                 if (isLocked) {
-                                  setError(locale === 'de'
-                                    ? 'Dieses Foto zeigt eine lange Hose. Für Röcke/kurze Hosen brauchst du ein Foto ohne lange Hose.'
-                                    : 'This photo shows long pants. For skirts/shorts you need a photo without long pants.')
+                                  setLockedItemPopup(item.id)
                                   return
                                 }
                                 const newItem = selectedItem?.id === item.id ? null : item
@@ -954,6 +953,28 @@ export default function AvatarPage() {
                                   <LockIcon size={22} color="#fff" />
                                 </div>
                               )}
+                              <AnimatePresence>
+                                {isLocked && lockedItemPopup === item.id && (
+                                  <motion.div
+                                    initial={{ opacity: 0, y: 6, scale: 0.95 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: 6, scale: 0.95 }}
+                                    transition={{ duration: 0.15 }}
+                                    onClick={(e) => e.stopPropagation()}
+                                    style={{ position: 'absolute', bottom: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)', width: '210px', background: isDark ? '#1D1D20' : '#24211B', borderRadius: '12px', padding: '10px 12px', zIndex: 20, boxShadow: '0 8px 24px rgba(0,0,0,0.35)' }}>
+                                    <p style={{ fontSize: '11.5px', color: '#fff', lineHeight: 1.5, fontWeight: 600, marginBottom: '6px' }}>
+                                      {locale === 'de'
+                                        ? '👖 Du brauchst ein Foto, wo deine Beine zu sehen sind — also einen Rock oder eine kurze Hose tragen.'
+                                        : "👖 You need a photo where your legs are visible — wearing a skirt or shorts."}
+                                    </p>
+                                    <button onClick={(e) => { e.stopPropagation(); setLockedItemPopup(null) }}
+                                      style={{ fontSize: '10.5px', fontWeight: 700, color: '#F1B951', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
+                                      {locale === 'de' ? 'Verstanden' : 'Got it'}
+                                    </button>
+                                    <div style={{ position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)', width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderTop: `6px solid ${isDark ? '#1D1D20' : '#24211B'}` }} />
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
                               {!isLocked && selectedItem?.id === item.id && (
                                 <div style={{ position: 'absolute', top: '10px', right: '10px', background: accent, borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>✓</div>
                               )}
