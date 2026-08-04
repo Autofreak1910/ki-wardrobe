@@ -944,7 +944,7 @@ export default function AvatarPage() {
                                 setError(null)
                                 setSelectedItem(newItem)
                               }}
-                              style={{ background: card, borderRadius: '16px', overflow: 'hidden', border: `1.5px solid ${selectedItem?.id === item.id ? accent : border}`, cursor: isLocked ? 'not-allowed' : 'pointer', position: 'relative' as const, padding: '6px', boxShadow: selectedItem?.id === item.id ? `0 4px 16px ${accent}25` : 'none', opacity: isLocked ? 0.4 : 1 }}>
+                              style={{ background: card, borderRadius: '16px', border: `1.5px solid ${selectedItem?.id === item.id ? accent : border}`, cursor: isLocked ? 'not-allowed' : 'pointer', position: 'relative' as const, padding: '6px', boxShadow: selectedItem?.id === item.id ? `0 4px 16px ${accent}25` : 'none', opacity: isLocked ? 0.4 : 1 }}>
                               <div style={{ borderRadius: '10px', overflow: 'hidden' }}>
                                 <img src={item.image_url} style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', display: 'block', filter: isLocked ? 'grayscale(1)' : 'none' }} />
                               </div>
