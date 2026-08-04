@@ -15,6 +15,7 @@ export async function POST(request: NextRequest) {
       feature: '✨ Feature Idee',
       bug: '🐛 Bug Report',
       other: '📝 Sonstiges',
+      in_app_rating: '⭐ App-Bewertung',
     }
 
 await resend.emails.send({
