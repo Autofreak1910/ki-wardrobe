@@ -157,6 +157,15 @@ function getWeatherTier(tempValue: number): 'freezing' | 'cool' | 'mild' | 'warm
   return 'warm'
 }
 
+// Erkennt warme Oberteile (Pulli, Hoodie etc.) auch bei Altbestand ohne layer_type,
+// indem zusaetzlich der Name geprueft wird.
+function isLayerTop(t: any): boolean {
+  if (t.layer_type === 'layer') return true
+  if (t.layer_type === 'base') return false
+  const n = normalize(t.name ?? '')
+  return ['sweatshirt', 'sweater', 'hoodie', 'pullover', 'pulli', 'cardigan', 'strick', 'knit', 'longsleeve', 'fleece', 'zip'].some(k => n.includes(k))
+}
+
 // Bevorzugt bei Roecken/Kleidern (die eine "length" haben) je nach Temperatur eine passende Laenge.
 // Items ohne "length" (z.B. Hosen) bleiben immer im Pool -- die Funktion filtert nur die Rock/Kleid-Optionen.
 function filterByLengthPreference(pool: any[], tempValue: number, useWeather: boolean): any[] {
@@ -189,15 +198,25 @@ function filterBottomsByWeather(pool: any[], tempValue: number, useWeather: bool
   if (!useWeather) return pool
   const tier = getWeatherTier(tempValue)
 
-  let step1 = pool
   if (tier === 'freezing' || tier === 'cool') {
+    // Bei Kaelte: kurze Hosen raus UND Roecke, die nicht sicher warm genug sind.
+    // Ein Rock mit UNBEKANNTER Laenge zaehlt als riskant und fliegt ebenfalls raus.
+    const warmEnough = pool.filter((p: any) => {
+      if (p.category === 'kurze_hosen') return false
+      if (p.category === 'roecke') {
+        if (tier === 'freezing') return p.length === 'lang'
+        return p.length === 'lang' || p.length === 'midi'
+      }
+      return true // Hosen sind immer ok
+    })
+    if (warmEnough.length > 0) return warmEnough
+    // Notfall: nichts Warmes im Schrank -> wenigstens kurze Hosen vermeiden
     const withoutShorts = pool.filter((p: any) => p.category !== 'kurze_hosen')
-    if (withoutShorts.length > 0) step1 = withoutShorts
+    return withoutShorts.length > 0 ? withoutShorts : pool
   }
 
-  return filterByLengthPreference(step1, tempValue, useWeather)
+  return filterByLengthPreference(pool, tempValue, useWeather)
 }
-
 export async function POST(request: NextRequest) {
   try {
     // --- AUTH CHECK ---
@@ -250,35 +269,33 @@ const grouped = groupByCategory(items)
 
 const weatherTier = getWeatherTier(tempValue)
       const preferLayerTop = useWeather && (weatherTier === 'freezing' || weatherTier === 'cool')
-      // Wird spaeter garantiert eine Jacke dazukommen? Nur dann darf das Top haeufiger "nur" T-Shirt sein.
       const jacketWillBeAdded = jacken.length > 0 && wantsJacket && useWeather && (weatherTier === 'freezing' || weatherTier === 'cool')
 
       if (preferLayerTop) {
-        const layerPieces = tops.filter((t: any) => t.layer_type === 'layer')
-        const basePieces = tops.filter((t: any) => t.layer_type === 'base')
-        // Ohne Jacke MUSS bei Frost gelayert werden (kein Zufall mehr). Mit Jacke als Backup
-        // bleibt etwas Spielraum. Bei "cool" ohne Jacke ebenfalls stark bevorzugt.
-        let layerChance: number
-        if (weatherTier === 'freezing') {
-          layerChance = jacketWillBeAdded ? 0.8 : 1.0
-        } else {
-          layerChance = jacketWillBeAdded ? 0.5 : 0.9
-        }
-        if (layerPieces.length > 0 && basePieces.length > 0 && Math.random() < layerChance) {
+        const layerPieces = tops.filter((t: any) => isLayerTop(t))
+        const basePieces = tops.filter((t: any) => !isLayerTop(t))
+
+        if (layerPieces.length > 0) {
+          // Bei Kaelte kommt das warme Teil (Pulli/Hoodie) IMMER als Haupttop -- kein Zufall.
           pickedTop = pickLeastUsed(layerPieces, usage, sessionUsedTops)
           if (pickedTop) sessionUsedTops.add(uniqueId(pickedTop))
-          pickedBaseTop = pickLeastUsed(basePieces, usage, sessionUsedTops)
+          // Base-Layer (T-Shirt) drunter: bei Frost ohne Jacke immer, sonst je nach Chance
+          const baseChance = weatherTier === 'freezing' ? (jacketWillBeAdded ? 0.8 : 1.0) : 0.5
+          if (basePieces.length > 0 && Math.random() < baseChance) {
+            pickedBaseTop = pickLeastUsed(basePieces, usage, sessionUsedTops)
+          }
         } else {
+          // Kein einziger Pulli im Schrank -> Notfall: normales Top (Jacke muss die Waerme uebernehmen)
           pickedTop = pickLeastUsed(tops, usage, sessionUsedTops)
         }
       } else if (useWeather && weatherTier === 'warm') {
-        // Bei Hitze: dicke Layer-Teile (Pulli, Hoodie) aktiv ausschliessen, falls Alternativen da sind
-        const lightTops = tops.filter((t: any) => t.layer_type !== 'layer')
+        // Bei Hitze: Pullis/Hoodies hart ausschliessen, solange leichte Tops existieren
+        const lightTops = tops.filter((t: any) => !isLayerTop(t))
         pickedTop = pickLeastUsed(lightTops.length > 0 ? lightTops : tops, usage, sessionUsedTops)
       } else if (useWeather && weatherTier === 'mild') {
-        // Bei mildem Wetter: Layer-Teile nicht verbieten, aber leicht benachteiligen (nur 20% Chance)
-        const lightTops = tops.filter((t: any) => t.layer_type !== 'layer')
-        const heavyTops = tops.filter((t: any) => t.layer_type === 'layer')
+        // Bei mildem Wetter: leichte Tops stark bevorzugen, Pulli nur mit 20% Chance
+        const lightTops = tops.filter((t: any) => !isLayerTop(t))
+        const heavyTops = tops.filter((t: any) => isLayerTop(t))
         if (lightTops.length > 0 && (heavyTops.length === 0 || Math.random() > 0.2)) {
           pickedTop = pickLeastUsed(lightTops, usage, sessionUsedTops)
         } else {
@@ -294,11 +311,18 @@ const weatherTier = getWeatherTier(tempValue)
         if (weatherTier === 'freezing') dressChance = 0.08
         else if (weatherTier === 'cool') dressChance = 0.20
       }
-      const useDress = kleider.length > 0 && Math.random() < dressChance
+ const useDress = kleider.length > 0 && Math.random() < dressChance
       let pickedDress: any = null
       if (useDress) {
-        const dressPool = filterByLengthPreference(kleider, tempValue, useWeather)
-        pickedDress = pickLeastUsed(dressPool, usage, sessionUsedTops)
+        let dressPool = filterByLengthPreference(kleider, tempValue, useWeather)
+        if (useWeather && (weatherTier === 'freezing' || weatherTier === 'cool')) {
+          // Bei Kaelte nur Kleider mit sicher warmer Laenge -- unbekannte Laenge zaehlt als riskant.
+          // Ist keins da, gibt es schlicht kein Kleid (Top+Hose uebernehmen).
+          dressPool = dressPool.filter((d: any) =>
+            weatherTier === 'freezing' ? d.length === 'lang' : (d.length === 'lang' || d.length === 'midi')
+          )
+        }
+        pickedDress = dressPool.length > 0 ? pickLeastUsed(dressPool, usage, sessionUsedTops) : null
         if (pickedDress) { pickedTop = null; pickedBaseTop = null }
       }
 
@@ -341,13 +365,16 @@ if (pickedTop) sessionUsedTops.add(uniqueId(pickedTop))
 if (recentComboSet.has(comboKey) && !pickedDress) {
         // Denselben Wetterfilter wie bei der Erstauswahl anwenden, damit z.B. bei Hitze
         // kein Sweatshirt/Hoodie durch die Hintertuer reinrutscht.
-        let altTopPool = tops.filter((t: any) => uniqueId(t) !== uniqueId(pickedTop))
+   let altTopPool = tops.filter((t: any) => uniqueId(t) !== uniqueId(pickedTop))
         if (useWeather && weatherTier === 'warm') {
-          const lightAlt = altTopPool.filter((t: any) => t.layer_type !== 'layer')
+          const lightAlt = altTopPool.filter((t: any) => !isLayerTop(t))
           if (lightAlt.length > 0) altTopPool = lightAlt
         } else if (useWeather && weatherTier === 'mild') {
-          const lightAlt = altTopPool.filter((t: any) => t.layer_type !== 'layer')
+          const lightAlt = altTopPool.filter((t: any) => !isLayerTop(t))
           if (lightAlt.length > 0 && Math.random() > 0.2) altTopPool = lightAlt
+        } else if (useWeather && (weatherTier === 'freezing' || weatherTier === 'cool')) {
+          const warmAlt = altTopPool.filter((t: any) => isLayerTop(t))
+          if (warmAlt.length > 0) altTopPool = warmAlt
         }
         const altTop = pickLeastUsed(altTopPool, usage, sessionUsedTops)
         if (altTop) {
