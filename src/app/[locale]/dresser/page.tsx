@@ -506,8 +506,13 @@ async function setManualLocation(lat: number, lon: number) {
   fetchWeather()
 }
 
-  function toggleCategory(cat: string) {
-    setActiveCategories(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat])
+ function toggleCategory(cat: string) {
+    setActiveCategories(prev => {
+      const next = prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
+      // Mindestens 2 Kategorien müssen aktiv bleiben
+      if (next.length < 2) return prev
+      return next
+    })
     setOutfit(null)
   }
 function getUsageCounts(): Record<string, { count: number; lastUsed: number }> {
