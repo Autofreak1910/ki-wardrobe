@@ -374,7 +374,8 @@ export default function AvatarPage() {
   const [activeTryOnCategory, setActiveTryOnCategory] = useState('all')
   const [showAllTryOnItems, setShowAllTryOnItems] = useState(false)
   const [showLegConflictModal, setShowLegConflictModal] = useState(false)
-  const fileRef = useRef<HTMLInputElement>(null)
+const fileRef = useRef<HTMLInputElement>(null)
+  const resultRef = useRef<HTMLDivElement>(null)
   const { theme } = useTheme()
   const locale = useLocale()
   const router = useRouter()
@@ -688,9 +689,12 @@ export default function AvatarPage() {
       // erreicht wird, und wirkt wie ein ploetzlicher Abbruch.
       await new Promise(resolve => setTimeout(resolve, 700))
 
-      if (finalData?.success) {
+    if (finalData?.success) {
         setResult(finalData.imageUrl)
         await loadData()
+        setTimeout(() => {
+          resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }, 400)
       } else {
         setError(locale === 'de' ? 'Generierung hat zu lange gedauert, bitte nochmal versuchen' : 'Generation took too long, please try again')
       }
@@ -743,28 +747,28 @@ export default function AvatarPage() {
             </p>
           </div>
         </motion.div>
-        <div style={{ padding: '12px 20px 0', marginBottom: '14px', display: 'flex', gap: '8px', overflowX: 'auto' as const }}>
+   <div style={{ padding: '12px 20px 0', marginBottom: '14px', display: 'flex', gap: '6px' }}>
           {isPremium ? (
-            <div style={{ flexShrink: 0, background: goldAccent, borderRadius: '100px', padding: '8px 14px', boxShadow: '0 4px 12px rgba(241,185,81,0.35)' }}>
-              <p style={{ fontSize: '11.5px', fontWeight: 700, color: '#1D1D20', whiteSpace: 'nowrap' as const }}>✦ PRO · {usedThisPeriod}/{periodLimit} {locale === 'de' ? 'Woche' : 'week'}</p>
+            <div style={{ flex: 1, background: goldAccent, borderRadius: '100px', padding: '8px 0', boxShadow: '0 4px 12px rgba(241,185,81,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: '#1D1D20', whiteSpace: 'nowrap' as const }}>✦ PRO · {usedThisPeriod}/{periodLimit}</p>
             </div>
           ) : (
-            <div style={{ flexShrink: 0, background: card, border: `1px solid ${border}`, borderRadius: '100px', padding: '8px 14px' }}>
-              <p style={{ fontSize: '11.5px', fontWeight: 700, color: text, whiteSpace: 'nowrap' as const }}>{usedThisPeriod}/{periodLimit} {locale === 'de' ? 'Monat' : 'month'}</p>
+            <div style={{ flex: 1, background: card, border: `1px solid ${border}`, borderRadius: '100px', padding: '8px 0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: text, whiteSpace: 'nowrap' as const }}>{usedThisPeriod}/{periodLimit}</p>
             </div>
           )}
           <motion.button whileTap={{ scale: 0.96 }} onClick={() => setShowPhotoGuide(true)}
-            style={{ flexShrink: 0, background: card, border: `1px solid ${border}`, borderRadius: '100px', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
-            <CameraIcon size={13} color={text} />
-            <span style={{ fontSize: '11.5px', fontWeight: 700, color: text, whiteSpace: 'nowrap' as const }}>
-              {locale === 'de' ? 'Photo Guide' : 'Photo Guide'}
+            style={{ flex: 1, background: card, border: `1px solid ${border}`, borderRadius: '100px', padding: '8px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', cursor: 'pointer' }}>
+            <CameraIcon size={12} color={text} />
+            <span style={{ fontSize: '11px', fontWeight: 700, color: text, whiteSpace: 'nowrap' as const }}>
+              Photo Guide
             </span>
           </motion.button>
           <motion.button whileTap={{ scale: 0.96 }} onClick={openGallery}
-            style={{ flexShrink: 0, background: card, border: `1px solid ${border}`, borderRadius: '100px', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', opacity: isPremium ? 1 : 0.85 }}>
-            {isPremium ? <ImageIcon size={13} color={text} /> : <LockIcon size={13} color={text} />}
-            <span style={{ fontSize: '11.5px', fontWeight: 700, color: text, whiteSpace: 'nowrap' as const }}>
-              {locale === 'de' ? 'My Avatars' : 'My Avatars'}
+            style={{ flex: 1, background: card, border: `1px solid ${border}`, borderRadius: '100px', padding: '8px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', cursor: 'pointer', opacity: isPremium ? 1 : 0.85 }}>
+            {isPremium ? <ImageIcon size={12} color={text} /> : <LockIcon size={12} color={text} />}
+            <span style={{ fontSize: '11px', fontWeight: 700, color: text, whiteSpace: 'nowrap' as const }}>
+              My Avatars
             </span>
           </motion.button>
         </div>
@@ -1042,7 +1046,7 @@ export default function AvatarPage() {
                   </button>
                 </div>
 
-                <div style={{ position: 'relative' as const, borderRadius: '10px', overflow: 'hidden' }}>
+           <div ref={resultRef} style={{ position: 'relative' as const, borderRadius: '10px', overflow: 'hidden' }}>
                   {compositing ? (
                     <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', height: '360px', gap: '14px', background: isDark ? '#0f1a14' : '#f4f1ea' }}>
                       <motion.span animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
@@ -1123,7 +1127,7 @@ export default function AvatarPage() {
       </main>
       <div style={{ position: 'fixed', bottom: 'calc(80px + env(safe-area-inset-bottom))', left: 0, right: 0, zIndex: 40, pointerEvents: 'none' }}>
         <div style={{ maxWidth: '560px', margin: '0 auto', padding: '0 20px', pointerEvents: 'auto' }}>
-          <div style={{ background: isDark ? 'rgba(22,22,22,0.96)' : 'rgba(253,252,249,0.96)', backdropFilter: 'blur(14px)', border: `1px solid ${border}`, borderRadius: '20px', padding: '10px', boxShadow: '0 8px 28px rgba(0,0,0,0.14)' }}>
+          <div style={{ padding: '0' }}>
             <motion.button whileTap={{ scale: 0.97 }}
               onClick={generateAvatar}
               disabled={loading || !selfie || !selectedItem || !canGenerate}
