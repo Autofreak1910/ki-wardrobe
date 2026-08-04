@@ -36,7 +36,7 @@ export default function CookieConsent() {
   const accent = isDark ? '#5C82A0' : '#355C7D'
 
   useEffect(() => {
-    const consent = localStorage.getItem('kw_cookie_consent')
+    const consent = localStorage.getItem('kw_cookie_consent_v2')
     if (consent === 'accepted') {
       loadGoogleAnalytics()
     } else if (!consent) {
@@ -48,13 +48,13 @@ export default function CookieConsent() {
   }, [])
 
   function accept() {
-    localStorage.setItem('kw_cookie_consent', 'accepted')
+   localStorage.setItem('kw_cookie_consent_v2', 'accepted')
     loadGoogleAnalytics()
     setShow(false)
   }
 
   function decline() {
-    localStorage.setItem('kw_cookie_consent', 'declined')
+   localStorage.setItem('kw_cookie_consent_v2', 'declined')
     setShow(false)
   }
 
