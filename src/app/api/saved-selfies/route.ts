@@ -18,6 +18,39 @@ export async function GET() {
   return NextResponse.json({ success: true, selfies: data ?? [] })
 }
 
+// Prueft EINMALIG beim Speichern, ob die Person auf dem Foto eine lange Hose
+// traegt oder nicht. Das Ergebnis wird zusammen mit dem Selfie gespeichert,
+// damit spaetere Avatar-Generierungen sofort wissen, ob dieses Foto fuer
+// Roecke/kurze Hosen geeignet ist -- ohne bei jeder Generierung erneut zu
+// pruefen (schneller, weniger API-Calls).
+async function classifyLegType(imageUrl: string): Promise<string | null> {
+  try {
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}` },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        max_tokens: 10,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'text', text: 'Are the person\'s legs covered by long pants/trousers reaching below the knee? Reply with ONLY one word: "long_pants" or "short_or_bare".' },
+            { type: 'image_url', image_url: { url: imageUrl } },
+          ],
+        }],
+      }),
+    })
+    const data = await res.json()
+    const verdict = data.choices?.[0]?.message?.content?.toLowerCase().trim() ?? ''
+    if (verdict.includes('long_pants')) return 'long_pants'
+    if (verdict.includes('short_or_bare')) return 'short_or_bare'
+    return null
+  } catch (err) {
+    console.error('Leg type classification failed:', err)
+    return null
+  }
+}
+
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
   const { data: { user }, error: userError } = await supabase.auth.getUser()
@@ -52,9 +85,12 @@ export async function POST(req: NextRequest) {
 
     const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName)
 
+    // Einmalige Klassifizierung -- laeuft parallel zum Rest, kostet kaum Zeit
+    const legType = await classifyLegType(publicUrl)
+
     const { data: inserted, error: insertError } = await supabase
       .from('saved_selfies')
-      .insert({ user_id: user.id, image_url: publicUrl })
+      .insert({ user_id: user.id, image_url: publicUrl, leg_type: legType })
       .select()
       .single()
 

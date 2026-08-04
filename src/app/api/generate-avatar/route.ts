@@ -111,27 +111,46 @@ export async function POST(req: Request) {
 
     // Selfie-Qualität prüfen bevor teure Generierung läuft
     try {
+      const isShortLowerBody = category === 'roecke' || category === 'kurze_hosen'
+
+      const questionText = isShortLowerBody
+        ? 'Look at this photo. Answer TWO things separated by a comma: (1) Is a person clearly visible, showing at least their upper body, without being extremely blurry or dark? Reply "good" or "bad". (2) Are the person\'s legs covered by long pants/trousers reaching below the knee? Reply "long_pants" or "short_or_bare". Format your entire reply as exactly: "<good|bad>,<long_pants|short_or_bare>"'
+        : 'Is a person clearly visible in this photo, showing at least their upper body, without being extremely blurry or dark? Only say "bad" if the photo is unusable (no person visible, extremely dark, or heavily obstructed). Reply with ONLY one word: "good" or "bad".'
+
       const checkRes = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}` },
         body: JSON.stringify({
           model: 'gpt-4o-mini',
-          max_tokens: 15,
+          max_tokens: 20,
           messages: [{
             role: 'user',
             content: [
-              { type: 'text', text: 'Is a person clearly visible in this photo, showing at least their upper body, without being extremely blurry or dark? Only say "bad" if the photo is unusable (no person visible, extremely dark, or heavily obstructed). Reply with ONLY one word: "good" or "bad".' },
+              { type: 'text', text: questionText },
               { type: 'image_url', image_url: { url: publicUrl } },
             ],
           }],
         }),
       })
       const checkData = await checkRes.json()
-      const verdict = checkData.choices?.[0]?.message?.content?.toLowerCase().trim() ?? 'good'
-      if (verdict.includes('bad')) {
+      const rawVerdict = checkData.choices?.[0]?.message?.content?.toLowerCase().trim() ?? 'good'
+
+      const qualityPart = rawVerdict.split(',')[0]?.trim() ?? 'good'
+      if (qualityPart.includes('bad')) {
         return NextResponse.json({
           error: 'bad_selfie',
           message: 'Dein Foto eignet sich nicht gut für Try-On. Bitte nutze ein Ganzkörperfoto mit klarer Pose, gutem Licht und einfachem Hintergrund.',
+        }, { status: 400 })
+      }
+
+      // Sicherheitsnetz fuer NEU hochgeladene (noch nicht klassifizierte)
+      // Selfies -- bereits gespeicherte Selfies wurden schon beim Speichern
+      // klassifiziert (saved_selfies.leg_type) und das Frontend warnt dort
+      // schon vorher, ohne diesen Call ueberhaupt zu brauchen.
+      if (isShortLowerBody && rawVerdict.includes('long_pants')) {
+        return NextResponse.json({
+          error: 'long_pants_conflict',
+          message: 'Für Röcke und kurze Hosen brauchst du ein Foto, auf dem deine Beine nicht von einer langen Hose bedeckt sind.',
         }, { status: 400 })
       }
     } catch (checkErr) {
@@ -143,16 +162,11 @@ export async function POST(req: Request) {
     // das faelschlich lange Jeans erzeugt hat, oder Leffa 'dresses', das
     // faelschlich ein langes Kleid mit Aermeln erzeugt hat) ist die simple,
     // korrekte Angabe fuer Hosen, kurze Hosen UND Roecke gleichermassen.
-    // Empirisch getestet: 'bottoms' funktioniert super bei Roecken, macht
-    // aber kurze Hosen kaputt (werden zu langen Leggings). 'auto' ist
-    // genau umgekehrt -- super bei kurzen Hosen, macht aber Roecke kaputt
-    // (werden zu langen Jeans). Deshalb pro Kategorie das, was nachweislich
-    // funktioniert.
-const fashnCategoryMap: Record<string, string> = {
+    const fashnCategoryMap: Record<string, string> = {
       tops: 'tops',
       jacken: 'tops',
       hosen: 'bottoms',
-      kurze_hosen: 'auto',
+      kurze_hosen: 'bottoms',
       roecke: 'bottoms',
       kleider: 'one-pieces',
     }
@@ -164,10 +178,6 @@ const fashnCategoryMap: Record<string, string> = {
       garment_image: garmentImage,
       category: fashnCategory,
       mode: 'quality',
-      // Diese Kombination hat bei kurzen Hosen nachweislich einwandfrei
-      // funktioniert -- sagt der KI explizit, dass es ein sauberes,
-      // freigestelltes Produktfoto ist.
-      garment_photo_type: 'flat-lay',
     }
 
     // WICHTIG: Nicht mehr blockierend auf das Ergebnis warten (fal.subscribe),

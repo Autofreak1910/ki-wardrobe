@@ -126,16 +126,12 @@ function StepIcon({ name, size = 56, color = 'currentColor' }: { name: string; s
     default: return <UploadIcon size={size} color={color} />
   }
 }
-
 type ClothingItem = { id: string; image_url: string; category: string; color: string; name?: string; brand?: string }
 function getCategoryLabel(category: string): string {
   const map: Record<string, string> = {
     tops: 'shirt',
     hosen: 'long pants',
     kurze_hosen: 'shorts',
-    // Explizit beschrieben, damit die Try-On-KI versteht, dass ein Rock ein
-    // einzelnes, geschlossenes Kleidungsstueck ist -- keine zwei separaten
-    // Hosenbeine wie bei einer Hose.
     roecke: 'skirt, a single flowing garment worn around the waist and hips with no separate leg openings',
     kleider: 'dress, a one-piece garment that covers the torso and continues down over the legs as a single connected piece',
     jacken: 'jacket',
@@ -226,8 +222,8 @@ function compositeOnDressingRoom(avatarUrl: string, bgUrl: string): Promise<stri
       const avatarImg = new Image()
       avatarImg.crossOrigin = 'anonymous'
       avatarImg.onload = () => {
-  const FLOOR_Y_FRACTION = 0.98
-const AVATAR_HEIGHT_FRACTION = 0.95
+        const FLOOR_Y_FRACTION = 0.98
+        const AVATAR_HEIGHT_FRACTION = 0.95
         const CENTER_X_FRACTION = 0.5
 
         const avatarHeight = canvas.height * AVATAR_HEIGHT_FRACTION
@@ -338,7 +334,6 @@ async function createShareCard(selfieUrl: string, resultUrl: string, locale: str
 
       resolve(canvas.toDataURL('image/jpeg', 0.92))
     }
-
     selfieImg.onload = onBothLoaded
     resultImg.onload = onBothLoaded
     selfieImg.onerror = () => reject(new Error('selfie load failed'))
@@ -349,7 +344,7 @@ async function createShareCard(selfieUrl: string, resultUrl: string, locale: str
 }
 
 // Modul-Level-Cache -- ueberlebt Seitenwechsel, kein Blank-Screen mehr beim erneuten Besuch
-let avatarCache: { profile: any; items: ClothingItem[]; savedSelfies: { id: string; image_url: string }[] } | null = null
+let avatarCache: { profile: any; items: ClothingItem[]; savedSelfies: { id: string; image_url: string; leg_type?: string | null }[] } | null = null
 
 export default function AvatarPage() {
   const [errorTips, setErrorTips] = useState<string[] | null>(null)
@@ -364,19 +359,19 @@ export default function AvatarPage() {
   const [pageLoading, setPageLoading] = useState(!avatarCache)
   const [error, setError] = useState<string | null>(null)
   const [sharing, setSharing] = useState(false)
-const [genStep, setGenStep] = useState('')
-const [genProgress, setGenProgress] = useState(0)
+  const [genStep, setGenStep] = useState('')
+  const [genProgress, setGenProgress] = useState(0)
   const [genIcon, setGenIcon] = useState('upload')
   const [showUpgrade, setShowUpgrade] = useState(false)
   const [showGallery, setShowGallery] = useState(false)
   const [galleryAvatars, setGalleryAvatars] = useState<{ id: string; image_url: string; created_at: string }[]>([])
   const [galleryLoading, setGalleryLoading] = useState(false)
-const [galleryFullscreen, setGalleryFullscreen] = useState<string | null>(null)
-const [showPhotoGuide, setShowPhotoGuide] = useState(false)
-const [savedSelfies, setSavedSelfies] = useState<{ id: string; image_url: string }[]>(avatarCache?.savedSelfies ?? [])
+  const [galleryFullscreen, setGalleryFullscreen] = useState<string | null>(null)
+  const [showPhotoGuide, setShowPhotoGuide] = useState(false)
+  const [savedSelfies, setSavedSelfies] = useState<{ id: string; image_url: string; leg_type?: string | null }[]>(avatarCache?.savedSelfies ?? [])
   const [savingSelfie, setSavingSelfie] = useState(false)
   const [justUploadedNew, setJustUploadedNew] = useState(false)
-const [activeTryOnCategory, setActiveTryOnCategory] = useState('all')
+  const [activeTryOnCategory, setActiveTryOnCategory] = useState('all')
   const [showAllTryOnItems, setShowAllTryOnItems] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const { theme } = useTheme()
@@ -395,25 +390,25 @@ const [activeTryOnCategory, setActiveTryOnCategory] = useState('all')
   const goldAccent = '#F1B951'
   const sageGradient = 'linear-gradient(135deg, #7FA98E, #355C7D)'
 
-useEffect(() => { loadData() }, [])
+  useEffect(() => { loadData() }, [])
 
-async function loadSavedSelfies() {
+  async function loadSavedSelfies() {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session?.user) return
       const { data } = await supabase
         .from('saved_selfies')
-        .select('id, image_url')
+        .select('id, image_url, leg_type')
         .eq('user_id', session.user.id)
         .order('created_at', { ascending: false })
       setSavedSelfies(data ?? [])
-      avatarCache = { ...(avatarCache ?? { profile: null, items: [] }), savedSelfies: data ?? [] }
+      avatarCache = { ...(avatarCache ?? { profile: null, items: [], savedSelfies: [] }), savedSelfies: data ?? [] }
     } catch (err) {
       console.error('Load saved selfies failed:', err)
     }
   }
 
-async function saveSelfieToGallery() {
+  async function saveSelfieToGallery() {
     if (!selfie) return
     setSavingSelfie(true)
     try {
@@ -481,14 +476,14 @@ async function saveSelfieToGallery() {
     return () => { cancelled = true }
   }, [result])
 
-async function loadData() {
+  async function loadData() {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session?.user) { router.push('/' + locale + '/auth/login'); return }
       const [profileRes, itemsRes, selfiesRes] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', session.user.id).single(),
         supabase.from('clothing_items').select('*').eq('user_id', session.user.id),
-        supabase.from('saved_selfies').select('id, image_url').eq('user_id', session.user.id).order('created_at', { ascending: false }),
+        supabase.from('saved_selfies').select('id, image_url, leg_type').eq('user_id', session.user.id).order('created_at', { ascending: false }),
       ])
       let freshProfile: any = null
       if (profileRes.data) {
@@ -527,7 +522,7 @@ async function loadData() {
     setGalleryLoading(false)
   }
 
-function handleSelfie(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleSelfie(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     const reader = new FileReader()
@@ -547,7 +542,17 @@ function handleSelfie(e: React.ChangeEvent<HTMLInputElement>) {
     reader.readAsDataURL(file)
   }
 
-async function generateAvatar() {
+  function checkLegConflict(selfieLegType: string | null | undefined, itemCategory: string | undefined): string | null {
+    const needsShortLegs = itemCategory === 'roecke' || itemCategory === 'kurze_hosen'
+    if (needsShortLegs && selfieLegType === 'long_pants') {
+      return locale === 'de'
+        ? 'Dieses Foto zeigt eine lange Hose. Für Röcke/kurze Hosen brauchst du ein Foto ohne lange Hose.'
+        : 'This photo shows long pants. For skirts/shorts you need a photo without long pants.'
+    }
+    return null
+  }
+
+  async function generateAvatar() {
     if (!selfie || !selectedItem) return
     setLoading(true)
     window.dispatchEvent(new CustomEvent('kw-generating', { detail: true }))
@@ -615,6 +620,24 @@ async function generateAvatar() {
         window.dispatchEvent(new CustomEvent('kw-generating', { detail: false }))
         return
       }
+      if (data.error === 'long_pants_conflict') {
+        clearInterval(interval)
+        setError(locale === 'de'
+          ? 'Für Röcke & kurze Hosen brauchst du ein Foto ohne lange Hose'
+          : "For skirts & shorts you need a photo without long pants")
+        setErrorTips(locale === 'de' ? [
+          'Trag im Foto selbst schon eine kurze Hose, einen Rock oder zeig einfach nackte Beine',
+          'So kann die KI die alte Hose nicht "durchscheinen" lassen',
+          'Für lange Hosen/Tops/Jacken funktioniert dein bisheriges Foto weiterhin normal',
+        ] : [
+          'In the photo, already wear shorts, a skirt, or show bare legs',
+          "This way the AI can't let the old pants show through",
+          'Your current photo still works fine for long pants/tops/jackets',
+        ])
+        setLoading(false); setGenProgress(0)
+        window.dispatchEvent(new CustomEvent('kw-generating', { detail: false }))
+        return
+      }
       if (data.error === 'bad_selfie') {
         clearInterval(interval)
         setError(locale === 'de' ? 'Dein Foto eignet sich nicht gut für Try-On' : "Your photo isn't well suited for try-on")
@@ -643,9 +666,6 @@ async function generateAvatar() {
         return
       }
 
-      // Job wurde eingereiht -- jetzt in kurzen Abstaenden nachfragen, ob
-      // das Ergebnis fertig ist (max. ~3 Minuten), statt blockierend zu
-      // warten (das hat vorher zu Vercel-Timeouts gefuehrt).
       const requestId = data.requestId
       const model = data.model
       let finalData: any = null
@@ -698,18 +718,17 @@ async function generateAvatar() {
 
       <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '560px', width: '100%', margin: '0 auto', padding: '68px 0 170px', position: 'relative', zIndex: 1 }}>
 
-{/* Hero Banner */}
-<motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
           style={{ position: 'relative' as const, height: '220px', marginBottom: '0', overflow: 'hidden', borderRadius: '0 0 28px 28px' }}>
           <img
             src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80&auto=format&fit=crop"
             alt=""
             style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', position: 'absolute', inset: 0 }}
           />
-      <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, transparent 0%, transparent 50%, ${bg} 100%)`, maskImage: 'linear-gradient(to bottom, transparent 0%, black 100%)', WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 100%)' }} />
+          <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, transparent 0%, transparent 50%, ${bg} 100%)`, maskImage: 'linear-gradient(to bottom, transparent 0%, black 100%)', WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 100%)' }} />
           <div style={{ position: 'absolute', inset: '40% 0 0 0', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', background: 'rgba(0,0,0,0.25)', maskImage: 'linear-gradient(to bottom, transparent 0%, black 40%, black 100%)', WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 40%, black 100%)' }} />
 
-<div style={{ position: 'absolute' as const, bottom: '20px', left: '20px', zIndex: 2 }}>
+          <div style={{ position: 'absolute' as const, bottom: '20px', left: '20px', zIndex: 2 }}>
             <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: '4px', textShadow: '0 1px 8px rgba(0,0,0,0.4)' }}>
               Virtual Try-On
             </h1>
@@ -718,7 +737,6 @@ async function generateAvatar() {
             </p>
           </div>
         </motion.div>
-{/* Kompakte Pillen-Reihe direkt unter dem Banner, nicht ueberlappend */}
         <div style={{ padding: '12px 20px 0', marginBottom: '14px', display: 'flex', gap: '8px', overflowX: 'auto' as const }}>
           {isPremium ? (
             <div style={{ flexShrink: 0, background: goldAccent, borderRadius: '100px', padding: '8px 14px', boxShadow: '0 4px 12px rgba(241,185,81,0.35)' }}>
@@ -746,11 +764,10 @@ async function generateAvatar() {
         </div>
 
 
-        {/* Limit info -- ersetzt die alte grosse Upgrade-Wand, blockiert nichts mehr */}
         <div style={{ padding: '0 20px' }}>
           {!canGenerate && (
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-             onClick={() => { if (!isPremium) setShowUpgrade(true) }}
+              onClick={() => { if (!isPremium) setShowUpgrade(true) }}
               style={{ background: isPremium ? accentDim : sageGradient, borderRadius: '14px', padding: '12px 16px', marginBottom: '16px', cursor: isPremium ? 'default' : 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <LockIcon size={18} color={isPremium ? accent : '#fff'} />
               <div>
@@ -769,8 +786,7 @@ async function generateAvatar() {
           )}
         </div>
 
-        {/* Step 1 — Selfie */}
-      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
           style={{ background: 'transparent', marginBottom: '12px', padding: '0 20px' }}>
           <p style={{ fontSize: '11px', fontWeight: 800, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>
             {locale === 'de' ? 'Schritt 1 · Dein Foto' : 'Step 1 · Your Photo'}
@@ -781,10 +797,10 @@ async function generateAvatar() {
                 <LockIcon size={28} color={text} />
               </div>
             )}
-<div style={{ padding: '12px' }}>
+            <div style={{ padding: '12px' }}>
               {!selfie ? (
                 <>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
                     <AnimatePresence mode="popLayout">
                       {savedSelfies.map(s => (
                         <motion.div key={s.id} layout
@@ -793,9 +809,19 @@ async function generateAvatar() {
                           exit={{ opacity: 0, scale: 0.7 }}
                           transition={{ type: 'spring', damping: 22, stiffness: 300 }}
                           style={{ position: 'relative' as const, aspectRatio: '1', maxWidth: '90px' }}>
-                          <motion.div whileTap={{ scale: 0.93 }} onClick={() => { setSelfie(s.image_url); setJustUploadedNew(false) }}
-                            style={{ width: '100%', height: '100%', borderRadius: '14px', overflow: 'hidden', border: `1.5px solid ${border}`, cursor: 'pointer' }}>
+                          <motion.div whileTap={{ scale: 0.93 }} onClick={() => {
+                              const conflict = checkLegConflict(s.leg_type, selectedItem?.category)
+                              if (conflict) { setError(conflict); return }
+                              setError(null)
+                              setSelfie(s.image_url); setJustUploadedNew(false)
+                            }}
+                            style={{ width: '100%', height: '100%', borderRadius: '14px', overflow: 'hidden', border: `1.5px solid ${border}`, cursor: 'pointer', position: 'relative' as const }}>
                             <img src={s.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            {s.leg_type === 'long_pants' && (
+                              <div style={{ position: 'absolute', bottom: '2px', left: '2px', right: '2px', background: 'rgba(0,0,0,0.6)', borderRadius: '6px', padding: '2px 4px' }}>
+                                <p style={{ fontSize: '8px', color: '#fff', textAlign: 'center' as const, fontWeight: 600 }}>👖 {locale === 'de' ? 'lange Hose' : 'long pants'}</p>
+                              </div>
+                            )}
                           </motion.div>
                           <motion.button whileTap={{ scale: 0.85 }} onClick={(e) => { e.stopPropagation(); deleteSavedSelfie(s.id) }}
                             style={{ position: 'absolute', top: '-4px', right: '-4px', background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', width: '18px', height: '18px', color: '#fff', cursor: 'pointer', fontSize: '10px', lineHeight: 1 }}>
@@ -820,7 +846,7 @@ async function generateAvatar() {
                   </p>
                 </>
               ) : (
-              <div>
+                <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{ position: 'relative' as const, flexShrink: 0 }}>
                       <img src={selfie} style={{ width: '56px', height: '56px', borderRadius: '12px', objectFit: 'cover', border: `1.5px solid ${border}`, display: 'block' }} />
@@ -853,10 +879,9 @@ async function generateAvatar() {
           </div>
         </motion.div>
 
-        {/* Step 2 — Kleidung wählen */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
           style={{ background: 'transparent', marginBottom: '12px', padding: '0 20px' }}>
-         <p style={{ fontSize: '11px', fontWeight: 800, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>
+          <p style={{ fontSize: '11px', fontWeight: 800, color: accent, letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>
             {locale === 'de' ? 'Schritt 2 · Kleidung wählen' : 'Step 2 · Choose clothing'}
           </p>
           <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '20px', overflow: 'hidden', boxShadow: isDark ? 'none' : '0 2px 8px rgba(29,29,32,0.04)', position: 'relative' as const, opacity: canGenerate ? 1 : 0.5, pointerEvents: canGenerate ? 'auto' : 'none' as const }}>
@@ -865,14 +890,14 @@ async function generateAvatar() {
                 <LockIcon size={28} color={text} />
               </div>
             )}
-     <div style={{ padding: '16px' }}>
+            <div style={{ padding: '16px' }}>
               {items.length === 0 ? (
                 <p style={{ fontSize: '13px', color: muted, textAlign: 'center' as const }}>
                   {locale === 'de' ? 'Keine Kleidung im Schrank' : 'No clothes in wardrobe'}
                 </p>
               ) : (
                 <>
-           {(() => {
+                  {(() => {
                     const tryOnItems = items.filter(item => item.category !== 'schuhe')
                     const availableCategories = Array.from(new Set(tryOnItems.map(i => i.category)))
                     const tabs = ['all', ...availableCategories]
@@ -891,32 +916,41 @@ async function generateAvatar() {
                     )
                   })()}
                   {(() => {
-                   const filteredTryOnItems = items.filter(item => item.category !== 'schuhe' && (activeTryOnCategory === 'all' || item.category === activeTryOnCategory))
+                    const filteredTryOnItems = items.filter(item => item.category !== 'schuhe' && (activeTryOnCategory === 'all' || item.category === activeTryOnCategory))
                     const visibleItems = showAllTryOnItems ? filteredTryOnItems : filteredTryOnItems.slice(0, 3)
                     return (
                       <>
-               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-                  {visibleItems.map(item => (
-                    <motion.div key={item.id} whileTap={{ scale: 0.96 }}
-                      onClick={() => setSelectedItem(selectedItem?.id === item.id ? null : item)}
-                      style={{ background: card, borderRadius: '16px', overflow: 'hidden', border: `1.5px solid ${selectedItem?.id === item.id ? accent : border}`, cursor: 'pointer', position: 'relative' as const, padding: '6px', boxShadow: selectedItem?.id === item.id ? `0 4px 16px ${accent}25` : 'none' }}>
-                      <div style={{ borderRadius: '10px', overflow: 'hidden' }}>
-                        <img src={item.image_url} style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', display: 'block' }} />
-                      </div>
-                      {selectedItem?.id === item.id && (
-                        <div style={{ position: 'absolute', top: '10px', right: '10px', background: accent, borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>✓</div>
-                      )}
-</motion.div>
-                  ))}
-                </div>
-                {filteredTryOnItems.length > 3 && (
-                  <button onClick={() => setShowAllTryOnItems(v => !v)}
-                    style={{ width: '100%', marginTop: '10px', padding: '10px', background: 'transparent', border: `1px solid ${border}`, borderRadius: '10px', fontSize: '12.5px', fontWeight: 600, color: accent, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
-                    {showAllTryOnItems
-                      ? (locale === 'de' ? '▲ Weniger anzeigen' : '▲ Show less')
-                      : (locale === 'de' ? `▼ Alle ${filteredTryOnItems.length} anzeigen` : `▼ Show all ${filteredTryOnItems.length}`)}
-                  </button>
-                )}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                          {visibleItems.map(item => (
+                            <motion.div key={item.id} whileTap={{ scale: 0.96 }}
+                              onClick={() => {
+                                const newItem = selectedItem?.id === item.id ? null : item
+                                if (newItem && selfie) {
+                                  const selectedSelfie = savedSelfies.find(s => s.image_url === selfie)
+                                  const conflict = checkLegConflict(selectedSelfie?.leg_type, newItem.category)
+                                  if (conflict) { setError(conflict); setSelectedItem(null); return }
+                                }
+                                setError(null)
+                                setSelectedItem(newItem)
+                              }}
+                              style={{ background: card, borderRadius: '16px', overflow: 'hidden', border: `1.5px solid ${selectedItem?.id === item.id ? accent : border}`, cursor: 'pointer', position: 'relative' as const, padding: '6px', boxShadow: selectedItem?.id === item.id ? `0 4px 16px ${accent}25` : 'none' }}>
+                              <div style={{ borderRadius: '10px', overflow: 'hidden' }}>
+                                <img src={item.image_url} style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', display: 'block' }} />
+                              </div>
+                              {selectedItem?.id === item.id && (
+                                <div style={{ position: 'absolute', top: '10px', right: '10px', background: accent, borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>✓</div>
+                              )}
+                            </motion.div>
+                          ))}
+                        </div>
+                        {filteredTryOnItems.length > 3 && (
+                          <button onClick={() => setShowAllTryOnItems(v => !v)}
+                            style={{ width: '100%', marginTop: '10px', padding: '10px', background: 'transparent', border: `1px solid ${border}`, borderRadius: '10px', fontSize: '12.5px', fontWeight: 600, color: accent, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+                            {showAllTryOnItems
+                              ? (locale === 'de' ? '▲ Weniger anzeigen' : '▲ Show less')
+                              : (locale === 'de' ? `▼ Alle ${filteredTryOnItems.length} anzeigen` : `▼ Show all ${filteredTryOnItems.length}`)}
+                          </button>
+                        )}
                       </>
                     )
                   })()}
@@ -926,7 +960,6 @@ async function generateAvatar() {
           </div>
         </motion.div>
 
-   {/* Error */}
         {error && (
           <div style={{ padding: '0 20px' }}>
             <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
@@ -949,9 +982,8 @@ async function generateAvatar() {
                   ))}
                 </div>
               )}
-
               {error.includes('Upgrade') && (
-               <button onClick={() => setShowUpgrade(true)}
+                <button onClick={() => setShowUpgrade(true)}
                   style={{ marginTop: '10px', background: accent, border: 'none', borderRadius: '8px', padding: '8px 16px', color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
                   ✦ Jetzt freischalten →
                 </button>
@@ -960,7 +992,6 @@ async function generateAvatar() {
           </div>
         )}
 
-        {/* Result */}
         <div style={{ padding: '0 20px' }}>
           <AnimatePresence>
             {result && (
@@ -1014,7 +1045,6 @@ async function generateAvatar() {
                           e.currentTarget.parentNode?.appendChild(div)
                         }}
                       />
-                      {/* Wasserzeichen mittig, damit es nicht einfach weggeschnitten werden kann */}
                       <p style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-18deg)', fontSize: '22px', fontWeight: 700, color: 'rgba(0,0,0,0.10)', letterSpacing: '0.02em', whiteSpace: 'nowrap' as const, pointerEvents: 'none' as const }}>✦ KiWardrobe</p>
                     </>
                   )}
@@ -1055,7 +1085,7 @@ async function generateAvatar() {
                         {locale === 'de' ? 'Erstelle...' : 'Creating...'}
                       </>
                     ) : (
-                     <><ShareIcon size={15} color="#fff" /> {locale === 'de' ? 'Vorher/Nachher teilen' : 'Share before/after'}</>
+                      <><ShareIcon size={15} color="#fff" /> {locale === 'de' ? 'Vorher/Nachher teilen' : 'Share before/after'}</>
                     )}
                   </motion.button>
                   <button
@@ -1070,7 +1100,6 @@ async function generateAvatar() {
         </div>
 
       </main>
-{/* Sticky Generate Bar — immer sichtbar, egal ob Kontingent da ist */}
       <div style={{ position: 'fixed', bottom: 'calc(80px + env(safe-area-inset-bottom))', left: 0, right: 0, zIndex: 40, pointerEvents: 'none' }}>
         <div style={{ maxWidth: '560px', margin: '0 auto', padding: '0 20px', pointerEvents: 'auto' }}>
           <div style={{ background: isDark ? 'rgba(22,22,22,0.96)' : 'rgba(253,252,249,0.96)', backdropFilter: 'blur(14px)', border: `1px solid ${border}`, borderRadius: '20px', padding: '10px', boxShadow: '0 8px 28px rgba(0,0,0,0.14)' }}>
@@ -1098,7 +1127,6 @@ async function generateAvatar() {
         </div>
       </div>
 
-      {/* Großes Overlay während der Generierung */}
       <AnimatePresence>
         {loading && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -1142,9 +1170,8 @@ async function generateAvatar() {
         )}
       </AnimatePresence>
 
-     <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
+      <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
 
-      {/* Avatar-Galerie Modal */}
       <AnimatePresence>
         {showGallery && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -1156,7 +1183,6 @@ async function generateAvatar() {
               style={{ width: '100%', maxWidth: '480px', maxHeight: '80vh', overflowY: 'auto' as const, background: bg, border: `1px solid ${border}`, borderRadius: '28px 28px 0 0', padding: '20px 20px 28px' }}>
 
               <div style={{ width: '36px', height: '4px', background: border, borderRadius: '2px', margin: '0 auto 16px' }} />
-
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <h2 style={{ fontSize: '18px', fontWeight: 800, color: text, letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <ImageIcon size={16} color={text} /> {locale === 'de' ? 'Meine Avatare' : 'My Avatars'}
@@ -1190,7 +1216,6 @@ async function generateAvatar() {
         )}
       </AnimatePresence>
 
-      {/* Vollbild-Ansicht eines gespeicherten Avatars */}
       <AnimatePresence>
         {galleryFullscreen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -1214,7 +1239,7 @@ async function generateAvatar() {
           </motion.div>
         )}
       </AnimatePresence>
-<AvatarPhotoGuide
+      <AvatarPhotoGuide
         open={showPhotoGuide}
         onClose={closePhotoGuide}
         locale={locale}
