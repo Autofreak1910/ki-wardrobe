@@ -147,24 +147,26 @@ const [showRating, setShowRating] = useState(false)
 useEffect(() => {
   const timer = setTimeout(async () => {
     try {
-      if (localStorage.getItem('kw_rating_done_v5')) return
-      const laterUntil = localStorage.getItem('kw_rating_later_v5')
-      if (laterUntil && Date.now() < Number(laterUntil)) return
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.user) return
 
-      // Check ob schon mal Feedback gegeben wurde (DB als Ground Truth)
-      const { count } = await supabase.from('feedback').select('*', { count: 'exact', head: true }).eq('type', 'in_app_rating') as any
-      if ((count ?? 0) > 0) {
-        localStorage.setItem('kw_rating_done_v5', 'true')
-        return
+      const { data: prof } = await supabase.from('profiles').select('rating_status, rating_ask_after, created_at').eq('id', session.user.id).single()
+      if (!prof) return
+
+      // Schon bewertet oder "nie fragen" gewählt → fertig
+      if (prof.rating_status === 'done' || prof.rating_status === 'never') return
+
+      // "Später" gewählt → nur fragen wenn die Wartezeit abgelaufen ist
+      if (prof.rating_status === 'later' && prof.rating_ask_after) {
+        if (new Date() < new Date(prof.rating_ask_after)) return
       }
 
-      const registered = localStorage.getItem('kw_registered_at')
-      if (!registered) {
-        try { localStorage.setItem('kw_registered_at', String(Date.now())) } catch {}
-        return
+      // Erst nach 3 Tagen seit Registrierung fragen
+      if (prof.created_at) {
+        const daysSince = (Date.now() - new Date(prof.created_at).getTime()) / (1000 * 60 * 60 * 24)
+        if (daysSince < 3) return
       }
-      const daysSince = (Date.now() - Number(registered)) / (1000 * 60 * 60 * 24)
-      if (daysSince < 3) return
+
       setShowRating(true)
     } catch {}
   }, 5000)

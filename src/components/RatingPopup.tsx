@@ -32,7 +32,6 @@ const [sending, setSending] = useState(false)
 async function submit() {
     if (rating === 0) return
     setSending(true)
-    setError('')
     try {
       const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
@@ -53,6 +52,9 @@ async function submit() {
         return
       }
 
+      // In Profil markieren: nie wieder fragen
+      await supabase.from('profiles').update({ rating_status: 'done' }).eq('id', session.user.id)
+
       try {
         await fetch('/api/send-feedback-email', {
           method: 'POST',
@@ -67,7 +69,6 @@ async function submit() {
       } catch {}
 
       setSent(true)
-      localStorage.setItem('kw_rating_done_v3', 'true')
       setTimeout(() => {
         onClose()
         setTimeout(() => { setSent(false); setRating(0); setMessage(''); setError('') }, 300)
@@ -78,14 +79,26 @@ async function submit() {
     setSending(false)
   }
 
-  function later() {
-  const inThreeDays = Date.now() + 3 * 24 * 60 * 60 * 1000
-    localStorage.setItem('kw_rating_later_v3', String(inThreeDays))
+  async function later() {
+    try {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        const askAfter = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
+        await supabase.from('profiles').update({ rating_status: 'later', rating_ask_after: askAfter }).eq('id', session.user.id)
+      }
+    } catch {}
     onClose()
   }
 
-  function never() {
-    localStorage.setItem('kw_rating_done_v3', 'true')
+  async function never() {
+    try {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        await supabase.from('profiles').update({ rating_status: 'never' }).eq('id', session.user.id)
+      }
+    } catch {}
     onClose()
   }
 
