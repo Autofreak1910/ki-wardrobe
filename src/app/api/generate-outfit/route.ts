@@ -331,7 +331,17 @@ if (pickedTop) sessionUsedTops.add(uniqueId(pickedTop))
       let comboKey = chosenItems.map((it: any) => uniqueId(it)).sort().join('+')
 
 if (recentComboSet.has(comboKey) && !pickedDress) {
-        const altTop = pickLeastUsed(tops.filter((t: any) => uniqueId(t) !== uniqueId(pickedTop)), usage, sessionUsedTops)
+        // Denselben Wetterfilter wie bei der Erstauswahl anwenden, damit z.B. bei Hitze
+        // kein Sweatshirt/Hoodie durch die Hintertuer reinrutscht.
+        let altTopPool = tops.filter((t: any) => uniqueId(t) !== uniqueId(pickedTop))
+        if (useWeather && weatherTier === 'warm') {
+          const lightAlt = altTopPool.filter((t: any) => t.layer_type !== 'layer')
+          if (lightAlt.length > 0) altTopPool = lightAlt
+        } else if (useWeather && weatherTier === 'mild') {
+          const lightAlt = altTopPool.filter((t: any) => t.layer_type !== 'layer')
+          if (lightAlt.length > 0 && Math.random() > 0.2) altTopPool = lightAlt
+        }
+        const altTop = pickLeastUsed(altTopPool, usage, sessionUsedTops)
         if (altTop) {
           pickedTop = altTop
           sessionUsedTops.add(uniqueId(pickedTop))
