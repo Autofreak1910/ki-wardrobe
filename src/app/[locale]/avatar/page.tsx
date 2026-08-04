@@ -587,12 +587,12 @@ export default function AvatarPage() {
     setGenIcon(steps[0].icon)
     const interval = setInterval(() => {
       setGenProgress(p => {
-        const next = Math.min(p + Math.random() * 1.2 + 0.4, 95)
+        const next = Math.min(p + Math.random() * 1.8 + 1.2, 95)
         const current = [...steps].reverse().find(s => next >= s.at)
         if (current) { setGenStep(current.label); setGenIcon(current.icon) }
         return next
       })
-    }, 1800)
+    }, 350)
 
     try {
       const res = await fetch('/api/generate-avatar', {
@@ -683,6 +683,10 @@ export default function AvatarPage() {
       clearInterval(interval)
       setGenProgress(100)
       setGenStep(locale === 'de' ? 'Fertig!' : 'Done!')
+      // Kurz bei "Fertig!" bleiben, damit der Abschluss auch sichtbar ist --
+      // sonst verschwindet das Overlay quasi im selben Frame, in dem 100%
+      // erreicht wird, und wirkt wie ein ploetzlicher Abbruch.
+      await new Promise(resolve => setTimeout(resolve, 700))
 
       if (finalData?.success) {
         setResult(finalData.imageUrl)
