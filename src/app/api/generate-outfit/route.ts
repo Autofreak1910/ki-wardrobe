@@ -298,10 +298,11 @@ if (preferLayerTop) {
           // Kein einziger Pulli im Schrank -> Notfall: normales Top (Jacke muss die Waerme uebernehmen)
           pickedTop = pickLeastUsed(tops, usage, sessionUsedTops)
         }
-      } else if (useWeather && weatherTier === 'warm') {
-        // Bei Hitze: Pullis/Hoodies hart ausschliessen, solange leichte Tops existieren
-        const lightTops = tops.filter((t: any) => !isLayerTop(t))
-        pickedTop = pickLeastUsed(lightTops.length > 0 ? lightTops : tops, usage, sessionUsedTops)
+} else if (useWeather && weatherTier === 'warm') {
+        // Bei Hitze: NUR eindeutig leichte Tops erlauben. Unbekannte Tops (kein layer_type,
+        // Name nicht erkennbar) werden sicherheitshalber ausgeschlossen.
+        const definitelyLight = tops.filter((t: any) => isDefinitelyBaseTop(t))
+        pickedTop = pickLeastUsed(definitelyLight.length > 0 ? definitelyLight : tops, usage, sessionUsedTops)
       } else if (useWeather && weatherTier === 'mild') {
         // Bei mildem Wetter: leichte Tops stark bevorzugen, Pulli nur mit 20% Chance
         const lightTops = tops.filter((t: any) => !isLayerTop(t))
@@ -380,8 +381,8 @@ if (recentComboSet.has(comboKey) && !pickedDress) {
         // Denselben Wetterfilter wie bei der Erstauswahl anwenden, damit z.B. bei Hitze
         // kein Sweatshirt/Hoodie durch die Hintertuer reinrutscht.
    let altTopPool = tops.filter((t: any) => uniqueId(t) !== uniqueId(pickedTop))
-        if (useWeather && weatherTier === 'warm') {
-          const lightAlt = altTopPool.filter((t: any) => !isLayerTop(t))
+if (useWeather && weatherTier === 'warm') {
+          const lightAlt = altTopPool.filter((t: any) => isDefinitelyBaseTop(t))
           if (lightAlt.length > 0) altTopPool = lightAlt
         } else if (useWeather && weatherTier === 'mild') {
           const lightAlt = altTopPool.filter((t: any) => !isLayerTop(t))
