@@ -65,6 +65,7 @@ export default function WardrobePage() {
   const [analyzeResult, setAnalyzeResult] = useState('')
   const [showNotClothingModal, setShowNotClothingModal] = useState(false)
 const [notClothingReason, setNotClothingReason] = useState('')
+const [pendingLengthItem, setPendingLengthItem] = useState<{ analysis: any; publicUrl: string; userId: string; fallbackName: string } | null>(null)
   const [progress, setProgress] = useState(0)
   const [selectedItem, setSelectedItem] = useState<ClothingItem | null>(null)
   const [editDate, setEditDate] = useState('')
@@ -84,7 +85,7 @@ const [dna, setDna] = useState<any>(null)
   const [multiAnalyzing, setMultiAnalyzing] = useState(false)
   const [multiProgress, setMultiProgress] = useState(0)
 const [detectedItems, setDetectedItems] = useState<Array<{
-    category: string; color: string; name: string; brand?: string
+    category: string; color: string; name: string; brand?: string; length?: string
     croppedImage: string; included: boolean; file: File
   }>>([])
   const [multiSaving, setMultiSaving] = useState(false)
@@ -214,7 +215,23 @@ async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
         return
       }
 
-      const analysis = result.analysis ?? {}
+const analysis = result.analysis ?? {}
+
+      // Bei Rock/Kleid: erst Laenge manuell bestaetigen lassen, bevor gespeichert wird
+      if (analysis.category === 'roecke' || analysis.category === 'kleider') {
+        setAnalyzing(false)
+        setProgress(0)
+        setUploading(false)
+        setPendingLengthItem({
+          analysis,
+          publicUrl,
+          userId: user.id,
+          fallbackName: file.name.replace(/\.[^/.]+$/, ''),
+        })
+        if (fileInputRef.current) fileInputRef.current.value = ''
+        return
+      }
+
       setAnalyzeStep(locale === 'de' ? 'Wird gespeichert...' : 'Saving...')
       setProgress(80)
       const { error: dbError } = await supabase.from('clothing_items').insert({
@@ -226,6 +243,7 @@ async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
         style_tags: analysis.style_tags ?? [],
         season: analysis.season ?? [],
         layer_type: analysis.layer_type ?? null,
+        length: analysis.length ?? null,
         ai_analysis: analysis,
       })
       if (dbError) throw dbError
@@ -246,6 +264,39 @@ async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
       if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
+
+async function confirmPendingLength(length: string) {
+  if (!pendingLengthItem) return
+  const { analysis, publicUrl, userId, fallbackName } = pendingLengthItem
+  setUploading(true)
+  try {
+    const { error: dbError } = await supabase.from('clothing_items').insert({
+      user_id: userId, image_url: publicUrl,
+      category: analysis.category ?? 'tops',
+      color: analysis.color ?? 'Unknown',
+      name: analysis.name ?? fallbackName,
+      brand: analysis.brand ?? null,
+      style_tags: analysis.style_tags ?? [],
+      season: analysis.season ?? [],
+      layer_type: analysis.layer_type ?? null,
+      length,
+      ai_analysis: analysis,
+    })
+    if (dbError) throw dbError
+    const newCount = items.length + 1
+    if (newCount === 3) {
+      localStorage.removeItem('kw_welcome_seen')
+    }
+    setPendingLengthItem(null)
+    loadItems()
+  } catch (err) {
+    console.error(err)
+    setLimitMsg(locale === 'de' ? 'Fehler beim Speichern' : 'Error saving')
+    setTimeout(() => setLimitMsg(null), 4000)
+  } finally {
+    setUploading(false)
+  }
+}
 
 async function handleMultiUpload(e: React.ChangeEvent<HTMLInputElement>) {
   const files = Array.from(e.target.files ?? [])
@@ -281,7 +332,7 @@ const { count: weeklyCount } = await supabase
   setMultiProgress(0)
   setDetectedItems([])
 
-const results: Array<{ category: string; color: string; name: string; brand?: string; croppedImage: string; included: boolean; file: File }> = []
+const results: Array<{ category: string; color: string; name: string; brand?: string; length?: string; croppedImage: string; included: boolean; file: File }> = []
 
   try {
     const converted = await Promise.all(files.slice(0, 10).map((f: File) => convertToJpeg(f)))
@@ -300,18 +351,19 @@ const results: Array<{ category: string; color: string; name: string; brand?: st
         })
         const data = await res.json()
         const analysis = data.analysis ?? data
-        results.push({
+ results.push({
           category: analysis.category ?? 'tops',
           color: analysis.color ?? '',
           name: analysis.name ?? '',
           brand: analysis.brand ?? '',
+          length: analysis.length ?? undefined,
           croppedImage: dataUrl,
           included: true,
           file,
         })
       } catch {
-        results.push({
-          category: 'tops', color: '', name: '', brand: '',
+ results.push({
+          category: 'tops', color: '', name: '', brand: '', length: undefined,
           croppedImage: dataUrl,
           included: true,
           file,
@@ -340,7 +392,7 @@ const results: Array<{ category: string; color: string; name: string; brand?: st
     setDetectedItems(prev => prev.map((it, i) => i === index ? { ...it, included: !it.included } : it))
   }
 
-  function updateDetectedItem(index: number, field: 'name' | 'color' | 'brand' | 'category', value: string) {
+function updateDetectedItem(index: number, field: 'name' | 'color' | 'brand' | 'category' | 'length', value: string) {
     setDetectedItems(prev => prev.map((it, i) => i === index ? { ...it, [field]: value } : it))
   }
 
@@ -378,13 +430,14 @@ await Promise.allSettled(toSave.map(async (item, i) => {
         }
       } catch {}
 
-      await supabase.from('clothing_items').insert({
+await supabase.from('clothing_items').insert({
         user_id: session.user.id,
         image_url: publicUrl,
         category: item.category,
         color: item.color,
         name: item.name,
         brand: item.brand || null,
+        length: item.length || null,
         style_tags: [], season: [],
       })
     } catch (err) {
@@ -1067,9 +1120,24 @@ const dnaLocked = !isPremium || styleDnaUsedToday || needsMoreItems
                         style={{ width: '100%', fontSize: '12px', fontWeight: 700, color: text, border: 'none', background: 'transparent', outline: 'none', marginBottom: '4px', fontFamily: "'Poppins', 'Inter', sans-serif", padding: 0 }} />
                       <input value={item.color} onChange={e => updateDetectedItem(i, 'color', e.target.value)}
                         style={{ width: '100%', fontSize: '11px', color: muted, border: 'none', background: 'transparent', outline: 'none', marginBottom: '4px', fontFamily: "'Poppins', 'Inter', sans-serif", padding: 0 }} />
-                      <input value={item.brand ?? ''} onChange={e => updateDetectedItem(i, 'brand', e.target.value)}
+              <input value={item.brand ?? ''} onChange={e => updateDetectedItem(i, 'brand', e.target.value)}
                         placeholder={locale === 'de' ? 'Marke (optional)' : 'Brand (optional)'}
                         style={{ width: '100%', fontSize: '11px', color: accent, border: 'none', background: 'transparent', outline: 'none', fontFamily: "'Poppins', 'Inter', sans-serif", padding: 0 }} />
+                      {(item.category === 'roecke' || item.category === 'kleider') && (
+                        <div style={{ display: 'flex', gap: '4px', marginTop: '6px' }}>
+                          {(['kurz', 'midi', 'lang'] as const).map(len => {
+                            const isOn = item.length === len
+                            const labelDe = { kurz: 'Kurz', midi: 'Midi', lang: 'Lang' }[len]
+                            const labelEn = { kurz: 'Short', midi: 'Midi', lang: 'Long' }[len]
+                            return (
+                              <button key={len} onClick={() => updateDetectedItem(i, 'length', len)}
+                                style={{ flex: 1, padding: '4px 0', borderRadius: '8px', border: `1px solid ${isOn ? accent : border}`, background: isOn ? accent : 'transparent', color: isOn ? '#fff' : muted, fontSize: '10px', fontWeight: isOn ? 700 : 400, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+                                {locale === 'de' ? labelDe : labelEn}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -1138,6 +1206,55 @@ const dnaLocked = !isPremium || styleDnaUsedToday || needsMoreItems
           </motion.div>
         )}
       </AnimatePresence>
+{/* Rock/Kleid Laenge bestaetigen */}
+      <AnimatePresence>
+        {pendingLengthItem && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+            <motion.div
+              initial={{ scale: 0.85, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: 'spring', damping: 20 }}
+              style={{ background: card, borderRadius: '24px', padding: '28px 24px', textAlign: 'center' as const, maxWidth: '340px', width: '100%', border: `1px solid ${border}`, boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
+
+              <img src={pendingLengthItem.publicUrl} alt="" style={{ width: '96px', height: '124px', objectFit: 'cover', borderRadius: '14px', border: `1px solid ${border}`, margin: '0 auto 16px', display: 'block' }} />
+
+              <p style={{ fontSize: '16px', fontWeight: 800, color: text, letterSpacing: '-0.02em', marginBottom: '4px' }}>
+                {pendingLengthItem.analysis.name ?? pendingLengthItem.fallbackName}
+              </p>
+              <p style={{ fontSize: '13px', color: muted, marginBottom: '18px' }}>
+                {catLabels[pendingLengthItem.analysis.category] ?? pendingLengthItem.analysis.category} · {pendingLengthItem.analysis.color}
+              </p>
+
+              <p style={{ fontSize: '13px', fontWeight: 600, color: text, marginBottom: '10px' }}>
+                {locale === 'de' ? 'Welche Länge hat es?' : 'What length is it?'}
+              </p>
+
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {(['kurz', 'midi', 'lang'] as const).map(len => {
+                  const isSuggested = pendingLengthItem.analysis.length === len
+                  const labelDe = { kurz: 'Kurz', midi: 'Midi', lang: 'Lang' }[len]
+                  const labelEn = { kurz: 'Short', midi: 'Midi', lang: 'Long' }[len]
+                  return (
+                    <button key={len}
+                      disabled={uploading}
+                      onClick={() => confirmPendingLength(len)}
+                      style={{ flex: 1, padding: '12px 0', borderRadius: '12px', border: `1.5px solid ${isSuggested ? accent : border}`, background: isSuggested ? accent : card, color: isSuggested ? '#fff' : text, fontSize: '13px', fontWeight: isSuggested ? 700 : 500, cursor: uploading ? 'wait' : 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+                      {locale === 'de' ? labelDe : labelEn}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {pendingLengthItem.analysis.length && (
+                <p style={{ fontSize: '11px', color: muted, fontStyle: 'italic', marginTop: '10px' }}>
+                  {locale === 'de' ? 'KI-Vorschlag hervorgehoben — antippen zum Bestätigen oder Korrigieren' : 'AI suggestion highlighted — tap to confirm or correct'}
+                </p>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
  <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
     </div>
   )

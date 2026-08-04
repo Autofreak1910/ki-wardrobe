@@ -42,7 +42,7 @@ const { imageBase64, mimeType, locale: bodyLocale } = await request.json()
 Respond ONLY with a valid JSON object, no markdown, no backticks, no explanation.
 
 If it IS a clothing/fashion item:
-{"is_clothing":true,"category":"schuhe","name":"Nike Air Max Plus","color":"Black","style_tags":["streetwear"],"season":["spring","autumn"],"brand":"Nike","layer_type":null}
+{"is_clothing":true,"category":"schuhe","name":"Nike Air Max Plus","color":"Black","style_tags":["streetwear"],"season":["spring","autumn"],"brand":"Nike","layer_type":null,"length":null}
 
 If it is NOT a clothing/fashion item:
 {"is_clothing":false,"reason":"short description of what the image actually shows"}

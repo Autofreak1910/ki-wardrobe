@@ -71,6 +71,133 @@ function pickLeastUsed(pool: any[], usage: Record<string, UsageInfo>, excludeIds
   return best
 }
 
+// --- Farb-Kompatibilitaet ---
+function normalizeColor(c: string): string {
+  return String(c || '').toLowerCase().trim()
+}
+
+const NEUTRAL_COLORS = ['schwarz', 'black', 'weiss', 'weiß', 'white', 'grau', 'grey', 'gray', 'beige', 'navy', 'marine', 'creme', 'cream', 'anthrazit', 'anthracite', 'denim', 'jeansblau']
+
+const COLOR_FAMILIES: Record<string, string[]> = {
+  red: ['rot', 'red', 'bordeaux', 'weinrot', 'kirschrot'],
+  pink: ['pink', 'rosa', 'magenta', 'fuchsia'],
+  orange: ['orange', 'terracotta', 'rostorange'],
+  yellow: ['gelb', 'yellow', 'senf', 'mustard'],
+  green: ['gruen', 'grün', 'green', 'olive', 'oliv', 'khaki', 'mint', 'salbei'],
+  blue: ['blau', 'blue', 'hellblau', 'dunkelblau', 'tuerkis', 'türkis', 'teal', 'cyan', 'petrol'],
+  purple: ['lila', 'violett', 'purple', 'lavendel', 'lavender'],
+  brown: ['braun', 'brown', 'camel', 'tan', 'cognac', 'karamell'],
+}
+
+// Farbkombis die typischerweise nicht gut zusammenpassen (grelle Kontraste)
+const COLOR_CLASHES: Record<string, string[]> = {
+  red: ['pink', 'orange'],
+  pink: ['red', 'orange', 'yellow'],
+  orange: ['red', 'pink', 'purple'],
+  green: ['pink'],
+  purple: ['orange', 'yellow'],
+}
+
+function getColorFamily(color: string): string | null {
+  const c = normalizeColor(color)
+  for (const [family, keywords] of Object.entries(COLOR_FAMILIES)) {
+    if (keywords.some(k => c.includes(k))) return family
+  }
+  return null
+}
+
+function isNeutralColor(color: string): boolean {
+  const c = normalizeColor(color)
+  return NEUTRAL_COLORS.some(n => c.includes(n))
+}
+
+// 2 = passt gut (Neutral oder gleiche Farbfamilie), 1 = neutral/unbekannt, 0 = clash
+function colorCompatibilityScore(a: string, b: string): number {
+  if (isNeutralColor(a) || isNeutralColor(b)) return 2
+  const famA = getColorFamily(a)
+  const famB = getColorFamily(b)
+  if (!famA || !famB) return 1
+  if (famA === famB) return 2
+  if (COLOR_CLASHES[famA]?.includes(famB) || COLOR_CLASHES[famB]?.includes(famA)) return 0
+  return 1
+}
+
+// Waehlt aus dem Pool das am wenigsten genutzte Item, bevorzugt aber Farben die zu den
+// bereits gewaehlten Teilen passen. Faellt zurueck auf normale pickLeastUsed-Logik wenn
+// keine Referenzfarben vorhanden sind.
+function pickColorAware(pool: any[], usage: Record<string, UsageInfo>, excludeIds: Set<string>, referenceColors: string[]): any | null {
+  const refs = referenceColors.filter(Boolean)
+  if (refs.length === 0) return pickLeastUsed(pool, usage, excludeIds)
+
+  const candidates = pool.filter((p: any) => !excludeIds.has(uniqueId(p)))
+  const finalPool = candidates.length > 0 ? candidates : pool
+  if (finalPool.length === 0) return null
+
+  let best: any = null
+  let bestScore = -1
+  let bestInfo: UsageInfo = { count: Infinity, lastUsed: Infinity }
+  for (const item of finalPool) {
+    const score = Math.min(...refs.map(rc => colorCompatibilityScore(item.color, rc)))
+    const info = getUsageInfo(usage, uniqueId(item))
+    const better = score > bestScore || (score === bestScore && (info.count < bestInfo.count || (info.count === bestInfo.count && info.lastUsed < bestInfo.lastUsed)))
+    if (better) {
+      best = item
+      bestScore = score
+      bestInfo = info
+    }
+  }
+  return best
+}
+
+// Einheitliche Temperatur-Stufen fuer die ganze Outfit-Logik (Tops-Layering, Unterteile, Roecke/Kleider-Laenge)
+function getWeatherTier(tempValue: number): 'freezing' | 'cool' | 'mild' | 'warm' {
+  if (tempValue < 12) return 'freezing'
+  if (tempValue < 18) return 'cool'
+  if (tempValue < 24) return 'mild'
+  return 'warm'
+}
+
+// Bevorzugt bei Roecken/Kleidern (die eine "length" haben) je nach Temperatur eine passende Laenge.
+// Items ohne "length" (z.B. Hosen) bleiben immer im Pool -- die Funktion filtert nur die Rock/Kleid-Optionen.
+function filterByLengthPreference(pool: any[], tempValue: number, useWeather: boolean): any[] {
+  if (!useWeather) return pool
+
+  const withoutLength = pool.filter((p: any) => !p.length)
+  const withLength = pool.filter((p: any) => p.length)
+  if (withLength.length === 0) return pool
+
+  const tier = getWeatherTier(tempValue)
+  let preferred: string[]
+  if (tier === 'freezing') {
+    preferred = ['lang']
+  } else if (tier === 'cool') {
+    preferred = ['lang', 'midi']
+  } else if (tier === 'mild') {
+    preferred = ['midi', 'kurz', 'lang']
+  } else {
+    preferred = ['kurz', 'midi']
+  }
+
+  const matching = withLength.filter((p: any) => preferred.includes(p.length))
+  return [...withoutLength, ...(matching.length > 0 ? matching : withLength)]
+}
+
+// Filtert den "Unterteil"-Pool (Hosen, kurze Hosen, Roecke) nach Wetter:
+// Kurze Hosen werden bei Kaelte aussortiert (nur falls Alternativen vorhanden sind),
+// danach greift zusaetzlich die Laenge-Praeferenz fuer Roecke.
+function filterBottomsByWeather(pool: any[], tempValue: number, useWeather: boolean): any[] {
+  if (!useWeather) return pool
+  const tier = getWeatherTier(tempValue)
+
+  let step1 = pool
+  if (tier === 'freezing' || tier === 'cool') {
+    const withoutShorts = pool.filter((p: any) => p.category !== 'kurze_hosen')
+    if (withoutShorts.length > 0) step1 = withoutShorts
+  }
+
+  return filterByLengthPreference(step1, tempValue, useWeather)
+}
+
 export async function POST(request: NextRequest) {
   try {
     // --- AUTH CHECK ---
@@ -105,9 +232,8 @@ const grouped = groupByCategory(items)
     console.log('All schuhe with usage:', schuhe.map((s: any) => uniqueId(s) + ' -> ' + JSON.stringify(getUsageInfo(usage, uniqueId(s)))))
     console.log('All hosen with usage:', hosen.map((h: any) => uniqueId(h) + ' -> ' + JSON.stringify(getUsageInfo(usage, uniqueId(h)))))
 
-    const tempMatch = String(weather).match(/(-?\d+)/)
+  const tempMatch = String(weather).match(/(-?\d+)/)
     const tempValue = tempMatch ? parseInt(tempMatch[1]) : 18
-    const isCold = tempValue < 16
 
     const outfitCount = 1
     const vibes = ['']
@@ -122,10 +248,15 @@ const grouped = groupByCategory(items)
       let pickedTop: any = null
       let pickedBaseTop: any = null
 
-      if (isCold && useWeather) {
+const weatherTier = getWeatherTier(tempValue)
+      const preferLayerTop = useWeather && (weatherTier === 'freezing' || weatherTier === 'cool')
+
+      if (preferLayerTop) {
         const layerPieces = tops.filter((t: any) => t.layer_type === 'layer')
         const basePieces = tops.filter((t: any) => t.layer_type === 'base')
-        if (layerPieces.length > 0 && basePieces.length > 0 && Math.random() > 0.4) {
+        // Bei Frost oefter layern (80%), bei "cool" seltener (50%)
+        const layerChance = weatherTier === 'freezing' ? 0.8 : 0.5
+        if (layerPieces.length > 0 && basePieces.length > 0 && Math.random() < layerChance) {
           pickedTop = pickLeastUsed(layerPieces, usage, sessionUsedTops)
           if (pickedTop) sessionUsedTops.add(uniqueId(pickedTop))
           pickedBaseTop = pickLeastUsed(basePieces, usage, sessionUsedTops)
@@ -135,31 +266,45 @@ const grouped = groupByCategory(items)
       } else {
         pickedTop = pickLeastUsed(tops, usage, sessionUsedTops)
       }
-// Bei vorhandenen Kleidern manchmal ein Kleid statt Top+Unterteil waehlen (ca. 35% Chance,
-      // wenn welche vorhanden sind), da ein Kleid Ober- und Unterkoerper allein abdeckt.
-      const useDress = kleider.length > 0 && Math.random() < 0.35
+// Bei vorhandenen Kleidern manchmal ein Kleid statt Top+Unterteil waehlen. Chance haengt
+      // vom Wetter ab -- bei Kaelte deutlich seltener, da ein Kleid allein meist nicht warm genug ist.
+      let dressChance = 0.35
+      if (useWeather) {
+        if (weatherTier === 'freezing') dressChance = 0.08
+        else if (weatherTier === 'cool') dressChance = 0.20
+      }
+      const useDress = kleider.length > 0 && Math.random() < dressChance
       let pickedDress: any = null
       if (useDress) {
-        pickedDress = pickLeastUsed(kleider, usage, sessionUsedTops)
+        const dressPool = filterByLengthPreference(kleider, tempValue, useWeather)
+        pickedDress = pickLeastUsed(dressPool, usage, sessionUsedTops)
         if (pickedDress) { pickedTop = null; pickedBaseTop = null }
       }
 
-      const pickedHose = pickedDress ? null : pickLeastUsed(bottoms, usage, sessionUsedHosen)
-      const pickedSchuh = pickLeastUsed(schuhe, usage, sessionUsedSchuhe)
-      console.log('PICKED hose:', pickedHose ? uniqueId(pickedHose) : 'none', '| PICKED schuh:', pickedSchuh ? uniqueId(pickedSchuh) : 'none')
+      // Referenzfarbe fuer die restlichen Teile: Top+Base-Layer, oder Kleid falls gewaehlt
+      const topColors = [pickedTop?.color, pickedBaseTop?.color, pickedDress?.color].filter(Boolean) as string[]
 
+      const bottomsPool = filterBottomsByWeather(bottoms, tempValue, useWeather)
+      const pickedHose = pickedDress ? null : pickColorAware(bottomsPool, usage, sessionUsedHosen, topColors)
+      console.log('PICKED hose:', pickedHose ? uniqueId(pickedHose) : 'none')
+const schuhReferenceColors = [...topColors, pickedHose?.color].filter(Boolean) as string[]
+      const pickedSchuh = pickColorAware(schuhe, usage, sessionUsedSchuhe, schuhReferenceColors)
+      console.log('PICKED schuh:', pickedSchuh ? uniqueId(pickedSchuh) : 'none')
+
+      const jackeReferenceColors = [...topColors, pickedHose?.color].filter(Boolean) as string[]
       let pickedJacke: any = null
       if (jacken.length > 0 && wantsJacket) {
         if (useWeather) {
-          if (tempValue >= 25) {
+          if (weatherTier === 'warm') {
             pickedJacke = null
-          } else if (tempValue >= 20) {
-            pickedJacke = Math.random() > 0.7 ? pickLeastUsed(jacken, usage, new Set()) : null
+          } else if (weatherTier === 'mild') {
+            pickedJacke = Math.random() > 0.7 ? pickColorAware(jacken, usage, new Set(), jackeReferenceColors) : null
           } else {
-            pickedJacke = pickLeastUsed(jacken, usage, new Set())
+            // freezing oder cool: immer Jacke
+            pickedJacke = pickColorAware(jacken, usage, new Set(), jackeReferenceColors)
           }
         } else {
-          pickedJacke = pickLeastUsed(jacken, usage, new Set())
+          pickedJacke = pickColorAware(jacken, usage, new Set(), jackeReferenceColors)
         }
       }
 
@@ -181,19 +326,30 @@ if (recentComboSet.has(comboKey) && !pickedDress) {
           comboKey = chosenItems.map((it: any) => uniqueId(it)).sort().join('+')
         }
       }
+const chosenNames = chosenItems.map((item: any) => item.name ?? item.category)
+      const chosenDescriptions = chosenItems.map((item: any) => {
+        const hasLength = (item.category === 'roecke' || item.category === 'kleider') && item.length
+        const lengthInfo = hasLength ? ', ' + (isEnglish ? item.length + ' length' : item.length + ' Länge') : ''
+        return (item.name ?? item.category) + ' (' + item.color + (item.brand ? ', ' + item.brand : '') + lengthInfo + ')'
+      }).join(', ')
 
-      const chosenNames = chosenItems.map((item: any) => item.name ?? item.category)
-      const chosenDescriptions = chosenItems.map((item: any) =>
-        (item.name ?? item.category) + ' (' + item.color + (item.brand ? ', ' + item.brand : '') + ')'
-      ).join(', ')
+      const hasSkirtOrDress = chosenItems.some((item: any) => item.category === 'roecke' || item.category === 'kleider')
 
       let prompt = ''
       if (isEnglish) {
         prompt = 'You are a fashion stylist. The user will wear exactly these items for "' + occasion + '": ' + chosenDescriptions + '. Weather: ' + weather + '. '
-        prompt += 'Write a short, natural one-sentence reasoning (max 25 words) why this combination works together (colors, style, weather), naturally mentioning the temperature. Respond ONLY with JSON: {"reasoning": "your text here"}'
+        prompt += 'Write a short, natural one-sentence reasoning (max 25 words) why this combination works together (colors, style, weather), naturally mentioning the temperature.'
+        if (hasSkirtOrDress) {
+          prompt += ' If a skirt or dress length is mentioned, factor it into the reasoning (e.g. a short length with cold weather, or a long length being elegant for the occasion).'
+        }
+        prompt += ' Respond ONLY with JSON: {"reasoning": "your text here"}'
       } else {
         prompt = 'Du bist ein Fashion-Stylist. Der Nutzer traegt genau diese Teile fuer "' + occasion + '": ' + chosenDescriptions + '. Wetter: ' + weather + '. '
-        prompt += 'Schreib eine kurze, natuerliche ein-Satz-Begruendung (max 25 Woerter) warum diese Kombination zusammenpasst (Farben, Stil, Wetter), erwaehne dabei natuerlich die Temperatur. Antworte NUR mit JSON: {"reasoning": "dein Text hier"}'
+        prompt += 'Schreib eine kurze, natuerliche ein-Satz-Begruendung (max 25 Woerter) warum diese Kombination zusammenpasst (Farben, Stil, Wetter), erwaehne dabei natuerlich die Temperatur.'
+        if (hasSkirtOrDress) {
+          prompt += ' Falls eine Rock- oder Kleid-Laenge angegeben ist, beziehe sie in die Begruendung mit ein (z.B. eine kurze Laenge bei kaltem Wetter oder eine lange Laenge als elegant fuer den Anlass).'
+        }
+        prompt += ' Antworte NUR mit JSON: {"reasoning": "dein Text hier"}'
       }
 
       try {
