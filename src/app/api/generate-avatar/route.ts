@@ -143,11 +143,16 @@ export async function POST(req: Request) {
     // das faelschlich lange Jeans erzeugt hat, oder Leffa 'dresses', das
     // faelschlich ein langes Kleid mit Aermeln erzeugt hat) ist die simple,
     // korrekte Angabe fuer Hosen, kurze Hosen UND Roecke gleichermassen.
+    // Empirisch getestet: 'bottoms' funktioniert super bei Roecken, macht
+    // aber kurze Hosen kaputt (werden zu langen Leggings). 'auto' ist
+    // genau umgekehrt -- super bei kurzen Hosen, macht aber Roecke kaputt
+    // (werden zu langen Jeans). Deshalb pro Kategorie das, was nachweislich
+    // funktioniert.
     const fashnCategoryMap: Record<string, string> = {
       tops: 'tops',
       jacken: 'tops',
       hosen: 'bottoms',
-      kurze_hosen: 'bottoms',
+      kurze_hosen: 'auto',
       roecke: 'bottoms',
       kleider: 'one-pieces',
     }
