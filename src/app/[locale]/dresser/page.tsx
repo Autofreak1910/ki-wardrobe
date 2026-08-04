@@ -151,10 +151,13 @@ useEffect(() => {
       const laterUntil = localStorage.getItem('kw_rating_later_v5')
       if (laterUntil && Date.now() < Number(laterUntil)) return
       const registered = localStorage.getItem('kw_registered_at')
-      if (registered) {
-        const daysSince = (Date.now() - Number(registered)) / (1000 * 60 * 60 * 24)
-        if (daysSince < 3) return
+      if (!registered) {
+        // Alten Account ohne registered_at: jetzt setzen, erst in 3 Tagen fragen
+        try { localStorage.setItem('kw_registered_at', String(Date.now())) } catch {}
+        return
       }
+      const daysSince = (Date.now() - Number(registered)) / (1000 * 60 * 60 * 24)
+      if (daysSince < 3) return
       setShowRating(true)
     } catch {}
   }, 5000)
@@ -608,10 +611,11 @@ setLoading(true); setSaved(false); setOutfit(null)
       })
 setOutfit({ outfits: mappedOutfits, active: 0 })
       setWeekOutfitsUsed(c => c + 1)
-      if (firstOutfitTipSeen === false) {
+if (firstOutfitTipSeen === false && !localStorage.getItem('kw_first_outfit_tip_seen')) {
         setFirstOutfitTipSeen(true)
+        localStorage.setItem('kw_first_outfit_tip_seen', 'true')
         setTimeout(() => setShowFirstOutfitTip(true), 900)
-        supabase.from('profiles').update({ first_outfit_tip_seen: true }).eq('id', session.user.id)
+        await supabase.from('profiles').update({ first_outfit_tip_seen: true }).eq('id', session.user.id)
       }
       try {
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
