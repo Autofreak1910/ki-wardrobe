@@ -359,6 +359,8 @@ export default function AvatarPage() {
   const [pageLoading, setPageLoading] = useState(!avatarCache)
   const [error, setError] = useState<string | null>(null)
   const [sharing, setSharing] = useState(false)
+  const [avatarSaved, setAvatarSaved] = useState(false)
+  const [avatarSaving, setAvatarSaving] = useState(false)
   const [genStep, setGenStep] = useState('')
   const [genProgress, setGenProgress] = useState(0)
   const [genIcon, setGenIcon] = useState('upload')
@@ -568,10 +570,11 @@ async function deleteAvatar(avatarId: string, imageUrl: string) {
 
   async function generateAvatar() {
     if (!selfie || !selectedItem) return
-    setLoading(true)
+setLoading(true)
     window.dispatchEvent(new CustomEvent('kw-generating', { detail: true }))
     setError(null)
     setResult(null)
+    setAvatarSaved(false)
     setErrorTips(null)
     setGenProgress(0)
 
@@ -1086,23 +1089,44 @@ async function deleteAvatar(avatarId: string, imageUrl: string) {
                     </>
                   )}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px 16px 0' }}>
-                  <span style={{ fontSize: '12px', color: '#0ea472', fontWeight: 600 }}>
-                    ✓ {locale === 'de' ? 'In My Avatars gespeichert' : 'Saved to My Avatars'}
-                  </span>
-                  <button
+                {/* Save / Saved Button */}
+                <div style={{ padding: '10px 16px 0' }}>
+                  <motion.button whileTap={{ scale: 0.97 }}
+                    disabled={avatarSaved || avatarSaving}
                     onClick={async () => {
-                      if (!result) return
-                      const { data } = await supabase.from('avatar_results').select('id').eq('image_url', result).single()
-                      if (data) {
-                        await deleteAvatar(data.id, result)
-                        setResult(null)
-                        setProcessedResult(null)
+                      if (!result || avatarSaved) return
+                      setAvatarSaving(true)
+                      try {
+                        const res = await fetch('/api/save-avatar', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ imageUrl: result }),
+                        })
+                        const data = await res.json()
+                        if (data.success) {
+                          setAvatarSaved(true)
+                        }
+                      } catch (err) {
+                        console.error('Save avatar failed:', err)
                       }
+                      setAvatarSaving(false)
                     }}
-                    style={{ fontSize: '11px', color: muted, background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", textDecoration: 'underline' }}>
-                    {locale === 'de' ? 'Entfernen' : 'Remove'}
-                  </button>
+                    style={{
+                      width: '100%', padding: '11px', borderRadius: '10px',
+                      border: avatarSaved ? 'none' : `1.5px solid ${accent}`,
+                      background: avatarSaved ? '#0ea472' : 'transparent',
+                      color: avatarSaved ? '#fff' : accent,
+                      fontSize: '13px', fontWeight: 700, cursor: avatarSaved ? 'default' : avatarSaving ? 'wait' : 'pointer',
+                      fontFamily: "'Poppins', 'Inter', sans-serif",
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                      transition: 'all 0.3s',
+                    }}>
+                    {avatarSaving
+                      ? (locale === 'de' ? 'Wird gespeichert...' : 'Saving...')
+                      : avatarSaved
+                        ? `✓ ${locale === 'de' ? 'In My Avatars gespeichert' : 'Saved to My Avatars'}`
+                        : `♡ ${locale === 'de' ? 'In My Avatars speichern' : 'Save to My Avatars'}`}
+                  </motion.button>
                 </div>
 
                 <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column' as const, gap: '8px' }}>
@@ -1111,7 +1135,8 @@ async function deleteAvatar(avatarId: string, imageUrl: string) {
                       if (!selfie || !result) return
                       setSharing(true)
                       try {
-                        const cardDataUrl = await createShareCard(selfie, processedResult ?? result, locale)
+                        const watermarkedResult = await createWatermarkedImage(processedResult ?? result)
+                        const cardDataUrl = await createShareCard(selfie, watermarkedResult, locale)
                         const blob = await (await fetch(cardDataUrl)).blob()
                         const file = new File([blob], 'kiwardrobe-vorher-nachher.jpg', { type: 'image/jpeg' })
                         if (navigator.share && navigator.canShare?.({ files: [file] })) {
