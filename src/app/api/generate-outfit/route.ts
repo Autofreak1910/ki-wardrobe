@@ -166,6 +166,16 @@ function isLayerTop(t: any): boolean {
   return ['sweatshirt', 'sweater', 'hoodie', 'pullover', 'pulli', 'cardigan', 'strick', 'knit', 'longsleeve', 'fleece', 'zip'].some(k => n.includes(k))
 }
 
+// Eindeutig leichtes Teil, das als Unterschicht unter einem Pulli Sinn ergibt.
+// Whitelist statt Blacklist: unbekannte Teile (Altbestand ohne layer_type, Name nicht
+// erkennbar) werden NICHT als Unterschicht verwendet -- verhindert Pulli-unter-Pulli.
+function isDefinitelyBaseTop(t: any): boolean {
+  if (isLayerTop(t)) return false
+  if (t.layer_type === 'base') return true
+  const n = normalize(t.name ?? '')
+  return ['t-shirt', 'tshirt', 't shirt', 'shirt', 'top', 'tank', 'hemd', 'bluse', 'blouse', 'polo'].some(k => n.includes(k))
+}
+
 // Bevorzugt bei Roecken/Kleidern (die eine "length" haben) je nach Temperatur eine passende Laenge.
 // Items ohne "length" (z.B. Hosen) bleiben immer im Pool -- die Funktion filtert nur die Rock/Kleid-Optionen.
 function filterByLengthPreference(pool: any[], tempValue: number, useWeather: boolean): any[] {
@@ -271,9 +281,9 @@ const weatherTier = getWeatherTier(tempValue)
       const preferLayerTop = useWeather && (weatherTier === 'freezing' || weatherTier === 'cool')
       const jacketWillBeAdded = jacken.length > 0 && wantsJacket && useWeather && (weatherTier === 'freezing' || weatherTier === 'cool')
 
-      if (preferLayerTop) {
+if (preferLayerTop) {
         const layerPieces = tops.filter((t: any) => isLayerTop(t))
-        const basePieces = tops.filter((t: any) => !isLayerTop(t))
+        const basePieces = tops.filter((t: any) => isDefinitelyBaseTop(t))
 
         if (layerPieces.length > 0) {
           // Bei Kaelte kommt das warme Teil (Pulli/Hoodie) IMMER als Haupttop -- kein Zufall.
@@ -306,10 +316,14 @@ const weatherTier = getWeatherTier(tempValue)
       }
 // Bei vorhandenen Kleidern manchmal ein Kleid statt Top+Unterteil waehlen. Chance haengt
       // vom Wetter ab -- bei Kaelte deutlich seltener, da ein Kleid allein meist nicht warm genug ist.
-      let dressChance = 0.35
+   let dressChance = 0.35
       if (useWeather) {
-        if (weatherTier === 'freezing') dressChance = 0.08
-        else if (weatherTier === 'cool') dressChance = 0.20
+        if (weatherTier === 'freezing') {
+          // Ohne Jacke traegt bei Frost niemand nur ein Kleid -> gar nicht erst versuchen
+          dressChance = jacketWillBeAdded ? 0.08 : 0
+        } else if (weatherTier === 'cool') {
+          dressChance = jacketWillBeAdded ? 0.20 : 0.10
+        }
       }
  const useDress = kleider.length > 0 && Math.random() < dressChance
       let pickedDress: any = null
