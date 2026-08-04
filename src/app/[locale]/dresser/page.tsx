@@ -147,8 +147,8 @@ const [showRating, setShowRating] = useState(false)
 useEffect(() => {
   const timer = setTimeout(() => {
     try {
-     if (localStorage.getItem('kw_rating_done_v3')) return
-      const laterUntil = localStorage.getItem('kw_rating_later_v3')
+     if (localStorage.getItem('kw_rating_done_v4')) return
+      const laterUntil = localStorage.getItem('kw_rating_later_v4')
       if (laterUntil && Date.now() < Number(laterUntil)) return
       const registered = localStorage.getItem('kw_registered_at')
       if (registered) {
