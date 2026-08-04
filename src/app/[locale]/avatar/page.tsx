@@ -369,6 +369,7 @@ export default function AvatarPage() {
   const [galleryAvatars, setGalleryAvatars] = useState<{ id: string; image_url: string; created_at: string }[]>([])
   const [galleryLoading, setGalleryLoading] = useState(false)
   const [galleryFullscreen, setGalleryFullscreen] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; image_url: string } | null>(null)
   const [showPhotoGuide, setShowPhotoGuide] = useState(false)
   const [savedSelfies, setSavedSelfies] = useState<{ id: string; image_url: string; leg_type?: string | null }[]>(avatarCache?.savedSelfies ?? [])
   const [savingSelfie, setSavingSelfie] = useState(false)
@@ -1313,8 +1314,8 @@ setLoading(true)
                     <motion.div key={a.id} whileTap={{ scale: 0.96 }}
                       style={{ borderRadius: '12px', overflow: 'hidden', cursor: 'pointer', border: `1px solid ${border}`, aspectRatio: '3/4', position: 'relative' as const }}>
                       <img src={a.image_url} onClick={() => setGalleryFullscreen(a.image_url)} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                      <button
-                        onClick={(e) => { e.stopPropagation(); if (confirm(locale === 'de' ? 'Avatar löschen?' : 'Delete avatar?')) deleteAvatar(a.id, a.image_url) }}
+                   <button
+                        onClick={(e) => { e.stopPropagation(); setDeleteTarget({ id: a.id, image_url: a.image_url }) }}
                         style={{ position: 'absolute', top: '6px', right: '6px', width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', border: 'none', color: '#fff', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         🗑
                       </button>
@@ -1350,6 +1351,43 @@ setLoading(true)
           </motion.div>
         )}
       </AnimatePresence>
+     <AnimatePresence>
+        {deleteTarget && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setDeleteTarget(null)}
+            style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: 'spring', damping: 24 }}
+              onClick={e => e.stopPropagation()}
+              style={{ width: '100%', maxWidth: '320px', background: card, border: `1px solid ${border}`, borderRadius: '24px', padding: '28px 24px', textAlign: 'center' as const }}>
+
+              <img src={deleteTarget.image_url} alt="" style={{ width: '80px', height: '100px', objectFit: 'cover', borderRadius: '14px', border: `1px solid ${border}`, margin: '0 auto 16px', display: 'block' }} />
+
+              <p style={{ fontSize: '17px', fontWeight: 800, color: text, letterSpacing: '-0.02em', marginBottom: '6px' }}>
+                {locale === 'de' ? 'Avatar löschen?' : 'Delete avatar?'}
+              </p>
+              <p style={{ fontSize: '13px', color: muted, lineHeight: 1.5, marginBottom: '20px' }}>
+                {locale === 'de' ? 'Der Avatar wird unwiderruflich gelöscht.' : 'This avatar will be permanently deleted.'}
+              </p>
+
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button onClick={() => setDeleteTarget(null)}
+                  style={{ flex: 1, padding: '12px', borderRadius: '12px', border: `1px solid ${border}`, background: 'transparent', color: text, fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+                  {locale === 'de' ? 'Abbrechen' : 'Cancel'}
+                </button>
+                <button onClick={async () => {
+                    await deleteAvatar(deleteTarget.id, deleteTarget.image_url)
+                    setDeleteTarget(null)
+                  }}
+                  style={{ flex: 1, padding: '12px', borderRadius: '12px', border: 'none', background: '#ef4444', color: '#fff', fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+                  {locale === 'de' ? 'Löschen' : 'Delete'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <AvatarPhotoGuide
         open={showPhotoGuide}
         onClose={closePhotoGuide}

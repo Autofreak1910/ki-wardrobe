@@ -47,19 +47,9 @@ export async function GET(req: Request) {
     await supabase.storage.from('avatars').upload(resultFileName, Buffer.from(imgBuffer), { contentType: 'image/jpeg', upsert: true })
     const { data: { publicUrl: savedUrl } } = supabase.storage.from('avatars').getPublicUrl(resultFileName)
 
-    const { error: insertError } = await supabase.from('avatar_results').insert({
-      user_id: user.id,
-      image_url: savedUrl,
-      created_at: new Date().toISOString(),
-    })
-    if (insertError) {
-      console.error('avatar_results insert FAILED:', JSON.stringify(insertError))
-    }
-
-    return NextResponse.json({
+return NextResponse.json({
       success: true,
       imageUrl: savedUrl,
-      _debugSaveError: insertError ? insertError.message ?? String(insertError) : null,
     })
   } catch (err: any) {
     console.error('Status check error:', err)
