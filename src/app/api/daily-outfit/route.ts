@@ -124,18 +124,39 @@ export async function GET() {
 
     if (matchedItems.length === 0) return NextResponse.json({ outfit: null })
 
-    // Sicherheitsnetz: falls GPT trotz Anweisung kein Unterteil/Kleid gewaehlt hat, eins ergaenzen.
-    const bottomCategories = ['pants', 'shorts', 'skirt', 'hose', 'shorts', 'rock', 'jeans', 'dress', 'kleid']
-    const hasBottom = matchedItems.some((i: any) => bottomCategories.includes((i.category ?? '').toLowerCase()))
-    if (!hasBottom) {
-      const usedIds = new Set(matchedItems.map((i: any) => i.id))
-      const fallbackBottom = items.find((i: any) => bottomCategories.includes((i.category ?? '').toLowerCase()) && !usedIds.has(i.id))
-      if (fallbackBottom) matchedItems.push(fallbackBottom)
+    // Sicherheitsnetz: prueft anhand der ECHTEN category-Werte aus der DB, ob
+    // Oberteil, Unterteil/Kleid und Schuhe vorhanden sind. Fehlt eins, wird automatisch ergaenzt.
+    const catOf = (i: any) => (i.category ?? '').toLowerCase().trim()
+
+    const topCats = ['tops']
+    const bottomCats = ['kurze_hosen', 'hosen', 'roecke', 'kleider']
+    const shoeCats = ['schuhe']
+
+    const usedIds = new Set(matchedItems.map((i: any) => i.id))
+    function ensureCategory(cats: string[]) {
+      const hasIt = matchedItems.some((i: any) => cats.includes(catOf(i)))
+      if (!hasIt) {
+        const fallback = items.find((i: any) => !usedIds.has(i.id) && cats.includes(catOf(i)) && (i.name ?? '').trim() !== '')
+        if (fallback) {
+          matchedItems.push(fallback)
+          usedIds.add(fallback.id)
+        }
+      }
     }
+    // Kleid deckt Oberteil+Unterteil zusammen ab -- also nur Top ergaenzen wenn WEDER Top NOCH Kleid da ist.
+    const hasDressAlready = matchedItems.some((i: any) => catOf(i) === 'kleider')
+    if (!hasDressAlready) ensureCategory(topCats)
+    ensureCategory(bottomCats)
+    ensureCategory(shoeCats)
+
+    // Items ohne Namen nie verwenden (kaputte Datensaetze) -- sicherheitshalber rausfiltern.
+    const cleanedItems = matchedItems.filter((i: any) => (i.name ?? '').trim() !== '')
+
+    if (cleanedItems.length === 0) return NextResponse.json({ outfit: null })
 
     const { data: inserted, error: insertErr } = await supabase.from('daily_outfits').insert({
       user_id: userId,
-      item_ids: matchedItems.map((i: any) => i.id),
+      item_ids: cleanedItems.map((i: any) => i.id),
       reasoning: result.reasoning ?? '',
       vibe: result.vibe ?? '',
       occasion: 'casual',
@@ -147,7 +168,7 @@ export async function GET() {
     }
 
     return NextResponse.json({
-      outfit: { id: inserted.id, reasoning: inserted.reasoning, vibe: inserted.vibe, itemObjects: matchedItems },
+      outfit: { id: inserted.id, reasoning: inserted.reasoning, vibe: inserted.vibe, itemObjects: cleanedItems },
     })
   } catch (err) {
     console.error('Live daily outfit generation failed:', err)
