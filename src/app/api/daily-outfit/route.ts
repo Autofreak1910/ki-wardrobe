@@ -97,8 +97,8 @@ export async function GET() {
     const itemsForPrompt = items.map((i: any) => ({ id: i.id, name: i.name, category: i.category, color: i.color }))
 
     const prompt = isEnglish
-      ? `Create ONE outfit for today from this clothing: ${JSON.stringify(itemsForPrompt)}.\n\nWEATHER: ${weatherStr}.\nIMPORTANT WEATHER RULE: ${weatherRule}\n\nA complete outfit has a top, bottom (pants/shorts/skirt) or a dress instead, and shoes. A jacket ONLY if the temperature requires it. Occasion: casual/everyday.\n\nRespond as JSON using the EXACT "id" values from the list above: {"item_ids": ["id1", "id2", "id3"], "reasoning": "short reasoning in English mentioning the temperature", "vibe": "short keyword"}`
-      : `Erstelle EIN Outfit für heute aus dieser Kleidung: ${JSON.stringify(itemsForPrompt)}.\n\nWETTER: ${weatherStr}.\nWICHTIGE WETTER-REGEL: ${weatherRule}\n\nEin vollständiges Outfit hat ein Oberteil, ein Unterteil (Hose/kurze Hose/Rock) oder stattdessen ein Kleid, und Schuhe. Eine Jacke NUR wenn es die Temperatur erfordert. Anlass: Casual/Alltag.\n\nAntworte als JSON und benutze die EXAKTEN "id"-Werte aus der Liste oben: {"item_ids": ["id1", "id2", "id3"], "reasoning": "kurze Begründung auf Deutsch die die Temperatur erwähnt", "vibe": "kurzes Stichwort"}`
+      ? `Create ONE outfit for today from this clothing: ${JSON.stringify(itemsForPrompt)}.\n\nWEATHER: ${weatherStr}.\nIMPORTANT WEATHER RULE: ${weatherRule}\n\nMANDATORY: the outfit MUST include exactly one TOP (shirt/t-shirt/sweater/etc.), exactly one BOTTOM (pants/shorts/skirt) OR one dress instead of top+bottom, and exactly one pair of SHOES. Never omit the bottom/dress. A jacket ONLY if the temperature requires it. Occasion: casual/everyday.\n\nRespond as JSON using the EXACT "id" values from the list above: {"item_ids": ["id1", "id2", "id3"], "reasoning": "short reasoning in English mentioning the temperature", "vibe": "short keyword"}`
+      : `Erstelle EIN Outfit für heute aus dieser Kleidung: ${JSON.stringify(itemsForPrompt)}.\n\nWETTER: ${weatherStr}.\nWICHTIGE WETTER-REGEL: ${weatherRule}\n\nPFLICHT: Das Outfit MUSS genau ein OBERTEIL (Shirt/T-Shirt/Pullover/etc.), genau ein UNTERTEIL (Hose/kurze Hose/Rock) ODER stattdessen ein Kleid, sowie genau ein Paar SCHUHE enthalten. Das Unterteil bzw. Kleid darf NIE fehlen. Eine Jacke NUR wenn es die Temperatur erfordert. Anlass: Casual/Alltag.\n\nAntworte als JSON und benutze die EXAKTEN "id"-Werte aus der Liste oben: {"item_ids": ["id1", "id2", "id3"], "reasoning": "kurze Begründung auf Deutsch die die Temperatur erwähnt", "vibe": "kurzes Stichwort"}`
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
@@ -123,6 +123,15 @@ export async function GET() {
       .filter(Boolean)
 
     if (matchedItems.length === 0) return NextResponse.json({ outfit: null })
+
+    // Sicherheitsnetz: falls GPT trotz Anweisung kein Unterteil/Kleid gewaehlt hat, eins ergaenzen.
+    const bottomCategories = ['pants', 'shorts', 'skirt', 'hose', 'shorts', 'rock', 'jeans', 'dress', 'kleid']
+    const hasBottom = matchedItems.some((i: any) => bottomCategories.includes((i.category ?? '').toLowerCase()))
+    if (!hasBottom) {
+      const usedIds = new Set(matchedItems.map((i: any) => i.id))
+      const fallbackBottom = items.find((i: any) => bottomCategories.includes((i.category ?? '').toLowerCase()) && !usedIds.has(i.id))
+      if (fallbackBottom) matchedItems.push(fallbackBottom)
+    }
 
     const { data: inserted, error: insertErr } = await supabase.from('daily_outfits').insert({
       user_id: userId,
