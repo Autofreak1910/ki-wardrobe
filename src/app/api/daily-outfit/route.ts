@@ -93,11 +93,12 @@ export async function GET() {
 
   try {
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-    const itemsForPrompt = items.map((i: any) => ({ name: i.name, category: i.category, color: i.color }))
+    // WICHTIG: id mitgeben, damit GPT eindeutig referenzieren kann (kein Fuzzy-Name-Match mehr noetig)
+    const itemsForPrompt = items.map((i: any) => ({ id: i.id, name: i.name, category: i.category, color: i.color }))
 
     const prompt = isEnglish
-      ? `Create ONE outfit for today from this clothing: ${JSON.stringify(itemsForPrompt)}.\n\nWEATHER: ${weatherStr}.\nIMPORTANT WEATHER RULE: ${weatherRule}\n\nA complete outfit has a top, bottom (pants/shorts/skirt) or a dress instead, and shoes. A jacket ONLY if the temperature requires it. Occasion: casual/everyday.\n\nRespond as JSON: {"items": ["Name1", "Name2", "Name3"], "reasoning": "short reasoning in English mentioning the temperature", "vibe": "short keyword"}`
-      : `Erstelle EIN Outfit für heute aus dieser Kleidung: ${JSON.stringify(itemsForPrompt)}.\n\nWETTER: ${weatherStr}.\nWICHTIGE WETTER-REGEL: ${weatherRule}\n\nEin vollständiges Outfit hat ein Oberteil, ein Unterteil (Hose/kurze Hose/Rock) oder stattdessen ein Kleid, und Schuhe. Eine Jacke NUR wenn es die Temperatur erfordert. Anlass: Casual/Alltag.\n\nAntworte als JSON: {"items": ["Name1", "Name2", "Name3"], "reasoning": "kurze Begründung auf Deutsch die die Temperatur erwähnt", "vibe": "kurzes Stichwort"}`
+      ? `Create ONE outfit for today from this clothing: ${JSON.stringify(itemsForPrompt)}.\n\nWEATHER: ${weatherStr}.\nIMPORTANT WEATHER RULE: ${weatherRule}\n\nA complete outfit has a top, bottom (pants/shorts/skirt) or a dress instead, and shoes. A jacket ONLY if the temperature requires it. Occasion: casual/everyday.\n\nRespond as JSON using the EXACT "id" values from the list above: {"item_ids": ["id1", "id2", "id3"], "reasoning": "short reasoning in English mentioning the temperature", "vibe": "short keyword"}`
+      : `Erstelle EIN Outfit für heute aus dieser Kleidung: ${JSON.stringify(itemsForPrompt)}.\n\nWETTER: ${weatherStr}.\nWICHTIGE WETTER-REGEL: ${weatherRule}\n\nEin vollständiges Outfit hat ein Oberteil, ein Unterteil (Hose/kurze Hose/Rock) oder stattdessen ein Kleid, und Schuhe. Eine Jacke NUR wenn es die Temperatur erfordert. Anlass: Casual/Alltag.\n\nAntworte als JSON und benutze die EXAKTEN "id"-Werte aus der Liste oben: {"item_ids": ["id1", "id2", "id3"], "reasoning": "kurze Begründung auf Deutsch die die Temperatur erwähnt", "vibe": "kurzes Stichwort"}`
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
@@ -109,10 +110,16 @@ export async function GET() {
     })
 
     const result = JSON.parse(completion.choices[0].message.content ?? '{}')
-    if (!result.items) return NextResponse.json({ outfit: null })
 
-    const matchedItems = result.items
-      .map((name: string) => items.find((i: any) => (i.name ?? '').toLowerCase().includes(String(name).toLowerCase()) || String(name).toLowerCase().includes((i.name ?? '').toLowerCase())))
+    // NEU: strikte ID-Zuordnung statt Fuzzy-String-Match.
+    // Vorher konnte ein leerer/unpassender Name per .includes('') IMMER auf das
+    // erste Item der Liste matchen -> das war der "immer der gleiche Pulli"-Bug.
+    if (!result.item_ids || !Array.isArray(result.item_ids) || result.item_ids.length === 0) {
+      return NextResponse.json({ outfit: null })
+    }
+
+    const matchedItems = result.item_ids
+      .map((id: string) => items.find((i: any) => i.id === id))
       .filter(Boolean)
 
     if (matchedItems.length === 0) return NextResponse.json({ outfit: null })
