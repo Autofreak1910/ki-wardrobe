@@ -778,23 +778,23 @@ onClick={() => {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 10, scale: 0.95 }}
       transition={{ type: 'spring', damping: 22, stiffness: 300 }}
-      style={{
-        position: 'fixed', bottom: '110px', left: '16px', right: '16px',
-        margin: '0 auto', maxWidth: '340px', zIndex: 9997,
+style={{
+        position: 'fixed', top: '80px', left: '16px', right: '16px',
+        margin: '0 auto', maxWidth: '380px', zIndex: 9997,
         background: card, border: `1px solid ${border}`,
-        borderRadius: '18px', padding: '14px 16px',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-        display: 'flex', alignItems: 'center', gap: '12px',
+        borderRadius: '20px', padding: '18px 20px',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
+        display: 'flex', alignItems: 'center', gap: '14px',
         fontFamily: "'Poppins', 'Inter', sans-serif",
       }}>
-      <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: accentDim, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '17px' }}>
+      <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: accentDim, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '24px' }}>
         👕
       </div>
       <div>
-        <p style={{ fontSize: '13px', fontWeight: 700, color: text, marginBottom: '2px' }}>
+        <p style={{ fontSize: '15px', fontWeight: 700, color: text, marginBottom: '3px' }}>
           {locale === 'de' ? 'Mindestens 3 Kategorien' : 'At least 3 categories'}
         </p>
-        <p style={{ fontSize: '11.5px', color: muted, lineHeight: 1.4 }}>
+        <p style={{ fontSize: '13px', color: muted, lineHeight: 1.4 }}>
           {locale === 'de'
             ? 'Sonst hat die KI zu wenig Auswahl für gute Outfits.'
             : 'Otherwise the AI has too little to work with for good outfits.'}
