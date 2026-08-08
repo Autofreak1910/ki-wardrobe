@@ -227,7 +227,7 @@ function isValidEmail(e: string): boolean {
   }
 
   return (
-    <div style={{ height: '100dvh', background: bg, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', fontFamily: "'Poppins', 'Inter', sans-serif", padding: '24px', position: 'relative', overflowY: 'auto' as const, overflowX: 'hidden' as const, overscrollBehavior: 'none' as const }}>
+    <div style={{ height: '100dvh', background: bg, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'flex-start', fontFamily: "'Poppins', 'Inter', sans-serif", padding: '24px 24px 40px', position: 'relative', overflowY: 'auto' as const, overflowX: 'hidden' as const, overscrollBehavior: 'none' as const }}>
 
       <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
         <div style={{ position: 'absolute', top: '-100px', right: '-80px', width: '400px', height: '400px', borderRadius: '50%', background: isDark ? 'rgba(92,130,160,0.08)' : 'rgba(53,92,125,0.1)', filter: 'blur(80px)' }} />
