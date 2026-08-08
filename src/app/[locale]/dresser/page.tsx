@@ -181,6 +181,7 @@ const [showWeatherPanel, setShowWeatherPanel] = useState(false)
   const router = useRouter()
   const supabase = createClient()
   const [limitMsg, setLimitMsg] = useState<string | null>(null)
+  const [showMinCategoryHint, setShowMinCategoryHint] = useState(false)
   const isDark = theme === 'dark'
   const mainRef = useRef<HTMLElement>(null)
   const checkingReferrerRef = useRef(false)
@@ -519,9 +520,9 @@ async function setManualLocation(lat: number, lon: number) {
 function toggleCategory(cat: string) {
     setActiveCategories(prev => {
       const isActive = prev.includes(cat)
-      if (isActive && prev.length <= 2) {
-        setLimitMsg(locale === 'de' ? 'Mindestens 2 Kategorien nötig' : 'At least 2 categories required')
-        setTimeout(() => setLimitMsg(null), 2500)
+      if (isActive && prev.length <= 3) {
+        setShowMinCategoryHint(true)
+        setTimeout(() => setShowMinCategoryHint(false), 2600)
         return prev
       }
       return isActive ? prev.filter(c => c !== cat) : [...prev, cat]
@@ -769,6 +770,40 @@ onClick={() => {
 </motion.div>
   )}
 </AnimatePresence>
+
+<AnimatePresence>
+  {showMinCategoryHint && (
+    <motion.div
+      initial={{ opacity: 0, y: 20, scale: 0.9 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+      transition={{ type: 'spring', damping: 22, stiffness: 300 }}
+      style={{
+        position: 'fixed', bottom: '110px', left: '16px', right: '16px',
+        margin: '0 auto', maxWidth: '340px', zIndex: 9997,
+        background: card, border: `1px solid ${border}`,
+        borderRadius: '18px', padding: '14px 16px',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+        display: 'flex', alignItems: 'center', gap: '12px',
+        fontFamily: "'Poppins', 'Inter', sans-serif",
+      }}>
+      <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: accentDim, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '17px' }}>
+        👕
+      </div>
+      <div>
+        <p style={{ fontSize: '13px', fontWeight: 700, color: text, marginBottom: '2px' }}>
+          {locale === 'de' ? 'Mindestens 3 Kategorien' : 'At least 3 categories'}
+        </p>
+        <p style={{ fontSize: '11.5px', color: muted, lineHeight: 1.4 }}>
+          {locale === 'de'
+            ? 'Sonst hat die KI zu wenig Auswahl für gute Outfits.'
+            : 'Otherwise the AI has too little to work with for good outfits.'}
+        </p>
+      </div>
+    </motion.div>
+  )}
+</AnimatePresence>
+
 <AnimatePresence>
   {showPushPrompt && (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
