@@ -142,11 +142,11 @@ export default function OnboardingCarousel({ onDone }: { onDone: () => void }) {
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: bg, display: 'flex', flexDirection: 'column' as const, fontFamily: "'Poppins', 'Inter', sans-serif", height: '100dvh', overflow: 'hidden', overscrollBehavior: 'none' as const }}>
 
-      <button onClick={onDone} style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 10, background: 'transparent', border: 'none', fontSize: '13px', color: muted, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", padding: '8px 12px' }}>
+      <button onClick={onDone} style={{ position: 'absolute', top: 'max(20px, env(safe-area-inset-top))', right: 'max(20px, env(safe-area-inset-right))', zIndex: 10, background: 'transparent', border: 'none', fontSize: '13px', color: muted, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", padding: '8px 12px' }}>
         {isDe ? 'Überspringen' : 'Skip'}
       </button>
 
-     <div style={{ flex: 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto' as const, overflowX: 'hidden' as const, padding: '70px 0 20px', WebkitOverflowScrolling: 'touch' as any }}>
+    <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto' as const, overflowX: 'hidden' as const, padding: '70px 0 20px', WebkitOverflowScrolling: 'touch' as any, overscrollBehavior: 'contain' as const }}>
         <AnimatePresence mode="wait" initial={false}>
 
           {index === 0 && (
@@ -444,7 +444,7 @@ export default function OnboardingCarousel({ onDone }: { onDone: () => void }) {
         </AnimatePresence>
       </div>
 
-      <div style={{ padding: '0 24px 40px' }}>
+      <div style={{ padding: '0 24px 40px', paddingBottom: 'max(40px, env(safe-area-inset-bottom))', flexShrink: 0 }}>
         <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', marginBottom: '20px' }}>
           {Array.from({ length: totalSlides }).map((_, i) => (
             <motion.div key={i}

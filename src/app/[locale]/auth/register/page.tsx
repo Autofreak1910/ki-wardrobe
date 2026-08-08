@@ -219,7 +219,7 @@ function isValidEmail(e: string): boolean {
 
   if (initializing) {
     return (
-      <div style={{ minHeight: '100dvh', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ position: 'fixed', inset: 0, height: '100dvh', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
           style={{ width: '36px', height: '36px', borderRadius: '50%', border: `3px solid ${border}`, borderTopColor: accent }} />
       </div>
@@ -227,7 +227,7 @@ function isValidEmail(e: string): boolean {
   }
 
   return (
-    <div style={{ height: '100dvh', background: bg, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'flex-start', fontFamily: "'Poppins', 'Inter', sans-serif", padding: '24px 24px 40px', position: 'relative', overflowY: 'auto' as const, overflowX: 'hidden' as const, overscrollBehavior: 'none' as const }}>
+    <div style={{ position: 'fixed', inset: 0, height: '100dvh', background: bg, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'flex-start', fontFamily: "'Poppins', 'Inter', sans-serif", padding: 'max(24px, env(safe-area-inset-top)) 24px max(40px, env(safe-area-inset-bottom))', overflowY: 'auto' as const, overflowX: 'hidden' as const, overscrollBehavior: 'contain' as const, WebkitOverflowScrolling: 'touch' as any }}>
 
       <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
         <div style={{ position: 'absolute', top: '-100px', right: '-80px', width: '400px', height: '400px', borderRadius: '50%', background: isDark ? 'rgba(92,130,160,0.08)' : 'rgba(53,92,125,0.1)', filter: 'blur(80px)' }} />
@@ -239,7 +239,7 @@ function isValidEmail(e: string): boolean {
           </svg>    )}
       </div>
 
-      <div style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 10 }}>
+      <div style={{ position: 'absolute', top: 'max(20px, env(safe-area-inset-top))', right: 'max(20px, env(safe-area-inset-right))', zIndex: 10 }}>
         <button onClick={toggle} style={{ background: card, border: `1px solid ${border}`, borderRadius: '10px', padding: '8px 12px', cursor: 'pointer', fontSize: '15px' }}>
           {isDark ? '○' : '●'}
         </button>
