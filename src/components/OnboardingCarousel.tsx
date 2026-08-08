@@ -49,15 +49,15 @@ return (
         }}>
         <motion.div
           layout
-          animate={{ height: answer ? 88 : 160 }}
+          animate={{ height: answer ? '9dvh' : '17dvh' }}
           transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-          style={{ position: 'relative', overflow: 'hidden' }}>
+          style={{ position: 'relative', overflow: 'hidden', minHeight: answer ? 64 : 110, maxHeight: answer ? 100 : 190 }}>
           <img src={imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 100%)' }} />
         </motion.div>
         <motion.div layout style={{ padding: answer ? '12px 18px 14px' : '20px 20px 24px' }}>
           <motion.h2 layout
-            style={{ fontFamily: "'Fraunces', serif", fontSize: answer ? '15px' : '20px', fontWeight: 500, color: '#24211B', marginBottom: answer ? '6px' : '16px', letterSpacing: '-0.02em', textAlign: 'center' as const, lineHeight: 1.3, transition: 'font-size 0.4s' }}>
+            style={{ fontFamily: "'Fraunces', serif", fontSize: answer ? 'clamp(14px, 3.8vw, 16px)' : 'clamp(18px, 5.2vw, 22px)', fontWeight: 500, color: '#24211B', marginBottom: answer ? '6px' : 'clamp(10px, 2.2dvh, 16px)', letterSpacing: '-0.02em', textAlign: 'center' as const, lineHeight: 1.3, transition: 'font-size 0.4s' }}>
             {question}
           </motion.h2>
 
@@ -146,7 +146,7 @@ export default function OnboardingCarousel({ onDone }: { onDone: () => void }) {
         {isDe ? 'Überspringen' : 'Skip'}
       </button>
 
-    <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto' as const, overflowX: 'hidden' as const, padding: '70px 0 20px', WebkitOverflowScrolling: 'touch' as any, overscrollBehavior: 'contain' as const }}>
+    <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto' as const, overflowX: 'hidden' as const, padding: 'clamp(48px, 9dvh, 70px) 0 16px', WebkitOverflowScrolling: 'touch' as any, overscrollBehavior: 'contain' as const }}>
         <AnimatePresence mode="wait" initial={false}>
 
           {index === 0 && (
@@ -154,7 +154,7 @@ export default function OnboardingCarousel({ onDone }: { onDone: () => void }) {
               initial={{ opacity: 0, x: 60 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -60 }} transition={{ duration: 0.3 }}
               style={{ width: '100%', maxWidth: '380px', padding: '0 24px', cursor: 'grab' }}>
               <div style={{ background: '#ffffff', borderRadius: '28px', overflow: 'hidden', marginBottom: '24px', boxShadow: isDark ? '0 12px 40px rgba(0,0,0,0.4)' : '0 12px 40px rgba(53,92,125,0.14)' }}>
-                <div style={{ position: 'relative' as const, height: '220px', overflow: 'hidden' }}>
+                <div style={{ position: 'relative' as const, height: 'clamp(140px, 22dvh, 220px)', overflow: 'hidden' }}>
                   <img src="https://images.unsplash.com/photo-1445205170230-053b83016050?w=700&q=80&auto=format&fit=crop" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.4) 100%)' }} />
                   <motion.p
@@ -172,7 +172,7 @@ export default function OnboardingCarousel({ onDone }: { onDone: () => void }) {
                     ? 'Bereit für einen Kleiderschrank, der für dich mitdenkt?'
                     : 'Ready for a wardrobe that thinks for you?'}
                 </h2>
-                <p style={{ fontSize: '14px', color: muted, lineHeight: 1.6 }}>
+               <p style={{ fontSize: 'clamp(13px, 3.6vw, 14.5px)', color: muted, lineHeight: 1.55 }}>
                   {isDe
                     ? 'Ein paar kurze Fragen — dann zeigen wir dir genau, wie KiWardrobe dir den Alltag abnimmt.'
                     : "A few quick questions — then we'll show you exactly how KiWardrobe makes your daily life easier."}
