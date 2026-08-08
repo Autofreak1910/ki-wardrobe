@@ -144,8 +144,8 @@ async function sendExpiryWarningEmail({ email, username, language, expiresAt, it
               </h1>
               <p style="margin: 0 0 20px; font-size: 14px; color: #8C8776; line-height: 1.6;">
                 ${isDe
-                  ? `dein KiWardrobe Pro endet am <strong>${dateStr}</strong>. Danach verlierst du:`
-                  : `your KiWardrobe Pro ends on <strong>${dateStr}</strong>. After that, you'll lose:`}
+                  ? `dein KiWardrobe Pro endet am <strong>${dateStr}</strong>. Ab dann fehlen dir folgende Funktionen:`
+                  : `your KiWardrobe Pro ends on <strong>${dateStr}</strong>. After that, you'll be missing:`}
               </p>
 
              <table cellpadding="0" cellspacing="0" style="width:100%; margin-bottom: 24px;">${rowsHtml}</table>
@@ -153,7 +153,7 @@ async function sendExpiryWarningEmail({ email, username, language, expiresAt, it
               ${itemsToLock.length > 0 ? `
               <div style="background:#FEF2F2; border:1px solid #FECACA; border-radius:14px; padding:14px 16px; margin-bottom:24px;">
                 <p style="margin:0 0 10px; font-size:13px; font-weight:700; color:#dc2626;">
-                  ${isDe ? `🔒 ${itemsToLock.length} Kleidungsstücke würden zusätzlich gesperrt` : `🔒 ${itemsToLock.length} items would also get locked`}
+                  ${isDe ? `🔒 Außerdem: ${itemsToLock.length} deiner Kleidungsstücke werden gesperrt` : `🔒 Also: ${itemsToLock.length} of your items will get locked`}
                 </p>
                 <table cellpadding="0" cellspacing="0" style="width:100%;">
                   ${itemsToLock.slice(0, 6).map((it: any) => `
