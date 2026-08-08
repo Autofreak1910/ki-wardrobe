@@ -103,7 +103,7 @@ function SnowflakeIcon({ size = 12, color = 'currentColor' }: { size?: number; c
   )
 }
 
-type Profile = { id: string; username: string; is_premium: boolean; age?: string; country?: string; created_at: string; email?: string; gender?: string; style_preferences?: string[]; budget_range?: string; referral_code?: string; premium_until?: string; invites_this_month?: number; bonus_month_claimed_this_period?: boolean; avatar_tries_left?: number; streak_freeze_used_month?: string; stripe_customer_id?: string | null; premium_source?: string | null }
+type Profile = { id: string; username: string; is_premium: boolean; age?: string; country?: string; created_at: string; email?: string; gender?: string; style_preferences?: string[]; budget_range?: string; referral_code?: string; premium_until?: string; invites_this_month?: number; bonus_month_claimed_this_period?: boolean; avatar_tries_left?: number; streak_freeze_used_month?: string; stripe_customer_id?: string | null; premium_source?: string | null; pending_lock_warning_count?: number }
 
 function getWeekStartUTC(): Date {
   const now = new Date()
@@ -187,6 +187,7 @@ let profileCache: { profile: Profile; itemCount: number; outfitCount: number } |
 export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(profileCache?.profile ?? null)
   const [itemCount, setItemCount] = useState(profileCache?.itemCount ?? 0)
+  const [activeItemCount, setActiveItemCount] = useState(profileCache?.itemCount ?? 0)
   const [outfitCount, setOutfitCount] = useState(profileCache?.outfitCount ?? 0)
   const [loading, setLoading] = useState(!profileCache)
   const [editUsername, setEditUsername] = useState(profileCache?.profile?.username ?? '')
@@ -297,7 +298,7 @@ async function loadProfile() {
     const todayStart = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate(), 0, 0, 0, 0))
   const [profileRes, itemsRes, outfitsRes, weekOutfitsRes, weekAvatarRes, monthAvatarRes, multiScanRes, styleDnaRes] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', session.user.id).single(),
-      supabase.from('clothing_items').select('id').eq('user_id', session.user.id),
+      supabase.from('clothing_items').select('id, is_locked').eq('user_id', session.user.id),
       supabase.from('outfits').select('id').eq('user_id', session.user.id),
       supabase.from('outfit_generations').select('id', { count: 'exact', head: true }).eq('user_id', session.user.id).gte('created_at', weekStart.toISOString()),
       supabase.from('avatar_results').select('id', { count: 'exact', head: true }).eq('user_id', session.user.id).gte('created_at', weekStart.toISOString()),
@@ -326,6 +327,7 @@ if (profileRes.data?.referral_code) {
     setEditEmail(session.user.email ?? '')
 setEditAge(profileRes.data?.age ?? '')
     setItemCount(itemsRes.data?.length ?? 0)
+    setActiveItemCount(itemsRes.data?.filter((i: any) => !i.is_locked).length ?? 0)
     setOutfitCount(outfitsRes.data?.length ?? 0)
     if (profileRes.data) {
       profileCache = {
@@ -619,8 +621,8 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
     </p>
 
     {(() => {
-    const statItems = [
-  { label: locale === 'de' ? 'Kleidung' : 'Items', value: itemCount, max: isPremium ? null : 20 },
+   const statItems = [
+  { label: locale === 'de' ? 'Kleidung' : 'Items', value: isPremium ? itemCount : activeItemCount, max: isPremium ? null : 20 },
   { label: locale === 'de' ? 'Outfits/Woche' : 'Outfits/week', value: weekOutfits, max: isPremium ? 14 : 3 },
   { label: locale === 'de' ? 'Gespeichert' : 'Saved', value: outfitCount, max: isPremium ? null : 5 },
   isPremium
@@ -677,6 +679,26 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
     )}
   </div>
 </motion.div>
+{/* Warnung: Items werden bald gesperrt (Pro laeuft in Kuerze ab) */}
+{isPremium && (profile?.pending_lock_warning_count ?? 0) > 0 && (
+  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+    style={{ background: 'linear-gradient(135deg, rgba(239,68,68,0.14), rgba(249,115,22,0.06))', border: '1px solid rgba(239,68,68,0.35)', borderRadius: '16px', padding: '14px 16px', marginBottom: '12px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+      <HourglassIcon size={18} color="#ef4444" />
+      <p style={{ fontSize: '13px', fontWeight: 700, color: '#ef4444' }}>
+        {locale === 'de'
+          ? `Dein Pro läuft bald ab — ${profile?.pending_lock_warning_count} Kleidungsstücke würden gesperrt`
+          : `Your Pro expires soon — ${profile?.pending_lock_warning_count} items would be locked`}
+      </p>
+    </div>
+    <motion.button whileTap={{ scale: 0.97 }}
+      onClick={startCheckout}
+      style={{ width: '100%', background: `linear-gradient(135deg, ${gold}, #E8B45E)`, border: 'none', borderRadius: '10px', padding: '10px', fontSize: '13px', fontWeight: 700, color: '#24211B', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+      ✦ {locale === 'de' ? 'Jetzt verlängern' : 'Renew now'}
+    </motion.button>
+  </motion.div>
+)}
+
 {/* Upgrade Banner */}
 {!isPremium && (
   <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}

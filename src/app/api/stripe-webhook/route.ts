@@ -53,6 +53,8 @@ function getPeriodEnd(subscription: Stripe.Subscription): number {
           is_premium: true,
           premium_until: premiumUntil.toISOString(),
           premium_source: 'stripe',
+          pending_lock_warning_count: 0,
+          subscription_cancel_pending: false,
         }).eq('id', userId)
 
         if (updateError) {
@@ -60,6 +62,9 @@ function getPeriodEnd(subscription: Stripe.Subscription): number {
         } else {
           console.log('checkout.session.completed: profiles updated OK for userId', userId, 'until', premiumUntil.toISOString())
         }
+
+        // NEU: Lock-Status synchronisieren (falls vorher Items gesperrt waren)
+        await supabase.rpc('sync_wardrobe_lock_state', { p_user_id: userId })
 
         try {
           const { data: { user } } = await supabase.auth.admin.getUserById(userId)
@@ -100,12 +105,16 @@ function getPeriodEnd(subscription: Stripe.Subscription): number {
             is_premium: true,
             premium_until: premiumUntil.toISOString(),
             premium_source: 'stripe',
+            pending_lock_warning_count: 0,
           }).eq('id', userId)
           if (updateError) {
             console.error('invoice.payment_succeeded: profiles update FAILED for userId', userId, updateError)
           } else {
             console.log('invoice.payment_succeeded: profiles updated OK for userId', userId)
           }
+
+          // NEU: Lock-Status synchronisieren
+          await supabase.rpc('sync_wardrobe_lock_state', { p_user_id: userId })
         }
       } catch (err) {
         console.error('Failed to process invoice.payment_succeeded:', err)
@@ -144,6 +153,17 @@ function getPeriodEnd(subscription: Stripe.Subscription): number {
 
   // --- Abo tatsaechlich beendet (nach Kuendigung oder endgueltig fehlgeschlagener --
   // Zahlung) -- Zugang entziehen und Bestaetigungs-Mail schicken.
+  // --- Abo gekündigt, laeuft aber noch bis Periodenende --------------------------
+  if (event.type === 'customer.subscription.updated') {
+    const subscription = event.data.object as Stripe.Subscription
+    const userId = subscription.metadata?.userId
+    if (userId) {
+      await supabase.from('profiles').update({
+        subscription_cancel_pending: subscription.cancel_at_period_end === true,
+      }).eq('id', userId)
+    }
+  }
+
   if (event.type === 'customer.subscription.deleted') {
     const subscription = event.data.object as Stripe.Subscription
     const userId = subscription.metadata?.userId
@@ -157,6 +177,12 @@ function getPeriodEnd(subscription: Stripe.Subscription): number {
       }).eq('id', userId)
       if (updateError) {
         console.error('customer.subscription.deleted: profiles update FAILED for userId', userId, updateError)
+      }
+
+      // NEU: Lock-Status sofort synchronisieren, nicht erst beim naechsten App-Open
+      const { error: syncError } = await supabase.rpc('sync_wardrobe_lock_state', { p_user_id: userId })
+      if (syncError) {
+        console.error('customer.subscription.deleted: sync_wardrobe_lock_state FAILED for userId', userId, syncError)
       }
 
       try {

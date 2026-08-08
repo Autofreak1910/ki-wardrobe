@@ -81,7 +81,7 @@ const categoryConfig = [
   { key: 'schuhe', labelDe: 'Schuhe',   labelEn: 'Shoes',
     icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 18h20v2a1 1 0 01-1 1H3a1 1 0 01-1-1v-2z"/><path d="M2 18l4-9h3l2 4 3-7h4l2 12"/></svg> },
 ]
-type ClothingItem = { id: string; image_url: string; category: string; color: string; name?: string; brand?: string }
+type ClothingItem = { id: string; image_url: string; category: string; color: string; name?: string; brand?: string; is_locked?: boolean }
 type OutfitSingle = { items: string[]; reasoning: string; vibe?: string; itemObjects: ClothingItem[] }
 type OutfitGroup = { outfits: OutfitSingle[]; active: number }
 type Weather = { temp: number; condition: string; icon: string; city: string }
@@ -383,10 +383,12 @@ supabase.from('profiles').update({ timezone: tz }).eq('id', session.user.id)
 
 const { data } = await supabase.from('clothing_items').select('*').eq('user_id', session.user.id)
    if (data) {
-      setWardrobeItems(data)
-      setHasItems(data.length >= 3)
+      // Gesperrte Items (durch Free-Downgrade) duerfen nicht in Outfits landen
+      const usableData = data.filter((i: any) => !i.is_locked)
+      setWardrobeItems(usableData)
+      setHasItems(usableData.length >= 3)
       if (activeCategories.length === 0) {
-        const ownedCats = [...new Set(data.map((i: any) => i.category).filter(Boolean))]
+        const ownedCats = [...new Set(usableData.map((i: any) => i.category).filter(Boolean))]
         const allCats = ['tops', 'jacken', 'hosen', 'kurze_hosen', 'schuhe', 'roecke', 'kleider']
         setActiveCategories(allCats.filter(c => ownedCats.includes(c)))
       }

@@ -25,13 +25,13 @@ export async function GET(request: NextRequest) {
   // laufende Stripe-Abos verlängern sich automatisch und brauchen keine Ablaufwarnung
   const { data: profiles, error } = await supabase
     .from('profiles')
-    .select('id, username, language, premium_until, premium_source')
+    .select('id, username, language, premium_until, premium_source, subscription_cancel_pending')
     .eq('is_premium', true)
     .eq('premium_expiry_warning_sent', false)
-    .neq('premium_source', 'stripe')
     .not('premium_until', 'is', null)
     .lte('premium_until', in3Days.toISOString())
     .gt('premium_until', now.toISOString())
+    .or('premium_source.neq.stripe,subscription_cancel_pending.eq.true')
 
   if (error) {
     console.error('Query failed:', error)
@@ -49,14 +49,26 @@ export async function GET(request: NextRequest) {
       const { data: { user } } = await supabase.auth.admin.getUserById(profile.id)
       if (!user?.email) continue
 
+      const { data: items } = await supabase
+        .from('clothing_items')
+        .select('id, name, category, image_url, created_at')
+        .eq('user_id', profile.id)
+        .order('created_at', { ascending: false })
+      const toLock = (items ?? []).slice(20)
+
       await sendExpiryWarningEmail({
         email: user.email,
         username: profile.username,
         language: profile.language ?? 'de',
         expiresAt: new Date(profile.premium_until),
+        itemsToLock: toLock,
       })
 
-      await supabase.from('profiles').update({ premium_expiry_warning_sent: true }).eq('id', profile.id)
+      await supabase.from('profiles').update({
+        premium_expiry_warning_sent: true,
+        pending_lock_warning_count: toLock.length,
+        pending_lock_warning_shown_at: new Date().toISOString(),
+      }).eq('id', profile.id)
       sent++
     } catch (err) {
       console.error('Expiry warning failed for', profile.id, err)
@@ -67,7 +79,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ success: true, sent, failed })
 }
 
-async function sendExpiryWarningEmail({ email, username, language, expiresAt }: { email: string; username?: string; language: string; expiresAt: Date }) {
+async function sendExpiryWarningEmail({ email, username, language, expiresAt, itemsToLock }: { email: string; username?: string; language: string; expiresAt: Date; itemsToLock: any[] }) {
   const resend = new Resend(process.env.RESEND_API_KEY)
   const isDe = language === 'de'
   const name = username || (isDe ? 'da' : 'there')
@@ -136,7 +148,21 @@ async function sendExpiryWarningEmail({ email, username, language, expiresAt }: 
                   : `your KiWardrobe Pro ends on <strong>${dateStr}</strong>. After that, you'll lose:`}
               </p>
 
-              <table cellpadding="0" cellspacing="0" style="width:100%; margin-bottom: 24px;">${rowsHtml}</table>
+             <table cellpadding="0" cellspacing="0" style="width:100%; margin-bottom: 24px;">${rowsHtml}</table>
+
+              ${itemsToLock.length > 0 ? `
+              <div style="background:#FEF2F2; border:1px solid #FECACA; border-radius:14px; padding:14px 16px; margin-bottom:24px;">
+                <p style="margin:0 0 10px; font-size:13px; font-weight:700; color:#dc2626;">
+                  ${isDe ? `🔒 ${itemsToLock.length} Kleidungsstücke würden zusätzlich gesperrt` : `🔒 ${itemsToLock.length} items would also get locked`}
+                </p>
+                <table cellpadding="0" cellspacing="0" style="width:100%;">
+                  ${itemsToLock.slice(0, 6).map((it: any) => `
+                    <tr><td style="padding:4px 0; font-size:12px; color:#7f1d1d;">${it.name ?? it.category}</td></tr>
+                  `).join('')}
+                </table>
+                ${itemsToLock.length > 6 ? `<p style="margin:6px 0 0; font-size:11px; color:#7f1d1d;">${isDe ? `+ ${itemsToLock.length - 6} weitere` : `+ ${itemsToLock.length - 6} more`}</p>` : ''}
+              </div>
+              ` : ''}
 
               <table cellpadding="0" cellspacing="0" style="width:100%; background:#FDF6E8; border-radius:14px; margin-bottom: 24px;">
                 <tr>

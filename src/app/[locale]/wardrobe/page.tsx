@@ -43,7 +43,7 @@ type ClothingItem = {
   id: string; image_url: string; category: string; color: string
   name?: string; brand?: string; style_tags: string[]
   season: string[]; purchase_date?: string; purchase_price?: number; created_at: string
-  length?: string
+  length?: string; is_locked?: boolean
 }
 
 function getTodayStartUTC(): Date {
@@ -140,11 +140,12 @@ async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
 
+  const activeCount = items.filter(i => !i.is_locked).length
   const LIMIT = isPremium ? Infinity : 20
-    if (items.length >= LIMIT) {
+    if (activeCount >= LIMIT) {
       setLimitMsg(locale === 'de'
-        ? 'Max. 20 Kleidungsstücke im Free Plan. Upgrade für unbegrenzt!'
-        : 'Max. 20 items in Free Plan. Upgrade for unlimited!')
+        ? 'Max. 20 aktive Kleidungsstücke im Free Plan. Upgrade für unbegrenzt!'
+        : 'Max. 20 active items in Free Plan. Upgrade for unlimited!')
       setTimeout(() => setLimitMsg(null), 4000)
       if (fileInputRef.current) fileInputRef.current.value = ''
       return
@@ -628,8 +629,8 @@ const catLabels: Record<string, string> = locale === 'de'
           {/* Teile-Badge oben rechts — Glas-Look wie das Wetter-Badge auf Stylist */}
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
             style={{ position: 'absolute' as const, top: '16px', right: '18px', background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '16px', padding: '10px 14px', textAlign: 'center' as const, zIndex: 2, minWidth: '70px', boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}>
-            <p style={{ fontSize: '20px', fontWeight: 800, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1 }}>
-              {items.length}{!isPremium && <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)' }}>/20</span>}
+           <p style={{ fontSize: '20px', fontWeight: 800, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1 }}>
+              {isPremium ? items.length : items.filter(i => !i.is_locked).length}{!isPremium && <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)' }}>/20</span>}
             </p>
             <p style={{ fontSize: '9px', color: 'rgba(255,255,255,0.85)', fontWeight: 600, marginTop: '2px' }}>{t('wardrobe.pieces')}</p>
           </motion.div>
@@ -863,14 +864,21 @@ const dnaLocked = !isPremium || styleDnaUsedToday || needsMoreItems
                   initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: Math.min(i * 0.03, 0.16), duration: 0.3 }}
                   whileTap={{ scale: 0.97 }}
-                  onClick={() => openItem(item)}
-                  style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden', cursor: 'pointer' }}>
-                  <div style={{ aspectRatio: '1/1', overflow: 'hidden', background: secondary }}>
+                  onClick={() => item.is_locked ? setShowUpgrade(true) : openItem(item)}
+                  style={{ background: card, border: `1px solid ${item.is_locked ? border : border}`, borderRadius: '16px', overflow: 'hidden', cursor: 'pointer', position: 'relative' as const, opacity: item.is_locked ? 0.45 : 1 }}>
+                  <div style={{ aspectRatio: '1/1', overflow: 'hidden', background: secondary, filter: item.is_locked ? 'grayscale(1)' : 'none' }}>
                     <img src={item.image_url} alt={item.name ?? item.category} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                   </div>
+                  {item.is_locked && (
+                    <div style={{ position: 'absolute' as const, top: '6px', right: '6px', width: '26px', height: '26px', borderRadius: '50%', background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <LockIcon size={13} color="#fff" />
+                    </div>
+                  )}
                   <div style={{ padding: '8px 8px 10px' }}>
                     <p style={{ fontSize: '11px', fontWeight: 700, color: text, marginBottom: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{item.name ?? item.category}</p>
-                    <p style={{ fontSize: '10px', color: muted }}>{item.color}</p>
+                    <p style={{ fontSize: '10px', color: item.is_locked ? '#f59e0b' : muted, fontWeight: item.is_locked ? 700 : 400 }}>
+                      {item.is_locked ? (locale === 'de' ? 'Gesperrt' : 'Locked') : item.color}
+                    </p>
                   </div>
                 </motion.div>
               ))}
