@@ -246,7 +246,7 @@ function isValidEmail(e: string): boolean {
       </div>
 
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-        style={{ textAlign: 'center', marginBottom: '28px', position: 'relative', zIndex: 1 }}>
+        style={{ textAlign: 'center', marginBottom: '18px', position: 'relative', zIndex: 1 }}>
         <div style={{ width: '68px', height: '68px', borderRadius: '20px', overflow: 'hidden', margin: '0 auto 14px', boxShadow: `0 8px 32px ${accent}40` }}>
           <img src="/icon-512.png" alt="KiWardrobe" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
@@ -318,7 +318,7 @@ function isValidEmail(e: string): boolean {
               <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '26px', fontWeight: 500, color: text, marginBottom: '6px', letterSpacing: '-0.02em' }}>
                 {locale === 'de' ? 'Konto erstellen' : 'Create account'}
               </h2>
-              <p style={{ color: muted, fontSize: '14px', marginBottom: '24px' }}>
+             <p style={{ color: muted, fontSize: '13px', marginBottom: '16px' }}>
                 {locale === 'de' ? 'Bereits ein Konto?' : 'Already have an account?'}{' '}
                 <Link href={'/' + locale + '/auth/login'} style={{ color: accent, fontWeight: 600, textDecoration: 'none' }}>
                   {locale === 'de' ? 'Einloggen' : 'Log in'}
@@ -328,7 +328,7 @@ function isValidEmail(e: string): boolean {
 
               <motion.button whileTap={{ scale: 0.98 }}
                 onClick={signInWithGoogle}
-                style={{ width: '100%', background: 'transparent', border: `1.5px solid ${border}`, borderRadius: '12px', padding: '13px', fontSize: '14px', fontWeight: 600, color: text, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '16px' }}>
+                style={{ width: '100%', background: 'transparent', border: `1.5px solid ${border}`, borderRadius: '12px', padding: '11px', fontSize: '14px', fontWeight: 600, color: text, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '12px' }}>
                 <svg width="18" height="18" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -338,7 +338,7 @@ function isValidEmail(e: string): boolean {
                 {locale === 'de' ? 'Mit Google registrieren' : 'Sign up with Google'}
               </motion.button>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 12px' }}>
                 <div style={{ flex: 1, height: '1px', background: border }} />
                 <p style={{ fontSize: '11px', color: muted, fontWeight: 500 }}>{locale === 'de' ? 'oder' : 'or'}</p>
                 <div style={{ flex: 1, height: '1px', background: border }} />
@@ -349,8 +349,8 @@ function isValidEmail(e: string): boolean {
                 { label: 'E-Mail', type: 'email', value: email, set: setEmail, placeholder: 'deine@email.com', hint: '', isPassword: false },
                 { label: locale === 'de' ? 'Passwort' : 'Password', type: showPassword ? 'text' : 'password', value: password, set: setPassword, placeholder: '••••••••', hint: locale === 'de' ? 'Mind. 8 Zeichen, Buchstaben & Zahlen' : 'Min. 8 characters, letters & numbers', isPassword: true },
               ].map((field, i) => (
-                <div key={i} style={{ marginBottom: i < 2 ? '12px' : '8px' }}>
-                  <label style={{ fontSize: '11px', fontWeight: 600, color: muted, display: 'block', marginBottom: '7px', letterSpacing: '0.05em', textTransform: 'uppercase' as const }}>{field.label}</label>
+               <div key={i} style={{ marginBottom: i < 2 ? '10px' : '6px' }}>
+                  <label style={{ fontSize: '10px', fontWeight: 600, color: muted, display: 'block', marginBottom: '5px', letterSpacing: '0.05em', textTransform: 'uppercase' as const }}>{field.label}</label>
                   <div style={{ position: 'relative' as const }}>
                     <input type={field.type} value={field.value} onChange={e => field.set(e.target.value)} placeholder={field.placeholder}
                       style={field.isPassword ? { ...inputStyle, paddingRight: '44px' } : inputStyle}
@@ -385,7 +385,7 @@ function isValidEmail(e: string): boolean {
                   )}
                 </div>
               ))}
-              <div style={{ marginBottom: '16px' }} />
+             <div style={{ marginBottom: '10px' }} />
 
            <motion.button whileTap={{ scale: 0.97 }} disabled={checkingEmail}
              onClick={async () => {
