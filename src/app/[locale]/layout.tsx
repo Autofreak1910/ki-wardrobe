@@ -6,6 +6,7 @@ import Script from 'next/script'
 import { routing } from '@/i18n/routing'
 import { ThemeProvider } from '@/context/ThemeContext'
 import AppWrapper from '@/components/AppWrapper'
+import CookieConsent from '@/components/CookieConsent'
 import '../globals.css'
 
 export const metadata: Metadata = {
@@ -89,6 +90,7 @@ export default async function LocaleLayout({
         <NextIntlClientProvider locale={locale} messages={messages}>
           <ThemeProvider>
             <AppWrapper>{children}</AppWrapper>
+            <CookieConsent />
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>
