@@ -19,6 +19,13 @@ export function loadGoogleAnalytics() {
   gtag('consent', 'update', {
     'analytics_storage': 'granted'
   })
+  // WICHTIG: der allererste page_view beim Laden wurde noch mit 'denied' gesendet
+  // und zaehlt deshalb nicht. Nach dem Consent-Update muss manuell ein neuer
+  // page_view gesendet werden, sonst bekommt GA nie einen Hit mit granted-Consent.
+  gtag('event', 'page_view', {
+    page_location: window.location.href,
+    page_path: window.location.pathname,
+  })
 }
 
 export default function CookieConsent() {
