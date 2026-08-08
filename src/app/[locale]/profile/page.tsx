@@ -685,26 +685,6 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
     )}
   </div>
 </motion.div>
-{/* Warnung: Items werden bald gesperrt (Pro laeuft in Kuerze ab) */}
-{isPremium && (profile?.pending_lock_warning_count ?? 0) > 0 && (
-  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-    style={{ background: 'linear-gradient(135deg, rgba(239,68,68,0.14), rgba(249,115,22,0.06))', border: '1px solid rgba(239,68,68,0.35)', borderRadius: '16px', padding: '14px 16px', marginBottom: '12px' }}>
-    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-      <HourglassIcon size={18} color="#ef4444" />
-     <p style={{ fontSize: '13px', fontWeight: 700, color: '#ef4444' }}>
-        {locale === 'de'
-          ? `Dein Pro läuft bald ab — ${profile?.pending_lock_warning_count} deiner Kleidungsstücke werden dann gesperrt`
-          : `Your Pro expires soon — ${profile?.pending_lock_warning_count} of your items will then be locked`}
-      </p>
-    </div>
-    <motion.button whileTap={{ scale: 0.97 }}
-      onClick={startCheckout}
-      style={{ width: '100%', background: `linear-gradient(135deg, ${gold}, #E8B45E)`, border: 'none', borderRadius: '10px', padding: '10px', fontSize: '13px', fontWeight: 700, color: '#24211B', cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
-      ✦ {locale === 'de' ? 'Jetzt verlängern' : 'Renew now'}
-    </motion.button>
-  </motion.div>
-)}
-
 {/* Upgrade Banner */}
 {!isPremium && (
   <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}

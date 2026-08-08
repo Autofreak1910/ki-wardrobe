@@ -77,6 +77,8 @@ const [limitMsg, setLimitMsg] = useState<string | null>(null)
 const [isPremium, setIsPremium] = useState(wardrobeCache?.isPremium ?? false)
   const [multiScansThisWeek, setMultiScansThisWeek] = useState(0)
 const [showUpgrade, setShowUpgrade] = useState(false)
+const [pendingLockCount, setPendingLockCount] = useState(0)
+const [showLockPreview, setShowLockPreview] = useState(false)
 const [dna, setDna] = useState<any>(null)
   const [dnaLoading, setDnaLoading] = useState(false)
   const [showDna, setShowDna] = useState(false)
@@ -117,6 +119,8 @@ async function loadItems() {
     if (data) setItems(data)
 const { data: stillPremium } = await supabase.rpc('check_and_expire_premium', { p_user_id: session.user.id })
     setIsPremium(stillPremium ?? false)
+    const { data: profileData } = await supabase.from('profiles').select('pending_lock_warning_count').eq('id', session.user.id).single()
+    setPendingLockCount(profileData?.pending_lock_warning_count ?? 0)
     const todayStart = getTodayStartUTC()
     const now = new Date()
     const day = now.getUTCDay()
@@ -597,12 +601,58 @@ const catLabels: Record<string, string> = locale === 'de'
               maxWidth: '320px', textAlign: 'center' as const,
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
             }}>
-            <LockIcon size={13} color="#fff" /> {limitMsg}
+           <LockIcon size={13} color="#fff" /> {limitMsg}
           </motion.div>
         )}
       </AnimatePresence>
 
       <main style={{ flex: 1, overflowY: 'auto' as const, maxWidth: '900px', width: '100%', margin: '0 auto', padding: '68px 0 108px', position: 'relative', zIndex: 1 }}>
+
+        {isPremium && pendingLockCount > 0 && (
+          <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+            style={{ margin: '0 16px 14px', background: 'linear-gradient(135deg, rgba(239,68,68,0.14), rgba(249,115,22,0.06))', border: '1px solid rgba(239,68,68,0.35)', borderRadius: '16px', overflow: 'hidden' }}>
+            <motion.div whileTap={{ scale: 0.99 }}
+              onClick={() => setShowLockPreview(v => !v)}
+              style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+              <span style={{ fontSize: '20px' }}>⏰</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontSize: '13px', fontWeight: 700, color: '#ef4444', marginBottom: '1px' }}>
+                  {locale === 'de'
+                    ? `Pro läuft bald ab — ${pendingLockCount} Teile werden dann gesperrt`
+                    : `Pro expires soon — ${pendingLockCount} items will then be locked`}
+                </p>
+                <p style={{ fontSize: '11px', color: muted }}>
+                  {locale === 'de' ? 'Tippen für Details' : 'Tap for details'}
+                </p>
+              </div>
+              <motion.span animate={{ rotate: showLockPreview ? 180 : 0 }} style={{ color: '#ef4444', fontSize: '13px', flexShrink: 0 }}>▾</motion.span>
+            </motion.div>
+
+            <AnimatePresence>
+              {showLockPreview && (
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.25 }} style={{ overflow: 'hidden' }}>
+                  <div style={{ padding: '0 16px 16px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                    {items.filter(i => !i.is_locked).slice(20).slice(0, pendingLockCount).map(item => (
+                      <div key={item.id} style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(239,68,68,0.25)' }}>
+                        <div style={{ aspectRatio: '1/1', overflow: 'hidden' }}>
+                          <img src={item.image_url} alt={item.name ?? item.category} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ padding: '0 16px 16px' }}>
+                    <motion.button whileTap={{ scale: 0.97 }}
+                      onClick={() => setShowUpgrade(true)}
+                      style={{ width: '100%', padding: '11px', borderRadius: '10px', border: 'none', background: `linear-gradient(135deg, ${goldAccent}, #C98A3A)`, color: '#fff', fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+                      ✦ {locale === 'de' ? 'Jetzt verlängern' : 'Renew now'}
+                    </motion.button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        )}
 
         {/* Hero Banner — Walk-in Closet */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
