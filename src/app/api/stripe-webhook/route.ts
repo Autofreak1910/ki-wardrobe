@@ -36,6 +36,16 @@ function getPeriodEnd(subscription: Stripe.Subscription): number {
   return periodEnd
 }
 
+// Rundet einen Unix-Timestamp auf 23:59:59 Uhr desselben Tages hoch.
+// Sorgt dafuer, dass Premium-Zugang immer bis Tagesende laeuft statt zu einer
+// "krummen" Uhrzeit mitten am Tag -- entspricht der ueblichen Nutzererwartung
+// (wie bei Netflix/Spotify), auch wenn Stripe intern exakt zur Abschluss-Uhrzeit abrechnet.
+function roundUpToEndOfDay(unixSeconds: number): Date {
+  const d = new Date(unixSeconds * 1000)
+  d.setHours(23, 59, 59, 999)
+  return d
+}
+
   // --- Checkout abgeschlossen: erstes Abo-Setup -----------------------------------
   // WICHTIG: premium_until kommt jetzt direkt von Stripe (current_period_end) statt
   // fix "+1 Monat" -- das beruecksichtigt automatisch eine evtl. laufende Trial-Zeit
@@ -47,7 +57,7 @@ function getPeriodEnd(subscription: Stripe.Subscription): number {
     if (userId && session.subscription) {
       try {
         const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
-        const premiumUntil = new Date(getPeriodEnd(subscription) * 1000)
+        const premiumUntil = roundUpToEndOfDay(getPeriodEnd(subscription))
 
         const { error: updateError } = await supabase.from('profiles').update({
           is_premium: true,
@@ -100,7 +110,7 @@ function getPeriodEnd(subscription: Stripe.Subscription): number {
         const subscription = await stripe.subscriptions.retrieve(subscriptionId)
         const userId = subscription.metadata?.userId
         if (userId) {
-          const premiumUntil = new Date(getPeriodEnd(subscription) * 1000)
+          const premiumUntil = roundUpToEndOfDay(getPeriodEnd(subscription))
           const { error: updateError } = await supabase.from('profiles').update({
             is_premium: true,
             premium_until: premiumUntil.toISOString(),

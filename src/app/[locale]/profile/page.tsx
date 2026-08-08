@@ -620,8 +620,8 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
       {isPremium
         ? (profile?.premium_until
             ? (locale === 'de'
-                ? `Aktiv bis ${new Date(profile.premium_until).toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' })}`
-                : `Active until ${new Date(profile.premium_until).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}`)
+                ? `Aktiv bis Ende ${new Date(profile.premium_until).toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' })}`
+                : `Active until end of ${new Date(profile.premium_until).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}`)
             : (locale === 'de' ? 'Unbegrenzt aktiv' : 'Active, no end date'))
         : (locale === 'de' ? 'Kostenlos für immer' : 'Free forever')}
     </p>
@@ -661,8 +661,8 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
       <div style={{ background: isDark ? 'rgba(239,68,68,0.1)' : '#fef2f2', border: `1px solid ${isDark ? 'rgba(239,68,68,0.2)' : '#fecaca'}`, borderRadius: '12px', padding: '12px 14px' }}>
         <p style={{ fontSize: '12px', fontWeight: 700, color: '#ef4444', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
           <HourglassIcon size={12} color="#ef4444" /> {locale === 'de'
-            ? daysLeft <= 0 ? 'Läuft heute ab!' : `Läuft am ${new Date(profile!.premium_until!).toLocaleDateString('de-DE', { day: 'numeric', month: 'long' })} ab`
-            : daysLeft <= 0 ? 'Expires today!' : `Expires on ${new Date(profile!.premium_until!).toLocaleDateString('en-US', { day: 'numeric', month: 'long' })}`}
+            ? daysLeft <= 0 ? 'Läuft heute Abend ab!' : `Läuft am ${new Date(profile!.premium_until!).toLocaleDateString('de-DE', { day: 'numeric', month: 'long' })}, 23:59 Uhr ab`
+            : daysLeft <= 0 ? 'Expires tonight!' : `Expires on ${new Date(profile!.premium_until!).toLocaleDateString('en-US', { day: 'numeric', month: 'long' })} at 11:59 PM`}
         </p>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button onClick={async () => {
