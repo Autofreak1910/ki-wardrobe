@@ -126,7 +126,7 @@ function StepIcon({ name, size = 56, color = 'currentColor' }: { name: string; s
     default: return <UploadIcon size={size} color={color} />
   }
 }
-type ClothingItem = { id: string; image_url: string; category: string; color: string; name?: string; brand?: string }
+type ClothingItem = { id: string; image_url: string; category: string; color: string; name?: string; brand?: string; is_locked?: boolean }
 function getCategoryLabel(category: string): string {
   const map: Record<string, string> = {
     tops: 'shirt',
@@ -502,9 +502,11 @@ const fileRef = useRef<HTMLInputElement>(null)
         freshProfile = { ...profileRes.data, is_premium: stillPremium ?? false, used_this_period: count ?? 0, period_limit: LIMIT }
         setProfile(freshProfile)
       }
-      if (itemsRes.data) setItems(itemsRes.data)
+      // Gesperrte Items (durch Free-Downgrade) stehen fuer Try-On nicht zur Verfuegung
+      const usableItems = (itemsRes.data ?? []).filter((i: any) => !i.is_locked)
+      setItems(usableItems)
       if (selfiesRes.data) setSavedSelfies(selfiesRes.data)
-      avatarCache = { profile: freshProfile, items: itemsRes.data ?? [], savedSelfies: selfiesRes.data ?? [] }
+      avatarCache = { profile: freshProfile, items: usableItems, savedSelfies: selfiesRes.data ?? [] }
     } catch (err) {
       console.error('loadData failed:', err)
     } finally {
