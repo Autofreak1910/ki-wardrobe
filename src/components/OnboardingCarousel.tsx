@@ -49,13 +49,13 @@ return (
         }}>
         <motion.div
           layout
-          animate={{ height: answer ? '9dvh' : '17dvh' }}
+          animate={{ height: answer ? '7dvh' : '12dvh' }}
           transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-          style={{ position: 'relative', overflow: 'hidden', minHeight: answer ? 64 : 110, maxHeight: answer ? 100 : 190 }}>
+          style={{ position: 'relative', overflow: 'hidden', minHeight: answer ? 52 : 84, maxHeight: answer ? 80 : 140 }}>
           <img src={imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 100%)' }} />
         </motion.div>
-        <motion.div layout style={{ padding: answer ? '12px 18px 14px' : '20px 20px 24px' }}>
+        <motion.div layout style={{ padding: answer ? '10px 18px 12px' : '14px 20px 16px' }}>
           <motion.h2 layout
             style={{ fontFamily: "'Fraunces', serif", fontSize: answer ? 'clamp(14px, 3.8vw, 16px)' : 'clamp(18px, 5.2vw, 22px)', fontWeight: 500, color: '#24211B', marginBottom: answer ? '6px' : 'clamp(10px, 2.2dvh, 16px)', letterSpacing: '-0.02em', textAlign: 'center' as const, lineHeight: 1.3, transition: 'font-size 0.4s' }}>
             {question}
@@ -146,7 +146,7 @@ export default function OnboardingCarousel({ onDone }: { onDone: () => void }) {
         {isDe ? 'Überspringen' : 'Skip'}
       </button>
 
-    <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto' as const, overflowX: 'hidden' as const, padding: 'clamp(48px, 9dvh, 70px) 0 16px', WebkitOverflowScrolling: 'touch' as any, overscrollBehavior: 'contain' as const }}>
+    <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto' as const, overflowX: 'hidden' as const, padding: 'clamp(36px, 6.5dvh, 56px) 0 12px', WebkitOverflowScrolling: 'touch' as any, overscrollBehavior: 'contain' as const }}>
         <AnimatePresence mode="wait" initial={false}>
 
           {index === 0 && (
