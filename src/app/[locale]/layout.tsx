@@ -84,7 +84,7 @@ export default async function LocaleLayout({
           strategy="beforeInteractive"
         />
         <Script id="ga-config" strategy="beforeInteractive">
-          {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-S08985T3YF');`}
+          {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-S08985T3YF',{send_page_view:false});`}
         </Script>
 
         <NextIntlClientProvider locale={locale} messages={messages}>

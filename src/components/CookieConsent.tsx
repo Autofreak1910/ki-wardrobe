@@ -5,26 +5,34 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useTheme } from '@/context/ThemeContext'
 import { useLocale } from 'next-intl'
 
-// Diese Funktion kann von aussen aufgerufen werden um zu pruefen ob GA geladen werden darf
+const CONSENT_KEY = 'kw_cookie_consent_v6'
+
+// Prueft ob der Nutzer Analytics zugestimmt hat
 export function hasAnalyticsConsent(): boolean {
   if (typeof window === 'undefined') return false
-  return localStorage.getItem('kw_cookie_consent') === 'accepted'
+  return localStorage.getItem(CONSENT_KEY) === 'accepted'
 }
 
-// GA Consent freigeben (Script ist schon im Head, sammelt aber erst nach Consent Daten)
+// GA Consent freigeben. Das gtag-Script liegt schon im <head> (Layout),
+// sammelt aber erst nach diesem Consent-Update wirklich Daten.
 export function loadGoogleAnalytics() {
   if (typeof window === 'undefined') return
-  ;(window as any).dataLayer = (window as any).dataLayer || []
-  function gtag(...args: any[]) { (window as any).dataLayer.push(args) }
-  gtag('consent', 'update', {
-    'analytics_storage': 'granted'
-  })
-  // WICHTIG: der allererste page_view beim Laden wurde noch mit 'denied' gesendet
-  // und zaehlt deshalb nicht. Nach dem Consent-Update muss manuell ein neuer
-  // page_view gesendet werden, sonst bekommt GA nie einen Hit mit granted-Consent.
+  // WICHTIG: die globale gtag-Funktion nutzen (dataLayer.push(arguments)).
+  // KEINE lokale Funktion mit push(args) bauen -- ein Array wird von GA
+  // anders interpretiert als das echte arguments-Objekt und der Hit zaehlt nicht.
+  const w = window as any
+  w.dataLayer = w.dataLayer || []
+  function gtag() { w.dataLayer.push(arguments) }
+
+  gtag('consent', 'update', { analytics_storage: 'granted' })
+
+  // Der automatische page_view beim Laden wurde mit send_page_view:false
+  // unterdrueckt (siehe Layout). Deshalb hier manuell den ersten echten
+  // page_view mit granted-Consent nachfeuern, sonst sieht GA nie einen Hit.
   gtag('event', 'page_view', {
     page_location: window.location.href,
     page_path: window.location.pathname,
+    page_title: document.title,
   })
 }
 
@@ -43,25 +51,26 @@ export default function CookieConsent() {
   const accent = isDark ? '#5C82A0' : '#355C7D'
 
   useEffect(() => {
-    const consent = localStorage.getItem('kw_cookie_consent_v6')
+    const consent = localStorage.getItem(CONSENT_KEY)
     if (consent === 'accepted') {
+      // Nutzer hat frueher schon zugestimmt -> GA sofort wieder freischalten
       loadGoogleAnalytics()
     } else if (!consent) {
-      // Noch keine Entscheidung getroffen -> Banner zeigen
+      // Noch keine Entscheidung -> Banner nach kurzer Verzoegerung zeigen
       const timer = setTimeout(() => setShow(true), 1500)
       return () => clearTimeout(timer)
     }
-    // consent === 'declined' -> nichts tun, kein Banner
+    // consent === 'declined' -> nichts tun, kein Banner, kein GA
   }, [])
 
   function accept() {
-  localStorage.setItem('kw_cookie_consent_v6', 'accepted')
+    localStorage.setItem(CONSENT_KEY, 'accepted')
     loadGoogleAnalytics()
     setShow(false)
   }
 
   function decline() {
-  localStorage.setItem('kw_cookie_consent_v6', 'declined')
+    localStorage.setItem(CONSENT_KEY, 'declined')
     setShow(false)
   }
 
@@ -112,7 +121,7 @@ export default function CookieConsent() {
                 exit={{ height: 0, opacity: 0 }}
                 style={{ overflow: 'hidden', marginBottom: '12px' }}>
                 <div style={{ background: isDark ? 'rgba(255,255,255,0.04)' : '#faf8f5', borderRadius: '12px', padding: '12px 14px', border: `1px solid ${border}` }}>
-                  <p style={{ fontSize: '11px', fontWeight: 700, color: text, marginBottom: '8px', textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>
+                  <p style={{ fontSize: '11px', fontWeight: 700, color: text, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                     {de ? 'Was wird gespeichert:' : 'What is stored:'}
                   </p>
                   <div style={{ fontSize: '11px', color: muted, lineHeight: 1.6 }}>
