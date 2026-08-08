@@ -36,22 +36,30 @@ function QuestionReveal({
   border: string
   isDark: boolean
 }) {
-  return (
+return (
     <div style={{ width: '100%' }}>
-      {/* Weisse, runde Frage-Card mit echtem Foto */}
-      <div style={{
-        background: '#ffffff', borderRadius: '28px', overflow: 'hidden',
-        marginBottom: answer ? '18px' : '0',
-        boxShadow: isDark ? '0 12px 40px rgba(0,0,0,0.4)' : '0 12px 40px rgba(53,92,125,0.14)',
-      }}>
-        <div style={{ position: 'relative' as const, height: '160px', overflow: 'hidden' }}>
+      {/* Frage-Card: schrumpft nach der Antwort deutlich zusammen */}
+      <motion.div
+        layout
+        transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+        style={{
+          background: '#ffffff', borderRadius: '24px', overflow: 'hidden',
+          marginBottom: answer ? '14px' : '0',
+          boxShadow: isDark ? '0 12px 40px rgba(0,0,0,0.4)' : '0 12px 40px rgba(53,92,125,0.14)',
+        }}>
+        <motion.div
+          layout
+          animate={{ height: answer ? 88 : 160 }}
+          transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+          style={{ position: 'relative', overflow: 'hidden' }}>
           <img src={imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 100%)' }} />
-        </div>
-        <div style={{ padding: '20px 20px 24px' }}>
-          <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '20px', fontWeight: 500, color: '#24211B', marginBottom: '16px', letterSpacing: '-0.02em', textAlign: 'center' as const, lineHeight: 1.35 }}>
+        </motion.div>
+        <motion.div layout style={{ padding: answer ? '12px 18px 14px' : '20px 20px 24px' }}>
+          <motion.h2 layout
+            style={{ fontFamily: "'Fraunces', serif", fontSize: answer ? '15px' : '20px', fontWeight: 500, color: '#24211B', marginBottom: answer ? '6px' : '16px', letterSpacing: '-0.02em', textAlign: 'center' as const, lineHeight: 1.3, transition: 'font-size 0.4s' }}>
             {question}
-          </h2>
+          </motion.h2>
 
           {!answer && (
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' as const }}>
@@ -66,19 +74,19 @@ function QuestionReveal({
           )}
 
           {answer && (
-            <p style={{ fontSize: '12px', color: '#8C8776', textAlign: 'center' as const, fontWeight: 600 }}>
-              {'"' + answer + '"'}
+            <p style={{ fontSize: '11px', color: accent, textAlign: 'center' as const, fontWeight: 700 }}>
+              ✓ {'"' + answer + '"'}
             </p>
           )}
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       <AnimatePresence>
         {answer && (
           <motion.div
-            initial={{ opacity: 0, y: 16, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
           >
             {children}
           </motion.div>
