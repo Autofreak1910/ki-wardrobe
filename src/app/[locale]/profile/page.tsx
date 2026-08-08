@@ -480,7 +480,13 @@ async function generateStyleDna() {
 const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
   const isPremium = profile?.is_premium ?? false
   const daysLeft = profile?.premium_until
-    ? Math.ceil((new Date(profile.premium_until).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    ? (() => {
+        const now = new Date()
+        const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+        const target = new Date(profile.premium_until)
+        const targetMidnight = new Date(target.getFullYear(), target.getMonth(), target.getDate())
+        return Math.round((targetMidnight.getTime() - todayMidnight.getTime()) / (1000 * 60 * 60 * 24))
+      })()
     : null
   const genderLabel = (g?: string) => {
     if (!g) return '—'
@@ -655,8 +661,8 @@ const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
       <div style={{ background: isDark ? 'rgba(239,68,68,0.1)' : '#fef2f2', border: `1px solid ${isDark ? 'rgba(239,68,68,0.2)' : '#fecaca'}`, borderRadius: '12px', padding: '12px 14px' }}>
         <p style={{ fontSize: '12px', fontWeight: 700, color: '#ef4444', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
           <HourglassIcon size={12} color="#ef4444" /> {locale === 'de'
-            ? daysLeft <= 0 ? 'Läuft heute ab!' : `Läuft in ${daysLeft} Tag${daysLeft > 1 ? 'en' : ''} ab`
-            : daysLeft <= 0 ? 'Expires today!' : `Expires in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`}
+            ? daysLeft <= 0 ? 'Läuft heute ab!' : `Läuft am ${new Date(profile!.premium_until!).toLocaleDateString('de-DE', { day: 'numeric', month: 'long' })} ab`
+            : daysLeft <= 0 ? 'Expires today!' : `Expires on ${new Date(profile!.premium_until!).toLocaleDateString('en-US', { day: 'numeric', month: 'long' })}`}
         </p>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button onClick={async () => {
