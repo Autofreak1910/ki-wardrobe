@@ -62,7 +62,7 @@ async function signInWithGoogle() {
     window.location.replace(s.join('/'))
   }
   return (
-    <div style={{ minHeight: '100dvh', background: bg, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', fontFamily: "'Poppins', 'Inter', sans-serif", padding: '24px', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ position: 'fixed', inset: 0, height: '100dvh', background: bg, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'flex-start', fontFamily: "'Poppins', 'Inter', sans-serif", padding: 'max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom))', position: 'relative', overflowY: 'auto' as const, overflowX: 'hidden' as const, overscrollBehavior: 'contain' as const, WebkitOverflowScrolling: 'touch' as any }}>
 
       {/* Background glows */}
       <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
