@@ -153,13 +153,15 @@ export function InstallInstructionsModal({
 
   const stepsIOSSafari = locale === 'de'
     ? [
-        { icon: '📤', title: 'Teilen-Icon antippen', desc: 'Ganz unten in der Mitte der Leiste (das Viereck mit dem Pfeil nach oben) — auf manchen iPhones erst nach kurzem Antippen der Adresszeile sichtbar, falls die Leiste ausgeblendet ist.' },
+        { icon: '⋯', title: '"•••"-Menü öffnen', desc: 'Unten rechts in der Leiste auf die drei Punkte "•••" tippen. (Falls stattdessen direkt ein Teilen-Symbol — Viereck mit Pfeil nach oben — in der Mitte der Leiste sichtbar ist, kannst du diesen Schritt überspringen und direkt darauf tippen.)' },
+        { icon: '📤', title: '"Teilen" antippen', desc: 'Im aufklappenden Menü ganz oben auf "Teilen" tippen.' },
         { icon: '📜', title: 'Im Menü nach unten scrollen', desc: 'Es öffnet sich eine Liste mit App-Vorschlägen und Aktionen. "Zum Home-Bildschirm" steht meist erst weiter unten — so lange scrollen, bis du es siehst.' },
         { icon: '➕', title: '"Zum Home-Bildschirm" wählen', desc: 'Antippen, dann oben rechts auf "Hinzufügen" tippen.' },
         { icon: '✅', title: 'Fertig!', desc: 'KiWardrobe erscheint jetzt als Icon auf deinem Home-Bildschirm — startet ohne Browserleiste, wie eine echte App.' },
       ]
     : [
-        { icon: '📤', title: 'Tap the Share icon', desc: 'Bottom center of the toolbar (square with an arrow pointing up) — if the toolbar is hidden, tap the address bar first to bring it back.' },
+        { icon: '⋯', title: 'Open the "•••" menu', desc: 'Tap the three dots "•••" in the bottom right of the toolbar. (If a Share icon — square with an arrow pointing up — is already visible in the center of the toolbar, skip this step and tap that directly.)' },
+        { icon: '📤', title: 'Tap "Share"', desc: 'In the menu that opens, tap "Share" at the top.' },
         { icon: '📜', title: 'Scroll down in the menu', desc: 'A list of apps and actions opens. "Add to Home Screen" is usually further down — keep scrolling until you see it.' },
         { icon: '➕', title: 'Tap "Add to Home Screen"', desc: 'Then tap "Add" in the top right corner.' },
         { icon: '✅', title: 'Done!', desc: 'KiWardrobe now appears as an icon on your home screen — opens without the browser bar, just like a native app.' },
