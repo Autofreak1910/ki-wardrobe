@@ -408,19 +408,37 @@ const chosenNames = chosenItems.map((item: any) => item.name ?? item.category)
 
       const hasSkirtOrDress = chosenItems.some((item: any) => item.category === 'roecke' || item.category === 'kleider')
 
-      let prompt = ''
+    let prompt = ''
       if (isEnglish) {
-        prompt = 'You are a fashion stylist. The user will wear exactly these items for "' + occasion + '": ' + chosenDescriptions + '. Weather: ' + weather + '. '
-        prompt += 'Write a short, natural one-sentence reasoning (max 25 words) why this combination works together (colors, style, weather), naturally mentioning the temperature.'
-        if (hasSkirtOrDress) {
-          prompt += ' If a skirt or dress length is mentioned, factor it into the reasoning (e.g. a short length with cold weather, or a long length being elegant for the occasion).'
+        prompt = 'You are a fashion stylist. The user will wear exactly these items for "' + occasion + '": ' + chosenDescriptions + '. '
+        if (useWeather) {
+          prompt += 'Weather: ' + weather + '. '
+          prompt += 'Write a short, natural one-sentence reasoning (max 25 words) why this combination works together (colors, style, weather), naturally mentioning the temperature.'
+          if (hasSkirtOrDress) {
+            prompt += ' If a skirt or dress length is mentioned, factor it into the reasoning (e.g. a short length with cold weather, or a long length being elegant for the occasion).'
+          }
+        } else {
+          // Wetter-Toggle ist aus -- Begruendung darf keine Temperatur/Wetterdaten
+          // erwaehnen, sonst wirkt es widerspruechlich zum ausgeschalteten Schalter.
+          prompt += 'Write a short, natural one-sentence reasoning (max 25 words) why this combination works together, focusing only on colors and style. Do NOT mention weather or temperature.'
+          if (hasSkirtOrDress) {
+            prompt += ' If a skirt or dress length is mentioned, you may factor it into the reasoning in terms of style only (e.g. elegant for the occasion) -- not weather.'
+          }
         }
         prompt += ' Respond ONLY with JSON: {"reasoning": "your text here"}'
       } else {
-        prompt = 'Du bist ein Fashion-Stylist. Der Nutzer traegt genau diese Teile fuer "' + occasion + '": ' + chosenDescriptions + '. Wetter: ' + weather + '. '
-        prompt += 'Schreib eine kurze, natuerliche ein-Satz-Begruendung (max 25 Woerter) warum diese Kombination zusammenpasst (Farben, Stil, Wetter), erwaehne dabei natuerlich die Temperatur.'
-        if (hasSkirtOrDress) {
-          prompt += ' Falls eine Rock- oder Kleid-Laenge angegeben ist, beziehe sie in die Begruendung mit ein (z.B. eine kurze Laenge bei kaltem Wetter oder eine lange Laenge als elegant fuer den Anlass).'
+        prompt = 'Du bist ein Fashion-Stylist. Der Nutzer traegt genau diese Teile fuer "' + occasion + '": ' + chosenDescriptions + '. '
+        if (useWeather) {
+          prompt += 'Wetter: ' + weather + '. '
+          prompt += 'Schreib eine kurze, natuerliche ein-Satz-Begruendung (max 25 Woerter) warum diese Kombination zusammenpasst (Farben, Stil, Wetter), erwaehne dabei natuerlich die Temperatur.'
+          if (hasSkirtOrDress) {
+            prompt += ' Falls eine Rock- oder Kleid-Laenge angegeben ist, beziehe sie in die Begruendung mit ein (z.B. eine kurze Laenge bei kaltem Wetter oder eine lange Laenge als elegant fuer den Anlass).'
+          }
+        } else {
+          prompt += 'Schreib eine kurze, natuerliche ein-Satz-Begruendung (max 25 Woerter) warum diese Kombination zusammenpasst, beziehe dich dabei NUR auf Farben und Stil. Erwaehne KEIN Wetter und KEINE Temperatur.'
+          if (hasSkirtOrDress) {
+            prompt += ' Falls eine Rock- oder Kleid-Laenge angegeben ist, beziehe sie nur stilistisch mit ein (z.B. elegant fuer den Anlass) -- nicht wetterbedingt.'
+          }
         }
         prompt += ' Antworte NUR mit JSON: {"reasoning": "dein Text hier"}'
       }
