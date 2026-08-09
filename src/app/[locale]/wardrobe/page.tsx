@@ -71,6 +71,7 @@ const [pendingLengthItem, setPendingLengthItem] = useState<{ analysis: any; publ
   const [selectedItem, setSelectedItem] = useState<ClothingItem | null>(null)
 const [editDate, setEditDate] = useState('')
   const [editPrice, setEditPrice] = useState('')
+  const [editCategory, setEditCategory] = useState('')
   const [editLength, setEditLength] = useState('')
   const [saving, setSaving] = useState(false)
 const [limitMsg, setLimitMsg] = useState<string | null>(null)
@@ -500,11 +501,16 @@ const res = await fetch('/api/style-dna', {
 async function handleSaveDetails() {
     if (!selectedItem) return
     setSaving(true)
-    const isSkirtOrDress = selectedItem.category === 'roecke' || selectedItem.category === 'kleider'
+    const finalCategory = editCategory || selectedItem.category
+    const isSkirtOrDress = finalCategory === 'roecke' || finalCategory === 'kleider'
     await supabase.from('clothing_items').update({
       purchase_date: editDate || null,
       purchase_price: editPrice ? parseFloat(editPrice) : null,
-      ...(isSkirtOrDress ? { length: editLength || null } : {}),
+      category: finalCategory,
+      // Laenge nur behalten wenn's noch ein Rock/Kleid ist -- falls die Kategorie
+      // manuell auf was anderes geaendert wird, ergibt eine gespeicherte Laenge
+      // (kurz/midi/lang) keinen Sinn mehr und wird zurueckgesetzt.
+      length: isSkirtOrDress ? (editLength || null) : null,
     }).eq('id', selectedItem.id)
     setSaving(false); setSelectedItem(null); loadItems()
   }
@@ -551,6 +557,7 @@ function openItem(item: ClothingItem) {
     setEditDate(item.purchase_date ?? '')
     setEditPrice(item.purchase_price?.toString() ?? '')
     setEditLength(item.length ?? '')
+    setEditCategory(item.category)
   }
 
 const catLabels: Record<string, string> = locale === 'de'
@@ -966,13 +973,18 @@ const dnaLocked = !isPremium || styleDnaUsedToday || needsMoreItems
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '20px', fontWeight: 400, color: text, marginBottom: '4px', letterSpacing: '-0.02em' }}>{selectedItem.name}</h2>
                   {selectedItem.brand && <p style={{ fontSize: '13px', color: accent, fontWeight: 600, marginBottom: '8px' }}>{selectedItem.brand}</p>}
-                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' as const }}>
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' as const, alignItems: 'center' }}>
                     <span style={{ fontSize: '11px', fontWeight: 500, color: muted, background: accentDim, border: `1px solid ${border}`, borderRadius: '100px', padding: '3px 10px' }}>{selectedItem.color}</span>
-                    <span style={{ fontSize: '11px', fontWeight: 500, color: muted, background: accentDim, border: `1px solid ${border}`, borderRadius: '100px', padding: '3px 10px' }}>{catLabels[selectedItem.category] ?? selectedItem.category}</span>
+                    <select value={editCategory} onChange={e => setEditCategory(e.target.value)}
+                      style={{ fontSize: '11px', fontWeight: 600, color: accent, background: accentDim, border: `1px solid ${accent}`, borderRadius: '100px', padding: '3px 8px 3px 10px', fontFamily: "'Poppins', 'Inter', sans-serif", outline: 'none', cursor: 'pointer' }}>
+                      {categories.filter(c => c !== 'all').map(c => (
+                        <option key={c} value={c}>{catLabels[c]}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
               </div>
-<div style={{ display: 'flex', gap: '18px', marginBottom: (selectedItem.category === 'roecke' || selectedItem.category === 'kleider') ? '18px' : '26px' }}>
+<div style={{ display: 'flex', gap: '18px', marginBottom: (editCategory === 'roecke' || editCategory === 'kleider') ? '18px' : '26px' }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <label style={{ fontSize: '11px', fontWeight: 600, color: muted, display: 'block', marginBottom: '7px', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>{t('wardrobe.purchaseDate')}</label>
                   <input type="date" value={editDate} onChange={e => setEditDate(e.target.value)}
@@ -985,7 +997,7 @@ const dnaLocked = !isPremium || styleDnaUsedToday || needsMoreItems
                 </div>
               </div>
 
-              {(selectedItem.category === 'roecke' || selectedItem.category === 'kleider') && (
+              {(editCategory === 'roecke' || editCategory === 'kleider') && (
                 <div style={{ marginBottom: '26px' }}>
                   <label style={{ fontSize: '11px', fontWeight: 600, color: muted, display: 'block', marginBottom: '7px', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>
                     {locale === 'de' ? 'Länge' : 'Length'}
