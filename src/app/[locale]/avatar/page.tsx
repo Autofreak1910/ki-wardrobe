@@ -541,19 +541,37 @@ async function deleteAvatar(avatarId: string, imageUrl: string) {
     setGalleryLoading(false)
   }
 
-  function handleSelfie(e: React.ChangeEvent<HTMLInputElement>) {
+function handleSelfie(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     const reader = new FileReader()
     reader.onload = () => {
       const img = new Image()
       img.onload = () => {
+        // Bild auf eine vernuenftige maximale Kantenlaenge verkleinern, bevor
+        // es als Base64 verschickt wird. Ohne das kann ein Foto von einem
+        // hochaufloesenden iPhone (z.B. Pro Max) als Base64-String 10-15+ MB
+        // gross werden -- das reisst das Body-Size-Limit von Vercels
+        // Serverless Functions (~4.5 MB) und fuehrt zu kryptischen
+        // "String matched nicht erwartetes Muster"-Fehlern beim Speichern.
+        const MAX_DIMENSION = 1280
+        let targetWidth = img.naturalWidth
+        let targetHeight = img.naturalHeight
+        if (targetWidth > MAX_DIMENSION || targetHeight > MAX_DIMENSION) {
+          if (targetWidth > targetHeight) {
+            targetHeight = Math.round((targetHeight / targetWidth) * MAX_DIMENSION)
+            targetWidth = MAX_DIMENSION
+          } else {
+            targetWidth = Math.round((targetWidth / targetHeight) * MAX_DIMENSION)
+            targetHeight = MAX_DIMENSION
+          }
+        }
         const canvas = document.createElement('canvas')
-        canvas.width = img.naturalWidth
-        canvas.height = img.naturalHeight
+        canvas.width = targetWidth
+        canvas.height = targetHeight
         const ctx = canvas.getContext('2d')!
-        ctx.drawImage(img, 0, 0)
-        setSelfie(canvas.toDataURL('image/jpeg', 0.9))
+        ctx.drawImage(img, 0, 0, targetWidth, targetHeight)
+        setSelfie(canvas.toDataURL('image/jpeg', 0.85))
         setJustUploadedNew(true)
       }
       img.src = reader.result as string
