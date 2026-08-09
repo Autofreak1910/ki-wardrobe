@@ -78,9 +78,18 @@ const categoryConfig = [
     icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3h18v4l-2 6h-4l-1-4-1 4H8l-2-6V3z"/></svg> },
   { key: 'roecke', labelDe: 'Rock', labelEn: 'Skirt',
     icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3h8l1 5-9 13H8L4 8l4-5z"/><path d="M8 3c0 2 1.8 3 4 3s4-1 4-3"/></svg> },
-  { key: 'schuhe', labelDe: 'Schuhe',   labelEn: 'Shoes',
+{ key: 'schuhe', labelDe: 'Schuhe',   labelEn: 'Shoes',
     icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 18h20v2a1 1 0 01-1 1H3a1 1 0 01-1-1v-2z"/><path d="M2 18l4-9h3l2 4 3-7h4l2 12"/></svg> },
 ]
+
+// Feste Anzeige-Reihenfolge fuer Outfit-Bilder (Oberteil -> Jacke -> Kleid -> Hose ->
+// kurze Hose -> Rock -> Schuhe), egal in welcher Reihenfolge die KI die Items liefert.
+// Wird sowohl fuers "Dress Me"-Outfit als auch fuers Tagesoutfit verwendet.
+const categoryOrder: Record<string, number> = Object.fromEntries(categoryConfig.map((c, i) => [c.key, i]))
+function sortItemsByCategory<T extends { category: string }>(items: T[]): T[] {
+  return [...items].sort((a, b) => (categoryOrder[a.category] ?? 99) - (categoryOrder[b.category] ?? 99))
+}
+
 type ClothingItem = { id: string; image_url: string; category: string; color: string; name?: string; brand?: string; is_locked?: boolean }
 type OutfitSingle = { items: string[]; reasoning: string; vibe?: string; itemObjects: ClothingItem[] }
 type OutfitGroup = { outfits: OutfitSingle[]; active: number }
@@ -1429,7 +1438,7 @@ style={{
           style={{ overflow: 'hidden' }}>
 
           <div style={{ display: 'grid', gridTemplateColumns: `repeat(${dailyFreeOutfit.itemObjects.length >= 3 ? 3 : 2}, 1fr)`, gap: '1px', background: border, borderTop: `1px solid ${border}` }}>
-            {dailyFreeOutfit.itemObjects.map((item, i) => (
+            {sortItemsByCategory(dailyFreeOutfit.itemObjects).map((item, i) => (
               <div key={i} style={{ background: card }}>
                 <div style={{ aspectRatio: '1', overflow: 'hidden', background: isDark ? '#0a1510' : '#f0fdf8' }}>
                   <img src={item.image_url} alt={item.name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
@@ -1638,7 +1647,7 @@ style={{
         transition={{ duration: 0.2 }}>
 
         <div style={{ display: 'grid', gridTemplateColumns: `repeat(${outfit.outfits[outfit.active].itemObjects.length >= 3 ? 3 : 2}, 1fr)`, gap: '1px', background: border }}>
-          {outfit.outfits[outfit.active].itemObjects.map((item, i) => (
+          {sortItemsByCategory(outfit.outfits[outfit.active].itemObjects).map((item, i) => (
             <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.06 }} style={{ background: card }}>
               <div style={{ aspectRatio: '1', overflow: 'hidden', background: isDark ? '#0a1510' : '#f0fdf8' }}>
                 <img src={item.image_url} alt={item.name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
