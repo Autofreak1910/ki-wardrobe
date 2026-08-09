@@ -167,15 +167,13 @@ export function InstallInstructionsModal({
 
   const stepsIOSChrome = locale === 'de'
     ? [
-        { icon: '⋯', title: 'Menü öffnen', desc: 'Unten rechts (oder oben rechts, je nach Version) auf die drei Punkte "•••" tippen.' },
-        { icon: '📤', title: '"Teilen" antippen', desc: 'Im aufklappenden Menü auf "Teilen" tippen.' },
+        { icon: '📤', title: 'Teilen-Symbol antippen', desc: 'Oben rechts in der Adressleiste auf das Teilen-Icon tippen (Viereck mit Pfeil nach oben).' },
         { icon: '📜', title: 'Runterscrollen zu "Zum Home-Bildschirm"', desc: 'In der sich öffnenden Liste nach unten scrollen (unter den einzelnen Kontakten/Apps), bis die Option "Zum Home-Bildschirm" erscheint.' },
         { icon: '➕', title: 'Hinzufügen bestätigen', desc: '"Zum Home-Bildschirm" antippen, dann oben rechts auf "Hinzufügen" tippen.' },
         { icon: '✅', title: 'Fertig!', desc: 'KiWardrobe erscheint jetzt als Icon auf deinem Home-Bildschirm — startet ohne Browserleiste, wie eine echte App.' },
       ]
     : [
-        { icon: '⋯', title: 'Open the menu', desc: 'Tap the three dots "•••" — bottom right (or top right, depending on version).' },
-        { icon: '📤', title: 'Tap "Share"', desc: 'In the menu that opens, tap "Share".' },
+        { icon: '📤', title: 'Tap the Share icon', desc: 'Top right of the address bar (square with an arrow pointing up).' },
         { icon: '📜', title: 'Scroll down to "Add to Home Screen"', desc: 'In the list that opens, scroll down past the contacts/apps row until you see "Add to Home Screen".' },
         { icon: '➕', title: 'Confirm', desc: 'Tap "Add to Home Screen", then tap "Add" in the top right corner.' },
         { icon: '✅', title: 'Done!', desc: 'KiWardrobe now appears as an icon on your home screen — opens without the browser bar, just like a native app.' },
