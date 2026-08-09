@@ -82,10 +82,13 @@ const categoryConfig = [
     icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 18h20v2a1 1 0 01-1 1H3a1 1 0 01-1-1v-2z"/><path d="M2 18l4-9h3l2 4 3-7h4l2 12"/></svg> },
 ]
 
-// Feste Anzeige-Reihenfolge fuer Outfit-Bilder (Oberteil -> Jacke -> Kleid -> Hose ->
-// kurze Hose -> Rock -> Schuhe), egal in welcher Reihenfolge die KI die Items liefert.
-// Wird sowohl fuers "Dress Me"-Outfit als auch fuers Tagesoutfit verwendet.
-const categoryOrder: Record<string, number> = Object.fromEntries(categoryConfig.map((c, i) => [c.key, i]))
+// Feste Anzeige-Reihenfolge fuer Outfit-Bilder: Jacke zuerst (aeusserste, sichtbarste
+// Schicht), dann Oberteil -> Kleid -> Hose -> kurze Hose -> Rock -> Schuhe. Bewusst
+// unabhaengig von categoryConfig (das steuert die Filter-Buttons oben und soll seine
+// eigene Reihenfolge behalten). Wird sowohl fuers "Dress Me"-Outfit als auch fuers
+// Tagesoutfit verwendet.
+const outfitDisplayOrder = ['jacken', 'tops', 'kleider', 'hosen', 'kurze_hosen', 'roecke', 'schuhe']
+const categoryOrder: Record<string, number> = Object.fromEntries(outfitDisplayOrder.map((key, i) => [key, i]))
 function sortItemsByCategory<T extends { category: string }>(items: T[]): T[] {
   return [...items].sort((a, b) => (categoryOrder[a.category] ?? 99) - (categoryOrder[b.category] ?? 99))
 }
